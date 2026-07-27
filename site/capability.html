@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Code Agent 单项能力详情：命令、参数、行为、Surface、保存范围和官方证据。"
+    />
+    <meta name="theme-color" content="#f4f2ed" />
+    <title>能力详情 · Code Agent 能力矩阵</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body class="capability-page">
+    <header class="masthead">
+      <div class="masthead__inner">
+        <a class="brand" href="./" aria-label="返回 Code Agent 能力矩阵">
+          <span class="brand__mark" aria-hidden="true">CA</span>
+          <span>Code Agent 能力矩阵</span>
+        </a>
+        <nav class="topnav" aria-label="相关链接">
+          <a href="./#commands">Slash 命令</a>
+          <a href="https://github.com/qqqys/code-agent">GitHub</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="capabilityMain" class="capability-main" hidden>
+      <nav class="breadcrumb" aria-label="面包屑">
+        <a href="./">能力矩阵</a>
+        <span>/</span>
+        <a id="categoryLink" href="./#commands">Slash 命令</a>
+        <span>/</span>
+        <span id="breadcrumbTitle"></span>
+      </nav>
+
+      <section class="capability-hero" aria-labelledby="capabilityTitle">
+        <div>
+          <p id="capabilityCategory" class="eyebrow"></p>
+          <h1 id="capabilityTitle"></h1>
+          <p id="capabilityDescription" class="capability-hero__description"></p>
+        </div>
+        <dl class="capability-meta">
+          <div><dt>核对日期</dt><dd id="capabilityUpdated"></dd></div>
+          <div><dt>比较对象</dt><dd>5 个 CLI</dd></div>
+          <div><dt>证据范围</dt><dd>官方文档与公开源码</dd></div>
+        </dl>
+      </section>
+
+      <section class="detail-section" aria-labelledby="quick-title">
+        <div class="section-heading">
+          <p class="section-label">01 / Quick comparison</p>
+          <h2 id="quick-title">命令对照</h2>
+        </div>
+        <div class="quick-grid" id="quickGrid"></div>
+      </section>
+
+      <section class="detail-section boundary-section" aria-labelledby="boundary-title">
+        <div class="section-heading">
+          <p class="section-label">02 / Boundary</p>
+          <h2 id="boundary-title">比较边界</h2>
+        </div>
+        <div class="boundary-grid">
+          <div>
+            <h3>本页包含</h3>
+            <ul id="includesList"></ul>
+          </div>
+          <div>
+            <h3>本页不包含</h3>
+            <ul id="excludesList"></ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="detail-section" aria-labelledby="facts-title">
+        <div class="section-heading">
+          <p class="section-label">03 / Cross-product facts</p>
+          <h2 id="facts-title">跨产品事实</h2>
+        </div>
+        <ol id="factsList" class="fact-list"></ol>
+      </section>
+
+      <section class="detail-section product-section" aria-labelledby="products-title">
+        <div class="section-heading">
+          <p class="section-label">04 / Product records</p>
+          <h2 id="products-title">逐产品记录</h2>
+        </div>
+        <nav id="productIndex" class="product-index" aria-label="产品页内导航"></nav>
+        <div id="productRecords" class="product-records"></div>
+      </section>
+
+      <section class="detail-section evidence-section" aria-labelledby="evidence-title">
+        <div class="section-heading">
+          <p class="section-label">05 / Evidence</p>
+          <h2 id="evidence-title">来源与关联能力</h2>
+        </div>
+        <div class="evidence-grid">
+          <div>
+            <h3>官方来源</h3>
+            <div id="sourceLinks" class="source-list"></div>
+          </div>
+          <div>
+            <h3>继续查看</h3>
+            <div id="relatedLinks" class="related-list"></div>
+            <a id="markdownLink" class="doc-link" href="#">打开对应 Markdown →</a>
+          </div>
+        </div>
+      </section>
+
+      <nav class="capability-pagination" aria-label="前后能力">
+        <a id="previousCapability" href="#"></a>
+        <button id="copyLink" type="button">复制本页链接</button>
+        <a id="nextCapability" href="#"></a>
+      </nav>
+    </main>
+
+    <main id="capabilityMissing" class="missing-page" hidden>
+      <p class="eyebrow">Capability not found</p>
+      <h1>没有找到这个能力详情</h1>
+      <p>该能力尚未进入已完成的详情阶段，或者链接中的能力 ID 不正确。</p>
+      <a href="./">返回能力矩阵</a>
+    </main>
+
+    <footer>
+      <p>每个字段分别记录命令、参数、行为、Surface、保存范围和证据。</p>
+      <a href="https://github.com/qqqys/code-agent/issues">报告字段错误</a>
+    </footer>
+
+    <script src="./data.js"></script>
+    <script src="./details.js"></script>
+    <script src="./capability.js"></script>
+  </body>
+</html>

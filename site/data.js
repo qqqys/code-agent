@@ -264,7 +264,7 @@ window.matrixData = {
       category: 'commands',
       capability: 'GitHub 设置',
       description: '初始化产品提供的 GitHub 集成。',
-      values: { claude: '插件或 GitHub App', codex: 'GitHub/Cloud 连接', qwen: '`/setup-github`', kimi: '—', qoder: '`/setup-github`' },
+      values: { claude: '`/install-github-app`', codex: 'GitHub/Cloud 连接；无对应 Slash 命令', qwen: '`/setup-github`', kimi: '—', qoder: '`/setup-github`' },
     },
     {
       id: 'cmd-collaboration',
@@ -278,7 +278,7 @@ window.matrixData = {
       category: 'commands',
       capability: '远程与跨端',
       description: '把本地会话连接到桌面端、Web 或远程控制入口。',
-      values: { claude: '`/remote-control` · `/rc` · `/teleport` · `/desktop`', codex: '`/app`', qwen: '—', kimi: '—', qoder: 'Cloud Mode；无对应 Slash 命令' },
+      values: { claude: '`/remote-control` · `/rc` · `/teleport` · `/desktop`', codex: '`/app`', qwen: '—', kimi: '`/web`', qoder: 'Cloud Mode；无对应 Slash 命令' },
     },
     {
       id: 'agent-builtins',

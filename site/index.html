@@ -33,11 +33,13 @@
           <h1 id="page-title">五个 Code Agent，按字段逐项对照</h1>
           <p class="intro__copy">
             比较 Claude Code、Codex、Qwen Code、Kimi Code 和 Qoder CLI 的公开功能。
-            表格记录具体命令、配置和运行行为；没有一手证据的字段标为“未确认”。
+            表格记录具体命令、配置和运行行为；带箭头的能力可打开独立详情页，
+            查看参数、执行行为、适用模式、保存范围和逐产品证据。
           </p>
         </div>
         <dl class="summary" aria-label="矩阵概况">
           <div><dt id="rowCount">0</dt><dd>能力字段</dd></div>
+          <div><dt id="detailCount">0</dt><dd>完整详情</dd></div>
           <div><dt>5</dt><dd>产品</dd></div>
           <div><dt>8</dt><dd>分类</dd></div>
         </dl>
@@ -91,26 +93,13 @@
       </section>
     </main>
 
-    <aside id="detailPanel" class="detail" aria-hidden="true" aria-labelledby="detailTitle">
-      <button id="detailClose" class="detail__close" type="button" aria-label="关闭详情">×</button>
-      <p id="detailCategory" class="eyebrow"></p>
-      <h2 id="detailTitle"></h2>
-      <p id="detailDescription" class="detail__description"></p>
-      <div id="detailValues" class="detail__values"></div>
-      <div class="detail__links">
-        <h3>资料</h3>
-        <div id="detailSources"></div>
-        <a id="detailMarkdown" class="doc-link" href="#">打开对应 Markdown →</a>
-      </div>
-    </aside>
-    <button id="detailBackdrop" class="backdrop" type="button" aria-label="关闭详情" hidden></button>
-
     <footer>
       <p>数据核对到具体 Surface。网页与 Markdown 保持同一组字段。</p>
       <a href="https://github.com/qqqys/code-agent/issues">报告字段错误</a>
     </footer>
 
     <script src="./data.js"></script>
+    <script src="./details.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>

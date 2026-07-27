@@ -4,6 +4,8 @@
 
 > `—` 表示当前官方 Slash 命令目录没有列出对应命令，不表示底层能力不存在。命令可能受版本、平台或功能开关影响。
 
+[打开 28 个 Slash 命令独立详情](./capabilities/commands/)
+
 ## 对照表
 
 | 功能 | Claude Code | Codex | Qwen Code | Kimi Code | Qoder CLI |
@@ -48,13 +50,13 @@
 | Vim 模式 | — | `/vim` | `/vim` | — | `/vim` |
 | 状态栏 | `/statusline` | `/statusline` | `/statusline` | — | — |
 | 终端安装 | `/terminal-setup` | — | `/terminal-setup` | — | — |
-| GitHub 设置 | — | — | `/setup-github` | — | `/setup-github` |
+| GitHub 设置 | `/install-github-app` | 无对应 Slash 命令 | `/setup-github` | — | `/setup-github` |
 | 反馈或问题上报 | `/feedback`、`/bug`、`/share` | `/feedback` | `/bug` | `/feedback` | `/feedback` |
 | 更新与发行说明 | `/release-notes` | — | `/update` | 内置更新 Skill | `/upgrade`、`/release-notes` |
 | 临时旁路问题 | `/btw` | `/side`、`/btw` | `/btw` | `/btw` | — |
 | 浏览器或 Web | `/chrome`、`/deep-research` | `/apps` | — | `/web` | — |
 | 多模型或多代理协作模式 | `/advisor`、`/batch` | `/agent` | `/arena` | `/swarm` | `/quest` |
-| 远程控制 | `/remote-control`、`/rc`、`/teleport`、`/desktop`、`/app` | `/app` | — | — | 条件项：Cloud Mode |
+| 远程控制 | `/remote-control`、`/rc`、`/teleport`、`/desktop`、`/app` | `/app` | — | `/web` | 条件项：Cloud Mode |
 | 退出程序 | `/exit`、`/quit` | `/exit`、`/quit` | `/quit`、`/exit` | `/exit`、`/quit`、`/q` | `/quit`、`/exit` |
 | 帮助 | `/help` | 命令选择器 | `/help`、`/?` | `/help`、`/h`、`/?` | `/help` |
 
@@ -62,11 +64,11 @@
 
 ### Claude Code
 
-`/add-dir`、`/advisor`、`/agents`、`/autofix-pr`、`/background`、`/batch`、`/branch`、`/btw`、`/bug`、`/cd`、`/chrome`、`/clear`、`/code-review`、`/compact`、`/config`、`/context`、`/copy`、`/debug`、`/deep-research`、`/desktop`、`/diff`、`/doctor`、`/effort`、`/exit`、`/export`、`/fast`、`/feedback`、`/fork`、`/goal`、`/help`、`/hooks`、`/ide`、`/init`、`/insights`、`/login`、`/logout`、`/mcp`、`/memory`、`/model`、`/permissions`、`/plan`、`/plugin`、`/recap`、`/release-notes`、`/reload-plugins`、`/reload-skills`、`/remote-control`、`/rename`、`/resume`、`/review`、`/rewind`、`/sandbox`、`/security-review`、`/skills`、`/stats`、`/status`、`/statusline`、`/subtask`、`/tasks`、`/teleport`、`/terminal-setup`。
+`/add-dir`、`/advisor`、`/agents`、`/autofix-pr`、`/background`、`/batch`、`/branch`、`/btw`、`/bug`、`/cd`、`/chrome`、`/claude-api`、`/clear`、`/code-review`、`/color`、`/compact`、`/config`、`/context`、`/copy`、`/cost`、`/dataviz`、`/debug`、`/deep-research`、`/design-login`、`/design-sync`、`/desktop`、`/diff`、`/doctor`、`/effort`、`/exit`、`/export`、`/fast`、`/feedback`、`/fewer-permission-prompts`、`/focus`、`/fork`、`/goal`、`/heapdump`、`/help`、`/hooks`、`/ide`、`/init`、`/insights`、`/install-github-app`、`/install-slack-app`、`/keybindings`、`/login`、`/logout`、`/loop`、`/mcp`、`/memory`、`/mobile`、`/model`、`/passes`、`/permissions`、`/plan`、`/plugin`、`/powerup`、`/privacy-settings`、`/radio`、`/recap`、`/release-notes`、`/reload-plugins`、`/reload-skills`、`/remote-control`、`/remote-env`、`/rename`、`/resume`、`/review`、`/rewind`、`/run`、`/run-skill-generator`、`/sandbox`、`/schedule`、`/scroll-speed`、`/security-review`、`/setup-bedrock`、`/setup-vertex`、`/simplify`、`/skills`、`/stats`、`/status`、`/statusline`、`/stickers`、`/stop`、`/subtask`、`/tasks`、`/team-onboarding`、`/teleport`、`/terminal-setup`、`/theme`、`/tui`、`/ultraplan`、`/ultrareview`、`/upgrade`、`/usage`、`/usage-credits`、`/verify`、`/voice`、`/web-setup`、`/workflows`。
 
 ### Codex
 
-`/agent`、`/apps`、`/approve`、`/archive`、`/clear`、`/compact`、`/copy`、`/debug-config`、`/delete`、`/diff`、`/exit`、`/experimental`、`/fast`、`/feedback`、`/fork`、`/goal`、`/hooks`、`/ide`、`/import`、`/init`、`/keymap`、`/logout`、`/mcp`、`/memories`、`/mention`、`/model`、`/new`、`/permissions`、`/personality`、`/plan`、`/plugins`、`/ps`、`/raw`、`/rename`、`/resume`、`/review`、`/sandbox-add-read-dir`、`/setup-default-sandbox`、`/side`、`/skills`、`/status`、`/statusline`、`/stop`、`/theme`、`/title`、`/usage`、`/vim`。
+`/agent`、`/apps`、`/approve`、`/archive`、`/clear`、`/compact`、`/copy`、`/debug-config`、`/delete`、`/diff`、`/exit`、`/experimental`、`/fast`、`/feedback`、`/fork`、`/goal`、`/hooks`、`/ide`、`/import`、`/init`、`/keymap`、`/logout`、`/mcp`、`/memories`、`/mention`、`/model`、`/new`、`/permissions`、`/personality`、`/pet`、`/pets`、`/plan`、`/plugins`、`/ps`、`/raw`、`/rename`、`/resume`、`/review`、`/sandbox-add-read-dir`、`/setup-default-sandbox`、`/side`、`/skills`、`/status`、`/statusline`、`/stop`、`/theme`、`/title`、`/usage`、`/vim`。
 
 ### Qwen Code
 

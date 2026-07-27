@@ -1,0 +1,126 @@
+# 代码审查
+
+[返回 Slash 命令详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=cmd-review)
+
+> 核对日期：2026-07-27
+
+## 定义
+
+启动由产品提供的代码审查流程，对本地工作区、Git Diff 或 Pull Request 产生结构化问题清单。
+
+## 命令对照
+
+| 产品 | 命令摘要 | 证据状态 |
+| --- | --- | --- |
+| Claude Code | `/review [PR]`、`/code-review [level] [--fix] [--comment] [target]`、`/security-review` | 官方确认 |
+| Codex | `/review` | 官方确认 |
+| Qwen Code | 无对应命令 | 未确认 |
+| Kimi Code | 无对应命令 | 未确认 |
+| Qoder CLI | `/review [instruction]` | 官方确认 |
+
+## 比较边界
+
+### 本页包含
+
+- 本地 Diff Review
+- PR Review
+- 安全审查
+- 自动应用或发表评论参数
+
+### 本页不包含
+
+- 普通提示词要求“看看代码”
+- CI 检查
+- 自动修复 PR 后续评论
+
+## 跨产品事实
+
+1. Claude Code 将快速 PR Review、本地多级 Code Review 和安全 Review 拆成三个命令。
+2. Codex `/review` 面向工作树审查。
+3. Qwen Code 和 Kimi Code 当前官方内置命令目录没有独立 Review 命令。
+
+## 逐产品记录
+
+### Claude Code
+
+| 字段 | 记录 |
+| --- | --- |
+| 主命令 | `/review [PR]`、`/code-review [level] [--fix] [--comment] [target]`、`/security-review` |
+| 别名 | 无公开别名 |
+| 参数 | effort level、`--fix`、`--comment`、PR 或 target |
+| 执行行为 | 支持只读 PR Review、本地或云端多级 Review，以及当前分支安全审查。 |
+| 可用模式 | 交互式 CLI |
+| 保存范围 | `--fix` 可修改文件，`--comment` 可写入 GitHub；其他形式只读 |
+| 条件与边界 | GitHub 相关形式需要仓库和相应访问权限 |
+| 证据状态 | 官方确认 |
+| 来源 | [Claude Code Commands](https://code.claude.com/docs/en/commands) |
+
+### Codex
+
+| 字段 | 记录 |
+| --- | --- |
+| 主命令 | `/review` |
+| 别名 | 无公开别名 |
+| 参数 | 无公开参数 |
+| 执行行为 | 进入代码审查模式，审查未提交变化或与基线分支比较。 |
+| 可用模式 | 交互式 CLI |
+| 保存范围 | 默认产生审查结果，不等同于自动修改 |
+| 条件与边界 | 无额外条件 |
+| 证据状态 | 官方确认 |
+| 来源 | [Codex CLI commands](https://developers.openai.com/codex/cli/slash-commands) |
+
+### Qwen Code
+
+| 字段 | 记录 |
+| --- | --- |
+| 主命令 | 无对应命令 |
+| 别名 | 无公开别名 |
+| 参数 | — |
+| 执行行为 | 可以通过提示、Skill 或工作流执行审查，但当前内置命令目录没有 `/review`。 |
+| 可用模式 | 交互式 CLI |
+| 保存范围 | — |
+| 条件与边界 | 不据此推断底层能力不存在 |
+| 证据状态 | 未确认 |
+| 来源 | [Qwen Code command source](https://github.com/QwenLM/qwen-code/tree/main/packages/cli/src/ui/commands) |
+
+### Kimi Code
+
+| 字段 | 记录 |
+| --- | --- |
+| 主命令 | 无对应命令 |
+| 别名 | 无公开别名 |
+| 参数 | — |
+| 执行行为 | 可以通过提示执行审查，但当前官方 Slash 命令目录没有 `/review`。 |
+| 可用模式 | 交互式 CLI |
+| 保存范围 | — |
+| 条件与边界 | 不据此推断底层能力不存在 |
+| 证据状态 | 未确认 |
+| 来源 | [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/main/docs/zh/reference/slash-commands.md) |
+
+### Qoder CLI
+
+| 字段 | 记录 |
+| --- | --- |
+| 主命令 | `/review [instruction]` |
+| 别名 | 无公开别名 |
+| 参数 | `[instruction]` |
+| 执行行为 | 以 Prompt 命令审查本地待提交 Git 变化。 |
+| 可用模式 | TUI 与 Headless |
+| 保存范围 | 只读审查提示；后续是否修改取决于任务交互 |
+| 条件与边界 | 无额外条件 |
+| 证据状态 | 官方确认 |
+| 来源 | [Qoder CLI commands](https://docs.qoder.com/en/cli/command) |
+
+## 官方来源
+
+- [Claude Code Commands](https://code.claude.com/docs/en/commands)
+- [Codex CLI commands](https://developers.openai.com/codex/cli/slash-commands)
+- [Qwen Code command source](https://github.com/QwenLM/qwen-code/tree/main/packages/cli/src/ui/commands)
+- [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/main/docs/zh/reference/slash-commands.md)
+- [Qoder CLI commands](https://docs.qoder.com/en/cli/command)
+
+## 关联能力
+
+- [查看 Diff](./cmd-diff.md)
+- [GitHub 设置](./cmd-github.md)
+- 代码 Review：见对应能力矩阵

@@ -1,5 +1,5 @@
 const data = window.matrixData;
-const repoDocs = 'https://github.com/qqqys/code-agent/blob/main/docs/';
+const details = window.capabilityDetails;
 
 const state = {
   category: 'all',
@@ -16,16 +16,8 @@ const elements = {
   body: document.querySelector('#matrixBody'),
   resultCount: document.querySelector('#resultCount'),
   rowCount: document.querySelector('#rowCount'),
+  detailCount: document.querySelector('#detailCount'),
   empty: document.querySelector('#emptyState'),
-  panel: document.querySelector('#detailPanel'),
-  backdrop: document.querySelector('#detailBackdrop'),
-  detailClose: document.querySelector('#detailClose'),
-  detailCategory: document.querySelector('#detailCategory'),
-  detailTitle: document.querySelector('#detailTitle'),
-  detailDescription: document.querySelector('#detailDescription'),
-  detailValues: document.querySelector('#detailValues'),
-  detailSources: document.querySelector('#detailSources'),
-  detailMarkdown: document.querySelector('#detailMarkdown'),
   updatedAt: document.querySelector('#updatedAt'),
 };
 
@@ -133,14 +125,21 @@ function renderTable() {
   elements.body.innerHTML = rows
     .map((row) => {
       const category = data.categories.find((item) => item.id === row.category);
+      const detailHref = details[row.id]
+        ? `./capability.html?id=${encodeURIComponent(row.id)}`
+        : null;
+      const title = detailHref
+        ? `<a href="${detailHref}" class="capability-link">
+              ${escapeHtml(row.capability)}
+              <span aria-hidden="true">→</span>
+            </a>`
+        : `<span class="capability-title">${escapeHtml(row.capability)}</span>
+           <span class="detail-pending">详情待补</span>`;
       return `
         <tr id="${row.id}" data-row-id="${row.id}">
           <th scope="row" class="capability-column">
             <span class="category-tag">${escapeHtml(category.name)}</span>
-            <a href="#${row.id}" class="capability-link" data-detail="${row.id}">
-              ${escapeHtml(row.capability)}
-              <span aria-hidden="true">↗</span>
-            </a>
+            ${title}
           </th>
           ${products
             .map((product) => {
@@ -172,57 +171,10 @@ function setCategory(category, updateHash = true) {
   }
 }
 
-function openDetail(id, updateHash = true) {
-  const row = data.rows.find((item) => item.id === id);
-  if (!row) return;
-
-  const category = data.categories.find((item) => item.id === row.category);
-  elements.detailCategory.textContent = category.name;
-  elements.detailTitle.textContent = row.capability;
-  elements.detailDescription.textContent = row.description;
-  elements.detailValues.innerHTML = data.products
-    .map(
-      (product) => `
-        <div>
-          <dt>${escapeHtml(product.name)}</dt>
-          <dd class="cell--${valueState(row.values[product.id])}">
-            ${formatValue(row.values[product.id])}
-          </dd>
-        </div>
-      `,
-    )
-    .join('');
-  elements.detailSources.innerHTML = row.sources
-    .map((sourceId) => data.sources[sourceId])
-    .map(
-      (source) =>
-        `<a href="${source.url}" target="_blank" rel="noreferrer">${escapeHtml(source.label)} ↗</a>`,
-    )
-    .join('');
-  elements.detailMarkdown.href = `${repoDocs}${encodeURIComponent(category.doc).replaceAll('%2F', '/')}`;
-  elements.panel.classList.add('is-open');
-  elements.panel.setAttribute('aria-hidden', 'false');
-  elements.backdrop.hidden = false;
-  document.body.classList.add('detail-open');
-  if (updateHash) history.replaceState(null, '', `#${id}`);
-}
-
-function closeDetail({ restoreCategoryHash = true } = {}) {
-  elements.panel.classList.remove('is-open');
-  elements.panel.setAttribute('aria-hidden', 'true');
-  elements.backdrop.hidden = true;
-  document.body.classList.remove('detail-open');
-  if (restoreCategoryHash) {
-    const hash = state.category === 'all' ? location.pathname : `#${state.category}`;
-    history.replaceState(null, '', hash);
-  }
-}
-
 function handleHash() {
   const hash = decodeURIComponent(location.hash.slice(1));
   if (!hash) return;
   if (data.categories.some((category) => category.id === hash)) {
-    closeDetail({ restoreCategoryHash: false });
     setCategory(hash, false);
     return;
   }
@@ -230,7 +182,6 @@ function handleHash() {
   if (row) {
     state.category = row.category;
     render();
-    openDetail(hash, false);
     requestAnimationFrame(() => document.querySelector(`#${CSS.escape(hash)}`)?.scrollIntoView({ block: 'center' }));
   }
 }
@@ -238,7 +189,6 @@ function handleHash() {
 elements.categoryTabs.addEventListener('click', (event) => {
   const button = event.target.closest('[data-category]');
   if (!button) return;
-  closeDetail({ restoreCategoryHash: false });
   setCategory(button.dataset.category);
 });
 
@@ -256,38 +206,26 @@ elements.search.addEventListener('input', () => {
   renderTable();
 });
 
-elements.body.addEventListener('click', (event) => {
-  const link = event.target.closest('[data-detail]');
-  if (!link) return;
-  event.preventDefault();
-  openDetail(link.dataset.detail);
-});
-
 elements.reset.addEventListener('click', () => {
   state.category = 'all';
   state.query = '';
   state.products = new Set(data.products.map((product) => product.id));
   elements.search.value = '';
-  closeDetail({ restoreCategoryHash: false });
   history.replaceState(null, '', location.pathname);
   render();
 });
 
 elements.empty.querySelector('button').addEventListener('click', () => elements.reset.click());
-elements.detailClose.addEventListener('click', () => closeDetail());
-elements.backdrop.addEventListener('click', () => closeDetail());
 window.addEventListener('hashchange', handleHash);
 window.addEventListener('keydown', (event) => {
   if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
     event.preventDefault();
     elements.search.focus();
   }
-  if (event.key === 'Escape' && elements.panel.classList.contains('is-open')) {
-    closeDetail();
-  }
 });
 
 elements.updatedAt.textContent = `核对于 ${data.updatedAt}`;
 elements.rowCount.textContent = data.rows.length;
+elements.detailCount.textContent = Object.keys(details).length;
 render();
 handleHash();
