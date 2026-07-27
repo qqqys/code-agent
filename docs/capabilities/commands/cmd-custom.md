@@ -125,4 +125,4 @@
 
 - [Skills](./cmd-skills.md)
 - [插件或扩展](./cmd-plugins.md)
-- 自定义 Slash 命令：见对应能力矩阵
+- [自定义 Slash 命令](../extensions/extension-custom-commands.md)

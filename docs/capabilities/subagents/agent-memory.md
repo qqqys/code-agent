@@ -130,5 +130,5 @@
 ## 关联能力
 
 - [独立上下文](./agent-context.md)
-- 跨会话记忆：见对应能力矩阵
+- [跨会话记忆](../sessions/session-memory.md)
 - [配置格式](./agent-config.md)

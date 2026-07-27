@@ -106,6 +106,21 @@ function sessionFields(record) {
   ];
 }
 
+function extensionFields(record) {
+  return [
+    ['矩阵结论', formatValue(record.value)],
+    ['入口与配置', formatValue(record.entry)],
+    ['文件与目录', formatValue(record.location)],
+    ['具体行为', formatValue(record.behavior)],
+    ['作用域与优先级', formatValue(record.scope)],
+    ['扩展构成', formatValue(record.components)],
+    ['加载与刷新', formatValue(record.loading)],
+    ['适用界面', formatValue(record.surfaces)],
+    ['权限与信任', formatValue(record.permissions)],
+    ['条件与边界', formatValue(record.conditions)],
+  ];
+}
+
 const schemas = {
   commands: {
     quickTitle: '命令对照',
@@ -126,6 +141,11 @@ const schemas = {
     quickTitle: '会话结论',
     markdownDirectory: 'sessions',
     fields: sessionFields,
+  },
+  extensions: {
+    quickTitle: '扩展结论',
+    markdownDirectory: 'extensions',
+    fields: extensionFields,
   },
 };
 

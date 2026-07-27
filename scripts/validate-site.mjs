@@ -27,13 +27,14 @@ runScripts(indexDom, [
   'site/subagent-details.js',
   'site/security-details.js',
   'site/session-details.js',
+  'site/extension-details.js',
   'site/app.js',
 ]);
 
 assert.equal(indexDom.window.document.querySelectorAll('#matrixBody tr').length, 94);
 assert.equal(
   indexDom.window.document.querySelectorAll('#matrixBody .capability-link').length,
-  66,
+  73,
 );
 assert.equal(
   indexDom.window.document.querySelectorAll('#categoryTabs [role="tab"]').length,
@@ -55,6 +56,7 @@ function renderDetail(id) {
     'site/subagent-details.js',
     'site/security-details.js',
     'site/session-details.js',
+    'site/extension-details.js',
     'site/capability.js',
   ]);
   assert.equal(dom.window.document.querySelector('#capabilityMain').hidden, false);
@@ -121,6 +123,22 @@ assert.equal(
 assert.match(
   sessionDom.window.document.querySelector('#markdownLink').href,
   /docs\/capabilities\/sessions\/session-checkpoint\.md$/,
+);
+
+const extensionDom = renderDetail('extension-plugins');
+const extensionLabels =
+  extensionDom.window.document.querySelector('#productRecords').textContent;
+assert.match(extensionLabels, /入口与配置/);
+assert.match(extensionLabels, /扩展构成/);
+assert.match(extensionLabels, /权限与信任/);
+assert.doesNotMatch(extensionLabels, /主命令/);
+assert.equal(
+  extensionDom.window.document.querySelector('#categoryLink').getAttribute('href'),
+  './#extensions',
+);
+assert.match(
+  extensionDom.window.document.querySelector('#markdownLink').href,
+  /docs\/capabilities\/extensions\/extension-plugins\.md$/,
 );
 
 console.log('Validated matrix render, detail schemas, links, and CSS.');

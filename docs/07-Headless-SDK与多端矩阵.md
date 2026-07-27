@@ -25,7 +25,7 @@
 | Web | Claude.ai/Remote Control 相关入口 | ChatGPT/Codex Web | Web Shell | 产品 Web 能力与 CLI 分开 | Qoder 产品端 |
 | Cloud 任务 | Web/Remote 工作流 | Codex Cloud | 依 Daemon 与部署 | 未确认 | Cloud Mode |
 | 移动端控制 | Remote Control 相关入口 | App/Web 入口依账号 | IM/Channel 入口依部署 | 未确认 | 未确认 |
-| IDE 到 CLI 上下文 | `/ide` | `/ide` | `/ide` | `/editor` | Qoder 产品集成 |
+| IDE 到 CLI 上下文 | `/ide` | IDE Extension、`/ide-context` | `/ide` | `kimi acp` | `qodercli --acp`、Qoder IDE |
 | 远程接管本地会话 | `/remote-control`、`/rc` | `/app` 与多端工作流 | 依 Daemon/Channel | 未确认 | Cloud Mode |
 | 会话跨端继续 | `/teleport`、`/desktop` | App/CLI/Cloud 工作流 | 依会话后端 | `/sessions` 主要为 CLI 会话 | 产品账号与 Cloud Mode |
 

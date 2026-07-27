@@ -123,4 +123,4 @@
 
 - [恢复会话](./cmd-resume.md)
 - [查看 Diff](./cmd-diff.md)
-- 检查点与回退：见对应能力矩阵
+- [检查点与回退](../sessions/session-checkpoint.md)

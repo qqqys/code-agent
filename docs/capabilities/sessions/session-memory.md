@@ -136,4 +136,4 @@
 
 - [恢复会话](./session-resume.md)
 - [Agent 持久记忆](../subagents/agent-memory.md)
-- 项目指令文件：见对应能力矩阵
+- [项目指令文件](../extensions/extension-project-instructions.md)

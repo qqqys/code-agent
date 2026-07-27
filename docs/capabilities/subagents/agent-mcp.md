@@ -131,4 +131,4 @@
 
 - [工具白名单](./agent-tools.md)
 - [工具黑名单](./agent-deny-tools.md)
-- MCP 客户端：见对应能力矩阵
+- [MCP 客户端](../extensions/extension-mcp.md)

@@ -123,4 +123,4 @@
 
 - [插件或扩展](./cmd-plugins.md)
 - [Agent 独立 Hooks](../subagents/agent-hooks.md)
-- 生命周期 Hooks：见对应能力矩阵
+- [生命周期 Hooks](../extensions/extension-hooks.md)

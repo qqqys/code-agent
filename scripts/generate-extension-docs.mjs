@@ -19,19 +19,11 @@ for (const file of [
 
 const data = context.window.matrixData;
 const details = context.window.capabilityDetails;
-const outputDir = path.join(root, 'docs/capabilities/commands');
+const outputDir = path.join(root, 'docs/capabilities/extensions');
 fs.mkdirSync(outputDir, { recursive: true });
 
 function cell(value) {
   return String(value).replaceAll('|', '\\|').replaceAll('\n', '<br>');
-}
-
-function commandList(values) {
-  return values.length ? values.map((value) => `\`${value}\``).join('、') : '无对应命令';
-}
-
-function aliasList(values) {
-  return values.length ? values.map((value) => `\`${value}\``).join('、') : '无公开别名';
 }
 
 function sourceLinks(sourceIds) {
@@ -56,23 +48,21 @@ function relatedLink(related) {
   };
   const directory = directories[related.category];
   if (!directory) return null;
-  return directory === 'commands'
+  return directory === 'extensions'
     ? `./${related.id}.md`
     : `../${directory}/${related.id}.md`;
 }
 
-const commandRows = data.rows.filter((row) => row.category === 'commands');
+const rows = data.rows.filter((row) => row.category === 'extensions');
 
-for (const row of commandRows) {
+for (const row of rows) {
   const detail = details[row.id];
-  if (!detail) {
-    throw new Error(`Missing detail for ${row.id}`);
-  }
+  if (!detail) throw new Error(`Missing detail for ${row.id}`);
 
   const lines = [
     `# ${row.capability}`,
     '',
-    `[返回 Slash 命令详情目录](./README.md) · [打开网页详情](${detailLink(row.id)})`,
+    `[返回扩展系统详情目录](./README.md) · [打开网页详情](${detailLink(row.id)})`,
     '',
     `> 核对日期：${data.updatedAt}`,
     '',
@@ -80,13 +70,13 @@ for (const row of commandRows) {
     '',
     detail.definition,
     '',
-    '## 命令对照',
+    '## 扩展结论',
     '',
-    '| 产品 | 命令摘要 | 证据状态 |',
+    '| 产品 | 结论 | 证据状态 |',
     '| --- | --- | --- |',
     ...data.products.map((product) => {
       const record = detail.products[product.id];
-      return `| ${product.name} | ${cell(commandList(record.commands))} | ${record.status} |`;
+      return `| ${product.name} | ${cell(record.value)} | ${record.status} |`;
     }),
     '',
     '## 比较边界',
@@ -114,12 +104,15 @@ for (const row of commandRows) {
       '',
       '| 字段 | 记录 |',
       '| --- | --- |',
-      `| 主命令 | ${cell(commandList(record.commands))} |`,
-      `| 别名 | ${cell(aliasList(record.aliases))} |`,
-      `| 参数 | ${cell(record.parameters)} |`,
-      `| 执行行为 | ${cell(record.behavior)} |`,
-      `| 可用模式 | ${cell(record.mode)} |`,
-      `| 保存范围 | ${cell(record.persistence)} |`,
+      `| 矩阵结论 | ${cell(record.value)} |`,
+      `| 入口与配置 | ${cell(record.entry)} |`,
+      `| 文件与目录 | ${cell(record.location)} |`,
+      `| 具体行为 | ${cell(record.behavior)} |`,
+      `| 作用域与优先级 | ${cell(record.scope)} |`,
+      `| 扩展构成 | ${cell(record.components)} |`,
+      `| 加载与刷新 | ${cell(record.loading)} |`,
+      `| 适用界面 | ${cell(record.surfaces)} |`,
+      `| 权限与信任 | ${cell(record.permissions)} |`,
       `| 条件与边界 | ${cell(record.conditions)} |`,
       `| 证据状态 | ${record.status} |`,
       `| 来源 | ${sourceLinks(record.sources)} |`,
@@ -128,7 +121,9 @@ for (const row of commandRows) {
   }
 
   const sourceIds = [
-    ...new Set(Object.values(detail.products).flatMap((product) => product.sources)),
+    ...new Set(
+      Object.values(detail.products).flatMap((product) => product.sources),
+    ),
   ];
   lines.push(
     '## 官方来源',
@@ -158,17 +153,17 @@ for (const row of commandRows) {
 }
 
 const indexLines = [
-  '# Slash 命令详情',
+  '# 扩展系统能力详情',
   '',
-  '[返回 Slash 命令矩阵](../../01-Slash命令矩阵.md) · [打开网页矩阵](https://qqqys.github.io/code-agent/#commands)',
+  '[返回扩展系统矩阵](../../05-扩展系统矩阵.md) · [打开网页矩阵](https://qqqys.github.io/code-agent/#extensions)',
   '',
   `> 核对日期：${data.updatedAt}`,
   '',
-  '每一页固定记录能力定义、比较边界、五家命令、参数、行为、可用模式、保存范围、条件和官方来源。',
+  '每一页固定记录能力定义、比较边界、五家结论、入口、文件与目录、具体行为、作用域、扩展构成、加载方式、适用界面、权限边界和官方来源。',
   '',
   '| 能力 | 网页 | Markdown |',
   '| --- | --- | --- |',
-  ...commandRows.map(
+  ...rows.map(
     (row) =>
       `| ${row.capability} | [打开](${detailLink(row.id)}) | [查看](./${row.id}.md) |`,
   ),
@@ -177,6 +172,34 @@ const indexLines = [
 fs.writeFileSync(
   path.join(outputDir, 'README.md'),
   `${indexLines.join('\n').trimEnd()}\n`,
+);
+
+const matrixLines = [
+  '# 扩展系统矩阵',
+  '',
+  '[返回文档目录](./README.md) · [网页矩阵](https://qqqys.github.io/code-agent/#extensions) · [详情目录](./capabilities/extensions/)',
+  '',
+  `> 核对日期：${data.updatedAt}`,
+  '',
+  '| 能力 | Claude Code | Codex | Qwen Code | Kimi Code | Qoder CLI |',
+  '| --- | --- | --- | --- | --- | --- |',
+  ...rows.map(
+    (row) =>
+      `| [${row.capability}](./capabilities/extensions/${row.id}.md) | ${cell(row.values.claude)} | ${cell(row.values.codex)} | ${cell(row.values.qwen)} | ${cell(row.values.kimi)} | ${cell(row.values.qoder)} |`,
+  ),
+  '',
+  '## 阅读边界',
+  '',
+  '本矩阵把 MCP、Skills、Hooks、Plugin、Prompt Command、项目指令和 IDE 连接拆成七种机制。命令同名不代表能力相同；详情页分别记录配置位置、作用域、加载方式、适用界面和权限边界。',
+  '',
+  '## 详情字段',
+  '',
+  '每个能力页分别记录五家的入口与配置、文件与目录、具体行为、作用域与优先级、扩展构成、加载与刷新、适用界面、权限与信任、条件和官方来源。',
+  '',
+];
+fs.writeFileSync(
+  path.join(root, 'docs/05-扩展系统矩阵.md'),
+  `${matrixLines.join('\n').trimEnd()}\n`,
 );
 
 const capabilitiesIndex = [
@@ -200,4 +223,4 @@ fs.writeFileSync(
   `${capabilitiesIndex.join('\n').trimEnd()}\n`,
 );
 
-console.log(`Generated ${commandRows.length} command detail documents.`);
+console.log(`Generated ${rows.length} extension system detail documents.`);

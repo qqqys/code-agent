@@ -130,5 +130,5 @@
 ## 关联能力
 
 - [工具白名单](./agent-tools.md)
-- Agent Skills：见对应能力矩阵
+- [Agent Skills](../extensions/extension-skills.md)
 - [初始上下文](./agent-initial-context.md)

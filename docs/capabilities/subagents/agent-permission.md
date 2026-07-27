@@ -130,5 +130,5 @@
 ## 关联能力
 
 - [工具白名单](./agent-tools.md)
-- 交互审批：见对应能力矩阵
-- 只读或计划模式：见对应能力矩阵
+- [交互审批](../security/security-approval.md)
+- [只读或计划模式](../security/security-plan.md)

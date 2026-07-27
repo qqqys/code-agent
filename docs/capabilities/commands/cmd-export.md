@@ -122,5 +122,5 @@
 ## 关联能力
 
 - [状态与用量](./cmd-status.md)
-- 会话导出：见对应能力矩阵
+- [会话导出](../sessions/session-export.md)
 - [配置](./cmd-config.md)

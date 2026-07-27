@@ -841,13 +841,13 @@
       includes: ['IDE 连接状态', '安装或启停集成', '外部编辑器配置', '编辑器上下文'],
       excludes: ['IDE 插件的全部功能', 'LSP 功能矩阵', '桌面端会话迁移'],
       facts: [
-        'Claude Code、Codex 和 Qwen Code 提供 `/ide`。',
+        'Claude Code 和 Qwen Code 提供 `/ide`；Codex 对应命令是 `/ide-context`。',
         'Kimi Code `/editor` 配置由 Ctrl-G 调起的外部编辑器。',
         'Qoder CLI 命令表没有 IDE 连接命令，但 Qoder 产品另有 IDE Surface。',
       ],
       products: {
         claude: command('claude', ['/ide'], '管理 IDE 集成并显示连接状态。'),
-        codex: command('codex', ['/ide'], '将 IDE 打开的文件、当前选择和其他编辑器上下文加入下一条提示。', {
+        codex: command('codex', ['/ide-context'], '将 IDE 打开的文件、当前选择和其他编辑器上下文加入下一条提示。', {
           persistence: '影响下一条或当前会话上下文',
         }),
         qwen: command('qwen', ['/ide', '/editor'], '`/ide` 检查、安装、启用或禁用 IDE 集成；`/editor` 设置外部编辑器偏好。', {

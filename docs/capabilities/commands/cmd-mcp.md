@@ -123,4 +123,4 @@
 
 - [插件或扩展](./cmd-plugins.md)
 - [Skills](./cmd-skills.md)
-- MCP 客户端：见对应能力矩阵
+- [MCP 客户端](../extensions/extension-mcp.md)

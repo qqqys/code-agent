@@ -1,0 +1,142 @@
+# 插件分发
+
+[返回扩展系统详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=extension-plugins)
+
+> 核对日期：2026-07-27
+
+## 定义
+
+把多个扩展组件打包、安装、启用和更新，并比较包清单、可携带组件、安装作用域和运行时刷新方式。
+
+## 扩展结论
+
+| 产品 | 结论 | 证据状态 |
+| --- | --- | --- |
+| Claude Code | `/plugin` | 官方确认 |
+| Codex | `/plugins` | 官方确认 |
+| Qwen Code | `/extensions` · `qwen extensions` | 源码确认 |
+| Kimi Code | `/plugins` | 官方确认 |
+| Qoder CLI | `qodercli plugins` · `/plugins reload` | 官方确认 |
+
+## 比较边界
+
+### 本页包含
+
+- Plugin 或 Extension manifest
+- 市场、Git、本地目录或压缩包安装
+- Skills、Commands、Hooks、MCP、Agents 等可选组件
+
+### 本页不包含
+
+- 单独复制一个 Skill 目录
+- 仅由 IDE 商店分发的编辑器扩展
+- 没有安装生命周期的普通项目配置
+
+## 跨产品事实
+
+1. 五家现在都存在可安装的扩展包；Qwen Code 将该体系称为 Extensions，并能导入 Qwen、Gemini 与 Claude 格式。
+2. 组件集合并不对齐：Kimi Code 当前 Plugin 文档没有 Agent 组件，Codex Plugin 当前不在 IDE 扩展中提供。
+3. 安装作用域也不同：Kimi Code 当前只支持用户安装；Qoder CLI 提供 User、Project 与 Local scope。
+
+## 逐产品记录
+
+### Claude Code
+
+| 字段 | 记录 |
+| --- | --- |
+| 矩阵结论 | `/plugin` |
+| 入口与配置 | `/plugin` 浏览和管理；支持 Marketplace 安装，也可用 `--plugin-dir` 临时加载本地目录。 |
+| 文件与目录 | Manifest 位于 `.claude-plugin/plugin.json`；组件目录位于插件根目录。 |
+| 具体行为 | 把多个扩展组件作为一个版本化包启用，并由 Marketplace 或本地目录分发。 |
+| 作用域与优先级 | 用户安装、项目 Marketplace 配置与临时 `--plugin-dir` 加载。 |
+| 扩展构成 | Skills、旧式 Commands、Agents、Hooks、`.mcp.json`、`.lsp.json`、Monitors、`bin` 与 settings。 |
+| 加载与刷新 | 安装或启用后加载；开发中的改动可用 `/reload-plugins` 刷新。 |
+| 适用界面 | 以 Claude Code CLI 为准；VS Code 扩展、桌面端或 Headless 中不同的入口会单独注明。 |
+| 权限与信任 | Plugin 中的 Hook、MCP 与命令仍受工作区信任、权限和组织策略约束。 |
+| 条件与边界 | Manifest 在 `.claude-plugin`，但 `skills`、`agents` 等组件目录位于插件根，不放进 manifest 目录。 |
+| 证据状态 | 官方确认 |
+| 来源 | [Claude Code Plugins](https://code.claude.com/docs/en/plugins) |
+
+### Codex
+
+| 字段 | 记录 |
+| --- | --- |
+| 矩阵结论 | `/plugins` |
+| 入口与配置 | Codex CLI 使用 `/plugins` 浏览插件；插件也可从统一目录安装。 |
+| 文件与目录 | 自建包使用 `.codex-plugin/plugin.json`，其余组件按插件规范组织。 |
+| 具体行为 | 把可复用能力组合成插件，并在 Codex 与 ChatGPT 的统一插件目录中分发。 |
+| 作用域与优先级 | 安装到当前账号或环境；组织可通过管理策略提供或限制插件。 |
+| 扩展构成 | Skills、MCP/Connector、Hooks，以及可用于自动化的定时模板等组件。 |
+| 加载与刷新 | CLI 与 Codex 桌面端可使用已安装插件；客户端按启用状态加载。 |
+| 适用界面 | Codex CLI 和桌面端支持插件；当前官方文档明确不在 Codex IDE 扩展和移动端提供。 |
+| 权限与信任 | Connector、MCP 和 Hook 继续受认证、审批、沙箱及组织控制。 |
+| 条件与边界 | “Codex 支持 Skills”与“当前 Surface 支持 Plugin 浏览器”是两件事；IDE 扩展目前不加载插件。 |
+| 证据状态 | 官方确认 |
+| 来源 | [Codex Plugins](https://learn.chatgpt.com/docs/plugins) |
+
+### Qwen Code
+
+| 字段 | 记录 |
+| --- | --- |
+| 矩阵结论 | `/extensions` · `qwen extensions` |
+| 入口与配置 | `/extensions` 在 TUI 管理；`qwen extensions` 提供安装、列表、更新、启用和禁用等 CLI 操作。 |
+| 文件与目录 | Qwen 原生 manifest 为 `qwen-extension.json`；也能安装兼容的 Gemini 与 Claude 扩展结构。 |
+| 具体行为 | 从 npm、Git、归档或本地目录安装，并把扩展组件合并到当前运行时。 |
+| 作用域与优先级 | User 与 Project scope；Project 扩展可随仓库配置。 |
+| 扩展构成 | Context file、MCP、Commands、Skills、Agents、Settings、Channels、Hooks 与 LSP Servers。 |
+| 加载与刷新 | Extension manager 支持运行时热重载；各组件按 manifest 和目录约定重新注册。 |
+| 适用界面 | 以 Qwen Code CLI 为准；Headless、ACP 和 IDE Companion 中不同的加载行为会单独注明。 |
+| 权限与信任 | 扩展中的 Hook、MCP、Command 和 Agent 仍经过工作区信任、approval mode 与工具策略。 |
+| 条件与边界 | Qwen 的正式名称是 Extension；“Plugin”只应在兼容格式或具体组件语境使用，不能与整个管理入口混写。 |
+| 证据状态 | 源码确认 |
+| 来源 | [Qwen Code current Extensions](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/extension/introduction.md)、[Qwen Code current Extension runtime](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/core/src/extension/extensionManager.ts) |
+
+### Kimi Code
+
+| 字段 | 记录 |
+| --- | --- |
+| 矩阵结论 | `/plugins` |
+| 入口与配置 | `/plugins` 及其子命令管理 Marketplace、本地、GitHub 或 ZIP 来源的插件。 |
+| 文件与目录 | Manifest 为根目录 `kimi.plugin.json` 或 `.kimi-plugin/plugin.json`。 |
+| 具体行为 | 把多个自定义组件作为一个包安装到用户环境，并支持启用、禁用和重载。 |
+| 作用域与优先级 | 当前文档只支持用户级安装，没有项目级插件安装。 |
+| 扩展构成 | Skills、Session-start Skill、Skill instructions、MCP Servers、Hooks 与 Commands；当前 manifest 未列 Agents。 |
+| 加载与刷新 | 安装或修改后使用 `/reload` 或开启新会话生效。 |
+| 适用界面 | 以 Kimi Code CLI 为准；ACP、Web UI 和外部编辑器只在对应能力中单独列出。 |
+| 权限与信任 | Plugin 中的 MCP、Hook 与 Commands 具备执行能力，安装前需要审查来源。 |
+| 条件与边界 | 不要把其他产品的 Agent 组件推断给 Kimi Plugin；当前公开 manifest 没有该字段。 |
+| 证据状态 | 官方确认 |
+| 来源 | [Kimi Code current Plugins](https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/customization/plugins.md) |
+
+### Qoder CLI
+
+| 字段 | 记录 |
+| --- | --- |
+| 矩阵结论 | `qodercli plugins` · `/plugins reload` |
+| 入口与配置 | `qodercli plugins` 管理安装与状态；运行中使用 `/plugins reload` 重载。 |
+| 文件与目录 | Manifest 位于 `.qoder-plugin/plugin.json`；组件使用约定目录。 |
+| 具体行为 | 从 Marketplace 或插件来源安装，并把组件注册到 Qoder CLI。 |
+| 作用域与优先级 | User、Project 和 Local 三种 scope。 |
+| 扩展构成 | Commands、Agents、Skills、Hooks、Output styles、`bin` 与 `.mcp.json`。 |
+| 加载与刷新 | 启动时加载；`/plugins reload` 在当前会话刷新。 |
+| 适用界面 | 以 Qoder CLI 为准；Agent SDK、ACP 和 Qoder IDE 中不同的入口会单独注明。 |
+| 权限与信任 | 插件组件仍受权限规则与工作区信任控制；本地可执行内容需要单独审查。 |
+| 条件与边界 | Qoder CLI 已有独立插件管理入口；旧矩阵中的“未确认”结论不再成立。 |
+| 证据状态 | 官方确认 |
+| 来源 | [Qoder CLI Plugins](https://docs.qoder.com/en/cli/plugins) |
+
+## 官方来源
+
+- [Claude Code Plugins](https://code.claude.com/docs/en/plugins)
+- [Codex Plugins](https://learn.chatgpt.com/docs/plugins)
+- [Qwen Code current Extensions](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/extension/introduction.md)
+- [Qwen Code current Extension runtime](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/core/src/extension/extensionManager.ts)
+- [Kimi Code current Plugins](https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/customization/plugins.md)
+- [Qoder CLI Plugins](https://docs.qoder.com/en/cli/plugins)
+
+## 关联能力
+
+- [Agent Skills](./extension-skills.md)
+- [生命周期 Hooks](./extension-hooks.md)
+- [MCP 客户端](./extension-mcp.md)
+- [自定义 Slash 命令](./extension-custom-commands.md)

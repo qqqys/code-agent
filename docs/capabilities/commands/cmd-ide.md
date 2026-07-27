@@ -13,7 +13,7 @@
 | 产品 | 命令摘要 | 证据状态 |
 | --- | --- | --- |
 | Claude Code | `/ide` | 官方确认 |
-| Codex | `/ide` | 官方确认 |
+| Codex | `/ide-context` | 官方确认 |
 | Qwen Code | `/ide`、`/editor` | 源码确认 |
 | Kimi Code | `/editor` | 官方确认 |
 | Qoder CLI | 无对应命令 | 未确认 |
@@ -35,7 +35,7 @@
 
 ## 跨产品事实
 
-1. Claude Code、Codex 和 Qwen Code 提供 `/ide`。
+1. Claude Code 和 Qwen Code 提供 `/ide`；Codex 对应命令是 `/ide-context`。
 2. Kimi Code `/editor` 配置由 Ctrl-G 调起的外部编辑器。
 3. Qoder CLI 命令表没有 IDE 连接命令，但 Qoder 产品另有 IDE Surface。
 
@@ -59,7 +59,7 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 主命令 | `/ide` |
+| 主命令 | `/ide-context` |
 | 别名 | 无公开别名 |
 | 参数 | 无公开参数 |
 | 执行行为 | 将 IDE 打开的文件、当前选择和其他编辑器上下文加入下一条提示。 |
@@ -123,4 +123,4 @@
 
 - [远程与跨端](./cmd-remote.md)
 - IDE：见对应能力矩阵
-- IDE 连接：见对应能力矩阵
+- [IDE 连接](../extensions/extension-ide.md)

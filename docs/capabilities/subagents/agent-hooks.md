@@ -130,5 +130,5 @@
 ## 关联能力
 
 - [配置格式](./agent-config.md)
-- 生命周期 Hooks：见对应能力矩阵
+- [生命周期 Hooks](../extensions/extension-hooks.md)
 - [后台与并行](./agent-background.md)

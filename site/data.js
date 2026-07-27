@@ -62,6 +62,26 @@ window.matrixData = {
       label: 'Claude Code Memory',
       url: 'https://code.claude.com/docs/en/memory',
     },
+    'claude-mcp': {
+      label: 'Claude Code MCP',
+      url: 'https://code.claude.com/docs/en/mcp',
+    },
+    'claude-skills': {
+      label: 'Claude Code Skills',
+      url: 'https://code.claude.com/docs/en/skills',
+    },
+    'claude-hooks': {
+      label: 'Claude Code Hooks',
+      url: 'https://code.claude.com/docs/en/hooks',
+    },
+    'claude-plugins': {
+      label: 'Claude Code Plugins',
+      url: 'https://code.claude.com/docs/en/plugins',
+    },
+    'claude-ide': {
+      label: 'Claude Code IDE integrations',
+      url: 'https://code.claude.com/docs/en/ide-integrations',
+    },
     'codex-commands': {
       label: 'Codex CLI commands',
       url: 'https://developers.openai.com/codex/cli/slash-commands',
@@ -93,6 +113,34 @@ window.matrixData = {
     'codex-troubleshooting': {
       label: 'Codex Troubleshooting',
       url: 'https://learn.chatgpt.com/docs/reference/troubleshooting',
+    },
+    'codex-mcp': {
+      label: 'Codex MCP',
+      url: 'https://learn.chatgpt.com/docs/extend/mcp',
+    },
+    'codex-skills': {
+      label: 'Codex Agent Skills',
+      url: 'https://learn.chatgpt.com/docs/build-skills',
+    },
+    'codex-hooks': {
+      label: 'Codex Hooks',
+      url: 'https://learn.chatgpt.com/docs/hooks',
+    },
+    'codex-plugins': {
+      label: 'Codex Plugins',
+      url: 'https://learn.chatgpt.com/docs/plugins',
+    },
+    'codex-agents-md': {
+      label: 'Codex AGENTS.md',
+      url: 'https://learn.chatgpt.com/docs/agent-configuration/agents-md',
+    },
+    'codex-custom-prompts': {
+      label: 'Codex Custom prompts',
+      url: 'https://learn.chatgpt.com/docs/custom-prompts',
+    },
+    'codex-ide': {
+      label: 'Codex IDE extension',
+      url: 'https://learn.chatgpt.com/docs/ide',
     },
     'qwen-commands': {
       label: 'Qwen Code commands documentation',
@@ -170,6 +218,34 @@ window.matrixData = {
       label: 'Qwen Code current worktree',
       url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/worktree.md',
     },
+    'qwen-mcp-current': {
+      label: 'Qwen Code current MCP',
+      url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/mcp.md',
+    },
+    'qwen-skills-current': {
+      label: 'Qwen Code current Skills',
+      url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/skills.md',
+    },
+    'qwen-hooks-current': {
+      label: 'Qwen Code current Hooks',
+      url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/hooks.md',
+    },
+    'qwen-extensions-current': {
+      label: 'Qwen Code current Extensions',
+      url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/extension/introduction.md',
+    },
+    'qwen-extension-runtime-current': {
+      label: 'Qwen Code current Extension runtime',
+      url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/core/src/extension/extensionManager.ts',
+    },
+    'qwen-commands-current': {
+      label: 'Qwen Code current custom commands',
+      url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/commands.md',
+    },
+    'qwen-ide-current': {
+      label: 'Qwen Code current IDE integration',
+      url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/ide-integration/ide-integration.md',
+    },
     'kimi-commands': {
       label: 'Kimi Code Slash commands',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/main/docs/zh/reference/slash-commands.md',
@@ -218,6 +294,30 @@ window.matrixData = {
       label: 'Kimi Code current agents',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/customization/agents.md',
     },
+    'kimi-mcp-current': {
+      label: 'Kimi Code current MCP',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/customization/mcp.md',
+    },
+    'kimi-skills-current': {
+      label: 'Kimi Code current Skills',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/customization/skills.md',
+    },
+    'kimi-hooks-current': {
+      label: 'Kimi Code current Hooks',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/customization/hooks.md',
+    },
+    'kimi-plugins-current': {
+      label: 'Kimi Code current Plugins',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/customization/plugins.md',
+    },
+    'kimi-ide-current': {
+      label: 'Kimi Code current IDE integrations',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/guides/ides.md',
+    },
+    'kimi-acp-current': {
+      label: 'Kimi Code current ACP reference',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/reference/kimi-acp.md',
+    },
     'qoder-commands': {
       label: 'Qoder CLI commands',
       url: 'https://docs.qoder.com/en/cli/command',
@@ -241,6 +341,26 @@ window.matrixData = {
     'qoder-checkpoint': {
       label: 'Qoder CLI SDK Checkpoint',
       url: 'https://docs.qoder.com/en/cli/sdk/checkpoint',
+    },
+    'qoder-mcp': {
+      label: 'Qoder CLI MCP servers',
+      url: 'https://docs.qoder.com/en/cli/mcp-servers',
+    },
+    'qoder-skills': {
+      label: 'Qoder CLI Skills',
+      url: 'https://docs.qoder.com/en/cli/Skills',
+    },
+    'qoder-hooks': {
+      label: 'Qoder CLI Hooks',
+      url: 'https://docs.qoder.com/en/cli/hooks',
+    },
+    'qoder-plugins': {
+      label: 'Qoder CLI Plugins',
+      url: 'https://docs.qoder.com/en/cli/plugins',
+    },
+    'qoder-acp': {
+      label: 'Qoder CLI ACP',
+      url: 'https://docs.qoder.com/en/cli/acp',
     },
     'qoder-docs': {
       label: 'Qoder CLI Documentation',
@@ -421,7 +541,7 @@ window.matrixData = {
       category: 'commands',
       capability: 'IDE 或编辑器',
       description: '连接编辑器或查看 IDE 集成状态。',
-      values: { claude: '`/ide`', codex: '`/ide`', qwen: '`/ide` · `/editor`', kimi: '`/editor`', qoder: '—' },
+      values: { claude: '`/ide`', codex: '`/ide-context`', qwen: '`/ide` · `/editor`', kimi: '`/editor`', qoder: '—' },
     },
     {
       id: 'cmd-github',
@@ -715,49 +835,49 @@ window.matrixData = {
       category: 'extensions',
       capability: 'MCP 客户端',
       description: '连接外部 Model Context Protocol Server。',
-      values: { claude: '`/mcp`', codex: '`/mcp`', qwen: '`/mcp`', kimi: '`/mcp` · `/mcp-config`', qoder: '`/mcp`' },
+      values: { claude: '`/mcp` · stdio/HTTP/SSE/WS', codex: '`/mcp` · STDIO/HTTP', qwen: '`/mcp` · stdio/HTTP/SSE', kimi: '`/mcp` · `/mcp-config`', qoder: '`/mcp` · stdio/HTTP/SSE/WS' },
     },
     {
       id: 'extension-skills',
       category: 'extensions',
       capability: 'Agent Skills',
       description: '从项目或用户目录加载可复用指令与资源。',
-      values: { claude: '支持', codex: '支持', qwen: '支持', kimi: '支持', qoder: '支持' },
+      values: { claude: '`/<skill-name>` · `.claude/skills/`', codex: '`$skill` · `.agents/skills/`', qwen: '`/<skill-name>` · `.qwen/skills/`', kimi: '`/skill:<name>` · `.kimi-code/skills/`', qoder: '`/<skill-name>` · `.qoder/skills/`' },
     },
     {
       id: 'extension-hooks',
       category: 'extensions',
       capability: '生命周期 Hooks',
       description: '在工具调用、会话或 Agent 生命周期节点运行自定义逻辑。',
-      values: { claude: '`/hooks`', codex: '`/hooks`', qwen: '`/hooks`', kimi: '当前命令表未列出', qoder: 'Agent 配置支持 Hooks' },
+      values: { claude: '`/hooks` · 多类 Handler', codex: '`/hooks` · 当前仅 command 执行', qwen: '`/hooks` · command/HTTP/prompt', kimi: '`config.toml` · command', qoder: '`settings.json` · command/HTTP/prompt/agent' },
     },
     {
       id: 'extension-plugins',
       category: 'extensions',
       capability: '插件分发',
       description: '把 Skills、Agents、Hooks 或 MCP 配置作为一个包分发。',
-      values: { claude: 'Plugin', codex: 'Plugins', qwen: 'Extensions · Plugins', kimi: 'Plugins', qoder: '插件可分发 Agent；独立管理入口未确认' },
+      values: { claude: '`/plugin`', codex: '`/plugins`', qwen: '`/extensions` · `qwen extensions`', kimi: '`/plugins`', qoder: '`qodercli plugins` · `/plugins reload`' },
     },
     {
       id: 'extension-custom-commands',
       category: 'extensions',
       capability: '自定义 Slash 命令',
       description: '从文件加载自定义命令提示模板。',
-      values: { claude: '通过 Skills', codex: '通过 Skills', qwen: 'Workflows · Skills', kimi: '通过 Skills', qoder: '`.qoder/commands/` · `~/.qoder/commands/`' },
+      values: { claude: '`.claude/commands/*.md` · Skills', codex: 'Skills；`/prompts:*` 已弃用', qwen: '`.qwen/commands/*.md` · Skills', kimi: 'Plugin `commands/*.md` · Skills', qoder: '`.qoder/commands/*.md`' },
     },
     {
       id: 'extension-project-instructions',
       category: 'extensions',
       capability: '项目指令文件',
       description: '随仓库保存的长期 Agent 工作约定。',
-      values: { claude: '`CLAUDE.md`', codex: '`AGENTS.md`', qwen: '`QWEN.md` 与兼容文件', kimi: '项目指令文件', qoder: '项目 Memory/指令' },
+      values: { claude: '`CLAUDE.md` · `.claude/rules/`', codex: '`AGENTS.md` · `AGENTS.override.md`', qwen: '`QWEN.md` · `AGENTS.md`', kimi: '`AGENTS.md`', qoder: '`AGENTS.md` · `.qoder/rules/`' },
     },
     {
       id: 'extension-ide',
       category: 'extensions',
       capability: 'IDE 连接',
       description: '让 CLI 获取当前编辑器文件或选择区上下文。',
-      values: { claude: '`/ide`', codex: '`/ide`', qwen: '`/ide`', kimi: '`/editor`', qoder: 'Qoder IDE；CLI 命令未确认' },
+      values: { claude: '`/ide` · VS Code IDE MCP', codex: 'IDE 扩展 · `/ide-context`', qwen: '`/ide` · VS Code Companion', kimi: '`kimi acp`', qoder: '`qodercli --acp`' },
     },
     {
       id: 'execution-files',
@@ -841,7 +961,7 @@ window.matrixData = {
       category: 'surfaces',
       capability: 'IDE',
       description: '编辑器插件或 IDE 内置入口。',
-      values: { claude: 'VS Code · JetBrains 等', codex: 'IDE Extension', qwen: 'IDE 集成', kimi: '编辑器集成', qoder: 'Qoder IDE' },
+      values: { claude: '`/ide` · VS Code', codex: 'IDE Extension · `/ide-context`', qwen: '`/ide` · VS Code Companion', kimi: '`kimi acp`', qoder: '`qodercli --acp` · Qoder IDE' },
     },
     {
       id: 'surface-desktop',

@@ -12,6 +12,7 @@ for (const file of [
   'site/subagent-details.js',
   'site/security-details.js',
   'site/session-details.js',
+  'site/extension-details.js',
 ]) {
   vm.runInContext(fs.readFileSync(path.join(root, file), 'utf8'), context);
 }
@@ -43,6 +44,7 @@ function relatedLink(related) {
     subagents: 'subagents',
     security: 'security',
     sessions: 'sessions',
+    extensions: 'extensions',
   };
   const directory = directories[related.category];
   if (!directory) return null;

@@ -1,0 +1,993 @@
+(() => {
+  const rows = Object.fromEntries(
+    window.matrixData.rows
+      .filter((row) => row.category === 'extensions')
+      .map((row) => [row.id, row]),
+  );
+
+  const profiles = {
+    claude: {
+      surfaces:
+        '以 Claude Code CLI 为准；VS Code 扩展、桌面端或 Headless 中不同的入口会单独注明。',
+      status: '官方确认',
+    },
+    codex: {
+      surfaces:
+        '以 Codex CLI 为准；桌面端、IDE 扩展、Cloud 和 `codex exec` 不自动继承全部交互命令。',
+      status: '官方确认',
+    },
+    qwen: {
+      surfaces:
+        '以 Qwen Code CLI 为准；Headless、ACP 和 IDE Companion 中不同的加载行为会单独注明。',
+      status: '源码确认',
+    },
+    kimi: {
+      surfaces:
+        '以 Kimi Code CLI 为准；ACP、Web UI 和外部编辑器只在对应能力中单独列出。',
+      status: '官方确认',
+    },
+    qoder: {
+      surfaces:
+        '以 Qoder CLI 为准；Agent SDK、ACP 和 Qoder IDE 中不同的入口会单独注明。',
+      status: '官方确认',
+    },
+  };
+
+  function evidenceStatus(value, profile, status) {
+    if (status) return status;
+    if (value.includes('未确认') || value.includes('未列出')) return '未确认';
+    if (
+      value.includes('条件') ||
+      value.includes('已弃用') ||
+      value.includes('只在')
+    ) {
+      return '条件项';
+    }
+    return profile.status;
+  }
+
+  function record(productId, fields) {
+    const profile = profiles[productId];
+    return {
+      value: fields.value,
+      entry: fields.entry,
+      location: fields.location,
+      behavior: fields.behavior,
+      scope: fields.scope,
+      components: fields.components,
+      loading: fields.loading,
+      surfaces: fields.surfaces ?? profile.surfaces,
+      permissions: fields.permissions,
+      conditions: fields.conditions,
+      status: evidenceStatus(fields.value, profile, fields.status),
+      sources: fields.sources,
+    };
+  }
+
+  function createDetail({
+    id,
+    definition,
+    includes,
+    excludes,
+    facts,
+    products,
+    related,
+  }) {
+    const row = rows[id];
+    if (!row) throw new Error(`Unknown extension capability: ${id}`);
+
+    return {
+      definition,
+      includes,
+      excludes,
+      facts,
+      products: Object.fromEntries(
+        window.matrixData.products.map((product) => {
+          const fields = products[product.id];
+          if (!fields) {
+            throw new Error(`Missing ${product.id} record for ${id}`);
+          }
+          return [
+            product.id,
+            record(product.id, {
+              ...fields,
+              value: row.values[product.id],
+            }),
+          ];
+        }),
+      ),
+      related,
+    };
+  }
+
+  window.capabilityDetails = Object.assign(window.capabilityDetails ?? {}, {
+    'extension-mcp': createDetail({
+      id: 'extension-mcp',
+      definition:
+        '把外部 MCP Server 提供的工具、提示词或资源接入 Code Agent，并记录传输方式、配置作用域、认证和信任边界。',
+      includes: [
+        'MCP Server 的添加、查看、删除与重载入口',
+        'stdio、HTTP、SSE 或 WebSocket 等传输',
+        '工具、Prompt、Resource、OAuth 与工具过滤',
+      ],
+      excludes: [
+        '产品自己的内置工具',
+        '未通过 MCP 协议暴露的普通 REST API',
+        '插件包中的其他 Skills、Hooks 或 Agents',
+      ],
+      facts: [
+        '五家都能作为 MCP 客户端，但支持的传输集合不同：Codex 当前公开范围是 STDIO 与 Streamable HTTP，Claude Code 和 Qoder CLI 还覆盖 WebSocket。',
+        '项目级 MCP 配置通常进入仓库或工作目录，因此 Claude Code、Kimi Code 和 Qoder CLI 都明确区分项目配置与用户配置。',
+        '“连上 Server”不等于所有工具无条件执行；工具过滤、审批、沙箱和工作区信任仍在 MCP 之外继续生效。',
+      ],
+      products: {
+        claude: {
+          entry:
+            '`/mcp` 查看连接和认证状态；使用 `claude mcp add|list|get|remove` 管理 Server。',
+          location:
+            'Local scope 写入用户目录下按项目保存的配置；Project scope 写入 `.mcp.json`；User scope 对该用户的全部项目生效。',
+          behavior:
+            '支持 MCP Tools、Prompts 和 Resources。远程 HTTP/SSE Server 可走 OAuth；Prompt 可作为 Slash 命令调用。',
+          scope:
+            'Local、Project、User 三种 scope；Project 的 `.mcp.json` 可共享，但首次使用需要确认信任。',
+          components:
+            'stdio、Streamable HTTP、已弃用的 SSE，以及通过 JSON 配置声明的 WebSocket；可由 Plugin 携带 `.mcp.json`。',
+          loading:
+            'CLI 管理命令写入对应 scope；项目配置在信任后加载，远程认证状态可从 `/mcp` 处理。',
+          permissions:
+            'MCP 工具仍受 Claude Code 权限规则控制；共享项目配置不会跳过用户确认。',
+          conditions:
+            '`claude mcp add --transport` 不接受 WebSocket；WebSocket 需要直接写 JSON 配置。SSE 保留兼容但已标为弃用。',
+          sources: ['claude-mcp'],
+        },
+        codex: {
+          entry:
+            '`/mcp` 查看当前 Server；使用 `codex mcp add|list|get|remove|login|logout` 管理连接和 OAuth。',
+          location:
+            '用户配置在 `~/.codex/config.toml`；可信项目可在仓库内使用 `.codex/config.toml`。',
+          behavior:
+            'MCP 工具进入工具列表；可为 Server 配置允许或禁用的工具、启动超时、调用超时和审批策略。',
+          scope:
+            '用户配置可被 CLI、桌面端和 IDE 扩展共享；项目配置只在可信工作区加载。',
+          components:
+            'STDIO 与 Streamable HTTP；远程 HTTP 支持 Bearer Token 或 OAuth。',
+          loading:
+            '修改 TOML 或运行 `codex mcp` 后由客户端加载；OAuth 通过登录命令建立授权。',
+          surfaces:
+            'CLI、Codex 桌面端和 IDE 扩展共享 MCP 配置，但每个 Surface 的可用工具和交互入口仍可能不同。',
+          permissions:
+            'Server 级 `enabled_tools`、`disabled_tools` 与工具审批策略先缩小暴露范围，实际执行仍受当前审批和沙箱配置约束。',
+          conditions:
+            '当前官方 MCP 文档未列 SSE 或 WebSocket；不要把其他客户端支持的传输推断给 Codex。',
+          sources: ['codex-mcp'],
+        },
+        qwen: {
+          entry:
+            '`/mcp` 查看状态、工具和认证；使用 `qwen mcp add|list|get|remove|enable|disable` 管理 Server。',
+          location:
+            '用户配置在 `~/.qwen/settings.json`，项目配置在 `.qwen/settings.json`；Extension 也可携带 MCP 配置。',
+          behavior:
+            'Tools 作为模型工具，Prompts 转成 Slash 命令，Resources 可用 `@server:uri` 引用；远程 Server 支持 OAuth。',
+          scope:
+            '用户、项目与 Extension 三类来源合并；项目配置随仓库共享并受工作区信任控制。',
+          components:
+            'stdio、Streamable HTTP 和兼容用 SSE；支持 `includeTools`、`excludeTools` 与 Server trust 设置。',
+          loading:
+            '配置由启动流程加载；`/mcp` 可重新连接、授权并检查各 Server 状态。',
+          permissions:
+            'MCP 工具继续经过 approval mode 和工具策略；Server trust 与工作区信任是不同层次。',
+          conditions:
+            'SSE 属于兼容传输；HTTP 是当前远程 Server 的主要配置方式。Prompt 与 Resource 并非所有五家都以相同入口暴露。',
+          status: '源码确认',
+          sources: ['qwen-mcp-current'],
+        },
+        kimi: {
+          entry:
+            '`/mcp` 查看 Server；`/mcp-config` 管理配置，并可用 `/mcp-config login` 完成 OAuth。',
+          location:
+            '用户配置在 `$KIMI_CODE_HOME/mcp.json`，默认 `~/.kimi-code/mcp.json`；项目配置在 `.kimi-code/mcp.json`。',
+          behavior:
+            '把 Server 工具加入 Agent 工具集，支持工具允许列表和禁用列表；远程 Server 可进行 OAuth 登录。',
+          scope:
+            '项目配置覆盖用户配置中的同名 Server；Plugin 也可以声明 MCP Server。',
+          components:
+            'stdio、HTTP 与 SSE 三类传输。',
+          loading:
+            '启动时合并用户、项目与 Plugin 配置；配置变化可通过相应命令或新会话生效。',
+          permissions:
+            '项目 MCP 配置可以执行本地命令或连接远程服务，官方文档要求只在可信仓库中加载。',
+          conditions:
+            '当前公开文档未列 WebSocket。`/mcp-config` 是配置入口，`/mcp` 主要用于查看和操作已加载连接。',
+          sources: ['kimi-mcp-current'],
+        },
+        qoder: {
+          entry:
+            '`/mcp` 查看 Server，`/mcp reload` 重载；使用 `qodercli mcp add|list|get|remove` 管理配置。',
+          location:
+            '用户配置在 `~/.qoder/settings.json`；Local 默认在 `.qoder/settings.local.json`；Project scope 使用 `.mcp.json`。',
+          behavior:
+            '把 Server 工具接入 Agent，并支持运行中重载；工具调用继续走 Qoder CLI 权限流程。',
+          scope:
+            'User、Local、Project 三种 scope；Local 适合不提交的工作区覆盖，Project 可随仓库共享。',
+          components:
+            'stdio、SSE、HTTP 与 WebSocket 四类传输。',
+          loading:
+            '启动时加载各 scope；`/mcp reload` 可以在当前会话重新读取配置。',
+          permissions:
+            'MCP 工具按普通工具进入 permission rules；配置来源不自动获得免审批权限。',
+          conditions:
+            'Project 配置可被其他协作者取得，Local 配置适合机器或凭据相关覆盖；敏感值不应直接提交。',
+          sources: ['qoder-mcp', 'qoder-permissions'],
+        },
+      },
+      related: [
+        'extension-plugins',
+        'extension-hooks',
+        'security-approval',
+      ],
+    }),
+
+    'extension-skills': createDetail({
+      id: 'extension-skills',
+      definition:
+        '以 SKILL.md 为入口，把可复用指令、脚本和参考材料按需加载到 Agent，并比较发现目录、调用方式与优先级。',
+      includes: [
+        '用户级、项目级和插件级 Skill 目录',
+        '显式 Slash 或名称调用与模型自动匹配',
+        'SKILL.md 及同目录脚本、模板、参考资料',
+      ],
+      excludes: [
+        '仅有一段提示词的内置 Slash 命令',
+        '项目长期指令文件',
+        'MCP Server 提供的 Prompt',
+      ],
+      facts: [
+        '五家当前都采用包含 `SKILL.md` 的目录结构，并允许把辅助文件与入口指令放在同一 Skill 包内。',
+        'Codex 使用通用 `.agents/skills` 目录和 `$skill` 显式引用；Kimi Code 的明确命名空间是 `/skill:<name>`；其余三家支持 `/<skill-name>`。',
+        'Skill 可被模型自动选择不代表一定执行；描述匹配、可用路径、禁用配置和同名优先级都会改变最终加载结果。',
+      ],
+      products: {
+        claude: {
+          entry:
+            '显式使用 `/<skill-name>`；未关闭自动调用时，Claude 也可根据 Skill 描述自行选择。',
+          location:
+            '用户目录 `~/.claude/skills/<name>/SKILL.md`；项目目录 `.claude/skills/<name>/SKILL.md`；Plugin 可携带 Skills。',
+          behavior:
+            '先发现名称和描述，需要时再读取完整 SKILL.md，并可继续打开同目录脚本、参考资料和模板。',
+          scope:
+            '项目 Skill 随仓库共享，用户 Skill 在本机多项目复用；Plugin Skill 随插件启用。',
+          components:
+            '`SKILL.md` 前置元数据、正文指令，以及可选脚本、资源和嵌套目录。',
+          loading:
+            '运行中检测 Skill 变化；Skills 与旧式 `.claude/commands` 在 Slash 命令界面合并呈现。',
+          permissions:
+            'Skill 只是指令与资源包；其中要求调用的工具仍经过 Claude Code 权限规则。',
+          conditions:
+            '同名 Skill 与旧式 Command 需要避免冲突；可通过元数据控制是否允许模型自动调用。',
+          sources: ['claude-skills'],
+        },
+        codex: {
+          entry:
+            '使用 `$skill-name` 显式引用，或通过 `/skills` 浏览；Codex 也可按描述自动匹配。',
+          location:
+            '项目从当前目录向仓库根查找 `.agents/skills`；用户目录 `~/.agents/skills`；管理员目录 `/etc/codex/skills`；另有系统内置 Skills。',
+          behavior:
+            '启动时发现 Skill 元数据，触发后按需读取 SKILL.md 和相关资源。',
+          scope:
+            '仓库路径、用户、管理员和系统四层来源；项目层可随代码共享。',
+          components:
+            '`SKILL.md`、可选脚本、模板、示例与参考资料。',
+          loading:
+            'Skill 列表随客户端发现结果提供；修改后的重新发现时机取决于当前客户端会话。',
+          permissions:
+            'Skill 不扩大工具授权；脚本和命令仍受审批、沙箱及组织配置约束。',
+          conditions:
+            'Codex 当前项目目录是 `.agents/skills`，不是旧对照表中的 `.codex/skills`。',
+          sources: ['codex-skills'],
+        },
+        qwen: {
+          entry:
+            '使用 `/<skill-name>` 或 `/skills` 显式选择；模型也可根据 Skill 描述自动调用。',
+          location:
+            '用户目录 `~/.qwen/skills`，项目目录 `.qwen/skills`，Extension 可携带 Skills。',
+          behavior:
+            '按需读取 SKILL.md，并可访问 Skill 目录中的脚本、文档和其他资源。',
+          scope:
+            '项目、用户和 Extension 来源合并；设置可以禁用 Skills 或限定发现路径。',
+          components:
+            '`SKILL.md`、辅助文件和可执行脚本；内置 Skill 与外部 Skill 使用同一调用模型。',
+          loading:
+            '启动与刷新流程扫描可用目录；变更后的可见性受当前会话重新发现机制影响。',
+          permissions:
+            'Skill 触发的工具继续经过 approval mode、沙箱和工具策略。',
+          conditions:
+            'Slash 名称可能与内置命令、自定义 Command 或 MCP Prompt 冲突；加载器按来源和命令注册规则处理。',
+          status: '源码确认',
+          sources: ['qwen-skills-current', 'qwen-extensions-current'],
+        },
+        kimi: {
+          entry:
+            '明确调用为 `/skill:<name>`；没有命令冲突时也可使用 `/<name>`，模型还能自动选择。',
+          location:
+            '项目 `.kimi-code/skills`、`.agents/skills`；用户 `$KIMI_CODE_HOME/skills`、`~/.agents/skills`；另有额外目录和内置 Skills。',
+          behavior:
+            'Skill 被选中后读取 SKILL.md 和支持文件，可接收参数；支持有限层级的嵌套引用。',
+          scope:
+            '优先级是 Project、User、Extra、Built-in；同名时高优先级来源覆盖低优先级来源。',
+          components:
+            '`SKILL.md`、脚本、参考文件和其他同目录资源。',
+          loading:
+            '启动时按配置目录发现；Plugin 也可携带 Skills，变化通常通过 `/reload` 或新会话生效。',
+          permissions:
+            'Skill 内容不绕过 Kimi 的工具权限和交互模式。',
+          conditions:
+            '无前缀 `/<name>` 只有在不与已有命令冲突时才作为回退；稳定写法是 `/skill:<name>`。',
+          sources: ['kimi-skills-current', 'kimi-plugins-current'],
+        },
+        qoder: {
+          entry:
+            '使用 `/<skill-name>` 显式调用或由模型自动匹配；`/skills` 查看，`/skills reload` 重载。',
+          location:
+            '用户目录 `~/.qoder/skills`，项目目录 `.qoder/skills`。',
+          behavior:
+            '按需加载 SKILL.md，并让同目录资源参与任务。',
+          scope:
+            '项目 Skill 覆盖同名用户 Skill；Plugin 也可分发 Skills。',
+          components:
+            '`SKILL.md` 与可选脚本、参考材料和资源。',
+          loading:
+            '`/skills reload` 在当前会话重扫目录；Plugin Skills 随插件加载。',
+          permissions:
+            'Skill 要求的工具调用继续走 Qoder CLI permission rules。',
+          conditions:
+            '项目目录适合随仓库共享，用户目录适合个人复用；同名覆盖需要结合来源检查。',
+          sources: ['qoder-skills', 'qoder-plugins'],
+        },
+      },
+      related: [
+        'extension-custom-commands',
+        'extension-plugins',
+        'extension-project-instructions',
+      ],
+    }),
+
+    'extension-hooks': createDetail({
+      id: 'extension-hooks',
+      definition:
+        '在提示词、工具、权限、会话、压缩或 Subagent 生命周期节点执行外部逻辑，并比较事件、Handler 类型和阻断语义。',
+      includes: [
+        'Hook 配置位置与事件匹配',
+        'command、HTTP、prompt、agent 或 MCP Tool Handler',
+        '允许、阻断、修改输入输出与记录事件',
+      ],
+      excludes: [
+        '模型自行决定调用的普通工具',
+        'CI 平台的远程 Workflow Hook',
+        '只提供说明文字而不绑定生命周期的项目指令',
+      ],
+      facts: [
+        '五家都公开了生命周期 Hook，但并不是同一实现：Kimi Code 当前独立 Hook 只执行 command，Codex 当前运行时也只执行 command。',
+        'Claude Code、Qwen Code 和 Qoder CLI 支持多种 Handler；可用事件与返回 JSON 结构仍需按各自文档配置，不能直接复制。',
+        '项目 Hook 可以运行本地命令或访问网络，因此可信工作区、超时、退出码和失败时是否放行是比较中的核心边界。',
+      ],
+      products: {
+        claude: {
+          entry:
+            '`/hooks` 查看已加载配置；Hook 可写入设置、Plugin，或放在 Skill 与 Subagent 的前置元数据中。',
+          location:
+            '用户、项目、Local、Managed settings；Plugin 使用 `hooks/hooks.json`。',
+          behavior:
+            '可在工具前后、权限请求、提示提交、会话、压缩、Subagent、任务和通知等节点运行并返回控制结果。',
+          scope:
+            '用户、项目、本地、托管、Plugin、Skill 与 Agent 多种作用域。',
+          components:
+            'Handler 类型包括 command、HTTP、MCP Tool、prompt 和 agent。',
+          loading:
+            '配置在会话启动或重新加载时汇总；`/hooks` 用于检查当前生效配置。',
+          permissions:
+            'Hook 可阻止工具或提示继续；项目 Hook 属于可执行代码，需要信任其来源。',
+          conditions:
+            '事件支持的输入、输出和退出码语义不同；不能假设所有 Handler 都可用于每个事件。',
+          sources: ['claude-hooks'],
+        },
+        codex: {
+          entry:
+            '`/hooks` 检查、信任或禁用非托管 Hook；也可直接编辑 JSON/TOML 配置。',
+          location:
+            '用户 `~/.codex/hooks.json` 或 `~/.codex/config.toml`；项目 `.codex/hooks.json` 或 `.codex/config.toml`；Plugin 可携带 Hook。',
+          behavior:
+            '覆盖工具、权限、压缩、提示、Subagent、停止和 Session 生命周期事件。',
+          scope:
+            '用户、可信项目、Managed 与 Plugin 来源。',
+          components:
+            '当前执行的 Handler 类型是 command；prompt 与 agent 配置可解析但运行时跳过。',
+          loading:
+            '项目 Hook 需要工作区信任；`/hooks` 展示来源并提供相应控制。',
+          permissions:
+            'PreToolUse 或 PermissionRequest 等事件可影响是否继续；Managed Hook 不由普通用户关闭。',
+          conditions:
+            '当前运行时不执行 prompt/agent Handler，async 也尚未支持；配置文件能解析不等于能力已经运行。',
+          sources: ['codex-hooks'],
+        },
+        qwen: {
+          entry:
+            '`/hooks` 查看和管理已加载 Hook；设置文件和 Extension 都可声明。',
+          location:
+            '用户与项目 `settings.json`；Extension 可内联 Hooks、引用文件或使用默认 `hooks/hooks.json`。',
+          behavior:
+            '覆盖提示、模型、工具、权限、会话、压缩、Subagent、通知等生命周期，并能阻断或返回修改后的控制结果。',
+          scope:
+            '用户、可信项目与 Extension 来源；项目 Hook 随仓库共享。',
+          components:
+            '公开文档包括 command、HTTP 与 prompt；运行时还存在 session-only 的内部 function Hook。',
+          loading:
+            '启动时合并配置；Extension 热重载与 Hook 管理入口可更新当前运行时状态。',
+          permissions:
+            '项目 Hook 只在可信文件夹加载；Hook 自身的命令和网络访问需要按可执行配置审查。',
+          conditions:
+            '内部 function Hook 不是普通配置格式；公开可配置范围应以 command、HTTP 与 prompt 为准。',
+          status: '源码确认',
+          sources: [
+            'qwen-hooks-current',
+            'qwen-extension-runtime-current',
+          ],
+        },
+        kimi: {
+          entry:
+            '没有独立 `/hooks` 命令；在 `~/.kimi-code/config.toml` 的 `[[hooks]]` 中配置。',
+          location:
+            '独立 Hook 位于用户 `config.toml`；Plugin manifest 也可携带 Hook 配置。',
+          behavior:
+            '可监听提示、工具、权限、会话、压缩与 Subagent 等事件；退出码 2 可阻断，其他错误默认放行。',
+          scope:
+            '用户配置与已启用 Plugin；当前文档未列项目级独立 Hook 文件。',
+          components:
+            '独立配置当前只有 command Handler。',
+          loading:
+            '启动时读取配置；Plugin 改动通常需要 `/reload` 或新会话。',
+          permissions:
+            'Hook command 在本机执行；阻断与 fail-open 语义取决于退出码。',
+          conditions:
+            '“命令表没有 `/hooks`”不等于没有 Hook 能力；Kimi 的入口是 TOML 配置。',
+          sources: ['kimi-hooks-current', 'kimi-plugins-current'],
+        },
+        qoder: {
+          entry:
+            '在 User、Project 或 Local settings 中配置；当前公开页面以配置为主。',
+          location:
+            '`~/.qoder/settings.json`、项目 `.qoder/settings.json` 与 `.qoder/settings.local.json`；Plugin 可携带 `hooks/hooks.json`。',
+          behavior:
+            '覆盖工具、提示、权限、通知、会话、压缩与 Subagent 等节点，并按 Handler 返回结果控制流程。',
+          scope:
+            'User、Project、Local 和 Plugin。',
+          components:
+            'command、HTTP、prompt 与 agent Handler。',
+          loading:
+            '随设置和 Plugin 加载；修改后的刷新方式取决于对应配置或插件重载入口。',
+          permissions:
+            '项目 Hook 只应在可信工作区启用；Hook 能阻断关键操作，但自身仍是本机可执行配置。',
+          conditions:
+            '不同 Handler 的超时、响应字段和阻断条件不同，需要按事件文档逐项设置。',
+          sources: ['qoder-hooks', 'qoder-plugins'],
+        },
+      },
+      related: [
+        'extension-plugins',
+        'security-approval',
+        'agent-hooks',
+      ],
+    }),
+
+    'extension-plugins': createDetail({
+      id: 'extension-plugins',
+      definition:
+        '把多个扩展组件打包、安装、启用和更新，并比较包清单、可携带组件、安装作用域和运行时刷新方式。',
+      includes: [
+        'Plugin 或 Extension manifest',
+        '市场、Git、本地目录或压缩包安装',
+        'Skills、Commands、Hooks、MCP、Agents 等可选组件',
+      ],
+      excludes: [
+        '单独复制一个 Skill 目录',
+        '仅由 IDE 商店分发的编辑器扩展',
+        '没有安装生命周期的普通项目配置',
+      ],
+      facts: [
+        '五家现在都存在可安装的扩展包；Qwen Code 将该体系称为 Extensions，并能导入 Qwen、Gemini 与 Claude 格式。',
+        '组件集合并不对齐：Kimi Code 当前 Plugin 文档没有 Agent 组件，Codex Plugin 当前不在 IDE 扩展中提供。',
+        '安装作用域也不同：Kimi Code 当前只支持用户安装；Qoder CLI 提供 User、Project 与 Local scope。',
+      ],
+      products: {
+        claude: {
+          entry:
+            '`/plugin` 浏览和管理；支持 Marketplace 安装，也可用 `--plugin-dir` 临时加载本地目录。',
+          location:
+            'Manifest 位于 `.claude-plugin/plugin.json`；组件目录位于插件根目录。',
+          behavior:
+            '把多个扩展组件作为一个版本化包启用，并由 Marketplace 或本地目录分发。',
+          scope:
+            '用户安装、项目 Marketplace 配置与临时 `--plugin-dir` 加载。',
+          components:
+            'Skills、旧式 Commands、Agents、Hooks、`.mcp.json`、`.lsp.json`、Monitors、`bin` 与 settings。',
+          loading:
+            '安装或启用后加载；开发中的改动可用 `/reload-plugins` 刷新。',
+          permissions:
+            'Plugin 中的 Hook、MCP 与命令仍受工作区信任、权限和组织策略约束。',
+          conditions:
+            'Manifest 在 `.claude-plugin`，但 `skills`、`agents` 等组件目录位于插件根，不放进 manifest 目录。',
+          sources: ['claude-plugins'],
+        },
+        codex: {
+          entry:
+            'Codex CLI 使用 `/plugins` 浏览插件；插件也可从统一目录安装。',
+          location:
+            '自建包使用 `.codex-plugin/plugin.json`，其余组件按插件规范组织。',
+          behavior:
+            '把可复用能力组合成插件，并在 Codex 与 ChatGPT 的统一插件目录中分发。',
+          scope:
+            '安装到当前账号或环境；组织可通过管理策略提供或限制插件。',
+          components:
+            'Skills、MCP/Connector、Hooks，以及可用于自动化的定时模板等组件。',
+          loading:
+            'CLI 与 Codex 桌面端可使用已安装插件；客户端按启用状态加载。',
+          surfaces:
+            'Codex CLI 和桌面端支持插件；当前官方文档明确不在 Codex IDE 扩展和移动端提供。',
+          permissions:
+            'Connector、MCP 和 Hook 继续受认证、审批、沙箱及组织控制。',
+          conditions:
+            '“Codex 支持 Skills”与“当前 Surface 支持 Plugin 浏览器”是两件事；IDE 扩展目前不加载插件。',
+          sources: ['codex-plugins'],
+        },
+        qwen: {
+          entry:
+            '`/extensions` 在 TUI 管理；`qwen extensions` 提供安装、列表、更新、启用和禁用等 CLI 操作。',
+          location:
+            'Qwen 原生 manifest 为 `qwen-extension.json`；也能安装兼容的 Gemini 与 Claude 扩展结构。',
+          behavior:
+            '从 npm、Git、归档或本地目录安装，并把扩展组件合并到当前运行时。',
+          scope:
+            'User 与 Project scope；Project 扩展可随仓库配置。',
+          components:
+            'Context file、MCP、Commands、Skills、Agents、Settings、Channels、Hooks 与 LSP Servers。',
+          loading:
+            'Extension manager 支持运行时热重载；各组件按 manifest 和目录约定重新注册。',
+          permissions:
+            '扩展中的 Hook、MCP、Command 和 Agent 仍经过工作区信任、approval mode 与工具策略。',
+          conditions:
+            'Qwen 的正式名称是 Extension；“Plugin”只应在兼容格式或具体组件语境使用，不能与整个管理入口混写。',
+          status: '源码确认',
+          sources: [
+            'qwen-extensions-current',
+            'qwen-extension-runtime-current',
+          ],
+        },
+        kimi: {
+          entry:
+            '`/plugins` 及其子命令管理 Marketplace、本地、GitHub 或 ZIP 来源的插件。',
+          location:
+            'Manifest 为根目录 `kimi.plugin.json` 或 `.kimi-plugin/plugin.json`。',
+          behavior:
+            '把多个自定义组件作为一个包安装到用户环境，并支持启用、禁用和重载。',
+          scope:
+            '当前文档只支持用户级安装，没有项目级插件安装。',
+          components:
+            'Skills、Session-start Skill、Skill instructions、MCP Servers、Hooks 与 Commands；当前 manifest 未列 Agents。',
+          loading:
+            '安装或修改后使用 `/reload` 或开启新会话生效。',
+          permissions:
+            'Plugin 中的 MCP、Hook 与 Commands 具备执行能力，安装前需要审查来源。',
+          conditions:
+            '不要把其他产品的 Agent 组件推断给 Kimi Plugin；当前公开 manifest 没有该字段。',
+          sources: ['kimi-plugins-current'],
+        },
+        qoder: {
+          entry:
+            '`qodercli plugins` 管理安装与状态；运行中使用 `/plugins reload` 重载。',
+          location:
+            'Manifest 位于 `.qoder-plugin/plugin.json`；组件使用约定目录。',
+          behavior:
+            '从 Marketplace 或插件来源安装，并把组件注册到 Qoder CLI。',
+          scope:
+            'User、Project 和 Local 三种 scope。',
+          components:
+            'Commands、Agents、Skills、Hooks、Output styles、`bin` 与 `.mcp.json`。',
+          loading:
+            '启动时加载；`/plugins reload` 在当前会话刷新。',
+          permissions:
+            '插件组件仍受权限规则与工作区信任控制；本地可执行内容需要单独审查。',
+          conditions:
+            'Qoder CLI 已有独立插件管理入口；旧矩阵中的“未确认”结论不再成立。',
+          sources: ['qoder-plugins'],
+        },
+      },
+      related: [
+        'extension-skills',
+        'extension-hooks',
+        'extension-mcp',
+        'extension-custom-commands',
+      ],
+    }),
+
+    'extension-custom-commands': createDetail({
+      id: 'extension-custom-commands',
+      definition:
+        '把提示模板保存成可输入的 Slash 命令，并区分独立 Command 文件、Skills、Plugin Commands 与已弃用机制。',
+      includes: [
+        'Markdown Prompt Command 的目录与命名',
+        '参数、命名空间和加载优先级',
+        '与 Skills 或 Plugin Commands 的关系',
+      ],
+      excludes: [
+        '产品内置 Slash 命令',
+        'MCP Server 动态暴露的 Prompt',
+        '只通过自然语言自动触发、没有命令入口的 Skill',
+      ],
+      facts: [
+        'Claude Code、Qwen Code 和 Qoder CLI 都保留独立 Markdown Command 目录；Kimi Code 当前只文档化 Plugin Commands 与 Skills。',
+        'Codex 的 `~/.codex/prompts` 自定义 Prompt 已弃用且只在本机使用，官方建议把可复用内容迁到 Skills。',
+        '同样显示为 `/name` 的入口可能来自内置命令、Skill、Prompt Command、Plugin 或 MCP Prompt，矩阵只比较其公开加载机制。',
+      ],
+      products: {
+        claude: {
+          entry:
+            '`.claude/commands/deploy.md` 生成 `/deploy`；Skills 也能生成同名 Slash 入口。',
+          location:
+            '项目 `.claude/commands/*.md` 与用户 `~/.claude/commands/*.md`；Plugin 可携带 `commands/`。',
+          behavior:
+            'Markdown 正文作为提示模板加载，目录层级形成命名空间；参数可插入提示内容。',
+          scope:
+            '项目、用户和 Plugin；项目命令可随仓库共享。',
+          components:
+            'Markdown Prompt、前置配置和参数占位；复杂工作流可迁移为带辅助文件的 Skill。',
+          loading:
+            '旧式 Commands 与 Skills 会合并进入 Slash 菜单；运行时 Skill 变更可被检测。',
+          permissions:
+            'Command 只是生成提示；提示触发的工具仍受权限规则。',
+          conditions:
+            '`.claude/commands` 仍受支持，但新建复杂可复用能力时官方把 Skills 作为统一机制。',
+          sources: ['claude-skills'],
+        },
+        codex: {
+          entry:
+            '推荐通过 Skill 暴露可复用能力；旧 Prompt 使用 `/prompts:<name>`。',
+          location:
+            '旧 Prompt 只从用户目录 `~/.codex/prompts/*.md` 加载；项目不提供同等 Prompt 目录。',
+          behavior:
+            '旧 Prompt 把 Markdown 内容插入对话；Skill 可携带更完整的脚本和资源，并支持显式或自动调用。',
+          scope:
+            '旧 Prompt 仅本机用户；Skills 可放项目 `.agents/skills` 或用户目录。',
+          components:
+            '旧机制只有 Markdown Prompt；Skills 使用 SKILL.md 与辅助资源。',
+          loading:
+            '旧 Prompt 在客户端发现后以 `/prompts:*` 提供；新内容应使用 Skills。',
+          permissions:
+            'Prompt 或 Skill 都不绕过审批与沙箱。',
+          conditions:
+            '`/prompts:*` 已弃用；不能把它表述成与其他四家同等的现行项目级 Command 系统。',
+          status: '条件项',
+          sources: ['codex-custom-prompts', 'codex-skills'],
+        },
+        qwen: {
+          entry:
+            '`.qwen/commands/review.md` 生成 `/review`；Skills 同样可以注册 Slash 入口。',
+          location:
+            '项目 `.qwen/commands/*.md` 与用户 `~/.qwen/commands/*.md`；Extension 也可携带 Commands。',
+          behavior:
+            'Markdown 为推荐格式，TOML 为兼容格式；支持参数与 Shell 占位，嵌套目录转成冒号命名空间。',
+          scope:
+            '项目命令优先于同名用户命令；Extension 命令进入统一命令注册表。',
+          components:
+            'Markdown/TOML Prompt、参数占位、Shell 结果插值；复杂资源可用 Skill。',
+          loading:
+            '文件加载器扫描用户和项目目录，Extension manager 注册扩展命令。',
+          permissions:
+            '命令模板可插入 Shell 结果，实际执行仍受环境与工具权限控制。',
+          conditions:
+            '保存的 Workflow 是另一套运行记录机制，不应在矩阵中当成自定义 Command 的同义词。',
+          status: '源码确认',
+          sources: [
+            'qwen-commands-current',
+            'qwen-extension-runtime-current',
+          ],
+        },
+        kimi: {
+          entry:
+            'Plugin 的 `commands/deploy.md` 以 `/<plugin>:deploy` 调用；Skills 使用 `/skill:<name>`。',
+          location:
+            '当前文档列出 Plugin `commands/*.md` 和各级 Skill 目录，没有独立 `.kimi-code/commands` 目录。',
+          behavior:
+            'Plugin Command 将 Markdown 作为提示模板，并用 `$ARGUMENTS` 接收调用参数。',
+          scope:
+            'Plugin Command 随用户安装的 Plugin 生效；Skills 可来自项目、用户、额外目录或内置来源。',
+          components:
+            'Plugin Markdown Command，或带 SKILL.md 和辅助文件的 Skill。',
+          loading:
+            '随 Plugin 加载；修改后使用 `/reload` 或新会话。',
+          permissions:
+            '命令产生的操作继续受 Kimi 工具权限约束。',
+          conditions:
+            '未发现公开的独立用户/项目 Command 目录；不要根据 `.kimi-code/skills` 推断 `.kimi-code/commands`。',
+          sources: ['kimi-plugins-current', 'kimi-skills-current'],
+        },
+        qoder: {
+          entry:
+            '`/commands` 查看自定义命令；Markdown 文件名形成 Slash 命令名。',
+          location:
+            '项目 `.qoder/commands/*.md` 与用户 `~/.qoder/commands/*.md`；Plugin 也可携带 Commands。',
+          behavior:
+            'Markdown 正文作为 Prompt Command，可在 TUI 与 Headless 中调用。',
+          scope:
+            '项目与用户目录按优先级合并；Plugin 命令随其 scope 加载。',
+          components:
+            'Markdown Prompt Command；需要脚本和资源时可改用 Skill 或 Plugin。',
+          loading:
+            '启动时扫描目录；Plugin Commands 可随 `/plugins reload` 刷新。',
+          permissions:
+            'Headless 或 TUI 中执行命令后，工具仍经过对应权限模式。',
+          conditions:
+            'Prompt Command 的 Headless 可用性不代表所有内置交互命令都能在 Headless 中运行。',
+          sources: ['qoder-commands', 'qoder-plugins'],
+        },
+      },
+      related: [
+        'extension-skills',
+        'extension-plugins',
+        'cmd-review',
+      ],
+    }),
+
+    'extension-project-instructions': createDetail({
+      id: 'extension-project-instructions',
+      definition:
+        '从用户和仓库目录加载长期工作约定到模型上下文，并比较文件名、目录层级、覆盖顺序和强制边界。',
+      includes: [
+        '用户级与项目级长期指令',
+        '子目录规则、局部覆盖和文件导入',
+        '启动或访问目录时的加载时机',
+      ],
+      excludes: [
+        '审批、沙箱或 Hook 的强制策略',
+        '一次性用户提示词',
+        '跨会话自动学习生成的记忆',
+      ],
+      facts: [
+        'Claude Code 使用 `CLAUDE.md`，Codex、Kimi Code 和 Qoder CLI 原生使用 `AGENTS.md`；Qwen Code 同时读取 `QWEN.md` 与 `AGENTS.md`。',
+        '这些文件进入模型上下文，本质是指令而不是安全边界；需要强制执行的限制应由权限、沙箱、Hook 或组织策略承担。',
+        'Claude Code 不直接读取 `AGENTS.md`；需要从 `CLAUDE.md` 使用 `@AGENTS.md` 导入或建立链接。',
+      ],
+      products: {
+        claude: {
+          entry:
+            '启动时读取 `CLAUDE.md`；可在正文中用 `@path` 导入其他文件。',
+          location:
+            '用户 `~/.claude/CLAUDE.md`；项目 `./CLAUDE.md` 或 `./.claude/CLAUDE.md`；本地 `./CLAUDE.local.md`；规则 `.claude/rules/**/*.md`。',
+          behavior:
+            '项目层级指令加入上下文；嵌套目录的文件在访问相应目录时按需加载。',
+          scope:
+            '用户、项目、Local 与子目录规则；Local 文件适合不提交的个人覆盖。',
+          components:
+            'Markdown 指令、`@` 导入，以及可按路径限定的规则文件。',
+          loading:
+            '启动时加载上层指令，进入或读取子目录时再加入更局部规则。',
+          permissions:
+            '内容用于指导模型，不会替代权限规则、Sandbox 或 Managed settings。',
+          conditions:
+            'Claude Code 不原生读取 `AGENTS.md`；跨产品共用时需通过 `CLAUDE.md` 导入或符号链接。',
+          sources: ['claude-memory'],
+        },
+        codex: {
+          entry:
+            '会话启动前构建指令链；每层优先 `AGENTS.override.md`，否则读取 `AGENTS.md` 或配置的备用文件名。',
+          location:
+            '全局 `~/.codex/AGENTS.override.md` 或 `~/.codex/AGENTS.md`；项目从仓库根到当前目录逐层查找。',
+          behavior:
+            '按目录从根到当前工作目录拼接，更靠近当前目录的文件出现在后面并覆盖冲突指令。',
+          scope:
+            '全局与项目目录层级；每个目录只选一个候选文件。',
+          components:
+            'Markdown 指令，以及 `project_doc_fallback_filenames` 与大小上限配置。',
+          loading:
+            '每次启动根据当前工作目录重新建立链；默认项目指令总量上限为 32 KiB。',
+          permissions:
+            'AGENTS 指令不扩大沙箱或工具审批权限，组织配置仍可强制更高优先级规则。',
+          conditions:
+            'Override 文件会替代同目录普通 AGENTS 文件，不是与它同时拼接。',
+          sources: ['codex-agents-md'],
+        },
+        qwen: {
+          entry:
+            '启动时发现 `QWEN.md`，也兼容读取 `AGENTS.md`；正文可用 `@path` 导入。',
+          location:
+            '用户 `~/.qwen/QWEN.md`；项目根 `QWEN.md`；本地 `.qwen/QWEN.local.md`；仓库可使用 `AGENTS.md`。',
+          behavior:
+            '把用户和项目约定注入上下文，并处理显式导入与局部文件。',
+          scope:
+            '用户、项目、本地与兼容 AGENTS 文件；具体优先级按内存加载配置执行。',
+          components:
+            'Markdown 指令、`@` 导入和兼容文件名。',
+          loading:
+            '启动与上下文刷新流程加载；Local 文件用于不提交的机器或个人覆盖。',
+          permissions:
+            '指令文件不绕过 approval mode、Sandbox 或工具白名单。',
+          conditions:
+            '“兼容 AGENTS.md”不表示 QWEN.md 与 AGENTS.md 永远重复加载；应按当前发现与优先级规则核对。',
+          status: '源码确认',
+          sources: ['qwen-memory-current'],
+        },
+        kimi: {
+          entry:
+            'Agent Prompt 中通过 `${agents_md}` 注入发现到的 AGENTS 指令。',
+          location:
+            '全局 `$KIMI_CODE_HOME/AGENTS.md` 与 `~/.agents/AGENTS.md`；项目 `.kimi-code/AGENTS.md` 或根目录 `AGENTS.md`。',
+          behavior:
+            '把用户与项目约定作为上下文提供给主 Agent。',
+          scope:
+            '全局与项目；项目内 `.kimi-code/AGENTS.md` 提供产品专用位置。',
+          components:
+            'Markdown 指令文件。',
+          loading:
+            '构建 Agent 上下文时读取并注入。',
+          permissions:
+            'AGENTS.md 是上下文，不是权限执行器；工具授权仍由交互与配置处理。',
+          conditions:
+            '当前官方文档没有把它描述成自动记忆；不要与会话或长期自动学习混为一谈。',
+          sources: ['kimi-agents-current'],
+        },
+        qoder: {
+          entry:
+            '启动时读取 AGENTS 文件；规则文件可按 always、model-decides、glob 或手动模式激活。',
+          location:
+            '全局 `~/.qoder/AGENTS.md`；项目 `AGENTS.md`、`AGENTS.local.md`；规则 `.qoder/rules/**/*.md`。',
+          behavior:
+            '将项目约定和匹配规则加入上下文，并支持 `@` 导入其他文件。',
+          scope:
+            '用户、项目、本地与按路径或模式激活的规则。',
+          components:
+            'AGENTS Markdown、Local 覆盖、规则文件和导入。',
+          loading:
+            '启动时读取常驻内容，按规则激活方式和当前文件上下文加载其他内容。',
+          permissions:
+            'Memory/规则只指导 Agent，不能取代 permission mode 与 Hook。',
+          conditions:
+            '可通过 `context.fileName` 配置文件名；比较默认行为时仍以 AGENTS.md 为基准。',
+          sources: ['qoder-memory'],
+        },
+      },
+      related: [
+        'extension-skills',
+        'security-trust',
+        'session-memory',
+      ],
+    }),
+
+    'extension-ide': createDetail({
+      id: 'extension-ide',
+      definition:
+        '让 Code Agent 在编辑器或 ACP 客户端中运行，或让外部 CLI 获取当前文件、选择区、诊断与原生 Diff 等 IDE 上下文。',
+      includes: [
+        'IDE 扩展、Companion 或 ACP 启动入口',
+        '当前文件、选择区、诊断、Diff 与文件操作上下文',
+        '明确支持的编辑器或 ACP 客户端',
+      ],
+      excludes: [
+        '只用于编辑当前 Prompt 文本的外部编辑器',
+        '没有上下文桥接的普通集成终端',
+        '云端任务或桌面端会话',
+      ],
+      facts: [
+        '五家都能进入 IDE 工作流，但形态不同：Codex 是原生 IDE 扩展，Claude Code 与 Qwen Code 提供 CLI 到 VS Code 的桥接，Kimi Code 与 Qoder CLI 公开 ACP Server。',
+        'Kimi Code 的 `/editor` 只配置输入内容的外部编辑器，不是 IDE 上下文连接；本矩阵因此改为 `kimi acp`。',
+        'Codex CLI 的 IDE 上下文命令是 `/ide-context`，不是 `/ide`；Claude Code 与 Qwen Code 才使用 `/ide` 管理连接。',
+      ],
+      products: {
+        claude: {
+          entry:
+            '在外部终端运行 `/ide` 连接支持的编辑器；VS Code 扩展也可直接打开 Claude Code 面板。',
+          location:
+            'VS Code、Cursor 及兼容分支安装官方扩展；扩展为 CLI 暴露本地隐藏 `ide` MCP Server。',
+          behavior:
+            '每次提示附带活动文件与选择区，并提供原生 Diff、诊断和 Notebook 执行等 IDE 能力。',
+          scope:
+            '当前已连接的编辑器窗口与活动项目。',
+          components:
+            'VS Code 扩展、隐藏 IDE MCP、编辑器上下文与原生 Diff。',
+          loading:
+            '`/ide` 发现并选择可用编辑器；连接状态随编辑器和 CLI 会话维护。',
+          surfaces:
+            'VS Code、Cursor 和兼容分支；扩展面板与外部终端连接提供的命令集合并不完全相同。',
+          permissions:
+            'IDE 提供上下文与界面，文件和终端操作仍受 Claude Code 权限规则。',
+          conditions:
+            '活动选择区和活动文件会自动加入提示；其他打开文件不等于全部自动进入上下文。',
+          sources: ['claude-ide', 'claude-commands'],
+        },
+        codex: {
+          entry:
+            '在 VS Code 系编辑器安装 Codex IDE 扩展；CLI 中使用 `/ide-context` 控制或查看编辑器上下文。',
+          location:
+            'Codex IDE 扩展运行于支持的 VS Code 系编辑器，并共享 Codex 配置。',
+          behavior:
+            '读取选中代码和文件上下文，展示本地改动与 Diff，可在本地或 Cloud 任务之间工作。',
+          scope:
+            '当前 IDE 工作区和扩展会话；与 CLI、桌面端共享部分配置而不是全部交互状态。',
+          components:
+            'IDE 面板、命令面板操作、选择区上下文、Diff 与本地/Cloud 任务入口。',
+          loading:
+            '扩展启动后建立会话并读取共享配置；`/ide-context` 是 CLI 的相关 Slash 入口。',
+          surfaces:
+            'Codex IDE 扩展；插件系统当前不在该 Surface 中提供。',
+          permissions:
+            '编辑器中的工具操作继续受 Codex 审批与沙箱配置。',
+          conditions:
+            '旧矩阵写成 `/ide` 不准确；当前 Codex Slash 命令名是 `/ide-context`。',
+          sources: ['codex-ide', 'codex-commands'],
+        },
+        qwen: {
+          entry:
+            '`/ide install|enable|disable|status` 管理 VS Code Companion 连接。',
+          location:
+            'VS Code 与兼容分支安装 Qwen Code Companion。',
+          behavior:
+            '向 CLI 提供最近文件、光标位置、最多 16 KiB 的选择区和原生 Diff 展示。',
+          scope:
+            '当前编辑器工作区；最近文件上下文最多取 10 个。',
+          components:
+            'CLI `/ide` 管理命令、Companion 扩展、上下文桥接与 Diff。',
+          loading:
+            '安装并启用 Companion 后由 CLI 发现连接；`/ide status` 查看状态。',
+          surfaces:
+            '交互式 CLI 与 VS Code/兼容分支；ACP 是另一条客户端协议，不等同于 Companion。',
+          permissions:
+            'IDE 只提供上下文和 Diff；文件、Shell 与网络仍经过 Qwen approval mode 和 Sandbox。',
+          conditions:
+            '启用 Sandbox 时需要保留 Companion 通信所需网络；选择区超过 16 KiB 会受截断限制。',
+          status: '源码确认',
+          sources: ['qwen-ide-current'],
+        },
+        kimi: {
+          entry:
+            '使用 `kimi acp` 以 stdio 启动 Agent Client Protocol Server，由支持 ACP 的编辑器连接。',
+          location:
+            '官方指南列出 Zed 与 JetBrains 等 ACP 客户端配置。',
+          behavior:
+            '通过 JSON-RPC/stdio 接收提示与上下文，并把工具、权限和消息事件返回给编辑器。',
+          scope:
+            '当前 ACP 客户端工作区；登录状态与普通 Kimi CLI 共享。',
+          components:
+            'ACP Server、客户端配置、MCP 转发与会话事件。',
+          loading:
+            '编辑器按配置启动 `kimi acp`；ACP 会转发 stdio、HTTP 和 SSE MCP Server。',
+          surfaces:
+            'Zed、JetBrains 等支持 ACP 的 IDE；`/editor` 只编辑 Prompt，不属于 IDE 连接。',
+          permissions:
+            'ACP 客户端参与权限请求；实际工具仍遵循 Kimi 的权限与交互语义。',
+          conditions:
+            '必须由支持 ACP 的客户端启动或连接；不能把 `/editor` 当成等价命令。',
+          sources: ['kimi-ide-current', 'kimi-acp-current'],
+        },
+        qoder: {
+          entry:
+            '使用 `qodercli --acp` 启动 ACP Server，并在 Zed 等支持 ACP 的客户端中配置。',
+          location:
+            '配置在 ACP 客户端；Qoder CLI 作为子进程通过 stdio 通信。',
+          behavior:
+            '支持工具、Subagent、MCP、权限、上下文压缩和图像，并可使用 IDE 提供的文件系统与终端能力。',
+          scope:
+            '当前 ACP 客户端工作区与会话；登录沿用 Qoder CLI 环境。',
+          components:
+            'ACP Server、IDE 文件系统/终端桥接、权限请求、MCP 与 Subagent 事件。',
+          loading:
+            '由编辑器启动 `qodercli --acp`；连接生命周期由 ACP 客户端管理。',
+          surfaces:
+            'Zed 等 ACP 客户端；Qoder IDE 本身是另一产品 Surface，不用它替代 CLI ACP 结论。',
+          permissions:
+            '权限请求通过 ACP 交互呈现；IDE 提供能力不表示默认免审批。',
+          conditions:
+            '旧矩阵中的“CLI 命令未确认”已由官方 ACP 文档补足；入口是 CLI 参数，不是 Slash 命令。',
+          sources: ['qoder-acp'],
+        },
+      },
+      related: ['extension-mcp', 'surface-ide', 'surface-sdk'],
+    }),
+  });
+})();

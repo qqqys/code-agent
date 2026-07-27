@@ -123,4 +123,4 @@
 
 - [Skills](./cmd-skills.md)
 - [压缩上下文](./cmd-compact.md)
-- 项目指令文件：见对应能力矩阵
+- [项目指令文件](../extensions/extension-project-instructions.md)
