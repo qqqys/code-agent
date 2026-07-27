@@ -1,0 +1,15 @@
+2026-07-26T05:21:35.978Z [INFO] [DAEMON] runId=1604ea3c1c6c3a1df66c7498e6758f1a pid=98447 workspace=/private/tmp/ccq-phase1d-qwen-r4.A2oZEj/qwen-daemon/fixture workspaceHash=5b63e489 daemon started
+2026-07-26T05:21:36.169Z [INFO] [DAEMON] runId=1604ea3c1c6c3a1df66c7498e6758f1a pid=98447 deferred runtime: scheduling fallback start in 1000ms
+2026-07-26T05:21:36.205Z [INFO] [DAEMON] runId=1604ea3c1c6c3a1df66c7498e6758f1a pid=98447 deferred runtime: health served, scheduling start in 50ms
+2026-07-26T05:21:36.257Z [INFO] [DAEMON] runId=1604ea3c1c6c3a1df66c7498e6758f1a pid=98447 deferred runtime: health timer fired, starting
+2026-07-26T05:21:36.321Z [WARN] [DAEMON] runId=1604ea3c1c6c3a1df66c7498e6758f1a pid=98447 failedFiles="[object Object]" workspace=/private/tmp/ccq-phase1d-qwen-r4.A2oZEj/qwen-daemon/fixture one or more runtime env files could not be read
+2026-07-26T05:21:36.322Z [INFO] [DAEMON] runId=1604ea3c1c6c3a1df66c7498e6758f1a pid=98447 ideEnvPresent=false primary=/private/tmp/ccq-phase1d-qwen-r4.A2oZEj/qwen-daemon/fixture secondary= daemon workspace roots initialized
+2026-07-26T05:21:36.465Z [INFO] [DAEMON] runId=1604ea3c1c6c3a1df66c7498e6758f1a pid=98447 route=GET /capabilities durationMs=3 status=200 request completed
+2026-07-26T05:21:36.469Z [INFO] [DAEMON] runId=1604ea3c1c6c3a1df66c7498e6758f1a pid=98447 route=GET /daemon/status durationMs=2 status=200 request completed
+2026-07-26T05:21:36.486Z [INFO] [DAEMON] runId=1604ea3c1c6c3a1df66c7498e6758f1a pid=98447 route=GET /daemon/status durationMs=17 status=200 request completed
+2026-07-26T05:21:36.488Z [WARN] [DAEMON] runId=1604ea3c1c6c3a1df66c7498e6758f1a pid=98447 route=GET /daemon/status durationMs=0 status=400 request completed
+2026-07-26T05:21:36.489Z [WARN] [DAEMON] runId=1604ea3c1c6c3a1df66c7498e6758f1a pid=98447 route=GET /__ccq_probe_unknown__ durationMs=0 status=401 request completed
+2026-07-26T05:21:36.490Z [WARN] [DAEMON] runId=1604ea3c1c6c3a1df66c7498e6758f1a pid=98447 route=GET /__ccq_probe_unknown__ durationMs=0 status=401 request completed
+2026-07-26T05:21:36.493Z [WARN] [DAEMON] runId=1604ea3c1c6c3a1df66c7498e6758f1a pid=98447 route=GET /__ccq_probe_unknown__ durationMs=3 status=404 request completed
+2026-07-26T05:21:36.494Z [WARN] [DAEMON] runId=1604ea3c1c6c3a1df66c7498e6758f1a pid=98447 received SIGTERM, draining
+2026-07-26T05:21:36.495Z [INFO] [DAEMON] runId=1604ea3c1c6c3a1df66c7498e6758f1a pid=98447 daemon stopped

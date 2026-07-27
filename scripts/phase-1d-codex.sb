@@ -1,0 +1,54 @@
+(version 1)
+
+(deny default)
+(import "system.sb")
+
+; The probe runner and its child share this sandbox.  Only the exact frozen
+; Codex binary may be executed; the probe root is the only writable tree.
+(allow process-info* (target self))
+(allow process-info-pidinfo (target children))
+(allow process-fork)
+(allow process-exec
+  (literal (param "NODE_LINK"))
+  (literal (param "NODE_REAL"))
+  (literal (param "CODEX_BINARY")))
+(allow signal (target self))
+(allow signal (target children))
+
+(allow file-read-metadata file-test-existence
+  (literal "/")
+  (literal "/private")
+  (literal "/private/tmp")
+  (literal "/private/tmp/codex-phase0.XNx1jk")
+  (literal "/private/tmp/codex-phase0.XNx1jk/unpacked")
+  (literal "/private/tmp/codex-phase0.XNx1jk/unpacked/package")
+  (literal "/private/tmp/codex-phase0.XNx1jk/unpacked/package/vendor")
+  (literal "/private/tmp/codex-phase0.XNx1jk/unpacked/package/vendor/aarch64-apple-darwin")
+  (literal "/private/tmp/codex-phase0.XNx1jk/unpacked/package/vendor/aarch64-apple-darwin/bin")
+  (literal "/opt")
+  (literal "/opt/homebrew")
+  (literal "/Users")
+  (literal "/Users/qqqys")
+  (literal "/Users/qqqys/Desktop")
+  (literal "/Users/qqqys/Desktop/qys")
+  (literal "/Users/qqqys/Desktop/qys/qwen-code")
+  (literal "/Users/qqqys/Desktop/qys/qwen-code/.qwen")
+  (literal "/Users/qqqys/Desktop/qys/qwen-code/.qwen/research")
+  (literal "/Users/qqqys/Desktop/qys/qwen-code/.qwen/research/codex-claude-qwen")
+  (literal "/Users/qqqys/Desktop/qys/qwen-code/.qwen/research/codex-claude-qwen/scripts"))
+
+(allow file-read* file-test-existence
+  (subpath "/opt/homebrew")
+  (literal (param "RUNNER"))
+  (literal (param "CODEX_BINARY"))
+  (subpath (param "PROBE_ROOT")))
+
+(allow file-map-executable
+  (subpath "/opt/homebrew")
+  (literal (param "CODEX_BINARY")))
+
+(allow file-write*
+  (subpath (param "PROBE_ROOT")))
+
+; system.sb permits only a local syslog socket.  Explicitly deny all IP egress.
+(deny network* (remote ip))

@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "mode": "codex-mcp",
+  "startedAt": "2026-07-26T05:23:51.092Z",
+  "finishedAt": "2026-07-26T05:23:52.152Z",
+  "containment": {
+    "outer": "macOS Seatbelt deny-default profile",
+    "realHomeReadAllowed": false,
+    "probeRootWriteOnly": true,
+    "remoteIpNetworkAllowed": false,
+    "loopbackNetworkAllowed": false,
+    "environmentSource": "allowlisted keys only; parent environment not copied"
+  },
+  "status": "Probe failed",
+  "error": {
+    "name": "ProbeError",
+    "message": "Codex MCP protocol probe failed",
+    "stack": "ProbeError: Codex MCP protocol probe failed\n    at runCodexMcpProbe (file:///Users/qqqys/Desktop/qys/qwen-code/.qwen/research/codex-claude-qwen/scripts/run-phase-1d-probe.mjs:595:11)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async file:///Users/qqqys/Desktop/qys/qwen-code/.qwen/research/codex-claude-qwen/scripts/run-phase-1d-probe.mjs:932:11",
+    "cause": {
+      "name": "Error",
+      "message": "Child exited before response: code=1 signal=null",
+      "stack": "Error: Child exited before response: code=1 signal=null\n    at ChildProcess.<anonymous> (file:///Users/qqqys/Desktop/qys/qwen-code/.qwen/research/codex-claude-qwen/scripts/run-phase-1d-probe.mjs:253:11)\n    at Object.onceWrapper (node:events:631:12)\n    at ChildProcess.emit (node:events:509:20)\n    at ChildProcess._handle.onexit (node:internal/child_process:294:12)"
+    },
+    "details": {
+      "sent": [
+        {
+          "at": "2026-07-26T05:23:51.209Z",
+          "raw": "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2025-11-25\",\"capabilities\":{},\"clientInfo\":{\"name\":\"ccq-phase1d-probe\",\"version\":\"1.0.0\"}}}",
+          "value": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+              "protocolVersion": "2025-11-25",
+              "capabilities": {},
+              "clientInfo": {
+                "name": "ccq-phase1d-probe",
+                "version": "1.0.0"
+              }
+            }
+          }
+        }
+      ],
+      "received": [],
+      "parseErrors": [],
+      "captures": {
+        "stdoutRaw": "",
+        "stderrRaw": "WARNING: proceeding, even though we could not create PATH aliases: File exists (os error 17)\nError: error loading config: Failed to read config file /Users/qqqys/.codex/config.toml: Operation not permitted (os error 1)\n"
+      },
+      "shutdown": {
+        "requestedAt": "2026-07-26T05:23:52.152Z",
+        "method": "stdin_eof",
+        "forcedSignal": null,
+        "exit": {
+          "code": 1,
+          "signal": null,
+          "at": "2026-07-26T05:23:52.151Z"
+        },
+        "pidGone": true,
+        "finishedAt": "2026-07-26T05:23:52.152Z"
+      }
+    }
+  },
+  "sideEffects": [
+    {
+      "path": "codex-mcp",
+      "type": "directory",
+      "mode": "755"
+    },
+    {
+      "path": "codex-mcp/fixture",
+      "type": "directory",
+      "mode": "755"
+    },
+    {
+      "path": "codex-mcp/tmp",
+      "type": "directory",
+      "mode": "755"
+    }
+  ]
+}

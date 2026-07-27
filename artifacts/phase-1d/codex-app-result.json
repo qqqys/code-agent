@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "mode": "codex-app",
+  "startedAt": "2026-07-26T05:22:41.232Z",
+  "finishedAt": "2026-07-26T05:22:42.197Z",
+  "containment": {
+    "outer": "macOS Seatbelt deny-default profile",
+    "realHomeReadAllowed": false,
+    "probeRootWriteOnly": true,
+    "remoteIpNetworkAllowed": false,
+    "loopbackNetworkAllowed": false,
+    "environmentSource": "allowlisted keys only; parent environment not copied"
+  },
+  "status": "Probe failed",
+  "error": {
+    "name": "ProbeError",
+    "message": "Codex app-server protocol probe failed",
+    "stack": "ProbeError: Codex app-server protocol probe failed\n    at runCodexAppProbe (file:///Users/qqqys/Desktop/qys/qwen-code/.qwen/research/codex-claude-qwen/scripts/run-phase-1d-probe.mjs:505:11)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async file:///Users/qqqys/Desktop/qys/qwen-code/.qwen/research/codex-claude-qwen/scripts/run-phase-1d-probe.mjs:931:11",
+    "cause": {
+      "name": "Error",
+      "message": "Child exited before response: code=1 signal=null",
+      "stack": "Error: Child exited before response: code=1 signal=null\n    at ChildProcess.<anonymous> (file:///Users/qqqys/Desktop/qys/qwen-code/.qwen/research/codex-claude-qwen/scripts/run-phase-1d-probe.mjs:253:11)\n    at Object.onceWrapper (node:events:631:12)\n    at ChildProcess.emit (node:events:509:20)\n    at ChildProcess._handle.onexit (node:internal/child_process:294:12)"
+    },
+    "details": {
+      "sent": [
+        {
+          "at": "2026-07-26T05:22:41.258Z",
+          "raw": "{\"id\":\"preinit-1\",\"method\":\"ccq/doesNotExist\",\"params\":{}}",
+          "value": {
+            "id": "preinit-1",
+            "method": "ccq/doesNotExist",
+            "params": {}
+          }
+        }
+      ],
+      "received": [],
+      "parseErrors": [],
+      "captures": {
+        "stdoutRaw": "",
+        "stderrRaw": "WARNING: proceeding, even though we could not create PATH aliases: File exists (os error 17)\nError: failed to initialize sqlite state runtime under /Users/qqqys/.codex: failed to initialize state runtime at /Users/qqqys/.codex\n"
+      },
+      "shutdown": {
+        "requestedAt": "2026-07-26T05:22:42.197Z",
+        "method": "stdin_eof",
+        "forcedSignal": null,
+        "exit": {
+          "code": 1,
+          "signal": null,
+          "at": "2026-07-26T05:22:42.197Z"
+        },
+        "pidGone": true,
+        "finishedAt": "2026-07-26T05:22:42.197Z"
+      }
+    }
+  },
+  "sideEffects": [
+    {
+      "path": "codex-app",
+      "type": "directory",
+      "mode": "755"
+    },
+    {
+      "path": "codex-app/fixture",
+      "type": "directory",
+      "mode": "755"
+    },
+    {
+      "path": "codex-app/tmp",
+      "type": "directory",
+      "mode": "755"
+    }
+  ]
+}
