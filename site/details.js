@@ -531,7 +531,8 @@
       facts: [
         'Claude Code 将快速 PR Review、本地多级 Code Review 和安全 Review 拆成三个命令。',
         'Codex `/review` 面向工作树审查。',
-        'Qwen Code 和 Kimi Code 当前官方内置命令目录没有独立 Review 命令。',
+        'Qwen Code `/review` 由随产品提供的 Skill 注册，不在硬编码命令加载器中。',
+        'Kimi Code 当前官方内置命令目录没有独立 Review 命令。',
       ],
       products: {
         claude: command('claude', ['/review [PR]', '/code-review [level] [--fix] [--comment] [target]', '/security-review'], '支持只读 PR Review、本地或云端多级 Review，以及当前分支安全审查。', {
@@ -542,7 +543,13 @@
         codex: command('codex', ['/review'], '进入代码审查模式，审查未提交变化或与基线分支比较。', {
           persistence: '默认产生审查结果，不等同于自动修改',
         }),
-        qwen: unconfirmed('qwen', '可以通过提示、Skill 或工作流执行审查，但当前内置命令目录没有 `/review`。'),
+        qwen: command('qwen', ['/review [pr-number|file-path] [--effort low|medium|high] [--comment]'], '审查本地未提交变化、指定文件或 Pull Request。PR 默认使用 high，本地和文件默认使用 medium；同仓 PR 进入临时 Worktree，跨仓 URL 使用轻量模式。', {
+          parameters: '`[pr-number|file-path] [--effort low|medium|high] [--comment]`',
+          mode: '交互式、非交互式、ACP',
+          persistence: '默认输出审查结果；PR 加 `--comment` 可提交一次 GitHub Review；临时文件与 Worktree 按流程清理',
+          conditions: '随产品提供的 Skill 在 bare mode、`skills.disabled` 或 `slashCommands.disabled` 命中时不可用；PR 读取或评论需要 GitHub 访问权限',
+          sources: ['qwen-bundled-skills', 'qwen-review-skill', 'qwen-command-modes'],
+        }),
         kimi: unconfirmed('kimi', '可以通过提示执行审查，但当前官方 Slash 命令目录没有 `/review`。'),
         qoder: command('qoder', ['/review [instruction]'], '以 Prompt 命令审查本地待提交 Git 变化。', {
           parameters: '`[instruction]`',
@@ -701,7 +708,8 @@
       facts: [
         '五家都支持 Skill 或 Skill 命令。',
         'Claude Code `/skills` 可以按 token 数排序并控制 Skill 是否对模型和命令菜单可见。',
-        'Qwen Code `/skills` 打开浏览、搜索、开关和选择面板。',
+        'Qwen Code `/skills` 打开浏览、搜索、开关和选择面板；具体 Skill 通过 `/<skill-name>` 直接调用。',
+        '当前源码随产品提供 9 个 Skill 命令：`/batch`、`/dataviz`、`/extension-creator`、`/loop`、`/new-app`、`/qc-helper`、`/review`、`/simplify`、`/stuck`；其中 `/loop` 只在 Cron 开启时出现。',
       ],
       products: {
         claude: command('claude', ['/skills', '/reload-skills'], '浏览和筛选 Skills，调整可见性；重扫磁盘上的 Skill 目录。', {
@@ -710,9 +718,12 @@
         codex: command('codex', ['/skills'], '浏览并选择本地 Skill。', {
           persistence: 'Skill 文件跨会话存在',
         }),
-        qwen: command('qwen', ['/skills'], '打开 Skills 面板，支持浏览、搜索、启用或停用以及选择。', {
-          mode: '交互式、ACP',
+        qwen: command('qwen', ['/skills', '/<skill-name>'], '`/skills` 打开管理面板；随产品提供的 Skill，以及用户、项目和扩展 Skill，都可按名称注册为 Slash 命令。Skill 命令把 Skill 正文提交给模型，并应用 Skill 声明的工具权限。', {
+          parameters: '`/skills` 不接收参数；具体 Skill 的参数由其 `argument-hint` 和正文定义',
+          mode: '`/skills`：交互式、ACP；`/<skill-name>`：交互式、非交互式、ACP',
           persistence: 'Skill 文件和启用状态跨会话生效',
+          conditions: 'bare mode 不加载 Skill 命令；`skills.disabled` 可按名称停用；`user-invocable: false` 的 Skill 不进入用户命令表',
+          sources: ['qwen-commands', 'qwen-bundled-skills', 'qwen-skill-commands', 'qwen-command-modes'],
         }),
         kimi: command('kimi', ['/<skill-name>'], 'Skills 作为命令出现在命令补全中；官方命令表也列出多个内置 Skill 命令。', {
           parameters: '由各 Skill 定义',
@@ -771,10 +782,12 @@
         codex: command('codex', ['/plugins', '/apps'], '浏览可用插件；浏览应用连接并以 `$app-slug` 插入提示。', {
           persistence: '安装和可用性设置跨会话生效',
         }),
-        qwen: command('qwen', ['/extensions', '/reload-plugins'], '列出、浏览、安装和管理扩展，并重新加载插件组件。', {
-          parameters: '`explore|manage|list|install`',
-          mode: '交互式、非交互式、ACP',
+        qwen: command('qwen', ['/extensions', '/extension-creator', '/reload-plugins'], '`/extensions` 管理已安装扩展；`/extension-creator` 是随产品提供的 Skill，负责创建、校验和本地测试扩展；`/reload-plugins` 重载扩展组件。', {
+          parameters: '`/extensions explore|manage|list|install`；`/extension-creator <extension-path> [template]`',
+          mode: '硬编码管理命令按各自模式；`/extension-creator` 支持交互式、非交互式和 ACP',
           persistence: '扩展安装状态跨会话生效',
+          conditions: '`/extension-creator` 在 bare mode 或被 Skill/Slash 禁用时不可用',
+          sources: ['qwen-commands', 'qwen-bundled-skills'],
         }),
         kimi: command('kimi', ['/plugins'], '打开插件管理入口。'),
         qoder: unconfirmed('qoder', '官方文档包含插件系统，但当前 Slash 命令目录未列出独立插件管理命令。'),
@@ -788,7 +801,7 @@
       excludes: ['内置命令修改', '普通项目指令文件', '插件的完整打包规范'],
       facts: [
         'Claude Code、Codex 和 Kimi Code 主要通过 Skills 提供自定义命令。',
-        'Qwen Code 同时提供 Workflows 与 Skills。',
+        'Qwen Code 同时加载用户、项目和扩展 Skills，Markdown/TOML 命令文件，以及保存的 Workflows。',
         'Qoder CLI 明确支持 `.qoder/commands/` 和 `~/.qoder/commands/`，Prompt 类型可用于 Headless。',
       ],
       products: {
@@ -802,8 +815,12 @@
           persistence: 'Skill 文件跨会话存在',
           status: '条件项',
         }),
-        qwen: command('qwen', ['/workflows', '/<skill-name>'], '工作流面板管理运行中的 Workflow；Skills 可作为命令调用。', {
-          persistence: '定义文件跨会话存在，运行状态属于相应会话',
+        qwen: command('qwen', ['/workflows', '/<skill-name>', '/<command-name>', '/<workflow-name>'], '用户、项目和扩展 Skill 按 Skill 名注册；`commands/` 下的 Markdown/TOML 文件按路径注册；启用 Workflows 后，保存的 Workflow 也按名称注册。', {
+          parameters: '由 Skill、命令文件或 Workflow 定义；Workflow 可接收 JSON 或纯文本参数',
+          mode: 'Skill 与命令文件支持交互式、非交互式、ACP；保存的 Workflow 命令仅交互式',
+          persistence: '定义文件跨会话存在，Workflow 运行状态属于相应会话',
+          conditions: 'bare mode 不自动发现；项目命令和 Workflow 受 Folder Trust 约束；Workflow 还需启用功能开关',
+          sources: ['qwen-skill-commands', 'qwen-file-commands', 'qwen-workflow-commands'],
         }),
         kimi: command('kimi', ['/<skill-name>'], 'Skills 参与 Slash 命令补全，未匹配的 Slash 文本会作为普通消息发送。', {
           parameters: '由 Skill 定义',
@@ -883,6 +900,7 @@
         '五家的协作入口语义不同，不能仅按命令名称判断等价。',
         'Claude Code `/batch` 会拆分为 5–30 个单元并使用隔离 Worktree。',
         'Qwen Code Arena 让多个模型执行同一任务，之后选择一个结果并合并其 Diff。',
+        'Qwen Code `/batch` 是随产品提供的 Skill：发现文件、分块后使用并行执行 Agent 完成批量操作。',
       ],
       products: {
         claude: command('claude', ['/advisor [model|off]', '/batch <instruction>'], 'Advisor 在关键时刻咨询第二模型；Batch 将大型改动拆为并行 Worktree 子任务。', {
@@ -894,10 +912,13 @@
           aliases: ['/subagents'],
           sources: ['codex-commands', 'codex-agents'],
         }),
-        qwen: command('qwen', ['/arena start', '/arena status', '/arena select', '/arena stop'], '多个模型执行同一任务，查看状态后选择某一结果并合并其 Diff。', {
+        qwen: command('qwen', ['/arena start', '/arena status', '/arena select', '/arena stop', '/batch <operation> <file-pattern>'], 'Arena 让多个模型执行同一任务并选择结果；随产品提供的 `/batch` Skill 发现匹配文件、分块并交给并行执行 Agent。', {
           aliases: ['/arena choose'],
-          mode: '仅交互式',
-          persistence: 'Arena 运行属于当前会话；select 可修改工作区',
+          parameters: 'Arena 使用相应子命令；Batch 使用 `<operation> <file-pattern>`',
+          mode: 'Arena 仅交互式；`/batch` 支持交互式、非交互式和 ACP',
+          persistence: 'Arena 运行属于当前会话；Arena select 和 Batch 任务可修改工作区',
+          conditions: '`/batch` 在 bare mode 或被 Skill/Slash 禁用时不可用',
+          sources: ['qwen-commands', 'qwen-bundled-skills'],
         }),
         kimi: command('kimi', ['/swarm on|off', '/swarm <task>'], '切换 Swarm 模式，或为单轮任务开启 Swarm 并在成功完成后自动关闭。', {
           parameters: '`on|off|<task>`',

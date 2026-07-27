@@ -14,7 +14,7 @@
 | --- | --- | --- |
 | Claude Code | `/advisor [model\|off]`、`/batch <instruction>` | 官方确认 |
 | Codex | `/agent` | 官方确认 |
-| Qwen Code | `/arena start`、`/arena status`、`/arena select`、`/arena stop` | 源码确认 |
+| Qwen Code | `/arena start`、`/arena status`、`/arena select`、`/arena stop`、`/batch <operation> <file-pattern>` | 源码确认 |
 | Kimi Code | `/swarm on\|off`、`/swarm <task>` | 官方确认 |
 | Qoder CLI | `/quest` | 官方确认 |
 
@@ -38,6 +38,7 @@
 1. 五家的协作入口语义不同，不能仅按命令名称判断等价。
 2. Claude Code `/batch` 会拆分为 5–30 个单元并使用隔离 Worktree。
 3. Qwen Code Arena 让多个模型执行同一任务，之后选择一个结果并合并其 Diff。
+4. Qwen Code `/batch` 是随产品提供的 Skill：发现文件、分块后使用并行执行 Agent 完成批量操作。
 
 ## 逐产品记录
 
@@ -73,15 +74,15 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 主命令 | `/arena start`、`/arena status`、`/arena select`、`/arena stop` |
+| 主命令 | `/arena start`、`/arena status`、`/arena select`、`/arena stop`、`/batch <operation> <file-pattern>` |
 | 别名 | `/arena choose` |
-| 参数 | 无公开参数 |
-| 执行行为 | 多个模型执行同一任务，查看状态后选择某一结果并合并其 Diff。 |
-| 可用模式 | 仅交互式 |
-| 保存范围 | Arena 运行属于当前会话；select 可修改工作区 |
-| 条件与边界 | 无额外条件 |
+| 参数 | Arena 使用相应子命令；Batch 使用 `<operation> <file-pattern>` |
+| 执行行为 | Arena 让多个模型执行同一任务并选择结果；随产品提供的 `/batch` Skill 发现匹配文件、分块并交给并行执行 Agent。 |
+| 可用模式 | Arena 仅交互式；`/batch` 支持交互式、非交互式和 ACP |
+| 保存范围 | Arena 运行属于当前会话；Arena select 和 Batch 任务可修改工作区 |
+| 条件与边界 | `/batch` 在 bare mode 或被 Skill/Slash 禁用时不可用 |
 | 证据状态 | 源码确认 |
-| 来源 | [Qwen Code command source](https://github.com/QwenLM/qwen-code/tree/main/packages/cli/src/ui/commands) |
+| 来源 | [Qwen Code commands documentation](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/commands.md)、[Qwen Code bundled Skill loader](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/BundledSkillLoader.ts) |
 
 ### Kimi Code
 
@@ -116,7 +117,8 @@
 - [Claude Code Commands](https://code.claude.com/docs/en/commands)
 - [Codex CLI commands](https://developers.openai.com/codex/cli/slash-commands)
 - [Codex Subagents](https://developers.openai.com/codex/subagents)
-- [Qwen Code command source](https://github.com/QwenLM/qwen-code/tree/main/packages/cli/src/ui/commands)
+- [Qwen Code commands documentation](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/commands.md)
+- [Qwen Code bundled Skill loader](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/BundledSkillLoader.ts)
 - [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/main/docs/zh/reference/slash-commands.md)
 - [Qoder CLI commands](https://docs.qoder.com/en/cli/command)
 - [Qoder CLI Subagent](https://docs.qoder.com/en/cli/subagent)

@@ -61,7 +61,7 @@
 
 - [Claude Code Subagents](https://code.claude.com/docs/en/sub-agents)
 - [Codex Subagents](https://developers.openai.com/codex/subagents)
-- [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/f451c238a802e768f0245cdc4db3ecfed2a67e61/docs/users/features/sub-agents.md)
-- [Qwen Code Worktree](https://github.com/QwenLM/qwen-code/blob/f451c238a802e768f0245cdc4db3ecfed2a67e61/docs/users/features/worktree.md)
+- [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/sub-agents.md)
+- [Qwen Code Worktree](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/worktree.md)
 - [Kimi Code Agents](https://github.com/MoonshotAI/kimi-code/blob/main/docs/zh/customization/agents.md)
 - [Qoder CLI Subagent](https://docs.qoder.com/en/cli/subagent)

@@ -14,7 +14,7 @@
 | --- | --- | --- |
 | Claude Code | `/skills`、`/reload-skills` | 官方确认 |
 | Codex | `/skills` | 官方确认 |
-| Qwen Code | `/skills` | 源码确认 |
+| Qwen Code | `/skills`、`/<skill-name>` | 源码确认 |
 | Kimi Code | `/<skill-name>` | 条件项 |
 | Qoder CLI | `/skills` | 官方确认 |
 
@@ -37,7 +37,8 @@
 
 1. 五家都支持 Skill 或 Skill 命令。
 2. Claude Code `/skills` 可以按 token 数排序并控制 Skill 是否对模型和命令菜单可见。
-3. Qwen Code `/skills` 打开浏览、搜索、开关和选择面板。
+3. Qwen Code `/skills` 打开浏览、搜索、开关和选择面板；具体 Skill 通过 `/<skill-name>` 直接调用。
+4. 当前源码随产品提供 9 个 Skill 命令：`/batch`、`/dataviz`、`/extension-creator`、`/loop`、`/new-app`、`/qc-helper`、`/review`、`/simplify`、`/stuck`；其中 `/loop` 只在 Cron 开启时出现。
 
 ## 逐产品记录
 
@@ -73,15 +74,15 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 主命令 | `/skills` |
+| 主命令 | `/skills`、`/<skill-name>` |
 | 别名 | 无公开别名 |
-| 参数 | 无公开参数 |
-| 执行行为 | 打开 Skills 面板，支持浏览、搜索、启用或停用以及选择。 |
-| 可用模式 | 交互式、ACP |
+| 参数 | `/skills` 不接收参数；具体 Skill 的参数由其 `argument-hint` 和正文定义 |
+| 执行行为 | `/skills` 打开管理面板；随产品提供的 Skill，以及用户、项目和扩展 Skill，都可按名称注册为 Slash 命令。Skill 命令把 Skill 正文提交给模型，并应用 Skill 声明的工具权限。 |
+| 可用模式 | `/skills`：交互式、ACP；`/<skill-name>`：交互式、非交互式、ACP |
 | 保存范围 | Skill 文件和启用状态跨会话生效 |
-| 条件与边界 | 无额外条件 |
+| 条件与边界 | bare mode 不加载 Skill 命令；`skills.disabled` 可按名称停用；`user-invocable: false` 的 Skill 不进入用户命令表 |
 | 证据状态 | 源码确认 |
-| 来源 | [Qwen Code command source](https://github.com/QwenLM/qwen-code/tree/main/packages/cli/src/ui/commands) |
+| 来源 | [Qwen Code commands documentation](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/commands.md)、[Qwen Code bundled Skill loader](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/BundledSkillLoader.ts)、[Qwen Code user, project and extension Skill loader](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/SkillCommandLoader.ts)、[Qwen Code command mode filter](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/commandUtils.ts) |
 
 ### Kimi Code
 
@@ -115,7 +116,10 @@
 
 - [Claude Code Commands](https://code.claude.com/docs/en/commands)
 - [Codex CLI commands](https://developers.openai.com/codex/cli/slash-commands)
-- [Qwen Code command source](https://github.com/QwenLM/qwen-code/tree/main/packages/cli/src/ui/commands)
+- [Qwen Code commands documentation](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/commands.md)
+- [Qwen Code bundled Skill loader](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/BundledSkillLoader.ts)
+- [Qwen Code user, project and extension Skill loader](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/SkillCommandLoader.ts)
+- [Qwen Code command mode filter](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/commandUtils.ts)
 - [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/main/docs/zh/reference/slash-commands.md)
 - [Qoder CLI commands](https://docs.qoder.com/en/cli/command)
 

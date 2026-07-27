@@ -14,7 +14,7 @@
 | --- | --- | --- |
 | Claude Code | `/review [PR]`、`/code-review [level] [--fix] [--comment] [target]`、`/security-review` | 官方确认 |
 | Codex | `/review` | 官方确认 |
-| Qwen Code | 无对应命令 | 未确认 |
+| Qwen Code | `/review [pr-number\|file-path] [--effort low\|medium\|high] [--comment]` | 源码确认 |
 | Kimi Code | 无对应命令 | 未确认 |
 | Qoder CLI | `/review [instruction]` | 官方确认 |
 
@@ -37,7 +37,8 @@
 
 1. Claude Code 将快速 PR Review、本地多级 Code Review 和安全 Review 拆成三个命令。
 2. Codex `/review` 面向工作树审查。
-3. Qwen Code 和 Kimi Code 当前官方内置命令目录没有独立 Review 命令。
+3. Qwen Code `/review` 由随产品提供的 Skill 注册，不在硬编码命令加载器中。
+4. Kimi Code 当前官方内置命令目录没有独立 Review 命令。
 
 ## 逐产品记录
 
@@ -73,15 +74,15 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 主命令 | 无对应命令 |
+| 主命令 | `/review [pr-number\|file-path] [--effort low\|medium\|high] [--comment]` |
 | 别名 | 无公开别名 |
-| 参数 | — |
-| 执行行为 | 可以通过提示、Skill 或工作流执行审查，但当前内置命令目录没有 `/review`。 |
-| 可用模式 | 交互式 CLI |
-| 保存范围 | — |
-| 条件与边界 | 不据此推断底层能力不存在 |
-| 证据状态 | 未确认 |
-| 来源 | [Qwen Code command source](https://github.com/QwenLM/qwen-code/tree/main/packages/cli/src/ui/commands) |
+| 参数 | `[pr-number\|file-path] [--effort low\|medium\|high] [--comment]` |
+| 执行行为 | 审查本地未提交变化、指定文件或 Pull Request。PR 默认使用 high，本地和文件默认使用 medium；同仓 PR 进入临时 Worktree，跨仓 URL 使用轻量模式。 |
+| 可用模式 | 交互式、非交互式、ACP |
+| 保存范围 | 默认输出审查结果；PR 加 `--comment` 可提交一次 GitHub Review；临时文件与 Worktree 按流程清理 |
+| 条件与边界 | 随产品提供的 Skill 在 bare mode、`skills.disabled` 或 `slashCommands.disabled` 命中时不可用；PR 读取或评论需要 GitHub 访问权限 |
+| 证据状态 | 源码确认 |
+| 来源 | [Qwen Code bundled Skill loader](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/BundledSkillLoader.ts)、[Qwen Code review Skill](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/core/src/skills/bundled/review/SKILL.md)、[Qwen Code command mode filter](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/commandUtils.ts) |
 
 ### Kimi Code
 
@@ -115,7 +116,9 @@
 
 - [Claude Code Commands](https://code.claude.com/docs/en/commands)
 - [Codex CLI commands](https://developers.openai.com/codex/cli/slash-commands)
-- [Qwen Code command source](https://github.com/QwenLM/qwen-code/tree/main/packages/cli/src/ui/commands)
+- [Qwen Code bundled Skill loader](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/BundledSkillLoader.ts)
+- [Qwen Code review Skill](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/core/src/skills/bundled/review/SKILL.md)
+- [Qwen Code command mode filter](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/commandUtils.ts)
 - [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/main/docs/zh/reference/slash-commands.md)
 - [Qoder CLI commands](https://docs.qoder.com/en/cli/command)
 

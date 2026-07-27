@@ -14,7 +14,7 @@
 | --- | --- | --- |
 | Claude Code | `/<skill-name>` | 条件项 |
 | Codex | `/<skill-name>` | 条件项 |
-| Qwen Code | `/workflows`、`/<skill-name>` | 源码确认 |
+| Qwen Code | `/workflows`、`/<skill-name>`、`/<command-name>`、`/<workflow-name>` | 源码确认 |
 | Kimi Code | `/<skill-name>` | 条件项 |
 | Qoder CLI | `/commands`、`/<command-name>` | 官方确认 |
 
@@ -36,7 +36,7 @@
 ## 跨产品事实
 
 1. Claude Code、Codex 和 Kimi Code 主要通过 Skills 提供自定义命令。
-2. Qwen Code 同时提供 Workflows 与 Skills。
+2. Qwen Code 同时加载用户、项目和扩展 Skills，Markdown/TOML 命令文件，以及保存的 Workflows。
 3. Qoder CLI 明确支持 `.qoder/commands/` 和 `~/.qoder/commands/`，Prompt 类型可用于 Headless。
 
 ## 逐产品记录
@@ -73,15 +73,15 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 主命令 | `/workflows`、`/<skill-name>` |
+| 主命令 | `/workflows`、`/<skill-name>`、`/<command-name>`、`/<workflow-name>` |
 | 别名 | 无公开别名 |
-| 参数 | 无公开参数 |
-| 执行行为 | 工作流面板管理运行中的 Workflow；Skills 可作为命令调用。 |
-| 可用模式 | 交互式 CLI |
-| 保存范围 | 定义文件跨会话存在，运行状态属于相应会话 |
-| 条件与边界 | 无额外条件 |
+| 参数 | 由 Skill、命令文件或 Workflow 定义；Workflow 可接收 JSON 或纯文本参数 |
+| 执行行为 | 用户、项目和扩展 Skill 按 Skill 名注册；`commands/` 下的 Markdown/TOML 文件按路径注册；启用 Workflows 后，保存的 Workflow 也按名称注册。 |
+| 可用模式 | Skill 与命令文件支持交互式、非交互式、ACP；保存的 Workflow 命令仅交互式 |
+| 保存范围 | 定义文件跨会话存在，Workflow 运行状态属于相应会话 |
+| 条件与边界 | bare mode 不自动发现；项目命令和 Workflow 受 Folder Trust 约束；Workflow 还需启用功能开关 |
 | 证据状态 | 源码确认 |
-| 来源 | [Qwen Code command source](https://github.com/QwenLM/qwen-code/tree/main/packages/cli/src/ui/commands) |
+| 来源 | [Qwen Code user, project and extension Skill loader](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/SkillCommandLoader.ts)、[Qwen Code Markdown and TOML command loader](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/FileCommandLoader.ts)、[Qwen Code saved Workflow loader](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/saved-workflow-loader.ts) |
 
 ### Kimi Code
 
@@ -115,7 +115,9 @@
 
 - [Claude Code Commands](https://code.claude.com/docs/en/commands)
 - [Codex CLI commands](https://developers.openai.com/codex/cli/slash-commands)
-- [Qwen Code command source](https://github.com/QwenLM/qwen-code/tree/main/packages/cli/src/ui/commands)
+- [Qwen Code user, project and extension Skill loader](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/SkillCommandLoader.ts)
+- [Qwen Code Markdown and TOML command loader](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/FileCommandLoader.ts)
+- [Qwen Code saved Workflow loader](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/saved-workflow-loader.ts)
 - [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/main/docs/zh/reference/slash-commands.md)
 - [Qoder CLI commands](https://docs.qoder.com/en/cli/command)
 

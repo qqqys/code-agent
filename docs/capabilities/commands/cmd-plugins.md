@@ -14,7 +14,7 @@
 | --- | --- | --- |
 | Claude Code | `/plugin [subcommand]`、`/reload-plugins [--force]` | 官方确认 |
 | Codex | `/plugins`、`/apps` | 官方确认 |
-| Qwen Code | `/extensions`、`/reload-plugins` | 源码确认 |
+| Qwen Code | `/extensions`、`/extension-creator`、`/reload-plugins` | 源码确认 |
 | Kimi Code | `/plugins` | 官方确认 |
 | Qoder CLI | 无对应命令 | 未确认 |
 
@@ -73,15 +73,15 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 主命令 | `/extensions`、`/reload-plugins` |
+| 主命令 | `/extensions`、`/extension-creator`、`/reload-plugins` |
 | 别名 | 无公开别名 |
-| 参数 | `explore\|manage\|list\|install` |
-| 执行行为 | 列出、浏览、安装和管理扩展，并重新加载插件组件。 |
-| 可用模式 | 交互式、非交互式、ACP |
+| 参数 | `/extensions explore\|manage\|list\|install`；`/extension-creator <extension-path> [template]` |
+| 执行行为 | `/extensions` 管理已安装扩展；`/extension-creator` 是随产品提供的 Skill，负责创建、校验和本地测试扩展；`/reload-plugins` 重载扩展组件。 |
+| 可用模式 | 硬编码管理命令按各自模式；`/extension-creator` 支持交互式、非交互式和 ACP |
 | 保存范围 | 扩展安装状态跨会话生效 |
-| 条件与边界 | 无额外条件 |
+| 条件与边界 | `/extension-creator` 在 bare mode 或被 Skill/Slash 禁用时不可用 |
 | 证据状态 | 源码确认 |
-| 来源 | [Qwen Code command source](https://github.com/QwenLM/qwen-code/tree/main/packages/cli/src/ui/commands) |
+| 来源 | [Qwen Code commands documentation](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/commands.md)、[Qwen Code bundled Skill loader](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/BundledSkillLoader.ts) |
 
 ### Kimi Code
 
@@ -115,7 +115,8 @@
 
 - [Claude Code Commands](https://code.claude.com/docs/en/commands)
 - [Codex CLI commands](https://developers.openai.com/codex/cli/slash-commands)
-- [Qwen Code command source](https://github.com/QwenLM/qwen-code/tree/main/packages/cli/src/ui/commands)
+- [Qwen Code commands documentation](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/commands.md)
+- [Qwen Code bundled Skill loader](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/BundledSkillLoader.ts)
 - [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/main/docs/zh/reference/slash-commands.md)
 - [Qoder CLI commands](https://docs.qoder.com/en/cli/command)
 

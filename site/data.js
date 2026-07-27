@@ -43,16 +43,40 @@ window.matrixData = {
       url: 'https://developers.openai.com/codex',
     },
     'qwen-commands': {
-      label: 'Qwen Code command source',
-      url: 'https://github.com/QwenLM/qwen-code/tree/main/packages/cli/src/ui/commands',
+      label: 'Qwen Code commands documentation',
+      url: 'https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/commands.md',
+    },
+    'qwen-bundled-skills': {
+      label: 'Qwen Code bundled Skill loader',
+      url: 'https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/BundledSkillLoader.ts',
+    },
+    'qwen-skill-commands': {
+      label: 'Qwen Code user, project and extension Skill loader',
+      url: 'https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/SkillCommandLoader.ts',
+    },
+    'qwen-file-commands': {
+      label: 'Qwen Code Markdown and TOML command loader',
+      url: 'https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/FileCommandLoader.ts',
+    },
+    'qwen-workflow-commands': {
+      label: 'Qwen Code saved Workflow loader',
+      url: 'https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/saved-workflow-loader.ts',
+    },
+    'qwen-review-skill': {
+      label: 'Qwen Code review Skill',
+      url: 'https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/core/src/skills/bundled/review/SKILL.md',
+    },
+    'qwen-command-modes': {
+      label: 'Qwen Code command mode filter',
+      url: 'https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/commandUtils.ts',
     },
     'qwen-agents': {
       label: 'Qwen Code Subagents',
-      url: 'https://github.com/QwenLM/qwen-code/blob/f451c238a802e768f0245cdc4db3ecfed2a67e61/docs/users/features/sub-agents.md',
+      url: 'https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/sub-agents.md',
     },
     'qwen-worktree': {
       label: 'Qwen Code Worktree',
-      url: 'https://github.com/QwenLM/qwen-code/blob/f451c238a802e768f0245cdc4db3ecfed2a67e61/docs/users/features/worktree.md',
+      url: 'https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/worktree.md',
     },
     'qwen-docs': {
       label: 'Qwen Code Documentation',
@@ -194,7 +218,7 @@ window.matrixData = {
       category: 'commands',
       capability: '代码审查',
       description: '启动代码或安全审查工作流。',
-      values: { claude: '`/review` · `/code-review` · `/security-review`', codex: '`/review`', qwen: '—', kimi: '—', qoder: '`/review`' },
+      values: { claude: '`/review` · `/code-review` · `/security-review`', codex: '`/review`', qwen: '`/review`', kimi: '—', qoder: '`/review`' },
     },
     {
       id: 'cmd-export',
@@ -229,7 +253,7 @@ window.matrixData = {
       category: 'commands',
       capability: 'Skills',
       description: '列出、加载或调用可复用 Agent Skills。',
-      values: { claude: '`/skills` · `/reload-skills`', codex: '`/skills`', qwen: '`/skills`', kimi: 'Skills 目录与内置 Skill 命令', qoder: '`/skills`' },
+      values: { claude: '`/skills` · `/reload-skills`', codex: '`/skills`', qwen: '`/skills` · `/<skill-name>`', kimi: 'Skills 目录与内置 Skill 命令', qoder: '`/skills`' },
     },
     {
       id: 'cmd-hooks',
@@ -243,14 +267,14 @@ window.matrixData = {
       category: 'commands',
       capability: '插件或扩展',
       description: '管理可分发的插件、扩展或应用连接。',
-      values: { claude: '`/plugin` · `/reload-plugins`', codex: '`/plugins` · `/apps`', qwen: '`/extensions` · `/reload-plugins`', kimi: '`/plugins`', qoder: '无独立管理命令' },
+      values: { claude: '`/plugin` · `/reload-plugins`', codex: '`/plugins` · `/apps`', qwen: '`/extensions` · `/extension-creator` · `/reload-plugins`', kimi: '`/plugins`', qoder: '无独立管理命令' },
     },
     {
       id: 'cmd-custom',
       category: 'commands',
       capability: '自定义命令',
       description: '加载用户或项目定义的命令模板。',
-      values: { claude: 'Skills 可作为命令调用', codex: 'Skills 可作为命令调用', qwen: '`/workflows` 与 Skills', kimi: 'Skills 可作为命令调用', qoder: '`/commands` · `/workflows`' },
+      values: { claude: 'Skills 可作为命令调用', codex: 'Skills 可作为命令调用', qwen: '`/workflows` · `/<skill-name>`', kimi: 'Skills 可作为命令调用', qoder: '`/commands` · `/workflows`' },
     },
     {
       id: 'cmd-ide',
@@ -271,7 +295,7 @@ window.matrixData = {
       category: 'commands',
       capability: '多模型或多代理模式',
       description: '启动多任务、多 Agent 或多模型协作入口。',
-      values: { claude: '`/advisor` · `/batch`', codex: '`/agent`', qwen: '`/arena`', kimi: '`/swarm`', qoder: '`/quest`' },
+      values: { claude: '`/advisor` · `/batch`', codex: '`/agent`', qwen: '`/arena` · `/batch`', kimi: '`/swarm`', qoder: '`/quest`' },
     },
     {
       id: 'cmd-remote',
@@ -628,7 +652,7 @@ window.matrixData = {
       category: 'execution',
       capability: '代码 Review',
       description: '由产品提供的审查命令或工作流。',
-      values: { claude: '`/review` · `/code-review`', codex: '`/review`', qwen: '可通过提示与工作流；无内置 Review 命令', kimi: '可通过提示；无内置 Review 命令', qoder: '`/review`' },
+      values: { claude: '`/review` · `/code-review`', codex: '`/review`', qwen: '`/review` 内置 Skill', kimi: '可通过提示；无内置 Review 命令', qoder: '`/review`' },
     },
     {
       id: 'execution-pr',
