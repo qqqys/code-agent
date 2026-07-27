@@ -25,13 +25,14 @@ runScripts(indexDom, [
   'site/data.js',
   'site/details.js',
   'site/subagent-details.js',
+  'site/security-details.js',
   'site/app.js',
 ]);
 
 assert.equal(indexDom.window.document.querySelectorAll('#matrixBody tr').length, 94);
 assert.equal(
   indexDom.window.document.querySelectorAll('#matrixBody .capability-link').length,
-  50,
+  58,
 );
 assert.equal(
   indexDom.window.document.querySelectorAll('#categoryTabs [role="tab"]').length,
@@ -51,6 +52,7 @@ function renderDetail(id) {
     'site/data.js',
     'site/details.js',
     'site/subagent-details.js',
+    'site/security-details.js',
     'site/capability.js',
   ]);
   assert.equal(dom.window.document.querySelector('#capabilityMain').hidden, false);
@@ -85,6 +87,22 @@ assert.equal(
 assert.match(
   subagentDom.window.document.querySelector('#markdownLink').href,
   /docs\/capabilities\/subagents\/agent-worktree\.md$/,
+);
+
+const securityDom = renderDetail('security-filesystem');
+const securityLabels =
+  securityDom.window.document.querySelector('#productRecords').textContent;
+assert.match(securityLabels, /默认状态/);
+assert.match(securityLabels, /隔离边界/);
+assert.match(securityLabels, /非交互行为/);
+assert.doesNotMatch(securityLabels, /主命令/);
+assert.equal(
+  securityDom.window.document.querySelector('#categoryLink').getAttribute('href'),
+  './#security',
+);
+assert.match(
+  securityDom.window.document.querySelector('#markdownLink').href,
+  /docs\/capabilities\/security\/security-filesystem\.md$/,
 );
 
 console.log('Validated matrix render, detail schemas, links, and CSS.');

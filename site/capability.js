@@ -78,6 +78,20 @@ function subagentFields(record) {
   ];
 }
 
+function securityFields(record) {
+  return [
+    ['矩阵结论', formatValue(record.value)],
+    ['入口与切换', formatValue(record.entry)],
+    ['默认状态', formatValue(record.defaults)],
+    ['具体行为', formatValue(record.behavior)],
+    ['规则能力', formatValue(record.rules)],
+    ['隔离边界', formatValue(record.boundary)],
+    ['保存与作用域', formatValue(record.persistence)],
+    ['非交互行为', formatValue(record.noninteractive)],
+    ['条件与边界', formatValue(record.conditions)],
+  ];
+}
+
 const schemas = {
   commands: {
     quickTitle: '命令对照',
@@ -88,6 +102,11 @@ const schemas = {
     quickTitle: '能力结论',
     markdownDirectory: 'subagents',
     fields: subagentFields,
+  },
+  security: {
+    quickTitle: '权限结论',
+    markdownDirectory: 'security',
+    fields: securityFields,
   },
 };
 

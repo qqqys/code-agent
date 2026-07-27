@@ -30,6 +30,22 @@ window.matrixData = {
       label: 'Claude Code Documentation',
       url: 'https://code.claude.com/docs/en/overview',
     },
+    'claude-permissions': {
+      label: 'Claude Code Permissions',
+      url: 'https://code.claude.com/docs/en/permissions',
+    },
+    'claude-permission-modes': {
+      label: 'Claude Code Permission Modes',
+      url: 'https://code.claude.com/docs/en/permission-modes',
+    },
+    'claude-sandboxing': {
+      label: 'Claude Code Sandboxing',
+      url: 'https://code.claude.com/docs/en/sandboxing',
+    },
+    'claude-headless': {
+      label: 'Claude Code Headless Mode',
+      url: 'https://code.claude.com/docs/en/headless',
+    },
     'codex-commands': {
       label: 'Codex CLI commands',
       url: 'https://developers.openai.com/codex/cli/slash-commands',
@@ -41,6 +57,14 @@ window.matrixData = {
     'codex-docs': {
       label: 'Codex Documentation',
       url: 'https://developers.openai.com/codex',
+    },
+    'codex-approvals': {
+      label: 'Codex Agent approvals and security',
+      url: 'https://learn.chatgpt.com/docs/agent-approvals-security',
+    },
+    'codex-config': {
+      label: 'Codex Advanced Configuration',
+      url: 'https://learn.chatgpt.com/docs/config-file/config-advanced',
     },
     'qwen-commands': {
       label: 'Qwen Code commands documentation',
@@ -78,6 +102,22 @@ window.matrixData = {
       label: 'Qwen Code Worktree',
       url: 'https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/worktree.md',
     },
+    'qwen-approval': {
+      label: 'Qwen Code Approval Mode',
+      url: 'https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/approval-mode.md',
+    },
+    'qwen-sandbox': {
+      label: 'Qwen Code Sandbox',
+      url: 'https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/sandbox.md',
+    },
+    'qwen-settings': {
+      label: 'Qwen Code Settings',
+      url: 'https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/configuration/settings.md',
+    },
+    'qwen-headless': {
+      label: 'Qwen Code Headless Mode',
+      url: 'https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/headless.md',
+    },
     'qwen-docs': {
       label: 'Qwen Code Documentation',
       url: 'https://github.com/QwenLM/qwen-code/tree/main/docs/users',
@@ -90,6 +130,18 @@ window.matrixData = {
       label: 'Kimi Code Agents',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/main/docs/zh/customization/agents.md',
     },
+    'kimi-interaction': {
+      label: 'Kimi Code Interaction and Permissions',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/086769bfadf1c86ba0569f16315010ffc77344f0/docs/zh/guides/interaction.md',
+    },
+    'kimi-config': {
+      label: 'Kimi Code Configuration',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/086769bfadf1c86ba0569f16315010ffc77344f0/docs/zh/configuration/config-files.md',
+    },
+    'kimi-cli': {
+      label: 'Kimi Code CLI Reference',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/086769bfadf1c86ba0569f16315010ffc77344f0/docs/zh/reference/kimi-command.md',
+    },
     'kimi-docs': {
       label: 'Kimi Code Documentation',
       url: 'https://github.com/MoonshotAI/kimi-code/tree/main/docs/zh',
@@ -101,6 +153,14 @@ window.matrixData = {
     'qoder-agents': {
       label: 'Qoder CLI Subagent',
       url: 'https://docs.qoder.com/en/cli/subagent',
+    },
+    'qoder-permissions': {
+      label: 'Qoder CLI Permissions',
+      url: 'https://docs.qoder.com/en/cli/permissions',
+    },
+    'qoder-sdk-reference': {
+      label: 'Qoder CLI SDK Reference',
+      url: 'https://docs.qoder.com/en/cli/sdk/references',
     },
     'qoder-docs': {
       label: 'Qoder CLI Documentation',
@@ -470,49 +530,49 @@ window.matrixData = {
       category: 'security',
       capability: '只读或计划模式',
       description: '限制 Agent 先分析、后由用户决定是否执行。',
-      values: { claude: 'Plan Mode', codex: '`/plan` 与只读沙箱', qwen: '`plan` approval mode', kimi: '`/plan`', qoder: 'Agent `plan` permission mode' },
+      values: { claude: 'Plan Mode', codex: '`/plan` 与 `read-only`', qwen: '`plan` approval mode', kimi: '`/plan`', qoder: '`/plan` 独立工作状态' },
     },
     {
       id: 'security-auto-edit',
       category: 'security',
       capability: '自动接受编辑',
       description: '允许文件编辑自动执行，同时保留其他操作审批。',
-      values: { claude: '`acceptEdits`', codex: '`workspace-write` 配合审批策略', qwen: '`auto-edit`', kimi: '`/auto`', qoder: '`acceptEdits`' },
+      values: { claude: '`acceptEdits`', codex: '`workspace-write` 配合 `on-request`', qwen: '`auto-edit`', kimi: '无仅编辑模式；`/auto` 范围更广', qoder: '`accept_edits` · `acceptEdits`' },
     },
     {
       id: 'security-bypass',
       category: 'security',
       capability: '跳过审批',
       description: '允许工具调用不逐次询问用户。',
-      values: { claude: '`bypassPermissions`', codex: '`danger-full-access` 或审批配置', qwen: '`yolo`', kimi: '`/yolo`', qoder: '`bypassPermissions`' },
+      values: { claude: '`bypassPermissions`', codex: '`approval_policy = "never"`；全放开需 `danger-full-access`', qwen: '`yolo`', kimi: '`/yolo`', qoder: '`bypass_permissions` · `yolo`' },
     },
     {
       id: 'security-filesystem',
       category: 'security',
       capability: '文件系统隔离',
       description: '在操作系统或进程边界限制可读写路径。',
-      values: { claude: '沙箱模式与权限规则', codex: '`read-only` · `workspace-write` · `danger-full-access`', qwen: 'Sandbox 与工具权限；依运行配置', kimi: '权限系统；系统级隔离未确认', qoder: '权限模式；系统级隔离未确认' },
+      values: { claude: 'Bash OS 沙箱 + 文件权限规则', codex: '`read-only` · `workspace-write` · `danger-full-access`', qwen: 'Seatbelt 或容器 Sandbox；默认关闭', kimi: '文件工具权限；OS 沙箱未确认', qoder: '路径权限规则；SDK 条件 Sandbox' },
     },
     {
       id: 'security-network',
       category: 'security',
       capability: '网络隔离',
       description: '单独限制 Agent 进程访问网络。',
-      values: { claude: '沙箱与策略配置', codex: '`workspace-write` 可单独控制网络', qwen: '依 Sandbox 与运行配置', kimi: '系统级网络隔离未确认', qoder: '未确认' },
+      values: { claude: 'Sandbox 域名代理与 Allow/Deny', codex: '`workspace-write` 默认断网；可单独启用与限域', qwen: 'Seatbelt Profile 与代理；依配置', kimi: '网络工具权限；OS 网络隔离未确认', qoder: 'Web 工具规则；SDK 条件网络 Sandbox' },
     },
     {
       id: 'security-trust',
       category: 'security',
       capability: '项目目录信任',
       description: '首次进入项目时确认是否信任仓库配置与指令。',
-      values: { claude: '项目信任流程', codex: '项目与沙箱配置', qwen: '`/trust`', kimi: '未确认', qoder: '未确认' },
+      values: { claude: 'Workspace Trust', codex: 'Project Trust；未信任时跳过项目 `.codex/`', qwen: '`/trust`；功能默认关闭', kimi: '未确认独立目录信任门禁', qoder: 'Trust Directories；未信任时回退 `default`' },
     },
     {
       id: 'security-noninteractive',
       category: 'security',
       capability: '非交互审批',
       description: '没有交互界面时遇到需审批操作的处理方式。',
-      values: { claude: '由预设权限策略决定', codex: '无法展示的审批返回错误', qwen: '由 approval mode 决定', kimi: '由启动权限决定', qoder: '由 permission mode 决定' },
+      values: { claude: '未预授权操作中止；`dontAsk` 拒绝', codex: '无法展示的新审批返回错误', qwen: '无法确认的工具调用拒绝；可预设 mode/rules', kimi: '`-p` 固定使用 Auto；静态 Deny 仍生效', qoder: '`ask` 自动变为 `deny`' },
     },
     {
       id: 'session-resume',
