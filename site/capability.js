@@ -6,7 +6,7 @@ const detail = details[capabilityId];
 const main = document.querySelector('#capabilityMain');
 const missing = document.querySelector('#capabilityMissing');
 const repoDetailBase =
-  'https://github.com/qqqys/code-agent/blob/main/docs/capabilities/commands/';
+  'https://github.com/qqqys/code-agent/blob/main/docs/capabilities/';
 
 function escapeHtml(value) {
   return String(value)
@@ -41,24 +41,79 @@ function renderList(target, items) {
   target.innerHTML = items.map((item) => `<li>${formatValue(item)}</li>`).join('');
 }
 
+function commandFields(record) {
+  const commands = record.commands.length
+    ? record.commands
+        .map((command) => `<code>${escapeHtml(command)}</code>`)
+        .join(' ')
+    : '<span class="empty-value">无对应命令</span>';
+  const aliases = record.aliases.length
+    ? record.aliases
+        .map((alias) => `<code>${escapeHtml(alias)}</code>`)
+        .join(' ')
+    : '无公开别名';
+
+  return [
+    ['主命令', commands],
+    ['别名', aliases],
+    ['参数', formatValue(record.parameters)],
+    ['执行行为', formatValue(record.behavior)],
+    ['可用模式', formatValue(record.mode)],
+    ['保存范围', formatValue(record.persistence)],
+    ['条件与边界', formatValue(record.conditions)],
+  ];
+}
+
+function subagentFields(record) {
+  return [
+    ['矩阵结论', formatValue(record.value)],
+    ['入口与配置', formatValue(record.entry)],
+    ['定义格式', formatValue(record.format)],
+    ['具体行为', formatValue(record.behavior)],
+    ['作用域', formatValue(record.scope)],
+    ['上下文与继承', formatValue(record.inheritance)],
+    ['工作区隔离', formatValue(record.isolation)],
+    ['运行限制', formatValue(record.limits)],
+    ['条件与边界', formatValue(record.conditions)],
+  ];
+}
+
+const schemas = {
+  commands: {
+    quickTitle: '命令对照',
+    markdownDirectory: 'commands',
+    fields: commandFields,
+  },
+  subagents: {
+    quickTitle: '能力结论',
+    markdownDirectory: 'subagents',
+    fields: subagentFields,
+  },
+};
+
 if (!row || !detail) {
   missing.hidden = false;
 } else {
   const category = matrix.categories.find((item) => item.id === row.category);
-  const commandRows = matrix.rows.filter(
+  const schema = schemas[row.category];
+  const categoryRows = matrix.rows.filter(
     (item) => item.category === row.category && details[item.id],
   );
-  const currentIndex = commandRows.findIndex((item) => item.id === row.id);
-  const previous = commandRows[currentIndex - 1];
-  const next = commandRows[currentIndex + 1];
+  const currentIndex = categoryRows.findIndex((item) => item.id === row.id);
+  const previous = categoryRows[currentIndex - 1];
+  const next = categoryRows[currentIndex + 1];
 
   document.title = `${row.capability} · Code Agent 能力矩阵`;
   document.querySelector('meta[name="description"]').content = detail.definition;
+  document.querySelector('#categoryLink').href =
+    `./#${encodeURIComponent(row.category)}`;
+  document.querySelector('#categoryLink').textContent = category.name;
   document.querySelector('#breadcrumbTitle').textContent = row.capability;
   document.querySelector('#capabilityCategory').textContent = category.name;
   document.querySelector('#capabilityTitle').textContent = row.capability;
   document.querySelector('#capabilityDescription').textContent = detail.definition;
   document.querySelector('#capabilityUpdated').textContent = matrix.updatedAt;
+  document.querySelector('#quick-title').textContent = schema.quickTitle;
 
   document.querySelector('#quickGrid').innerHTML = matrix.products
     .map((product) => {
@@ -87,17 +142,18 @@ if (!row || !detail) {
   document.querySelector('#productRecords').innerHTML = matrix.products
     .map((product, index) => {
       const record = detail.products[product.id];
-      const commands = record.commands.length
-        ? record.commands.map((command) => `<code>${escapeHtml(command)}</code>`).join(' ')
-        : '<span class="empty-value">无对应命令</span>';
-      const aliases = record.aliases.length
-        ? record.aliases.map((alias) => `<code>${escapeHtml(alias)}</code>`).join(' ')
-        : '无公开别名';
       const sources = record.sources
         .map((sourceId) => matrix.sources[sourceId])
         .map(
           (source) =>
             `<a href="${source.url}" target="_blank" rel="noreferrer">${escapeHtml(source.label)} ↗</a>`,
+        )
+        .join('');
+      const fields = schema
+        .fields(record)
+        .map(
+          ([label, value]) =>
+            `<div><dt>${escapeHtml(label)}</dt><dd>${value}</dd></div>`,
         )
         .join('');
 
@@ -111,13 +167,7 @@ if (!row || !detail) {
             </div>
           </header>
           <dl>
-            <div><dt>主命令</dt><dd>${commands}</dd></div>
-            <div><dt>别名</dt><dd>${aliases}</dd></div>
-            <div><dt>参数</dt><dd>${formatValue(record.parameters)}</dd></div>
-            <div><dt>执行行为</dt><dd>${formatValue(record.behavior)}</dd></div>
-            <div><dt>可用模式</dt><dd>${formatValue(record.mode)}</dd></div>
-            <div><dt>保存范围</dt><dd>${formatValue(record.persistence)}</dd></div>
-            <div><dt>条件与边界</dt><dd>${formatValue(record.conditions)}</dd></div>
+            ${fields}
             <div><dt>证据</dt><dd class="inline-sources">${sources}</dd></div>
           </dl>
         </article>
@@ -150,7 +200,7 @@ if (!row || !detail) {
     .join('');
 
   document.querySelector('#markdownLink').href =
-    `${repoDetailBase}${encodeURIComponent(row.id)}.md`;
+    `${repoDetailBase}${schema.markdownDirectory}/${encodeURIComponent(row.id)}.md`;
 
   const previousLink = document.querySelector('#previousCapability');
   const nextLink = document.querySelector('#nextCapability');

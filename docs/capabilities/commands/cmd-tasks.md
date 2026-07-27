@@ -122,5 +122,5 @@
 ## 关联能力
 
 - [目标管理](./cmd-goal.md)
-- 后台与并行：见对应能力矩阵
+- [后台与并行](../subagents/agent-background.md)
 - 后台任务：见对应能力矩阵

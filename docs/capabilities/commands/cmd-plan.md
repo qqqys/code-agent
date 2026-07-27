@@ -123,4 +123,4 @@
 
 - [目标管理](./cmd-goal.md)
 - [权限设置](./cmd-permissions.md)
-- 内置 Agent：见对应能力矩阵
+- [内置 Agent](../subagents/agent-builtins.md)

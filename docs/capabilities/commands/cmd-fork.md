@@ -122,5 +122,5 @@
 ## 关联能力
 
 - [恢复会话](./cmd-resume.md)
-- 初始上下文：见对应能力矩阵
+- [初始上下文](../subagents/agent-initial-context.md)
 - [新会话](./cmd-new.md)

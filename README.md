@@ -18,6 +18,7 @@ Claude Code、Codex、Qwen Code、Kimi Code、Qoder CLI 的功能对照表。内
 | [Slash 命令矩阵](./docs/01-Slash命令矩阵.md) | 五家内置 `/xxx` 命令逐项对照，并列出各家的完整命令目录 |
 | [Slash 命令详情](./docs/capabilities/commands/) | 28 个命令能力的独立详情，字段与网页详情页一致 |
 | [Subagent 能力矩阵](./docs/02-Subagent能力矩阵.md) | 定义方式、上下文、模型、工具、权限、后台执行、嵌套和 Worktree |
+| [Subagent 能力详情](./docs/capabilities/subagents/) | 22 个 Subagent 能力的独立详情，逐产品记录入口、上下文、隔离、限制和证据 |
 | [权限与沙箱矩阵](./docs/03-权限与沙箱矩阵.md) | 审批模式、文件与网络边界、规则配置、非交互行为 |
 | [会话与上下文矩阵](./docs/04-会话与上下文矩阵.md) | 恢复、分支、压缩、记忆、检查点和后台任务 |
 | [扩展系统矩阵](./docs/05-扩展系统矩阵.md) | MCP、Skills、Hooks、插件、自定义命令和项目指令 |

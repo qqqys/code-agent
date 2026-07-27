@@ -123,4 +123,4 @@
 
 - [计划模式](./cmd-plan.md)
 - [配置](./cmd-config.md)
-- Agent 权限模式：见对应能力矩阵
+- [Agent 权限模式](../subagents/agent-permission.md)

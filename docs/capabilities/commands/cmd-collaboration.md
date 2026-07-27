@@ -124,5 +124,5 @@
 ## 关联能力
 
 - [Subagent 管理](./cmd-agents.md)
-- 后台与并行：见对应能力矩阵
-- Worktree 隔离：见对应能力矩阵
+- [后台与并行](../subagents/agent-background.md)
+- [Worktree 隔离](../subagents/agent-worktree.md)
