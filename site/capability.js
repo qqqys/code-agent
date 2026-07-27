@@ -135,6 +135,20 @@ function executionFields(record) {
   ];
 }
 
+function surfaceFields(record) {
+  return [
+    ['矩阵结论', formatValue(record.value)],
+    ['入口与调用', formatValue(record.entry)],
+    ['协议与输出', formatValue(record.protocol)],
+    ['具体行为', formatValue(record.behavior)],
+    ['会话与状态', formatValue(record.state)],
+    ['工具与能力', formatValue(record.tools)],
+    ['认证与权限', formatValue(record.auth)],
+    ['运行位置', formatValue(record.deployment)],
+    ['条件与边界', formatValue(record.conditions)],
+  ];
+}
+
 const schemas = {
   commands: {
     quickTitle: '命令对照',
@@ -165,6 +179,11 @@ const schemas = {
     quickTitle: '执行结论',
     markdownDirectory: 'execution',
     fields: executionFields,
+  },
+  surfaces: {
+    quickTitle: '能力结论',
+    markdownDirectory: 'surfaces',
+    fields: surfaceFields,
   },
 };
 

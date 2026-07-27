@@ -29,13 +29,14 @@ runScripts(indexDom, [
   'site/session-details.js',
   'site/extension-details.js',
   'site/execution-details.js',
+  'site/surface-details.js',
   'site/app.js',
 ]);
 
-assert.equal(indexDom.window.document.querySelectorAll('#matrixBody tr').length, 96);
+assert.equal(indexDom.window.document.querySelectorAll('#matrixBody tr').length, 98);
 assert.equal(
   indexDom.window.document.querySelectorAll('#matrixBody .capability-link').length,
-  82,
+  92,
 );
 assert.equal(
   indexDom.window.document.querySelectorAll('#categoryTabs [role="tab"]').length,
@@ -59,6 +60,7 @@ function renderDetail(id) {
     'site/session-details.js',
     'site/extension-details.js',
     'site/execution-details.js',
+    'site/surface-details.js',
     'site/capability.js',
   ]);
   assert.equal(dom.window.document.querySelector('#capabilityMain').hidden, false);
@@ -157,6 +159,22 @@ assert.equal(
 assert.match(
   executionDom.window.document.querySelector('#markdownLink').href,
   /docs\/capabilities\/execution\/execution-worktree\.md$/,
+);
+
+const surfaceDom = renderDetail('surface-service');
+const surfaceLabels =
+  surfaceDom.window.document.querySelector('#productRecords').textContent;
+assert.match(surfaceLabels, /协议与输出/);
+assert.match(surfaceLabels, /会话与状态/);
+assert.match(surfaceLabels, /运行位置/);
+assert.doesNotMatch(surfaceLabels, /主命令/);
+assert.equal(
+  surfaceDom.window.document.querySelector('#categoryLink').getAttribute('href'),
+  './#surfaces',
+);
+assert.match(
+  surfaceDom.window.document.querySelector('#markdownLink').href,
+  /docs\/capabilities\/surfaces\/surface-service\.md$/,
 );
 
 console.log('Validated matrix render, detail schemas, links, and CSS.');

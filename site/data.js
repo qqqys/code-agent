@@ -46,6 +46,26 @@ window.matrixData = {
       label: 'Claude Code Headless Mode',
       url: 'https://code.claude.com/docs/en/headless',
     },
+    'claude-agent-sdk': {
+      label: 'Claude Agent SDK',
+      url: 'https://code.claude.com/docs/en/agent-sdk/overview',
+    },
+    'claude-desktop': {
+      label: 'Claude Code Desktop',
+      url: 'https://code.claude.com/docs/en/desktop',
+    },
+    'claude-web': {
+      label: 'Claude Code on the web',
+      url: 'https://code.claude.com/docs/en/claude-code-on-the-web',
+    },
+    'claude-remote-control': {
+      label: 'Claude Code Remote Control',
+      url: 'https://code.claude.com/docs/en/remote-control',
+    },
+    'claude-platforms': {
+      label: 'Claude Code platforms and integrations',
+      url: 'https://code.claude.com/docs/en/platforms',
+    },
     'claude-sessions': {
       label: 'Claude Code Manage sessions',
       url: 'https://code.claude.com/docs/en/sessions',
@@ -125,6 +145,26 @@ window.matrixData = {
     'codex-noninteractive': {
       label: 'Codex Non-interactive mode',
       url: 'https://learn.chatgpt.com/docs/non-interactive-mode',
+    },
+    'codex-sdk': {
+      label: 'Codex SDK',
+      url: 'https://learn.chatgpt.com/docs/codex-sdk',
+    },
+    'codex-app-server': {
+      label: 'Codex App Server',
+      url: 'https://learn.chatgpt.com/docs/app-server',
+    },
+    'codex-mcp-server': {
+      label: 'Codex as an MCP server',
+      url: 'https://learn.chatgpt.com/docs/mcp-server',
+    },
+    'codex-app': {
+      label: 'ChatGPT desktop app',
+      url: 'https://learn.chatgpt.com/docs/app',
+    },
+    'codex-cloud': {
+      label: 'Codex cloud',
+      url: 'https://learn.chatgpt.com/docs/cloud',
     },
     'codex-troubleshooting': {
       label: 'Codex Troubleshooting',
@@ -245,6 +285,26 @@ window.matrixData = {
     'qwen-session-headless': {
       label: 'Qwen Code current headless mode',
       url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/headless.md',
+    },
+    'qwen-structured-current': {
+      label: 'Qwen Code current structured output',
+      url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/structured-output.md',
+    },
+    'qwen-sdk-current': {
+      label: 'Qwen Code current TypeScript SDK',
+      url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/sdk-typescript/README.md',
+    },
+    'qwen-serve-current': {
+      label: 'Qwen Code current daemon and Web Shell',
+      url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/qwen-serve.md',
+    },
+    'qwen-desktop-current': {
+      label: 'Qwen Code current Desktop',
+      url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/desktop/README.md',
+    },
+    'qwen-acp-current': {
+      label: 'Qwen Code current ACP integration',
+      url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/integration-zed.md',
     },
     'qwen-worktree-current': {
       label: 'Qwen Code current worktree',
@@ -382,6 +442,26 @@ window.matrixData = {
       label: 'Kimi Code current slash commands',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/reference/slash-commands.md',
     },
+    'kimi-cli-surface-current': {
+      label: 'Kimi Code current CLI, Headless and Web reference',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/reference/kimi-command.md',
+    },
+    'kimi-sdk-current': {
+      label: 'Kimi Code current TypeScript SDK package',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/packages/node-sdk/package.json',
+    },
+    'kimi-acp-surface-current': {
+      label: 'Kimi Code current ACP reference',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/reference/kimi-acp.md',
+    },
+    'kimi-ide-surface-current': {
+      label: 'Kimi Code current IDE integrations',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/guides/ides.md',
+    },
+    'kimi-vscode-current': {
+      label: 'Kimi Code current VS Code extension',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/apps/vscode/README.md',
+    },
     'qoder-commands': {
       label: 'Qoder CLI commands',
       url: 'https://docs.qoder.com/en/cli/command',
@@ -397,6 +477,18 @@ window.matrixData = {
     'qoder-sdk-reference': {
       label: 'Qoder CLI SDK Reference',
       url: 'https://docs.qoder.com/en/cli/sdk/references',
+    },
+    'qoder-sdk-quickstart': {
+      label: 'Qoder Agent SDK TypeScript quick start',
+      url: 'https://docs.qoder.com/en/cli/sdk/quick-start',
+    },
+    'qoder-sdk-python': {
+      label: 'Qoder Agent SDK Python quick start',
+      url: 'https://docs.qoder.com/en/cli/sdk/python/quick-start',
+    },
+    'qoder-cloud-agent': {
+      label: 'Qoder SDK Cloud Agent',
+      url: 'https://docs.qoder.com/en/cli/sdk/cloud-agent',
     },
     'qoder-memory': {
       label: 'Qoder CLI Memory',
@@ -432,7 +524,23 @@ window.matrixData = {
     },
     'qoder-using-cli': {
       label: 'Qoder CLI usage and worktrees',
-      url: 'https://docs.qoder.com/zh/cli/using-cli',
+      url: 'https://docs.qoder.com/en/cli/using-cli',
+    },
+    'qoder-remote-control': {
+      label: 'Qoder CLI Remote Control',
+      url: 'https://docs.qoder.com/en/cli/remote-control',
+    },
+    'qoder-cloud-mode': {
+      label: 'Qoder CLI Cloud Mode',
+      url: 'https://docs.qoder.com/en/cli/cloud-mode',
+    },
+    'qoder-desktop': {
+      label: 'Qoder IDE quick start',
+      url: 'https://docs.qoder.com/quick-start',
+    },
+    'qoder-web': {
+      label: 'Qoder Web remote and cloud tasks',
+      url: 'https://docs.qoder.com/mobile/web/remote-control',
     },
     'qoder-action': {
       label: 'Qoder Action',
@@ -1023,56 +1131,70 @@ window.matrixData = {
       category: 'surfaces',
       capability: 'Headless 调用',
       description: '从脚本或 CI 中非交互运行任务。',
-      values: { claude: '`claude -p`', codex: '`codex exec`', qwen: '`qwen -p`', kimi: '非交互打印入口', qoder: 'Headless 模式' },
+      values: { claude: '`claude -p`', codex: '`codex exec`', qwen: '`qwen -p`', kimi: '`kimi -p`', qoder: '`qodercli -p`' },
     },
     {
       id: 'surface-structured-output',
       category: 'surfaces',
       capability: '结构化输出',
       description: '输出 JSON、JSONL 或流式事件供程序消费。',
-      values: { claude: 'JSON · 流式 JSON', codex: 'JSONL 等', qwen: 'JSON · JSONL · 流式输出', kimi: '依非交互参数', qoder: '结构化输出' },
+      values: { claude: '`json` · `stream-json` · JSON Schema', codex: '`--json` JSONL · `--output-schema`', qwen: '`json` · `stream-json` · JSON Schema', kimi: '`stream-json` JSONL', qoder: '`text` · `json` · `stream-json`' },
     },
     {
       id: 'surface-sdk',
       category: 'surfaces',
       capability: 'Agent SDK',
       description: '由应用程序直接创建会话、运行任务和消费事件。',
-      values: { claude: 'Claude Agent SDK', codex: 'Codex SDK', qwen: 'Qwen Code SDK', kimi: '当前文档需继续核对', qoder: 'Python · TypeScript SDK' },
+      values: { claude: 'Python · TypeScript', codex: 'TypeScript · Python', qwen: '`@qwen-code/sdk` TypeScript', kimi: '仓库内 TypeScript 包；未公开发布', qoder: 'TypeScript · Python' },
+    },
+    {
+      id: 'surface-service',
+      category: 'surfaces',
+      capability: '服务端与 Daemon',
+      description: '以常驻进程、协议服务器或本地服务承载 Agent 会话。',
+      values: { claude: 'Agent SDK · Remote Control 服务', codex: '`codex app-server` · `mcp-server`', qwen: '`qwen serve` HTTP + SSE', kimi: '`kimi web` REST + WebSocket', qoder: '`qodercli --acp` · `remote-control` Daemon' },
     },
     {
       id: 'surface-cli',
       category: 'surfaces',
       capability: 'CLI',
       description: '本地终端交互界面。',
-      values: { claude: '是', codex: '是', qwen: '是', kimi: '是', qoder: '是' },
+      values: { claude: '`claude`', codex: '`codex`', qwen: '`qwen`', kimi: '`kimi`', qoder: '`qodercli`' },
     },
     {
       id: 'surface-ide',
       category: 'surfaces',
-      capability: 'IDE',
-      description: '编辑器插件或 IDE 内置入口。',
-      values: { claude: '`/ide` · VS Code', codex: 'IDE Extension · `/ide-context`', qwen: '`/ide` · VS Code Companion', kimi: '`kimi acp`', qoder: '`qodercli --acp` · Qoder IDE' },
+      capability: 'IDE 与 ACP',
+      description: '编辑器插件、IDE 内置入口或 Agent Client Protocol 服务。',
+      values: { claude: 'VS Code · JetBrains', codex: 'Codex IDE Extension', qwen: 'VS Code Companion · `qwen --acp`', kimi: 'VS Code · `kimi acp`', qoder: 'Qoder IDE · `qodercli --acp`' },
+    },
+    {
+      id: 'surface-web',
+      category: 'surfaces',
+      capability: 'Web 界面',
+      description: '通过浏览器创建、查看或继续 Agent 会话。',
+      values: { claude: 'claude.ai/code · Remote Control', codex: 'ChatGPT Web · Codex Cloud', qwen: '`qwen serve` 内置 Web Shell', kimi: '`kimi web` 本地 Web UI', qoder: 'Qoder Web · Cloud Agents Console' },
     },
     {
       id: 'surface-desktop',
       category: 'surfaces',
       capability: '桌面端',
       description: '独立桌面应用或桌面产品集成。',
-      values: { claude: 'Claude Desktop 集成', codex: 'Codex App', qwen: 'Desktop 入口', kimi: '未确认独立桌面端', qoder: 'Qoder 产品端' },
+      values: { claude: 'Claude Desktop Code', codex: 'ChatGPT Desktop Codex', qwen: 'Qwen Code Desktop', kimi: '无独立桌面端；提供 VS Code/Web', qoder: 'Qoder IDE' },
     },
     {
       id: 'surface-cloud',
       category: 'surfaces',
       capability: '云端仓库任务',
       description: '在托管环境中克隆仓库并执行任务。',
-      values: { claude: 'Web/Remote 工作流', codex: 'Codex Cloud', qwen: '依 Daemon 与部署', kimi: '未确认', qoder: 'Cloud Mode' },
+      values: { claude: '`claude --remote` · Web Cloud', codex: 'Codex Cloud', qwen: '无托管云任务；`qwen serve` 为自托管', kimi: '无托管云任务；`kimi web` 为自托管', qoder: '`qodercli --remote` · Cloud Mode' },
     },
     {
       id: 'surface-remote-control',
       category: 'surfaces',
-      capability: '远程接管会话',
-      description: '从另一设备继续控制本地或托管会话。',
-      values: { claude: '`/remote-control` · `/teleport`', codex: '`/app` 与多端工作流', qwen: '依 Daemon/Channel', kimi: '未确认', qoder: 'Cloud Mode' },
+      capability: '远程接管与跨端继续',
+      description: '从另一设备控制本地会话，或在本地与云端 Surface 之间继续工作。',
+      values: { claude: '`/remote-control` · `/teleport`', codex: '`app-server --listen` · `codex --remote` · Cloud', qwen: '`qwen serve` 多客户端；需自建网络', kimi: '`kimi web --host`；需自建网络', qoder: '`/remote-control` · `qodercli remote-control`' },
     },
     {
       id: 'model-switch',
