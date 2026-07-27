@@ -58,19 +58,36 @@ body {
 }
 
 .matrix-page .intro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   flex: 0 0 auto;
-  padding: 28px 0 22px;
-  gap: 40px;
+  padding: 14px 0 12px;
+  gap: 28px;
+}
+
+.matrix-page .intro > div {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+}
+
+.matrix-page .intro .eyebrow {
+  margin: 0;
+  white-space: nowrap;
 }
 
 .matrix-page .intro h1 {
-  font-size: clamp(34px, 3.6vw, 54px);
+  max-width: none;
+  font-size: 30px;
+  line-height: 1;
+  letter-spacing: -0.035em;
+  white-space: nowrap;
 }
 
 .matrix-page .intro__copy {
-  margin-top: 14px;
-  font-size: 15px;
-  line-height: 1.55;
+  display: none;
 }
 
 .matrix-page .summary div {
@@ -506,14 +523,20 @@ td {
   line-height: 1.55;
 }
 
-thead th {
+thead {
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 15;
+}
+
+thead th {
+  position: relative;
+  z-index: 1;
   padding-block: 13px;
   color: #41464c;
   background: #efede8;
   border-bottom-color: var(--line-strong);
+  box-shadow: 0 1px 0 var(--line-strong);
   font-size: 12px;
   font-weight: 750;
 }
@@ -1102,11 +1125,13 @@ footer a {
   }
 
   .matrix-page .intro {
-    padding: 18px 0 12px;
-    grid-template-columns: 1fr;
-    gap: 12px;
+    align-items: stretch;
+    flex-direction: column;
+    padding: 12px 0 10px;
+    gap: 10px;
   }
 
+  .matrix-page .intro .eyebrow,
   .matrix-page .intro__copy {
     display: none;
   }
@@ -1190,7 +1215,7 @@ footer a {
   }
 
   .matrix-page .intro h1 {
-    font-size: 30px;
+    font-size: 26px;
   }
 
   .matrix-page .summary dt {
