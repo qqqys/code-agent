@@ -14,7 +14,6 @@ const elements = {
   reset: document.querySelector('#resetButton'),
   head: document.querySelector('#matrixHead'),
   body: document.querySelector('#matrixBody'),
-  resultCount: document.querySelector('#resultCount'),
   empty: document.querySelector('#emptyState'),
   updatedAt: document.querySelector('#updatedAt'),
 };
@@ -151,7 +150,6 @@ function renderTable() {
     })
     .join('');
 
-  elements.resultCount.textContent = `显示 ${rows.length} / ${data.rows.length} 个字段`;
   elements.empty.hidden = rows.length !== 0;
 }
 

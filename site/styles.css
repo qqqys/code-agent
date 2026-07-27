@@ -71,10 +71,6 @@ body {
   flex: 0 0 auto;
 }
 
-.matrix-page .table-meta {
-  flex: 0 0 auto;
-}
-
 .matrix-page .table-wrap {
   min-height: 0;
   flex: 1 1 auto;
@@ -369,52 +365,6 @@ h2 {
   background: transparent;
   cursor: pointer;
   font-size: 12px;
-}
-
-.table-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
-  min-height: 46px;
-  padding: 8px 24px;
-  color: var(--muted);
-  border-bottom: 1px solid var(--line);
-  font-size: 12px;
-}
-
-.table-meta p {
-  margin: 0;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-}
-
-.legend {
-  display: flex;
-  gap: 16px;
-}
-
-.legend span {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-}
-
-.dot--confirmed {
-  background: var(--green);
-}
-
-.dot--conditional {
-  background: var(--amber);
-}
-
-.dot--unknown {
-  background: var(--unknown);
 }
 
 .table-wrap {
@@ -1063,16 +1013,6 @@ footer a {
     margin-left: 0;
   }
 
-  .table-meta {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .legend {
-    flex-wrap: wrap;
-  }
-
   .capability-hero {
     grid-template-columns: 1fr;
     gap: 30px;
@@ -1101,8 +1041,7 @@ footer a {
   }
 
   .controls__top,
-  .product-filter,
-  .table-meta {
+  .product-filter {
     padding-inline: 14px;
   }
 
