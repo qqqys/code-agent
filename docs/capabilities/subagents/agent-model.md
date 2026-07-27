@@ -131,4 +131,4 @@
 
 - [Agent 推理强度](./agent-effort.md)
 - [配置格式](./agent-config.md)
-- 会话内切换模型：见对应能力矩阵
+- [模型选择与切换](../models/model-switch.md)

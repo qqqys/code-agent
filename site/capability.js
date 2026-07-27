@@ -27,16 +27,6 @@ function statusClass(status) {
   return 'confirmed';
 }
 
-function rowValueState(value) {
-  if (value === '—' || value.includes('未确认') || value.includes('未列出')) {
-    return 'unknown';
-  }
-  if (value.includes('条件') || value.includes('依配置') || value.includes('依部署')) {
-    return 'conditional';
-  }
-  return 'confirmed';
-}
-
 function renderList(target, items) {
   target.innerHTML = items.map((item) => `<li>${formatValue(item)}</li>`).join('');
 }
@@ -149,6 +139,20 @@ function surfaceFields(record) {
   ];
 }
 
+function modelFields(record) {
+  return [
+    ['矩阵结论', formatValue(record.value)],
+    ['入口与配置', formatValue(record.entry)],
+    ['支持范围', formatValue(record.mechanism)],
+    ['具体行为', formatValue(record.behavior)],
+    ['会话与作用域', formatValue(record.scope)],
+    ['持久化位置', formatValue(record.persistence)],
+    ['自动化用法', formatValue(record.automation)],
+    ['安全与管理', formatValue(record.security)],
+    ['条件与边界', formatValue(record.conditions)],
+  ];
+}
+
 const schemas = {
   commands: {
     quickTitle: '命令对照',
@@ -185,6 +189,11 @@ const schemas = {
     markdownDirectory: 'surfaces',
     fields: surfaceFields,
   },
+  models: {
+    quickTitle: '模型与认证结论',
+    markdownDirectory: 'models',
+    fields: modelFields,
+  },
 };
 
 if (!row || !detail) {
@@ -215,7 +224,7 @@ if (!row || !detail) {
     .map((product) => {
       const value = row.values[product.id];
       return `
-        <article class="quick-card quick-card--${rowValueState(value)}">
+        <article class="quick-card quick-card--${statusClass(detail.products[product.id].status)}">
           <h3>${escapeHtml(product.name)}</h3>
           <p>${formatValue(value)}</p>
           <a href="#product-${product.id}">查看记录 ↓</a>

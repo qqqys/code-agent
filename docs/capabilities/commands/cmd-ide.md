@@ -122,5 +122,5 @@
 ## 关联能力
 
 - [远程与跨端](./cmd-remote.md)
-- IDE：见对应能力矩阵
+- IDE 与 ACP：见对应能力矩阵
 - [IDE 连接](../extensions/extension-ide.md)

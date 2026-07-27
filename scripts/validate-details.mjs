@@ -15,6 +15,7 @@ for (const file of [
   'site/extension-details.js',
   'site/execution-details.js',
   'site/surface-details.js',
+  'site/model-details.js',
 ]) {
   vm.runInContext(fs.readFileSync(path.join(root, file), 'utf8'), context);
 }
@@ -30,6 +31,7 @@ const completedCategories = new Set([
   'extensions',
   'execution',
   'surfaces',
+  'models',
 ]);
 const completedRows = data.rows.filter((row) =>
   completedCategories.has(row.category),
@@ -127,6 +129,19 @@ const requiredFields = {
     'status',
     'sources',
   ],
+  models: [
+    'value',
+    'entry',
+    'mechanism',
+    'behavior',
+    'scope',
+    'persistence',
+    'automation',
+    'security',
+    'conditions',
+    'status',
+    'sources',
+  ],
 };
 const errors = [];
 
@@ -171,6 +186,7 @@ for (const row of completedRows) {
         'extensions',
         'execution',
         'surfaces',
+        'models',
       ].includes(
         row.category,
       ) &&
@@ -180,6 +196,9 @@ for (const row of completedRows) {
     }
     if (!record.sources?.length) {
       errors.push(`${row.id}/${product.id} 缺少来源`);
+    }
+    if (new Set(record.sources ?? []).size !== (record.sources ?? []).length) {
+      errors.push(`${row.id}/${product.id} 存在重复来源`);
     }
     for (const sourceId of record.sources ?? []) {
       if (!data.sources[sourceId]) {
@@ -202,6 +221,7 @@ for (const row of completedRows) {
     extensions: 'extensions',
     execution: 'execution',
     surfaces: 'surfaces',
+    models: 'models',
   }[row.category];
   const markdownPath = path.join(
     root,

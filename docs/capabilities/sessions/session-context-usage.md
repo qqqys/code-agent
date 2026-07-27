@@ -136,4 +136,4 @@
 
 - [手动压缩](./session-compress.md)
 - [状态与用量](../commands/cmd-status.md)
-- 会话内切换模型：见对应能力矩阵
+- [模型选择与切换](../models/model-switch.md)

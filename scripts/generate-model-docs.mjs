@@ -13,13 +13,16 @@ for (const file of [
   'site/security-details.js',
   'site/session-details.js',
   'site/extension-details.js',
+  'site/execution-details.js',
+  'site/surface-details.js',
+  'site/model-details.js',
 ]) {
   vm.runInContext(fs.readFileSync(path.join(root, file), 'utf8'), context);
 }
 
 const data = context.window.matrixData;
 const details = context.window.capabilityDetails;
-const outputDir = path.join(root, 'docs/capabilities/security');
+const outputDir = path.join(root, 'docs/capabilities/models');
 fs.mkdirSync(outputDir, { recursive: true });
 
 function cell(value) {
@@ -45,15 +48,18 @@ function relatedLink(related) {
     security: 'security',
     sessions: 'sessions',
     extensions: 'extensions',
+    execution: 'execution',
+    surfaces: 'surfaces',
+    models: 'models',
   };
   const directory = directories[related.category];
   if (!directory) return null;
-  return directory === 'security'
+  return directory === 'models'
     ? `./${related.id}.md`
     : `../${directory}/${related.id}.md`;
 }
 
-const rows = data.rows.filter((row) => row.category === 'security');
+const rows = data.rows.filter((row) => row.category === 'models');
 
 for (const row of rows) {
   const detail = details[row.id];
@@ -62,7 +68,7 @@ for (const row of rows) {
   const lines = [
     `# ${row.capability}`,
     '',
-    `[返回权限与沙箱详情目录](./README.md) · [打开网页详情](${detailLink(row.id)})`,
+    `[返回模型与认证详情目录](./README.md) · [打开网页详情](${detailLink(row.id)})`,
     '',
     `> 核对日期：${data.updatedAt}`,
     '',
@@ -70,7 +76,7 @@ for (const row of rows) {
     '',
     detail.definition,
     '',
-    '## 权限结论',
+    '## 能力结论',
     '',
     '| 产品 | 结论 | 证据状态 |',
     '| --- | --- | --- |',
@@ -105,13 +111,13 @@ for (const row of rows) {
       '| 字段 | 记录 |',
       '| --- | --- |',
       `| 矩阵结论 | ${cell(record.value)} |`,
-      `| 入口与切换 | ${cell(record.entry)} |`,
-      `| 默认状态 | ${cell(record.defaults)} |`,
+      `| 入口与配置 | ${cell(record.entry)} |`,
+      `| 支持范围 | ${cell(record.mechanism)} |`,
       `| 具体行为 | ${cell(record.behavior)} |`,
-      `| 规则能力 | ${cell(record.rules)} |`,
-      `| 隔离边界 | ${cell(record.boundary)} |`,
-      `| 保存与作用域 | ${cell(record.persistence)} |`,
-      `| 非交互行为 | ${cell(record.noninteractive)} |`,
+      `| 会话与作用域 | ${cell(record.scope)} |`,
+      `| 持久化位置 | ${cell(record.persistence)} |`,
+      `| 自动化用法 | ${cell(record.automation)} |`,
+      `| 安全与管理 | ${cell(record.security)} |`,
       `| 条件与边界 | ${cell(record.conditions)} |`,
       `| 证据状态 | ${record.status} |`,
       `| 来源 | ${sourceLinks(record.sources)} |`,
@@ -120,7 +126,9 @@ for (const row of rows) {
   }
 
   const sourceIds = [
-    ...new Set(Object.values(detail.products).flatMap((product) => product.sources)),
+    ...new Set(
+      Object.values(detail.products).flatMap((product) => product.sources),
+    ),
   ];
   lines.push(
     '## 官方来源',
@@ -150,13 +158,13 @@ for (const row of rows) {
 }
 
 const indexLines = [
-  '# 权限与沙箱能力详情',
+  '# 模型与认证能力详情',
   '',
-  '[返回权限与沙箱矩阵](../../03-权限与沙箱矩阵.md) · [打开网页矩阵](https://qqqys.github.io/code-agent/#security)',
+  '[返回模型与认证矩阵](../../08-模型与认证矩阵.md) · [打开网页矩阵](https://qqqys.github.io/code-agent/#models)',
   '',
   `> 核对日期：${data.updatedAt}`,
   '',
-  '每一页固定记录能力定义、比较边界、五家结论、入口、默认状态、规则、隔离边界、保存范围、非交互行为、条件和官方来源。',
+  '每一页固定记录能力定义、比较边界、五家结论、入口与配置、支持范围、具体行为、会话与作用域、持久化位置、自动化用法、安全与管理、条件和官方来源。',
   '',
   '| 能力 | 网页 | Markdown |',
   '| --- | --- | --- |',
@@ -172,9 +180,9 @@ fs.writeFileSync(
 );
 
 const matrixLines = [
-  '# 权限与沙箱矩阵',
+  '# 模型与认证矩阵',
   '',
-  '[返回文档目录](./README.md) · [网页矩阵](https://qqqys.github.io/code-agent/#security) · [详情目录](./capabilities/security/)',
+  '[返回文档目录](./README.md) · [网页矩阵](https://qqqys.github.io/code-agent/#models) · [详情目录](./capabilities/models/)',
   '',
   `> 核对日期：${data.updatedAt}`,
   '',
@@ -182,43 +190,21 @@ const matrixLines = [
   '| --- | --- | --- | --- | --- | --- |',
   ...rows.map(
     (row) =>
-      `| [${row.capability}](./capabilities/security/${row.id}.md) | ${cell(row.values.claude)} | ${cell(row.values.codex)} | ${cell(row.values.qwen)} | ${cell(row.values.kimi)} | ${cell(row.values.qoder)} |`,
+      `| [${row.capability}](./capabilities/models/${row.id}.md) | ${cell(row.values.claude)} | ${cell(row.values.codex)} | ${cell(row.values.qwen)} | ${cell(row.values.kimi)} | ${cell(row.values.qoder)} |`,
   ),
   '',
   '## 阅读边界',
   '',
-  '审批策略决定工具是否需要停下来确认；沙箱决定命令和子进程实际能访问哪些文件、网络与系统资源。详情页会分别记录这两层，工具规则不会被当作 OS 沙箱。',
+  '本矩阵把模型选择、推理强度、Provider、API 端点、产品账号登录、API Key、云厂商凭据、环境变量、本地凭据存储、退出、状态检查和组织策略拆成不同字段。能够输入某家模型厂商的 Key，不代表支持任意兼容端点；能够读取环境变量，也不代表所有常见 Provider Key 名都会被自动发现；系统级配置也不自动等同于产品自带 SSO。',
   '',
   '## 详情字段',
   '',
-  '每个能力页分别记录五家的入口与切换、默认状态、具体行为、规则能力、隔离边界、保存与作用域、非交互行为、条件和官方来源。',
+  '每个能力页分别记录五家的入口与配置、支持范围、具体行为、会话与作用域、持久化位置、自动化用法、安全与管理、条件和官方来源。',
   '',
 ];
 fs.writeFileSync(
-  path.join(root, 'docs/03-权限与沙箱矩阵.md'),
+  path.join(root, 'docs/08-模型与认证矩阵.md'),
   `${matrixLines.join('\n').trimEnd()}\n`,
 );
 
-const capabilitiesIndex = [
-  '# 能力详情',
-  '',
-  '[返回文档目录](../README.md)',
-  '',
-  '| 能力域 | 状态 | 详情 |',
-  '| --- | --- | --- |',
-  '| Slash 命令 | 已完成 | [28 个能力详情](./commands/) |',
-  '| Subagent | 已完成 | [22 个能力详情](./subagents/) |',
-  '| 权限与沙箱 | 已完成 | [8 个能力详情](./security/) |',
-  '| 会话与上下文 | 已完成 | [8 个能力详情](./sessions/) |',
-  '| 扩展系统 | 已完成 | [7 个能力详情](./extensions/) |',
-  '| 任务执行与 Git | 已完成 | [9 个能力详情](./execution/) |',
-  '| Headless、SDK、多端 | 已完成 | [10 个能力详情](./surfaces/) |',
-  '| 模型与认证 | 已完成 | [12 个能力详情](./models/) |',
-  '',
-];
-fs.writeFileSync(
-  path.join(root, 'docs/capabilities/README.md'),
-  `${capabilitiesIndex.join('\n').trimEnd()}\n`,
-);
-
-console.log(`Generated ${rows.length} permission and sandbox detail documents.`);
+console.log(`Generated ${rows.length} model and authentication documents.`);

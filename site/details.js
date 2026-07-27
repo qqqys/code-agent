@@ -73,14 +73,14 @@
       excludes: ['Provider 认证', '模型价格和质量评价', 'Subagent 独立模型配置'],
       facts: [
         '五家 CLI 都提供 `/model`。',
-        'Claude Code 默认把选择保存为新会话默认值；选择器可只对当前会话切换。',
+        'Claude Code 的模型选择默认只作用于当前会话；在选择器按 `d` 才会保存用户默认值。',
         'Qwen Code 的 `/model` 同时覆盖 fast、voice、vision、image 模型，并支持项目级或用户级持久化。',
       ],
       products: {
         claude: command('claude', ['/model [model]'], '不带参数打开模型选择器；带模型参数直接切换。支持模型可同时调整 effort。', {
-          parameters: '`[model]`；选择器中的 `s` 只切换当前会话',
+          parameters: '`[model]`；选择器中的 `d` 保存用户默认值',
           mode: '交互式；`-p` 中可带模型参数',
-          persistence: '普通选择保存为新会话默认值；会话级选择和 `-p` 不改默认值',
+          persistence: '默认只切换当前会话；按 `d` 保存用户默认值；`-p` 不改默认值',
           conditions: '切换已有对话的模型时会提示确认，因为下一次响应需重新读取历史',
         }),
         codex: command('codex', ['/model'], '打开模型选择器，并在模型支持时同时选择 reasoning effort。', {
@@ -115,9 +115,9 @@
       ],
       products: {
         claude: command('claude', ['/effort [level|auto]', '/fast [on|off]'], '设置模型 effort；`/fast` 切换快速服务模式。', {
-          parameters: '`low|medium|high|xhigh|max|ultracode|auto`；可用档位依模型',
+          parameters: '`low|medium|high|xhigh|max|auto`；可用档位依模型',
           mode: '交互式；`-p` 支持带 level 参数',
-          persistence: '`max`、`ultracode` 和 `-p` 形式仅当前会话；其他档位按产品设置处理',
+          persistence: '`max` 和 `-p` 形式仅当前会话；其他档位可通过设置保存',
           conditions: '部分档位需要支持的模型或服务计划',
         }),
         codex: command('codex', ['/model', '/fast'], '在模型选择器中设置 reasoning effort；`/fast` 切换模型目录提供的 Fast 档位。', {

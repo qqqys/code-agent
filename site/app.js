@@ -31,7 +31,11 @@ function formatValue(value) {
   return escapeHtml(value).replace(/`([^`]+)`/g, '<code>$1</code>');
 }
 
-function valueState(value) {
+function valueState(value, rowId, productId) {
+  const evidenceStatus = details[rowId]?.products?.[productId]?.status;
+  if (evidenceStatus === '未确认') return 'unknown';
+  if (evidenceStatus === '条件项') return 'conditional';
+  if (evidenceStatus) return 'confirmed';
   if (value === '—' || value.includes('未确认') || value.includes('未列出')) {
     return 'unknown';
   }
@@ -141,7 +145,7 @@ function renderTable() {
           ${products
             .map((product) => {
               const value = row.values[product.id];
-              const status = valueState(value);
+              const status = valueState(value, row.id, product.id);
               return `<td class="cell cell--${status}">${formatValue(value)}</td>`;
             })
             .join('')}

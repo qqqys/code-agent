@@ -9,7 +9,7 @@ Claude Code、Codex、Qwen Code、Kimi Code、Qoder CLI 的功能对照表。内
 
 [打开能力矩阵网站](https://qqqys.github.io/code-agent/)
 
-网页支持全文搜索、分类筛选、产品列开关和独立能力详情页。当前已有 92 个完整详情页，可逐产品查看入口、执行行为、状态范围、保存位置、条件和证据。
+网页支持全文搜索、分类筛选、产品列开关和独立能力详情页。当前 104 个能力字段均有完整详情，可逐产品查看入口、执行行为、状态范围、保存位置、条件和证据。
 
 ## 文档
 
@@ -29,7 +29,8 @@ Claude Code、Codex、Qwen Code、Kimi Code、Qoder CLI 的功能对照表。内
 | [任务执行与 Git 详情](./docs/capabilities/execution/) | 9 个能力的独立详情，逐产品记录工具、执行行为、后台并发、Git 联动、产物和边界 |
 | [Headless、SDK 与多端矩阵](./docs/07-Headless-SDK与多端矩阵.md) | 非交互调用、结构化输出、SDK、IDE、桌面、远程与云端 |
 | [Headless、SDK 与多端详情](./docs/capabilities/surfaces/) | 10 个能力的独立详情，逐产品记录协议、会话、工具、认证、运行位置和边界 |
-| [模型与认证矩阵](./docs/08-模型与认证矩阵.md) | 模型切换、Provider、自定义端点、登录方式和凭据来源 |
+| [模型与认证矩阵](./docs/08-模型与认证矩阵.md) | 模型切换、推理强度、Provider、自定义端点、登录、凭据和组织策略 |
+| [模型与认证详情](./docs/capabilities/models/) | 12 个能力的独立详情，逐产品记录认证机制、作用域、持久化、安全和边界 |
 | [版本与证据](./docs/09-版本与证据.md) | 当前核对坐标、证据含义、Surface 规则和官方资料入口 |
 
 ## 表格约定

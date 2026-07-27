@@ -13,6 +13,7 @@ for (const file of [
   'site/security-details.js',
   'site/session-details.js',
   'site/extension-details.js',
+  'site/model-details.js',
 ]) {
   vm.runInContext(fs.readFileSync(path.join(root, file), 'utf8'), context);
 }
@@ -45,6 +46,7 @@ function relatedLink(related) {
     security: 'security',
     sessions: 'sessions',
     extensions: 'extensions',
+    models: 'models',
   };
   const directory = directories[related.category];
   if (!directory) return null;

@@ -118,6 +118,30 @@ window.matrixData = {
       label: 'Claude Code GitHub Actions',
       url: 'https://code.claude.com/docs/en/github-actions',
     },
+    'claude-model-config': {
+      label: 'Claude Code model configuration',
+      url: 'https://code.claude.com/docs/en/model-config',
+    },
+    'claude-auth': {
+      label: 'Claude Code authentication and credential management',
+      url: 'https://code.claude.com/docs/en/team',
+    },
+    'claude-gateway': {
+      label: 'Claude Code LLM gateway',
+      url: 'https://code.claude.com/docs/en/llm-gateway',
+    },
+    'claude-settings': {
+      label: 'Claude Code settings',
+      url: 'https://code.claude.com/docs/en/settings',
+    },
+    'claude-managed-settings': {
+      label: 'Claude Code server-managed settings',
+      url: 'https://code.claude.com/docs/en/server-managed-settings',
+    },
+    'claude-env-vars': {
+      label: 'Claude Code environment variables',
+      url: 'https://code.claude.com/docs/en/env-vars',
+    },
     'codex-commands': {
       label: 'Codex CLI commands',
       url: 'https://developers.openai.com/codex/cli/slash-commands',
@@ -213,6 +237,18 @@ window.matrixData = {
     'codex-github': {
       label: 'Codex GitHub integration',
       url: 'https://learn.chatgpt.com/docs/third-party/github',
+    },
+    'codex-auth': {
+      label: 'Codex authentication',
+      url: 'https://learn.chatgpt.com/docs/auth',
+    },
+    'codex-models': {
+      label: 'Codex models',
+      url: 'https://learn.chatgpt.com/docs/models',
+    },
+    'codex-config-reference': {
+      label: 'Codex configuration reference',
+      url: 'https://learn.chatgpt.com/docs/config-file/config-reference',
     },
     'qwen-commands': {
       label: 'Qwen Code commands documentation',
@@ -358,6 +394,22 @@ window.matrixData = {
       label: 'Qwen Code current GitHub setup',
       url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/cli/src/services/setup-github.ts',
     },
+    'qwen-model-auth-current': {
+      label: 'Qwen Code current authentication',
+      url: 'https://github.com/QwenLM/qwen-code/blob/7f8adc659ebe2d2f809ef31c79fea5638f3bf5ab/docs/users/configuration/auth.md',
+    },
+    'qwen-model-providers-current': {
+      label: 'Qwen Code current model providers',
+      url: 'https://github.com/QwenLM/qwen-code/blob/7f8adc659ebe2d2f809ef31c79fea5638f3bf5ab/docs/users/configuration/model-providers.md',
+    },
+    'qwen-model-settings-current': {
+      label: 'Qwen Code current settings',
+      url: 'https://github.com/QwenLM/qwen-code/blob/7f8adc659ebe2d2f809ef31c79fea5638f3bf5ab/docs/users/configuration/settings.md',
+    },
+    'qwen-model-commands-current': {
+      label: 'Qwen Code current commands',
+      url: 'https://github.com/QwenLM/qwen-code/blob/7f8adc659ebe2d2f809ef31c79fea5638f3bf5ab/docs/users/features/commands.md',
+    },
     'kimi-commands': {
       label: 'Kimi Code Slash commands',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/main/docs/zh/reference/slash-commands.md',
@@ -462,6 +514,30 @@ window.matrixData = {
       label: 'Kimi Code current VS Code extension',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/apps/vscode/README.md',
     },
+    'kimi-model-providers-current': {
+      label: 'Kimi Code current model providers',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/configuration/providers.md',
+    },
+    'kimi-model-env-current': {
+      label: 'Kimi Code current environment variables',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/configuration/env-vars.md',
+    },
+    'kimi-model-config-current': {
+      label: 'Kimi Code current configuration',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/configuration/config-files.md',
+    },
+    'kimi-model-data-current': {
+      label: 'Kimi Code current data locations',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/configuration/data-locations.md',
+    },
+    'kimi-model-commands-current': {
+      label: 'Kimi Code current slash commands',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/reference/slash-commands.md',
+    },
+    'kimi-model-cli-current': {
+      label: 'Kimi Code current CLI reference',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/reference/kimi-command.md',
+    },
     'qoder-commands': {
       label: 'Qoder CLI commands',
       url: 'https://docs.qoder.com/en/cli/command',
@@ -545,6 +621,26 @@ window.matrixData = {
     'qoder-action': {
       label: 'Qoder Action',
       url: 'https://docs.qoder.com/en/cli/qoder-action',
+    },
+    'qoder-model': {
+      label: 'Qoder CLI model configuration',
+      url: 'https://docs.qoder.com/en/cli/model',
+    },
+    'qoder-quick-start': {
+      label: 'Qoder CLI login and quick start',
+      url: 'https://docs.qoder.com/en/cli/quick-start',
+    },
+    'qoder-sdk-auth': {
+      label: 'Qoder Agent SDK authentication',
+      url: 'https://docs.qoder.com/en/cli/sdk/authentication',
+    },
+    'qoder-teams': {
+      label: 'Qoder Teams administration',
+      url: 'https://docs.qoder.com/account/teams/get-started-with-teams',
+    },
+    'qoder-sso': {
+      label: 'Qoder Teams SSO',
+      url: 'https://docs.qoder.com/account/teams/sso',
     },
     'qoder-docs': {
       label: 'Qoder CLI Documentation',
@@ -1199,44 +1295,86 @@ window.matrixData = {
     {
       id: 'model-switch',
       category: 'models',
-      capability: '会话内切换模型',
-      description: '无需退出当前会话即可选择模型。',
-      values: { claude: '`/model`', codex: '`/model`', qwen: '`/model`', kimi: '`/model`', qoder: '`/model`' },
+      capability: '模型选择与切换',
+      description: '选择当前模型，并区分会话级、项目级和用户级默认值。',
+      values: { claude: '`/model` · `--model`', codex: '`/model` · `-m`', qwen: '`/model` · `--model`', kimi: '`/model` · `-m`', qoder: '`/model` · `--model`' },
+    },
+    {
+      id: 'model-effort',
+      category: 'models',
+      capability: '推理强度',
+      description: '设置 reasoning effort、thinking effort 或快速档位。',
+      values: { claude: '`/effort` · `--effort`', codex: '`/model` · `model_reasoning_effort`', qwen: '`/effort`', kimi: '`[thinking] effort`；无独立命令', qoder: '`/effort` · `--reasoning-effort`' },
     },
     {
       id: 'model-provider',
       category: 'models',
-      capability: '多 Provider',
-      description: '连接品牌默认模型之外的模型服务或云平台。',
-      values: { claude: 'Bedrock · Vertex AI 等官方部署', codex: 'OpenAI 与官方支持连接方式', qwen: '多 Provider 与兼容 API', kimi: '`/provider`', qoder: '由产品账号与配置决定' },
+      capability: 'Provider 类型',
+      description: '连接默认服务之外的官方云平台、本地运行时或第三方模型 Provider。',
+      values: { claude: 'Anthropic · Bedrock · Vertex · Foundry', codex: 'OpenAI · Bedrock · Ollama · LM Studio · 自定义 Responses', qwen: 'OpenAI · Anthropic · Gemini · Vertex · 自定义', kimi: 'Kimi · Anthropic · OpenAI · Gemini · Vertex', qoder: '托管目录 · 指定厂商 BYOK' },
     },
     {
       id: 'model-compatible-endpoint',
       category: 'models',
-      capability: '兼容 API 端点',
-      description: '配置 OpenAI 或 Anthropic 协议兼容服务。',
-      values: { claude: '依网关或云平台配置', codex: '依官方配置范围', qwen: '支持多种兼容端点', kimi: '依 Provider 配置', qoder: '任意兼容端点未确认' },
+      capability: '自定义 API 端点',
+      description: '配置代理网关、自托管模型或协议兼容服务的基础地址。',
+      values: { claude: '`ANTHROPIC_BASE_URL` · Messages 网关', codex: '`model_providers` · 仅 Responses 协议', qwen: '`baseUrl` · OpenAI/Anthropic/Gemini 协议', kimi: '`base_url` · 多 Provider 协议', qoder: '公开文档仅列指定厂商；无任意 URL' },
     },
     {
       id: 'auth-browser',
       category: 'models',
       capability: '浏览器账号登录',
       description: '通过产品账号授权 CLI。',
-      values: { claude: '`/login`', codex: '`codex login`', qwen: '`/auth`', kimi: '`/login`', qoder: '`/login`' },
+      values: { claude: '`/login`', codex: '`codex login` · Device Code', qwen: '当前无浏览器账号登录；`/auth` 配置 Provider', kimi: '`/login` · `kimi login`', qoder: '`/login` · `qodercli login`' },
     },
     {
       id: 'auth-api-key',
       category: 'models',
       capability: 'API Key',
       description: '使用环境变量或配置中的模型服务密钥。',
-      values: { claude: 'Anthropic API Key', codex: 'OpenAI API Key', qwen: '各 Provider API Key', kimi: 'Provider 凭据', qoder: '依产品文档' },
+      values: { claude: '`ANTHROPIC_API_KEY` · `apiKeyHelper`', codex: '`login --with-api-key` · Provider `env_key`', qwen: '`/auth` · 环境变量 · `.env`', kimi: '`config.toml` `api_key` · Kimi Platform', qoder: 'PAT · 指定厂商 Custom Model Key' },
+    },
+    {
+      id: 'auth-cloud-provider',
+      category: 'models',
+      capability: '云厂商凭据链',
+      description: '复用 AWS、Google Cloud 或其他云平台的原生身份与短期凭据。',
+      values: { claude: 'Bedrock · Vertex · Foundry 原生凭据链', codex: 'Bedrock AWS SigV4 · Provider 命令令牌', qwen: 'Vertex 与兼容 Provider 的密钥配置', kimi: 'Vertex AI ADC · `GOOGLE_APPLICATION_CREDENTIALS`', qoder: '公开 CLI 文档未列通用云凭据链' },
+    },
+    {
+      id: 'auth-environment',
+      category: 'models',
+      capability: '环境变量注入',
+      description: '从进程环境或项目环境文件向 Provider 注入端点和凭据。',
+      values: { claude: '`ANTHROPIC_*` · 云厂商环境变量', codex: '`OPENAI_API_KEY` · Provider `env_key`', qwen: '系统环境 > `.env` > `settings.json.env`', kimi: '仅 `KIMI_MODEL_*` 临时通道；普通 Provider Key 不读 Shell', qoder: '`QODER_PERSONAL_ACCESS_TOKEN`' },
+    },
+    {
+      id: 'auth-storage',
+      category: 'models',
+      capability: '本地凭据存储',
+      description: '登录令牌和静态密钥在本机的保存位置、权限与可配置后端。',
+      values: { claude: 'macOS Keychain；Linux/Windows credentials 文件', codex: '`auth.json` · Keyring · Auto', qwen: '`settings.json` · `.env` · 进程环境', kimi: '`credentials/` 0600 · `config.toml` 明文 Key', qoder: '登录缓存可复用；具体后端与路径未公开' },
+    },
+    {
+      id: 'auth-logout',
+      category: 'models',
+      capability: '退出与撤销本地凭据',
+      description: '退出账号或移除当前 CLI 使用的本地凭据。',
+      values: { claude: '`/logout`', codex: '`codex logout`', qwen: '无独立 logout；重配 Provider 或删除 Key', kimi: '`/logout`', qoder: '`/logout`' },
+    },
+    {
+      id: 'auth-status',
+      category: 'models',
+      capability: '认证状态检查',
+      description: '检查当前账号、Provider、凭据或相关诊断状态。',
+      values: { claude: '`/status` · `/doctor`', codex: '`codex login status` · `/status`', qwen: '`/doctor`', kimi: '`/status`；无独立认证状态命令', qoder: '`/status`' },
     },
     {
       id: 'auth-enterprise',
       category: 'models',
       capability: '组织账号与策略',
       description: '由组织统一管理身份、凭据或配置。',
-      values: { claude: '企业账号 · Managed settings', codex: '组织账号 · Managed config', qwen: '依 Provider 与部署', kimi: '依产品账号', qoder: '组织账号' },
+      values: { claude: 'SSO · Managed settings · 强制登录策略', codex: 'Workspace RBAC · Managed config · 强制 Workspace', qwen: '系统级 Settings · Provider 身份；无统一 SSO 层', kimi: '公开 CLI 文档未列 Managed/SSO 策略', qoder: 'Teams 管理台 · 域名限制 · SAML SSO' },
     },
   ],
 };

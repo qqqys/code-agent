@@ -13,6 +13,7 @@ for (const file of [
   'site/security-details.js',
   'site/session-details.js',
   'site/extension-details.js',
+  'site/model-details.js',
 ]) {
   vm.runInContext(fs.readFileSync(path.join(root, file), 'utf8'), context);
 }
@@ -45,6 +46,7 @@ function relatedLink(related) {
     security: 'security',
     sessions: 'sessions',
     extensions: 'extensions',
+    models: 'models',
   };
   const directory = directories[related.category];
   if (!directory) return null;
@@ -211,8 +213,9 @@ const capabilitiesIndex = [
   '| 权限与沙箱 | 已完成 | [8 个能力详情](./security/) |',
   '| 会话与上下文 | 已完成 | [8 个能力详情](./sessions/) |',
   '| 扩展系统 | 已完成 | [7 个能力详情](./extensions/) |',
-  '| 执行、Git、Headless、SDK、多端 | 待补充 | [执行矩阵](../06-任务执行与Git矩阵.md)、[多端矩阵](../07-Headless-SDK与多端矩阵.md) |',
-  '| 模型与认证 | 待补充 | [模型与认证矩阵](../08-模型与认证矩阵.md) |',
+  '| 任务执行与 Git | 已完成 | [9 个能力详情](./execution/) |',
+  '| Headless、SDK、多端 | 已完成 | [10 个能力详情](./surfaces/) |',
+  '| 模型与认证 | 已完成 | [12 个能力详情](./models/) |',
   '',
 ];
 fs.writeFileSync(

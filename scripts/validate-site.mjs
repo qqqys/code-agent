@@ -30,13 +30,14 @@ runScripts(indexDom, [
   'site/extension-details.js',
   'site/execution-details.js',
   'site/surface-details.js',
+  'site/model-details.js',
   'site/app.js',
 ]);
 
-assert.equal(indexDom.window.document.querySelectorAll('#matrixBody tr').length, 98);
+assert.equal(indexDom.window.document.querySelectorAll('#matrixBody tr').length, 104);
 assert.equal(
   indexDom.window.document.querySelectorAll('#matrixBody .capability-link').length,
-  92,
+  104,
 );
 assert.equal(
   indexDom.window.document.querySelectorAll('#categoryTabs [role="tab"]').length,
@@ -45,6 +46,18 @@ assert.equal(
 assert.equal(
   indexDom.window.document.querySelectorAll('#productToggles input').length,
   5,
+);
+assert.match(
+  indexDom.window.document.querySelector(
+    '[data-row-id="model-compatible-endpoint"] td:last-child',
+  ).className,
+  /cell--conditional/,
+);
+assert.match(
+  indexDom.window.document.querySelector(
+    '[data-row-id="auth-cloud-provider"] td:last-child',
+  ).className,
+  /cell--unknown/,
 );
 
 function renderDetail(id) {
@@ -61,6 +74,7 @@ function renderDetail(id) {
     'site/extension-details.js',
     'site/execution-details.js',
     'site/surface-details.js',
+    'site/model-details.js',
     'site/capability.js',
   ]);
   assert.equal(dom.window.document.querySelector('#capabilityMain').hidden, false);
@@ -175,6 +189,26 @@ assert.equal(
 assert.match(
   surfaceDom.window.document.querySelector('#markdownLink').href,
   /docs\/capabilities\/surfaces\/surface-service\.md$/,
+);
+
+const modelDom = renderDetail('auth-storage');
+const modelLabels =
+  modelDom.window.document.querySelector('#productRecords').textContent;
+assert.match(modelLabels, /支持范围/);
+assert.match(modelLabels, /持久化位置/);
+assert.match(modelLabels, /安全与管理/);
+assert.doesNotMatch(modelLabels, /主命令/);
+assert.equal(
+  modelDom.window.document.querySelector('#categoryLink').getAttribute('href'),
+  './#models',
+);
+assert.match(
+  modelDom.window.document.querySelector('#markdownLink').href,
+  /docs\/capabilities\/models\/auth-storage\.md$/,
+);
+assert.match(
+  modelDom.window.document.querySelector('#quickGrid article:last-child').className,
+  /quick-card--unknown/,
 );
 
 console.log('Validated matrix render, detail schemas, links, and CSS.');

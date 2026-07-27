@@ -47,10 +47,10 @@
 | --- | --- |
 | 主命令 | `/effort [level\|auto]`、`/fast [on\|off]` |
 | 别名 | 无公开别名 |
-| 参数 | `low\|medium\|high\|xhigh\|max\|ultracode\|auto`；可用档位依模型 |
+| 参数 | `low\|medium\|high\|xhigh\|max\|auto`；可用档位依模型 |
 | 执行行为 | 设置模型 effort；`/fast` 切换快速服务模式。 |
 | 可用模式 | 交互式；`-p` 支持带 level 参数 |
-| 保存范围 | `max`、`ultracode` 和 `-p` 形式仅当前会话；其他档位按产品设置处理 |
+| 保存范围 | `max` 和 `-p` 形式仅当前会话；其他档位可通过设置保存 |
 | 条件与边界 | 部分档位需要支持的模型或服务计划 |
 | 证据状态 | 官方确认 |
 | 来源 | [Claude Code Commands](https://code.claude.com/docs/en/commands) |

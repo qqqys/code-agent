@@ -18,6 +18,7 @@
 | 07 | [Headless、SDK 与多端矩阵](./07-Headless-SDK与多端矩阵.md) |
 | 07A | [Headless、SDK 与多端详情](./capabilities/surfaces/) |
 | 08 | [模型与认证矩阵](./08-模型与认证矩阵.md) |
+| 08A | [模型与认证详情](./capabilities/models/) |
 | 09 | [版本与证据](./09-版本与证据.md) |
 
 [能力详情进度](./capabilities/) · [打开网页矩阵](https://qqqys.github.io/code-agent/) · [返回仓库首页](../README.md)
