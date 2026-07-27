@@ -11,6 +11,7 @@ for (const file of [
   'site/details.js',
   'site/subagent-details.js',
   'site/security-details.js',
+  'site/session-details.js',
 ]) {
   vm.runInContext(fs.readFileSync(path.join(root, file), 'utf8'), context);
 }
@@ -18,7 +19,12 @@ for (const file of [
 const data = context.window.matrixData;
 const details = context.window.capabilityDetails;
 const rowIds = new Set(data.rows.map((row) => row.id));
-const completedCategories = new Set(['commands', 'subagents', 'security']);
+const completedCategories = new Set([
+  'commands',
+  'subagents',
+  'security',
+  'sessions',
+]);
 const completedRows = data.rows.filter((row) =>
   completedCategories.has(row.category),
 );
@@ -62,6 +68,19 @@ const requiredFields = {
     'status',
     'sources',
   ],
+  sessions: [
+    'value',
+    'entry',
+    'storage',
+    'behavior',
+    'scope',
+    'automation',
+    'persistence',
+    'surfaces',
+    'conditions',
+    'status',
+    'sources',
+  ],
 };
 const errors = [];
 
@@ -99,7 +118,7 @@ for (const row of completedRows) {
       }
     }
     if (
-      ['subagents', 'security'].includes(row.category) &&
+      ['subagents', 'security', 'sessions'].includes(row.category) &&
       record.value !== row.values[product.id]
     ) {
       errors.push(`${row.id}/${product.id} 的矩阵结论与主表不一致`);
@@ -124,6 +143,7 @@ for (const row of completedRows) {
     commands: 'commands',
     subagents: 'subagents',
     security: 'security',
+    sessions: 'sessions',
   }[row.category];
   const markdownPath = path.join(
     root,

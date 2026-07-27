@@ -9,7 +9,7 @@ Claude Code、Codex、Qwen Code、Kimi Code、Qoder CLI 的功能对照表。内
 
 [打开能力矩阵网站](https://qqqys.github.io/code-agent/)
 
-网页支持全文搜索、分类筛选、产品列开关和独立能力详情页。已完成的能力可进入完整页面，逐产品查看命令、参数、执行行为、适用模式、保存范围、条件和证据。
+网页支持全文搜索、分类筛选、产品列开关和独立能力详情页。当前已有 66 个完整详情页，可逐产品查看入口、执行行为、状态范围、保存位置、条件和证据。
 
 ## 文档
 
@@ -21,7 +21,8 @@ Claude Code、Codex、Qwen Code、Kimi Code、Qoder CLI 的功能对照表。内
 | [Subagent 能力详情](./docs/capabilities/subagents/) | 22 个 Subagent 能力的独立详情，逐产品记录入口、上下文、隔离、限制和证据 |
 | [权限与沙箱矩阵](./docs/03-权限与沙箱矩阵.md) | 审批模式、文件与网络边界、规则配置、非交互行为 |
 | [权限与沙箱详情](./docs/capabilities/security/) | 8 个能力的独立详情，逐产品记录入口、默认状态、规则、隔离与非交互行为 |
-| [会话与上下文矩阵](./docs/04-会话与上下文矩阵.md) | 恢复、分支、压缩、记忆、检查点和后台任务 |
+| [会话与上下文矩阵](./docs/04-会话与上下文矩阵.md) | 恢复、分支、命名、压缩、占用、导出、检查点和记忆 |
+| [会话与上下文详情](./docs/capabilities/sessions/) | 8 个能力的独立详情，逐产品记录入口、保存位置、状态范围、自动行为和适用界面 |
 | [扩展系统矩阵](./docs/05-扩展系统矩阵.md) | MCP、Skills、Hooks、插件、自定义命令和项目指令 |
 | [任务执行与 Git 矩阵](./docs/06-任务执行与Git矩阵.md) | 文件修改、Shell、搜索、Review、PR、CI 和 Worktree |
 | [Headless、SDK 与多端矩阵](./docs/07-Headless-SDK与多端矩阵.md) | 非交互调用、结构化输出、SDK、IDE、桌面、远程与云端 |

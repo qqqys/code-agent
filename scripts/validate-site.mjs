@@ -26,13 +26,14 @@ runScripts(indexDom, [
   'site/details.js',
   'site/subagent-details.js',
   'site/security-details.js',
+  'site/session-details.js',
   'site/app.js',
 ]);
 
 assert.equal(indexDom.window.document.querySelectorAll('#matrixBody tr').length, 94);
 assert.equal(
   indexDom.window.document.querySelectorAll('#matrixBody .capability-link').length,
-  58,
+  66,
 );
 assert.equal(
   indexDom.window.document.querySelectorAll('#categoryTabs [role="tab"]').length,
@@ -53,6 +54,7 @@ function renderDetail(id) {
     'site/details.js',
     'site/subagent-details.js',
     'site/security-details.js',
+    'site/session-details.js',
     'site/capability.js',
   ]);
   assert.equal(dom.window.document.querySelector('#capabilityMain').hidden, false);
@@ -103,6 +105,22 @@ assert.equal(
 assert.match(
   securityDom.window.document.querySelector('#markdownLink').href,
   /docs\/capabilities\/security\/security-filesystem\.md$/,
+);
+
+const sessionDom = renderDetail('session-checkpoint');
+const sessionLabels =
+  sessionDom.window.document.querySelector('#productRecords').textContent;
+assert.match(sessionLabels, /保存位置/);
+assert.match(sessionLabels, /自动行为/);
+assert.match(sessionLabels, /适用界面/);
+assert.doesNotMatch(sessionLabels, /主命令/);
+assert.equal(
+  sessionDom.window.document.querySelector('#categoryLink').getAttribute('href'),
+  './#sessions',
+);
+assert.match(
+  sessionDom.window.document.querySelector('#markdownLink').href,
+  /docs\/capabilities\/sessions\/session-checkpoint\.md$/,
 );
 
 console.log('Validated matrix render, detail schemas, links, and CSS.');

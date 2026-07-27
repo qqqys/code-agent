@@ -46,6 +46,22 @@ window.matrixData = {
       label: 'Claude Code Headless Mode',
       url: 'https://code.claude.com/docs/en/headless',
     },
+    'claude-sessions': {
+      label: 'Claude Code Manage sessions',
+      url: 'https://code.claude.com/docs/en/sessions',
+    },
+    'claude-checkpointing': {
+      label: 'Claude Code Checkpointing',
+      url: 'https://code.claude.com/docs/en/checkpointing',
+    },
+    'claude-context-window': {
+      label: 'Claude Code Context window',
+      url: 'https://code.claude.com/docs/en/context-window',
+    },
+    'claude-memory': {
+      label: 'Claude Code Memory',
+      url: 'https://code.claude.com/docs/en/memory',
+    },
     'codex-commands': {
       label: 'Codex CLI commands',
       url: 'https://developers.openai.com/codex/cli/slash-commands',
@@ -65,6 +81,18 @@ window.matrixData = {
     'codex-config': {
       label: 'Codex Advanced Configuration',
       url: 'https://learn.chatgpt.com/docs/config-file/config-advanced',
+    },
+    'codex-memories': {
+      label: 'Codex Memories',
+      url: 'https://learn.chatgpt.com/docs/customization/memories',
+    },
+    'codex-noninteractive': {
+      label: 'Codex Non-interactive mode',
+      url: 'https://learn.chatgpt.com/docs/non-interactive-mode',
+    },
+    'codex-troubleshooting': {
+      label: 'Codex Troubleshooting',
+      url: 'https://learn.chatgpt.com/docs/reference/troubleshooting',
     },
     'qwen-commands': {
       label: 'Qwen Code commands documentation',
@@ -122,6 +150,26 @@ window.matrixData = {
       label: 'Qwen Code Documentation',
       url: 'https://github.com/QwenLM/qwen-code/tree/main/docs/users',
     },
+    'qwen-session-commands': {
+      label: 'Qwen Code current commands',
+      url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/commands.md',
+    },
+    'qwen-memory-current': {
+      label: 'Qwen Code current memory',
+      url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/memory.md',
+    },
+    'qwen-session-settings': {
+      label: 'Qwen Code current settings',
+      url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/configuration/settings.md',
+    },
+    'qwen-session-headless': {
+      label: 'Qwen Code current headless mode',
+      url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/headless.md',
+    },
+    'qwen-worktree-current': {
+      label: 'Qwen Code current worktree',
+      url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/worktree.md',
+    },
     'kimi-commands': {
       label: 'Kimi Code Slash commands',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/main/docs/zh/reference/slash-commands.md',
@@ -146,6 +194,30 @@ window.matrixData = {
       label: 'Kimi Code Documentation',
       url: 'https://github.com/MoonshotAI/kimi-code/tree/main/docs/zh',
     },
+    'kimi-sessions-current': {
+      label: 'Kimi Code current sessions',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/guides/sessions.md',
+    },
+    'kimi-commands-current': {
+      label: 'Kimi Code current slash commands',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/reference/slash-commands.md',
+    },
+    'kimi-cli-current': {
+      label: 'Kimi Code current CLI reference',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/reference/kimi-command.md',
+    },
+    'kimi-data-current': {
+      label: 'Kimi Code current data locations',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/configuration/data-locations.md',
+    },
+    'kimi-config-current': {
+      label: 'Kimi Code current configuration',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/configuration/config-files.md',
+    },
+    'kimi-agents-current': {
+      label: 'Kimi Code current agents',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/customization/agents.md',
+    },
     'qoder-commands': {
       label: 'Qoder CLI commands',
       url: 'https://docs.qoder.com/en/cli/command',
@@ -161,6 +233,14 @@ window.matrixData = {
     'qoder-sdk-reference': {
       label: 'Qoder CLI SDK Reference',
       url: 'https://docs.qoder.com/en/cli/sdk/references',
+    },
+    'qoder-memory': {
+      label: 'Qoder CLI Memory',
+      url: 'https://docs.qoder.com/en/cli/memory',
+    },
+    'qoder-checkpoint': {
+      label: 'Qoder CLI SDK Checkpoint',
+      url: 'https://docs.qoder.com/en/cli/sdk/checkpoint',
     },
     'qoder-docs': {
       label: 'Qoder CLI Documentation',
@@ -579,56 +659,56 @@ window.matrixData = {
       category: 'sessions',
       capability: '恢复会话',
       description: '从已有会话继续对话和任务状态。',
-      values: { claude: '`/resume`', codex: '`/resume`', qwen: '`/resume`', kimi: '`/sessions`', qoder: '`/resume`' },
+      values: { claude: '`/resume` · `--continue`', codex: '`/resume` · `codex exec resume`', qwen: '`/resume` · `/continue`', kimi: '`/sessions` · `/resume`', qoder: '`/resume`' },
     },
     {
       id: 'session-branch',
       category: 'sessions',
       capability: '会话分支',
       description: '从当前上下文复制出独立会话。',
-      values: { claude: '`/branch` · `/fork`', codex: '`/fork`', qwen: '`/branch` · `/fork`', kimi: '`/fork`', qoder: '未确认' },
+      values: { claude: '`/branch` · `--fork-session`', codex: '`/fork`', qwen: '`/branch`', kimi: '`/fork`', qoder: 'SDK：`resume` + `forkSession`' },
     },
     {
       id: 'session-naming',
       category: 'sessions',
       capability: '会话命名',
       description: '为会话设置便于查找的标题。',
-      values: { claude: '`/rename`', codex: '`/rename` · `/title`', qwen: '`/rename` · `/tag`', kimi: '`/title` · `/rename`', qoder: '未确认' },
+      values: { claude: '`/rename` · `--name`', codex: '`/rename`', qwen: '`/rename` · `/tag`', kimi: '`/title` · `/rename`', qoder: 'TUI 命令表未列出' },
     },
     {
       id: 'session-compress',
       category: 'sessions',
       capability: '手动压缩',
       description: '主动总结当前上下文以释放窗口。',
-      values: { claude: '`/compact`', codex: '`/compact`', qwen: '`/compress` · `/compress-fast`', kimi: '`/compact`', qoder: '`/compact`' },
+      values: { claude: '`/compact [instructions]`', codex: '`/compact`', qwen: '`/compress [instructions]` · `/compress-fast`', kimi: '`/compact [instruction]`', qoder: '`/compact [instructions]`' },
     },
     {
       id: 'session-context-usage',
       category: 'sessions',
       capability: '上下文占用',
       description: '查看当前会话上下文窗口或 token 使用情况。',
-      values: { claude: '`/context`', codex: '`/status` · `/usage`', qwen: '`/context detail`', kimi: '`/status` · `/usage`', qoder: '`/context-window` · `/usage`' },
+      values: { claude: '`/context`', codex: '`/status`', qwen: '`/context` · `/context detail`', kimi: '`/usage`', qoder: '未确认独立占用视图' },
     },
     {
       id: 'session-export',
       category: 'sessions',
       capability: '会话导出',
       description: '将会话保存为 Markdown、JSON 或其他文件。',
-      values: { claude: '`/export`', codex: 'CLI 命令表未列出', qwen: 'HTML · Markdown · JSON · JSONL', kimi: 'Markdown · debug ZIP', qoder: '`/export`' },
+      values: { claude: '`/export [filename]`', codex: 'CLI 命令表未列出', qwen: 'HTML · Markdown · JSON · JSONL', kimi: 'Markdown · 诊断 ZIP', qoder: '`/export [filename]`' },
     },
     {
       id: 'session-checkpoint',
       category: 'sessions',
       capability: '检查点与回退',
       description: '恢复到早先的对话或代码状态。',
-      values: { claude: '`/rewind` · `/checkpoint`', codex: 'CLI 命令表未列出', qwen: '`/rewind` · `/restore`', kimi: '`/undo`', qoder: '未确认' },
+      values: { claude: '`/rewind` · `/checkpoint` · `/undo`', codex: 'CLI 命令表未列出', qwen: '`/rewind`；条件：`/restore`', kimi: '`/undo`（不回滚代码）', qoder: 'SDK 条件：`rewindFiles()`' },
     },
     {
       id: 'session-memory',
       category: 'sessions',
       capability: '跨会话记忆',
       description: '保存项目或用户信息供后续会话使用。',
-      values: { claude: '`/memory`', codex: '`/memories`', qwen: '`/memory` · `/remember` · `/forget`', kimi: '当前命令表未列出', qoder: '`/memory`' },
+      values: { claude: '`CLAUDE.md` + Auto memory', codex: '条件：`/memories`；默认关闭', qwen: '`QWEN.md` + Auto-memory', kimi: '`AGENTS.md`；自动记忆未列出', qoder: '`AGENTS.md`；条件：Auto-memory' },
     },
     {
       id: 'extension-mcp',

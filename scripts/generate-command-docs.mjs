@@ -11,6 +11,7 @@ for (const file of [
   'site/details.js',
   'site/subagent-details.js',
   'site/security-details.js',
+  'site/session-details.js',
 ]) {
   vm.runInContext(fs.readFileSync(path.join(root, file), 'utf8'), context);
 }
@@ -41,6 +42,21 @@ function sourceLinks(sourceIds) {
 
 function detailLink(id) {
   return `https://qqqys.github.io/code-agent/capability.html?id=${encodeURIComponent(id)}`;
+}
+
+function relatedLink(related) {
+  if (!details[related.id]) return null;
+  const directories = {
+    commands: 'commands',
+    subagents: 'subagents',
+    security: 'security',
+    sessions: 'sessions',
+  };
+  const directory = directories[related.category];
+  if (!directory) return null;
+  return directory === 'commands'
+    ? `./${related.id}.md`
+    : `../${directory}/${related.id}.md`;
 }
 
 const commandRows = data.rows.filter((row) => row.category === 'commands');
@@ -125,14 +141,10 @@ for (const row of commandRows) {
     ...detail.related.map((id) => {
       const related = data.rows.find((candidate) => candidate.id === id);
       if (!related) throw new Error(`Unknown related capability ${id}`);
-      if (details[id]) {
-        const href =
-          related.category === 'commands'
-            ? `./${id}.md`
-            : `../subagents/${id}.md`;
-        return `- [${related.capability}](${href})`;
-      }
-      return `- ${related.capability}：见对应能力矩阵`;
+      const href = relatedLink(related);
+      return href
+        ? `- [${related.capability}](${href})`
+        : `- ${related.capability}：见对应能力矩阵`;
     }),
     '',
   );
@@ -175,7 +187,7 @@ const capabilitiesIndex = [
   '| Slash 命令 | 已完成 | [28 个能力详情](./commands/) |',
   '| Subagent | 已完成 | [22 个能力详情](./subagents/) |',
   '| 权限与沙箱 | 已完成 | [8 个能力详情](./security/) |',
-  '| 会话与上下文 | 待补充 | [会话矩阵](../04-会话与上下文矩阵.md) |',
+  '| 会话与上下文 | 已完成 | [8 个能力详情](./sessions/) |',
   '| MCP、Skills、Hooks、插件 | 待补充 | [扩展矩阵](../05-扩展系统矩阵.md) |',
   '| 执行、Git、Headless、SDK、多端 | 待补充 | [执行矩阵](../06-任务执行与Git矩阵.md)、[多端矩阵](../07-Headless-SDK与多端矩阵.md) |',
   '| 模型与认证 | 待补充 | [模型与认证矩阵](../08-模型与认证矩阵.md) |',

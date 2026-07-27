@@ -11,6 +11,7 @@ for (const file of [
   'site/details.js',
   'site/subagent-details.js',
   'site/security-details.js',
+  'site/session-details.js',
 ]) {
   vm.runInContext(fs.readFileSync(path.join(root, file), 'utf8'), context);
 }
@@ -41,6 +42,7 @@ function relatedLink(related) {
     commands: 'commands',
     subagents: 'subagents',
     security: 'security',
+    sessions: 'sessions',
   };
   const directory = directories[related.category];
   if (!directory) return null;
@@ -205,7 +207,7 @@ const capabilitiesIndex = [
   '| Slash 命令 | 已完成 | [28 个能力详情](./commands/) |',
   '| Subagent | 已完成 | [22 个能力详情](./subagents/) |',
   '| 权限与沙箱 | 已完成 | [8 个能力详情](./security/) |',
-  '| 会话与上下文 | 待补充 | [会话矩阵](../04-会话与上下文矩阵.md) |',
+  '| 会话与上下文 | 已完成 | [8 个能力详情](./sessions/) |',
   '| MCP、Skills、Hooks、插件 | 待补充 | [扩展矩阵](../05-扩展系统矩阵.md) |',
   '| 执行、Git、Headless、SDK、多端 | 待补充 | [执行矩阵](../06-任务执行与Git矩阵.md)、[多端矩阵](../07-Headless-SDK与多端矩阵.md) |',
   '| 模型与认证 | 待补充 | [模型与认证矩阵](../08-模型与认证矩阵.md) |',

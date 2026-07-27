@@ -92,6 +92,20 @@ function securityFields(record) {
   ];
 }
 
+function sessionFields(record) {
+  return [
+    ['矩阵结论', formatValue(record.value)],
+    ['入口与切换', formatValue(record.entry)],
+    ['保存位置', formatValue(record.storage)],
+    ['具体行为', formatValue(record.behavior)],
+    ['状态范围', formatValue(record.scope)],
+    ['自动行为', formatValue(record.automation)],
+    ['保存与保留', formatValue(record.persistence)],
+    ['适用界面', formatValue(record.surfaces)],
+    ['条件与边界', formatValue(record.conditions)],
+  ];
+}
+
 const schemas = {
   commands: {
     quickTitle: '命令对照',
@@ -107,6 +121,11 @@ const schemas = {
     quickTitle: '权限结论',
     markdownDirectory: 'security',
     fields: securityFields,
+  },
+  sessions: {
+    quickTitle: '会话结论',
+    markdownDirectory: 'sessions',
+    fields: sessionFields,
   },
 };
 

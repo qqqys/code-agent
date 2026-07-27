@@ -18,7 +18,7 @@ for (const file of [
 
 const data = context.window.matrixData;
 const details = context.window.capabilityDetails;
-const outputDir = path.join(root, 'docs/capabilities/subagents');
+const outputDir = path.join(root, 'docs/capabilities/sessions');
 fs.mkdirSync(outputDir, { recursive: true });
 
 function cell(value) {
@@ -46,12 +46,12 @@ function relatedLink(related) {
   };
   const directory = directories[related.category];
   if (!directory) return null;
-  return directory === 'subagents'
+  return directory === 'sessions'
     ? `./${related.id}.md`
     : `../${directory}/${related.id}.md`;
 }
 
-const rows = data.rows.filter((row) => row.category === 'subagents');
+const rows = data.rows.filter((row) => row.category === 'sessions');
 
 for (const row of rows) {
   const detail = details[row.id];
@@ -60,7 +60,7 @@ for (const row of rows) {
   const lines = [
     `# ${row.capability}`,
     '',
-    `[返回 Subagent 详情目录](./README.md) · [打开网页详情](${detailLink(row.id)})`,
+    `[返回会话与上下文详情目录](./README.md) · [打开网页详情](${detailLink(row.id)})`,
     '',
     `> 核对日期：${data.updatedAt}`,
     '',
@@ -68,7 +68,7 @@ for (const row of rows) {
     '',
     detail.definition,
     '',
-    '## 能力结论',
+    '## 会话结论',
     '',
     '| 产品 | 结论 | 证据状态 |',
     '| --- | --- | --- |',
@@ -103,13 +103,13 @@ for (const row of rows) {
       '| 字段 | 记录 |',
       '| --- | --- |',
       `| 矩阵结论 | ${cell(record.value)} |`,
-      `| 入口与配置 | ${cell(record.entry)} |`,
-      `| 定义格式 | ${cell(record.format)} |`,
+      `| 入口与切换 | ${cell(record.entry)} |`,
+      `| 保存位置 | ${cell(record.storage)} |`,
       `| 具体行为 | ${cell(record.behavior)} |`,
-      `| 作用域 | ${cell(record.scope)} |`,
-      `| 上下文与继承 | ${cell(record.inheritance)} |`,
-      `| 工作区隔离 | ${cell(record.isolation)} |`,
-      `| 运行限制 | ${cell(record.limits)} |`,
+      `| 状态范围 | ${cell(record.scope)} |`,
+      `| 自动行为 | ${cell(record.automation)} |`,
+      `| 保存与保留 | ${cell(record.persistence)} |`,
+      `| 适用界面 | ${cell(record.surfaces)} |`,
       `| 条件与边界 | ${cell(record.conditions)} |`,
       `| 证据状态 | ${record.status} |`,
       `| 来源 | ${sourceLinks(record.sources)} |`,
@@ -148,13 +148,13 @@ for (const row of rows) {
 }
 
 const indexLines = [
-  '# Subagent 能力详情',
+  '# 会话与上下文能力详情',
   '',
-  '[返回 Subagent 能力矩阵](../../02-Subagent能力矩阵.md) · [打开网页矩阵](https://qqqys.github.io/code-agent/#subagents)',
+  '[返回会话与上下文矩阵](../../04-会话与上下文矩阵.md) · [打开网页矩阵](https://qqqys.github.io/code-agent/#sessions)',
   '',
   `> 核对日期：${data.updatedAt}`,
   '',
-  '每一页固定记录能力定义、比较边界、五家结论、入口、定义格式、具体行为、作用域、上下文、工作区隔离、运行限制、条件和官方来源。',
+  '每一页固定记录能力定义、比较边界、五家结论、入口、保存位置、具体行为、状态范围、自动行为、保留方式、适用界面、条件和官方来源。',
   '',
   '| 能力 | 网页 | Markdown |',
   '| --- | --- | --- |',
@@ -169,4 +169,53 @@ fs.writeFileSync(
   `${indexLines.join('\n').trimEnd()}\n`,
 );
 
-console.log(`Generated ${rows.length} Subagent detail documents.`);
+const matrixLines = [
+  '# 会话与上下文矩阵',
+  '',
+  '[返回文档目录](./README.md) · [网页矩阵](https://qqqys.github.io/code-agent/#sessions) · [详情目录](./capabilities/sessions/)',
+  '',
+  `> 核对日期：${data.updatedAt}`,
+  '',
+  '| 能力 | Claude Code | Codex | Qwen Code | Kimi Code | Qoder CLI |',
+  '| --- | --- | --- | --- | --- | --- |',
+  ...rows.map(
+    (row) =>
+      `| [${row.capability}](./capabilities/sessions/${row.id}.md) | ${cell(row.values.claude)} | ${cell(row.values.codex)} | ${cell(row.values.qwen)} | ${cell(row.values.kimi)} | ${cell(row.values.qoder)} |`,
+  ),
+  '',
+  '## 阅读边界',
+  '',
+  '会话恢复、会话分支、上下文压缩和跨会话记忆是四种不同机制。详情页会分别记录它们复制或恢复什么、保存在哪里、哪些状态不会继承，以及是否只在 TUI、Headless 或 SDK 中存在。',
+  '',
+  '## 详情字段',
+  '',
+  '每个能力页分别记录五家的入口与切换、保存位置、具体行为、状态范围、自动行为、保存与保留、适用界面、条件和官方来源。',
+  '',
+];
+fs.writeFileSync(
+  path.join(root, 'docs/04-会话与上下文矩阵.md'),
+  `${matrixLines.join('\n').trimEnd()}\n`,
+);
+
+const capabilitiesIndex = [
+  '# 能力详情',
+  '',
+  '[返回文档目录](../README.md)',
+  '',
+  '| 能力域 | 状态 | 详情 |',
+  '| --- | --- | --- |',
+  '| Slash 命令 | 已完成 | [28 个能力详情](./commands/) |',
+  '| Subagent | 已完成 | [22 个能力详情](./subagents/) |',
+  '| 权限与沙箱 | 已完成 | [8 个能力详情](./security/) |',
+  '| 会话与上下文 | 已完成 | [8 个能力详情](./sessions/) |',
+  '| MCP、Skills、Hooks、插件 | 待补充 | [扩展矩阵](../05-扩展系统矩阵.md) |',
+  '| 执行、Git、Headless、SDK、多端 | 待补充 | [执行矩阵](../06-任务执行与Git矩阵.md)、[多端矩阵](../07-Headless-SDK与多端矩阵.md) |',
+  '| 模型与认证 | 待补充 | [模型与认证矩阵](../08-模型与认证矩阵.md) |',
+  '',
+];
+fs.writeFileSync(
+  path.join(root, 'docs/capabilities/README.md'),
+  `${capabilitiesIndex.join('\n').trimEnd()}\n`,
+);
+
+console.log(`Generated ${rows.length} session and context detail documents.`);
