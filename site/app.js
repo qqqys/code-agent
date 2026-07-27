@@ -15,8 +15,6 @@ const elements = {
   head: document.querySelector('#matrixHead'),
   body: document.querySelector('#matrixBody'),
   resultCount: document.querySelector('#resultCount'),
-  rowCount: document.querySelector('#rowCount'),
-  detailCount: document.querySelector('#detailCount'),
   empty: document.querySelector('#emptyState'),
   updatedAt: document.querySelector('#updatedAt'),
 };
@@ -225,7 +223,5 @@ window.addEventListener('keydown', (event) => {
 });
 
 elements.updatedAt.textContent = `核对于 ${data.updatedAt}`;
-elements.rowCount.textContent = data.rows.length;
-elements.detailCount.textContent = Object.keys(details).length;
 render();
 handleHash();
