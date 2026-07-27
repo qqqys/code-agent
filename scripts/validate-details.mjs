@@ -13,6 +13,7 @@ for (const file of [
   'site/security-details.js',
   'site/session-details.js',
   'site/extension-details.js',
+  'site/execution-details.js',
 ]) {
   vm.runInContext(fs.readFileSync(path.join(root, file), 'utf8'), context);
 }
@@ -26,6 +27,7 @@ const completedCategories = new Set([
   'security',
   'sessions',
   'extensions',
+  'execution',
 ]);
 const completedRows = data.rows.filter((row) =>
   completedCategories.has(row.category),
@@ -97,6 +99,19 @@ const requiredFields = {
     'status',
     'sources',
   ],
+  execution: [
+    'value',
+    'entry',
+    'primitives',
+    'behavior',
+    'scope',
+    'background',
+    'integration',
+    'artifacts',
+    'conditions',
+    'status',
+    'sources',
+  ],
 };
 const errors = [];
 
@@ -134,7 +149,7 @@ for (const row of completedRows) {
       }
     }
     if (
-      ['subagents', 'security', 'sessions', 'extensions'].includes(
+      ['subagents', 'security', 'sessions', 'extensions', 'execution'].includes(
         row.category,
       ) &&
       record.value !== row.values[product.id]
@@ -163,6 +178,7 @@ for (const row of completedRows) {
     security: 'security',
     sessions: 'sessions',
     extensions: 'extensions',
+    execution: 'execution',
   }[row.category];
   const markdownPath = path.join(
     root,

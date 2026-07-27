@@ -28,13 +28,14 @@ runScripts(indexDom, [
   'site/security-details.js',
   'site/session-details.js',
   'site/extension-details.js',
+  'site/execution-details.js',
   'site/app.js',
 ]);
 
-assert.equal(indexDom.window.document.querySelectorAll('#matrixBody tr').length, 94);
+assert.equal(indexDom.window.document.querySelectorAll('#matrixBody tr').length, 96);
 assert.equal(
   indexDom.window.document.querySelectorAll('#matrixBody .capability-link').length,
-  73,
+  82,
 );
 assert.equal(
   indexDom.window.document.querySelectorAll('#categoryTabs [role="tab"]').length,
@@ -57,6 +58,7 @@ function renderDetail(id) {
     'site/security-details.js',
     'site/session-details.js',
     'site/extension-details.js',
+    'site/execution-details.js',
     'site/capability.js',
   ]);
   assert.equal(dom.window.document.querySelector('#capabilityMain').hidden, false);
@@ -139,6 +141,22 @@ assert.equal(
 assert.match(
   extensionDom.window.document.querySelector('#markdownLink').href,
   /docs\/capabilities\/extensions\/extension-plugins\.md$/,
+);
+
+const executionDom = renderDetail('execution-worktree');
+const executionLabels =
+  executionDom.window.document.querySelector('#productRecords').textContent;
+assert.match(executionLabels, /核心机制/);
+assert.match(executionLabels, /后台与并发/);
+assert.match(executionLabels, /Git 与平台联动/);
+assert.doesNotMatch(executionLabels, /主命令/);
+assert.equal(
+  executionDom.window.document.querySelector('#categoryLink').getAttribute('href'),
+  './#execution',
+);
+assert.match(
+  executionDom.window.document.querySelector('#markdownLink').href,
+  /docs\/capabilities\/execution\/execution-worktree\.md$/,
 );
 
 console.log('Validated matrix render, detail schemas, links, and CSS.');

@@ -82,7 +82,7 @@
 | 保存范围 | 默认输出审查结果；PR 加 `--comment` 可提交一次 GitHub Review；临时文件与 Worktree 按流程清理 |
 | 条件与边界 | 随产品提供的 Skill 在 bare mode、`skills.disabled` 或 `slashCommands.disabled` 命中时不可用；PR 读取或评论需要 GitHub 访问权限 |
 | 证据状态 | 源码确认 |
-| 来源 | [Qwen Code bundled Skill loader](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/BundledSkillLoader.ts)、[Qwen Code review Skill](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/core/src/skills/bundled/review/SKILL.md)、[Qwen Code command mode filter](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/commandUtils.ts) |
+| 来源 | [Qwen Code bundled Skill loader](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/BundledSkillLoader.ts)、[Qwen Code review Skill](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/core/src/skills/bundled/review/SKILL.md)、[Qwen Code command mode filter](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/commandUtils.ts) |
 
 ### Kimi Code
 
@@ -117,7 +117,7 @@
 - [Claude Code Commands](https://code.claude.com/docs/en/commands)
 - [Codex CLI commands](https://developers.openai.com/codex/cli/slash-commands)
 - [Qwen Code bundled Skill loader](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/BundledSkillLoader.ts)
-- [Qwen Code review Skill](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/core/src/skills/bundled/review/SKILL.md)
+- [Qwen Code review Skill](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/core/src/skills/bundled/review/SKILL.md)
 - [Qwen Code command mode filter](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/commandUtils.ts)
 - [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/main/docs/zh/reference/slash-commands.md)
 - [Qoder CLI commands](https://docs.qoder.com/en/cli/command)

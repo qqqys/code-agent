@@ -121,6 +121,20 @@ function extensionFields(record) {
   ];
 }
 
+function executionFields(record) {
+  return [
+    ['矩阵结论', formatValue(record.value)],
+    ['入口与工具', formatValue(record.entry)],
+    ['核心机制', formatValue(record.primitives)],
+    ['执行行为', formatValue(record.behavior)],
+    ['运行范围', formatValue(record.scope)],
+    ['后台与并发', formatValue(record.background)],
+    ['Git 与平台联动', formatValue(record.integration)],
+    ['状态与产物', formatValue(record.artifacts)],
+    ['条件与边界', formatValue(record.conditions)],
+  ];
+}
+
 const schemas = {
   commands: {
     quickTitle: '命令对照',
@@ -146,6 +160,11 @@ const schemas = {
     quickTitle: '扩展结论',
     markdownDirectory: 'extensions',
     fields: extensionFields,
+  },
+  execution: {
+    quickTitle: '执行结论',
+    markdownDirectory: 'execution',
+    fields: executionFields,
   },
 };
 

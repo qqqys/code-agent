@@ -82,6 +82,22 @@ window.matrixData = {
       label: 'Claude Code IDE integrations',
       url: 'https://code.claude.com/docs/en/ide-integrations',
     },
+    'claude-tools': {
+      label: 'Claude Code tools reference',
+      url: 'https://code.claude.com/docs/en/tools-reference',
+    },
+    'claude-worktrees': {
+      label: 'Claude Code worktrees',
+      url: 'https://code.claude.com/docs/en/worktrees',
+    },
+    'claude-code-review': {
+      label: 'Claude Code Review',
+      url: 'https://code.claude.com/docs/en/code-review',
+    },
+    'claude-github-actions': {
+      label: 'Claude Code GitHub Actions',
+      url: 'https://code.claude.com/docs/en/github-actions',
+    },
     'codex-commands': {
       label: 'Codex CLI commands',
       url: 'https://developers.openai.com/codex/cli/slash-commands',
@@ -142,6 +158,22 @@ window.matrixData = {
       label: 'Codex IDE extension',
       url: 'https://learn.chatgpt.com/docs/ide',
     },
+    'codex-review': {
+      label: 'Codex code review',
+      url: 'https://learn.chatgpt.com/docs/code-review',
+    },
+    'codex-worktrees': {
+      label: 'Codex worktrees',
+      url: 'https://learn.chatgpt.com/docs/environments/git-worktrees',
+    },
+    'codex-github-action': {
+      label: 'Codex GitHub Action',
+      url: 'https://learn.chatgpt.com/docs/github-action',
+    },
+    'codex-github': {
+      label: 'Codex GitHub integration',
+      url: 'https://learn.chatgpt.com/docs/third-party/github',
+    },
     'qwen-commands': {
       label: 'Qwen Code commands documentation',
       url: 'https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/commands.md',
@@ -164,7 +196,7 @@ window.matrixData = {
     },
     'qwen-review-skill': {
       label: 'Qwen Code review Skill',
-      url: 'https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/core/src/skills/bundled/review/SKILL.md',
+      url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/core/src/skills/bundled/review/SKILL.md',
     },
     'qwen-command-modes': {
       label: 'Qwen Code command mode filter',
@@ -246,6 +278,26 @@ window.matrixData = {
       label: 'Qwen Code current IDE integration',
       url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/ide-integration/ide-integration.md',
     },
+    'qwen-tools-current': {
+      label: 'Qwen Code current built-in tools',
+      url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/core/src/tools/tool-names.ts',
+    },
+    'qwen-shell-current': {
+      label: 'Qwen Code current shell tool',
+      url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/core/src/tools/shell.ts',
+    },
+    'qwen-review-current': {
+      label: 'Qwen Code current code review',
+      url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/code-review.md',
+    },
+    'qwen-github-current': {
+      label: 'Qwen Code current GitHub Action',
+      url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/integration-github-action.md',
+    },
+    'qwen-setup-github-current': {
+      label: 'Qwen Code current GitHub setup',
+      url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/cli/src/services/setup-github.ts',
+    },
     'kimi-commands': {
       label: 'Kimi Code Slash commands',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/main/docs/zh/reference/slash-commands.md',
@@ -318,6 +370,18 @@ window.matrixData = {
       label: 'Kimi Code current ACP reference',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/reference/kimi-acp.md',
     },
+    'kimi-tools-current': {
+      label: 'Kimi Code current built-in tools',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/reference/tools.md',
+    },
+    'kimi-agents-execution-current': {
+      label: 'Kimi Code current agents',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/customization/agents.md',
+    },
+    'kimi-commands-execution-current': {
+      label: 'Kimi Code current slash commands',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/reference/slash-commands.md',
+    },
     'qoder-commands': {
       label: 'Qoder CLI commands',
       url: 'https://docs.qoder.com/en/cli/command',
@@ -361,6 +425,18 @@ window.matrixData = {
     'qoder-acp': {
       label: 'Qoder CLI ACP',
       url: 'https://docs.qoder.com/en/cli/acp',
+    },
+    'qoder-tools': {
+      label: 'Qoder CLI built-in tools',
+      url: 'https://docs.qoder.com/en/cli/sdk/tools',
+    },
+    'qoder-using-cli': {
+      label: 'Qoder CLI usage and worktrees',
+      url: 'https://docs.qoder.com/zh/cli/using-cli',
+    },
+    'qoder-action': {
+      label: 'Qoder Action',
+      url: 'https://docs.qoder.com/en/cli/qoder-action',
     },
     'qoder-docs': {
       label: 'Qoder CLI Documentation',
@@ -884,49 +960,63 @@ window.matrixData = {
       category: 'execution',
       capability: '文件读写',
       description: '读取、创建和修改工作区文件。',
-      values: { claude: '内置工具', codex: '内置工具', qwen: '内置工具', kimi: '内置工具', qoder: '内置工具' },
+      values: { claude: '`Read` · `Edit` · `Write`', codex: '内置读取 · 补丁编辑', qwen: '`read_file` · `edit` · `write_file`', kimi: '`Read` · `Edit` · `Write`', qoder: '`Read` · `Edit` · `Write`' },
     },
     {
       id: 'execution-shell',
       category: 'execution',
       capability: 'Shell 执行',
       description: '运行构建、测试、Git 和系统命令。',
-      values: { claude: 'Bash 工具', codex: 'Shell 工具', qwen: 'Shell 工具', kimi: 'Shell 工具', qoder: 'Shell 工具' },
+      values: { claude: '`Bash`', codex: '统一 PTY Shell', qwen: '`run_shell_command`', kimi: '`Bash`', qoder: '`Bash` · `!` 模式' },
     },
     {
       id: 'execution-search',
       category: 'execution',
       capability: '代码搜索',
       description: '按文件名、文本或符号搜索代码库。',
-      values: { claude: 'Glob · Grep 等', codex: '搜索与 Shell 工具', qwen: 'Glob · Grep 等', kimi: '搜索工具', qoder: '搜索工具' },
+      values: { claude: '`Glob` · `Grep` · `LSP`', codex: '内置搜索 · Shell/`rg`', qwen: '`glob` · `grep_search` · `LSP`', kimi: '`Glob` · `Grep`', qoder: '`Glob` · `Grep`' },
     },
     {
       id: 'execution-background',
       category: 'execution',
       capability: '后台任务',
       description: '在不阻塞主交互的情况下执行命令或 Agent。',
-      values: { claude: '`/background` · `/tasks`', codex: '`/ps` · `/stop`', qwen: '`/tasks`', kimi: '`/tasks`', qoder: '`/tasks`' },
+      values: { claude: '`/background` · `/tasks` · `Monitor`', codex: '`/ps` · `/stop`', qwen: '`is_background` · `Ctrl+B` · `/tasks`', kimi: '`run_in_background` · `/tasks`', qoder: '`/tasks` · `TaskOutput` · `TaskStop`' },
     },
     {
       id: 'execution-review',
       category: 'execution',
       capability: '代码 Review',
       description: '由产品提供的审查命令或工作流。',
-      values: { claude: '`/review` · `/code-review`', codex: '`/review`', qwen: '`/review` 内置 Skill', kimi: '可通过提示；无内置 Review 命令', qoder: '`/review`' },
+      values: { claude: '`/review` · `/code-review` · GitHub Review', codex: '`/review` · GitHub Review', qwen: '`/review` 内置 Skill', kimi: '自然语言；无内置 `/review`', qoder: '`/review [instruction]`' },
+    },
+    {
+      id: 'execution-git',
+      category: 'execution',
+      capability: 'Git 操作',
+      description: '查看状态与差异，并执行暂存、提交和分支操作。',
+      values: { claude: '`Bash` · `/diff`', codex: 'Shell · `/diff` · App 暂存/回退', qwen: '`run_shell_command` · `/diff`', kimi: '`Bash`', qoder: '`Bash` · `!` 模式' },
     },
     {
       id: 'execution-pr',
       category: 'execution',
       capability: 'Pull Request',
       description: '创建、读取或修复 GitHub Pull Request。',
-      values: { claude: 'GitHub App · 插件 · `gh`', codex: 'Codex Cloud · `gh`', qwen: '`/setup-github` · 插件 · `gh`', kimi: '`gh`', qoder: 'Cloud/GitHub · `gh`' },
+      values: { claude: '`/review` · `/autofix-pr` · GitHub App', codex: 'Codex Cloud · GitHub Review · `gh`', qwen: '`/review --comment` · Actions · `gh`', kimi: '`Bash`/`gh`；无专用入口', qoder: 'Qoder Action · `@qoder` · `gh`' },
+    },
+    {
+      id: 'execution-ci',
+      category: 'execution',
+      capability: 'CI 自动化',
+      description: '在 CI 中运行 Agent、审查变更或修复失败任务。',
+      values: { claude: 'GitHub Actions · `/autofix-pr`', codex: '`openai/codex-action@v1`', qwen: '`/setup-github` · Qwen Code Action', kimi: '自定义 Shell/CI；无内置工作流', qoder: '`/setup-github` · Qoder Action' },
     },
     {
       id: 'execution-worktree',
       category: 'execution',
       capability: '并行 Worktree',
       description: '并行任务在独立 Git Worktree 中修改代码。',
-      values: { claude: '`/batch`', codex: 'Subagent 文档未确认', qwen: 'Agent `isolation: "worktree"`', kimi: 'Agent 文档未确认', qoder: 'Agent `isolation: worktree`' },
+      values: { claude: '`--worktree` · `EnterWorktree` · Agent 隔离', codex: '桌面 App Worktree；CLI 无对应隔离', qwen: '`--worktree` · `enter_worktree` · Agent 隔离', kimi: '无内置入口；可在已有 Worktree 中运行', qoder: '`--worktree` Job · Agent 隔离' },
     },
     {
       id: 'surface-headless',

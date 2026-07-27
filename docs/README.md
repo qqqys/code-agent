@@ -14,6 +14,7 @@
 | 05 | [扩展系统矩阵](./05-扩展系统矩阵.md) |
 | 05A | [扩展系统详情](./capabilities/extensions/) |
 | 06 | [任务执行与 Git 矩阵](./06-任务执行与Git矩阵.md) |
+| 06A | [任务执行与 Git 详情](./capabilities/execution/) |
 | 07 | [Headless、SDK 与多端矩阵](./07-Headless-SDK与多端矩阵.md) |
 | 08 | [模型与认证矩阵](./08-模型与认证矩阵.md) |
 | 09 | [版本与证据](./09-版本与证据.md) |

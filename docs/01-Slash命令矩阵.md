@@ -157,7 +157,7 @@ Web Shell 还固定提供 4 个不属于 CLI/TUI 硬编码加载器的本地命�
 - [Qwen Code 保存的 Workflow 加载器](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/saved-workflow-loader.ts)
 - [Qwen Code MCP Prompt 加载器](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/McpPromptLoader.ts)
 - [Qwen Code 命令合并与冲突处理](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/CommandService.ts)
-- [Qwen Code `/review` Skill](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/core/src/skills/bundled/review/SKILL.md)
+- [Qwen Code `/review` Skill](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/core/src/skills/bundled/review/SKILL.md)
 - [Qwen Code Web Shell 本地命令](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/web-shell/client/constants/localCommands.ts)
 - [Kimi Code Slash 命令](https://github.com/MoonshotAI/kimi-code/blob/main/docs/zh/reference/slash-commands.md)
 - [Qoder CLI 命令](https://docs.qoder.com/en/cli/command)
