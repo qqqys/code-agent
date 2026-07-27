@@ -222,6 +222,8 @@ window.addEventListener('keydown', (event) => {
   }
 });
 
-elements.updatedAt.textContent = `核对于 ${data.updatedAt}`;
 render();
 handleHash();
+if (elements.updatedAt) {
+  elements.updatedAt.textContent = `核对于 ${data.updatedAt}`;
+}
