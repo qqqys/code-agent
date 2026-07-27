@@ -1,0 +1,14 @@
+{
+  "name": "code-agent-capability-matrix",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "node scripts/generate-all.mjs",
+    "validate": "node scripts/validate-details.mjs && node scripts/validate-links.mjs && node scripts/validate-site.mjs",
+    "test": "npm run validate"
+  },
+  "devDependencies": {
+    "jsdom": "30.0.0",
+    "postcss": "8.5.23"
+  }
+}

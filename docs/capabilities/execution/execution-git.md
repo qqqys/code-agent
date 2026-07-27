@@ -118,7 +118,7 @@
 | 状态与产物 | 标准 Git 状态以及 Qoder Worktree Job 目录和任务 ID。 |
 | 条件与边界 | 需要本机 Git；删除 Job 会同时删除 Worktree，属于不可撤销操作。 |
 | 证据状态 | 官方确认 |
-| 来源 | [Qoder CLI usage and worktrees](https://docs.qoder.com/zh/cli/using-cli)、[Qoder CLI built-in tools](https://docs.qoder.com/en/cli/sdk/tools)、[Qoder Action](https://docs.qoder.com/en/cli/qoder-action) |
+| 来源 | [Qoder CLI usage and worktrees](https://docs.qoder.com/en/cli/using-cli)、[Qoder CLI built-in tools](https://docs.qoder.com/en/cli/sdk/tools)、[Qoder Action](https://docs.qoder.com/en/cli/qoder-action) |
 
 ## 官方来源
 
@@ -133,7 +133,7 @@
 - [Qwen Code current worktree](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/worktree.md)
 - [Kimi Code current built-in tools](https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/reference/tools.md)
 - [Kimi Code current slash commands](https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/reference/slash-commands.md)
-- [Qoder CLI usage and worktrees](https://docs.qoder.com/zh/cli/using-cli)
+- [Qoder CLI usage and worktrees](https://docs.qoder.com/en/cli/using-cli)
 - [Qoder CLI built-in tools](https://docs.qoder.com/en/cli/sdk/tools)
 - [Qoder Action](https://docs.qoder.com/en/cli/qoder-action)
 

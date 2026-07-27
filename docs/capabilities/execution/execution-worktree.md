@@ -118,7 +118,7 @@
 | 状态与产物 | Worktree 目录、Job 状态、分支和任务修改。 |
 | 条件与边界 | 需要本机 Git；`qodercli rm` 会删除 Worktree 且不可撤销。 |
 | 证据状态 | 官方确认 |
-| 来源 | [Qoder CLI usage and worktrees](https://docs.qoder.com/zh/cli/using-cli)、[Qoder CLI Subagent](https://docs.qoder.com/en/cli/subagent) |
+| 来源 | [Qoder CLI usage and worktrees](https://docs.qoder.com/en/cli/using-cli)、[Qoder CLI Subagent](https://docs.qoder.com/en/cli/subagent) |
 
 ## 官方来源
 
@@ -131,7 +131,7 @@
 - [Qwen Code current code review](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/code-review.md)
 - [Kimi Code current agents](https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/customization/agents.md)
 - [Kimi Code current built-in tools](https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/reference/tools.md)
-- [Qoder CLI usage and worktrees](https://docs.qoder.com/zh/cli/using-cli)
+- [Qoder CLI usage and worktrees](https://docs.qoder.com/en/cli/using-cli)
 - [Qoder CLI Subagent](https://docs.qoder.com/en/cli/subagent)
 
 ## 关联能力

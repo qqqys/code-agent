@@ -2,6 +2,8 @@ node_modules/
 dist/
 .next/
 .openai/
+.qwen/
+qwen-artifacts/
 .DS_Store
 coverage/
 *.tsbuildinfo

@@ -55,3 +55,9 @@ updates/    内容变更记录
 ```
 
 发现内容变化或证据冲突时，请在 Issue 中写明产品、版本、Surface 和一手来源。
+
+## 每日更新
+
+仓库通过 [Daily capability research](./.github/workflows/daily-research.yml) 每天检查五个产品的官方资料。有可靠新功能时补充矩阵；没有新功能时选择一个已有字段继续核对和深化。每次只处理一个研究单元，生成与校验全部通过后更新滚动 PR，不直接修改 `main`。
+
+工作流默认每天北京时间 09:17 运行，也支持手动指定本次关注的产品或能力。启用研究步骤需要在仓库 Actions Secrets 中配置 `QWEN_API_KEY`；模型地址、模型名和 CLI 版本可分别通过 `QWEN_BASE_URL`、`QWEN_MODEL`、`QWEN_CLI_VERSION` 仓库变量覆盖。

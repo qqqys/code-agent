@@ -118,7 +118,7 @@
 | 状态与产物 | 输出和文件保留在对应执行环境；任务记录可供会话继续读取。 |
 | 条件与边界 | Task 工具可被权限或 Agent 工具列表禁用；Cloud Mode 需要远端环境和账号权限。 |
 | 证据状态 | 官方确认 |
-| 来源 | [Qoder CLI commands](https://docs.qoder.com/en/cli/command)、[Qoder CLI built-in tools](https://docs.qoder.com/en/cli/sdk/tools)、[Qoder CLI usage and worktrees](https://docs.qoder.com/zh/cli/using-cli) |
+| 来源 | [Qoder CLI commands](https://docs.qoder.com/en/cli/command)、[Qoder CLI built-in tools](https://docs.qoder.com/en/cli/sdk/tools)、[Qoder CLI usage and worktrees](https://docs.qoder.com/en/cli/using-cli) |
 
 ## 官方来源
 
@@ -133,7 +133,7 @@
 - [Kimi Code current agents](https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/customization/agents.md)
 - [Qoder CLI commands](https://docs.qoder.com/en/cli/command)
 - [Qoder CLI built-in tools](https://docs.qoder.com/en/cli/sdk/tools)
-- [Qoder CLI usage and worktrees](https://docs.qoder.com/zh/cli/using-cli)
+- [Qoder CLI usage and worktrees](https://docs.qoder.com/en/cli/using-cli)
 
 ## 关联能力
 

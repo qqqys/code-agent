@@ -34,10 +34,15 @@ runScripts(indexDom, [
   'site/app.js',
 ]);
 
-assert.equal(indexDom.window.document.querySelectorAll('#matrixBody tr').length, 104);
+const rowCount = indexDom.window.matrixData.rows.length;
+
+assert.equal(
+  indexDom.window.document.querySelectorAll('#matrixBody tr').length,
+  rowCount,
+);
 assert.equal(
   indexDom.window.document.querySelectorAll('#matrixBody .capability-link').length,
-  104,
+  rowCount,
 );
 assert.equal(
   indexDom.window.document.querySelectorAll('#categoryTabs [role="tab"]').length,

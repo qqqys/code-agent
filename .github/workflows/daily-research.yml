@@ -1,0 +1,208 @@
+name: Daily capability research
+
+on:
+  schedule:
+    - cron: "17 1 * * *"
+  workflow_dispatch:
+    inputs:
+      focus:
+        description: 可选：指定本次优先研究的产品或能力
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: daily-capability-research
+  cancel-in-progress: false
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check configuration
+        id: preflight
+        env:
+          QWEN_API_KEY: ${{ secrets.QWEN_API_KEY }}
+        run: |
+          if [ -z "$QWEN_API_KEY" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "## 每日能力研究未运行"
+              echo
+              echo "仓库尚未配置 Actions Secret \`QWEN_API_KEY\`。工作流已安全结束，没有修改文档。"
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-node@v4
+        if: steps.preflight.outputs.ready == 'true'
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install research dependencies
+        if: steps.preflight.outputs.ready == 'true'
+        run: npm ci --ignore-scripts
+
+      - name: Prepare rolling research branch
+        if: steps.preflight.outputs.ready == 'true'
+        id: branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+
+          branch="$(gh pr list \
+            --repo "$GITHUB_REPOSITORY" \
+            --state open \
+            --limit 100 \
+            --json headRefName \
+            --jq '[.[] | select(.headRefName | startswith("automation/daily-capability-research-"))][0].headRefName // ""')"
+
+          if [ -n "$branch" ]; then
+            git fetch origin "$branch"
+            git switch --create "$branch" --track "origin/$branch"
+            git merge --no-edit origin/main
+          else
+            branch="automation/daily-capability-research-$(date -u +%Y%m%d)-${GITHUB_RUN_NUMBER}"
+            git switch --create "$branch" origin/main
+          fi
+
+          echo "name=$branch" >> "$GITHUB_OUTPUT"
+
+      - name: Collect official source snapshot
+        if: steps.preflight.outputs.ready == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p .qwen
+          {
+            echo "# 官方来源快照"
+            echo
+            echo "采集时间：$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+            echo
+            echo "## 官方仓库近期提交"
+            for repo in anthropics/claude-code openai/codex QwenLM/qwen-code MoonshotAI/kimi-code; do
+              echo
+              echo "### $repo"
+              gh api "repos/$repo/commits?per_page=8" \
+                --jq '.[] | "- \(.sha[0:12]) \(.commit.author.date) \(.commit.message | split("\n")[0])"' \
+                || echo "- 暂时无法读取"
+            done
+            echo
+            echo "## 官方仓库近期 Release"
+            for repo in anthropics/claude-code openai/codex QwenLM/qwen-code MoonshotAI/kimi-code; do
+              echo
+              echo "### $repo"
+              gh api "repos/$repo/releases?per_page=5" \
+                --jq '.[] | "- \(.published_at // .created_at) \(.tag_name) \(.html_url)"' \
+                || echo "- 暂时无法读取"
+            done
+            echo
+            echo "## 官方文档入口"
+            echo "- Claude Code: https://code.claude.com/docs/en/overview"
+            echo "- Codex: https://developers.openai.com/codex/"
+            echo "- Qwen Code: https://qwenlm.github.io/qwen-code-docs/"
+            echo "- Kimi Code: https://github.com/MoonshotAI/kimi-code/tree/main/docs/zh"
+            echo "- Qoder CLI: https://docs.qoder.com/en/cli"
+          } > .qwen/daily-source-snapshot.md
+
+      - name: Research one capability
+        if: steps.preflight.outputs.ready == 'true'
+        uses: QwenLM/qwen-code-action@132374a450dd882f728d117fdafc64201e81abff # v0.1.1
+        with:
+          openai_api_key: ${{ secrets.QWEN_API_KEY }}
+          openai_base_url: ${{ vars.QWEN_BASE_URL || 'https://dashscope.aliyuncs.com/compatible-mode/v1' }}
+          openai_model: ${{ vars.QWEN_MODEL || 'qwen-coder-plus-latest' }}
+          qwen_cli_version: ${{ vars.QWEN_CLI_VERSION || 'latest' }}
+          prompt: |
+            Read .github/prompts/daily-research.md and execute it exactly.
+            Manual focus for this run: ${{ inputs.focus || 'none' }}
+
+      - name: Restore trusted automation code
+        if: steps.preflight.outputs.ready == 'true'
+        run: git restore --source=HEAD -- .github package.json package-lock.json scripts
+
+      - name: Install validation dependencies
+        if: steps.preflight.outputs.ready == 'true'
+        run: npm ci --ignore-scripts
+
+      - name: Generate and validate all documents
+        if: steps.preflight.outputs.ready == 'true'
+        run: |
+          npm run generate
+          npm test
+
+      - name: Commit verified changes
+        if: steps.preflight.outputs.ready == 'true'
+        id: changes
+        run: |
+          if git diff --quiet && [ -z "$(git status --short)" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "## 每日能力研究完成"
+              echo
+              echo "本次没有找到可由一手资料支持的新增或深化内容，未修改文档。"
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          git add README.md docs site updates
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "研究步骤没有产生可发布的文档改动。" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          git commit -m "docs: update daily capability research"
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Push research branch
+        if: steps.preflight.outputs.ready == 'true' && steps.changes.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh auth setup-git
+          git push --set-upstream origin "${{ steps.branch.outputs.name }}"
+
+      - name: Open or update research pull request
+        if: steps.preflight.outputs.ready == 'true' && steps.changes.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ steps.branch.outputs.name }}
+        run: |
+          number="$(gh pr list \
+            --repo "$GITHUB_REPOSITORY" \
+            --state open \
+            --head "$BRANCH" \
+            --json number \
+            --jq '.[0].number // ""')"
+
+          if [ -z "$number" ]; then
+            url="$(gh pr create \
+              --repo "$GITHUB_REPOSITORY" \
+              --base main \
+              --head "$BRANCH" \
+              --title "docs: daily capability research" \
+              --body-file .github/daily-research-pr.md)"
+          else
+            url="https://github.com/${GITHUB_REPOSITORY}/pull/${number}"
+          fi
+
+          {
+            echo "## 每日能力研究已更新"
+            echo
+            echo "滚动 PR：$url"
+          } >> "$GITHUB_STEP_SUMMARY"

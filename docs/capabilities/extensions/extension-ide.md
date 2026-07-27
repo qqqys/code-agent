@@ -139,5 +139,5 @@
 ## 关联能力
 
 - [MCP 客户端](./extension-mcp.md)
-- IDE：见对应能力矩阵
+- IDE 与 ACP：见对应能力矩阵
 - Agent SDK：见对应能力矩阵
