@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Claude Code、Codex、Qwen Code、Kimi Code、Qoder CLI 的命令与能力矩阵。"
+    />
+    <meta name="theme-color" content="#f4f2ed" />
+    <title>Code Agent 能力矩阵</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="masthead">
+      <div class="masthead__inner">
+        <a class="brand" href="./" aria-label="Code Agent 能力矩阵首页">
+          <span class="brand__mark" aria-hidden="true">CA</span>
+          <span>Code Agent 能力矩阵</span>
+        </a>
+        <nav class="topnav" aria-label="相关链接">
+          <span id="updatedAt" class="updated"></span>
+          <a href="https://github.com/qqqys/code-agent">GitHub</a>
+          <a href="https://github.com/qqqys/code-agent/tree/main/docs">Markdown</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="intro" aria-labelledby="page-title">
+        <div>
+          <p class="eyebrow">CLI · Subagent · Security · SDK</p>
+          <h1 id="page-title">五个 Code Agent，按字段逐项对照</h1>
+          <p class="intro__copy">
+            比较 Claude Code、Codex、Qwen Code、Kimi Code 和 Qoder CLI 的公开功能。
+            表格记录具体命令、配置和运行行为；没有一手证据的字段标为“未确认”。
+          </p>
+        </div>
+        <dl class="summary" aria-label="矩阵概况">
+          <div><dt id="rowCount">0</dt><dd>能力字段</dd></div>
+          <div><dt>5</dt><dd>产品</dd></div>
+          <div><dt>8</dt><dd>分类</dd></div>
+        </dl>
+      </section>
+
+      <section class="matrix-shell" aria-labelledby="matrix-title">
+        <div class="controls">
+          <div class="controls__top">
+            <div>
+              <p class="section-label">Capability index</p>
+              <h2 id="matrix-title">能力矩阵</h2>
+            </div>
+            <label class="search">
+              <span class="sr-only">搜索能力、命令或配置</span>
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <path d="m21 21-4.35-4.35m2.35-5.15a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z" />
+              </svg>
+              <input id="searchInput" type="search" placeholder="搜索 /model、worktree、权限…" autocomplete="off" />
+              <kbd>⌘ K</kbd>
+            </label>
+          </div>
+
+          <div id="categoryTabs" class="tabs" role="tablist" aria-label="能力分类"></div>
+
+          <div class="product-filter">
+            <span>显示列</span>
+            <div id="productToggles" class="product-toggles"></div>
+            <button id="resetButton" class="text-button" type="button">重置</button>
+          </div>
+        </div>
+
+        <div class="table-meta">
+          <p id="resultCount" aria-live="polite"></p>
+          <div class="legend" aria-label="表格说明">
+            <span><i class="dot dot--confirmed"></i>已确认</span>
+            <span><i class="dot dot--conditional"></i>条件项</span>
+            <span><i class="dot dot--unknown"></i>未确认或无对应命令</span>
+          </div>
+        </div>
+
+        <div class="table-wrap" tabindex="0" aria-label="横向滚动能力矩阵">
+          <table>
+            <thead id="matrixHead"></thead>
+            <tbody id="matrixBody"></tbody>
+          </table>
+          <div id="emptyState" class="empty" hidden>
+            <p>没有匹配的能力字段。</p>
+            <button type="button">清除筛选</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <aside id="detailPanel" class="detail" aria-hidden="true" aria-labelledby="detailTitle">
+      <button id="detailClose" class="detail__close" type="button" aria-label="关闭详情">×</button>
+      <p id="detailCategory" class="eyebrow"></p>
+      <h2 id="detailTitle"></h2>
+      <p id="detailDescription" class="detail__description"></p>
+      <div id="detailValues" class="detail__values"></div>
+      <div class="detail__links">
+        <h3>资料</h3>
+        <div id="detailSources"></div>
+        <a id="detailMarkdown" class="doc-link" href="#">打开对应 Markdown →</a>
+      </div>
+    </aside>
+    <button id="detailBackdrop" class="backdrop" type="button" aria-label="关闭详情" hidden></button>
+
+    <footer>
+      <p>数据核对到具体 Surface。网页与 Markdown 保持同一组字段。</p>
+      <a href="https://github.com/qqqys/code-agent/issues">报告字段错误</a>
+    </footer>
+
+    <script src="./data.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>

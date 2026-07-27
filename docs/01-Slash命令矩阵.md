@@ -1,0 +1,89 @@
+# Slash 命令矩阵
+
+[返回文档目录](./README.md) · [网页矩阵](https://qqqys.github.io/code-agent/#commands)
+
+> `—` 表示当前官方 Slash 命令目录没有列出对应命令，不表示底层能力不存在。命令可能受版本、平台或功能开关影响。
+
+## 对照表
+
+| 功能 | Claude Code | Codex | Qwen Code | Kimi Code | Qoder CLI |
+| --- | --- | --- | --- | --- | --- |
+| 登录 | `/login` | — | `/auth`、`/connect`、`/login` | `/login` | `/login` |
+| 退出登录 | `/logout` | `/logout` | `/auth logout` | `/logout` | `/logout` |
+| 选择模型 | `/model` | `/model` | `/model` | `/model` | `/model` |
+| 推理强度 | `/effort` | `/model`、`/fast` | `/effort` | — | `/effort`、`/fast` |
+| 权限设置 | `/permissions`、`/allowed-tools` | `/permissions` | `/approval-mode`、`/permissions` | `/permission`、`/yolo`、`/auto` | `/config` |
+| 计划模式 | `/plan` | `/plan` | `/plan` | `/plan`、`/plan clear` | 条件项：配置或 Agent |
+| 目标 | `/goal` | `/goal` | `/goal` | `/goal` | — |
+| Subagent 管理 | `/agents`、`/subtask` | `/agent`、`/subagents` | `/agents manage`、`/agents create` | `/swarm`；Agent 通过配置与工具调用 | `/agents`、`/agents reload` |
+| 任务列表 | `/tasks` | `/ps` | `/tasks` | `/tasks`、`/task` | `/tasks` |
+| 新会话 | `/clear`、`/reset`、`/new` | `/new`、`/clear` | `/clear` | `/new`、`/clear` | `/clear` |
+| 恢复会话 | `/resume`、`/continue` | `/resume` | `/resume`、`/continue` | `/sessions`、`/resume` | `/resume` |
+| 重命名会话 | `/rename` | `/rename`、`/title` | `/rename`、`/tag` | `/title`、`/rename` | — |
+| 分支会话 | `/branch`、`/fork` | `/fork` | `/branch`、`/fork` | `/fork` | — |
+| 归档或删除会话 | — | `/archive`、`/delete` | `/delete` | — | — |
+| 压缩上下文 | `/compact [instructions]` | `/compact` | `/compress`、`/compress-fast` | `/compact [instruction]` | `/compact` |
+| 查看上下文 | `/context [all]` | `/status`、`/usage` | `/context detail` | `/status`、`/usage` | `/context-window`、`/status`、`/usage` |
+| 记忆管理 | `/memory` | `/memories` | `/memory`、`/remember`、`/forget`、`/learn` | — | `/memory` |
+| 回退或检查点 | `/rewind`、`/checkpoint`、`/undo` | — | `/rewind`、`/restore` | `/undo [count]` | — |
+| 查看 Diff | `/diff` | `/diff` | `/diff` | — | — |
+| 代码审查 | `/review`、`/code-review`、`/security-review` | `/review` | — | — | `/review` |
+| 复制回答 | `/copy` | `/copy` | `/copy` | `/copy` | — |
+| 导出会话 | `/export` | — | `/export html`、`/export md`、`/export json`、`/export jsonl` | `/export-md`、`/export`、`/export-debug-zip` | `/export` |
+| 添加工作目录 | `/add-dir` | `/mention` | `/directory`、`/dir` | `/add-dir` | — |
+| 切换目录 | `/cd` | — | `/cd` | — | — |
+| 配置 | `/config`、`/settings` | `/debug-config` | `/config`、`/settings`、`/import-config` | `/settings`、`/config`、`/update-config` | `/config` |
+| 状态 | `/status` | `/status` | `/status`、`/about` | `/status`、`/version` | `/status` |
+| 用量统计 | `/stats`、`/usage` | `/usage` | `/stats`、`/usage` | `/usage` | `/usage` |
+| 诊断 | `/doctor`、`/debug` | `/debug-config` | `/doctor` | `/export-debug-zip` | `/feedback` |
+| 初始化项目指令 | `/init` | `/init` | `/init` | `/init` | `/init` |
+| MCP | `/mcp` | `/mcp` | `/mcp` | `/mcp`、`/mcp-config` | `/mcp` |
+| Skills | `/skills`、`/reload-skills` | `/skills` | `/skills` | 内置 Skill 命令与 Skills 目录 | `/skills` |
+| Hooks | `/hooks` | `/hooks` | `/hooks` | — | Agent 配置支持 Hooks；无独立 Slash 命令 |
+| 插件或扩展 | `/plugin`、`/reload-plugins` | `/plugins`、`/apps` | `/extensions`、`/reload-plugins` | `/plugins` | — |
+| 自定义命令 | Skills 可作为命令调用 | Skills 可作为命令调用 | `/workflows` | Skills 可作为命令调用 | `/commands`、`/workflows` |
+| 工具列表 | — | — | `/tools` | — | — |
+| IDE 或编辑器 | `/ide` | `/ide` | `/ide`、`/editor` | `/editor` | — |
+| 主题 | — | `/theme` | `/theme` | `/theme`、`/custom-theme` | — |
+| Vim 模式 | — | `/vim` | `/vim` | — | `/vim` |
+| 状态栏 | `/statusline` | `/statusline` | `/statusline` | — | — |
+| 终端安装 | `/terminal-setup` | — | `/terminal-setup` | — | — |
+| GitHub 设置 | — | — | `/setup-github` | — | `/setup-github` |
+| 反馈或问题上报 | `/feedback`、`/bug`、`/share` | `/feedback` | `/bug` | `/feedback` | `/feedback` |
+| 更新与发行说明 | `/release-notes` | — | `/update` | 内置更新 Skill | `/upgrade`、`/release-notes` |
+| 临时旁路问题 | `/btw` | `/side`、`/btw` | `/btw` | `/btw` | — |
+| 浏览器或 Web | `/chrome`、`/deep-research` | `/apps` | — | `/web` | — |
+| 多模型或多代理协作模式 | `/advisor`、`/batch` | `/agent` | `/arena` | `/swarm` | `/quest` |
+| 远程控制 | `/remote-control`、`/rc`、`/teleport`、`/desktop`、`/app` | `/app` | — | — | 条件项：Cloud Mode |
+| 退出程序 | `/exit`、`/quit` | `/exit`、`/quit` | `/quit`、`/exit` | `/exit`、`/quit`、`/q` | `/quit`、`/exit` |
+| 帮助 | `/help` | 命令选择器 | `/help`、`/?` | `/help`、`/h`、`/?` | `/help` |
+
+## 各产品命令目录
+
+### Claude Code
+
+`/add-dir`、`/advisor`、`/agents`、`/autofix-pr`、`/background`、`/batch`、`/branch`、`/btw`、`/bug`、`/cd`、`/chrome`、`/clear`、`/code-review`、`/compact`、`/config`、`/context`、`/copy`、`/debug`、`/deep-research`、`/desktop`、`/diff`、`/doctor`、`/effort`、`/exit`、`/export`、`/fast`、`/feedback`、`/fork`、`/goal`、`/help`、`/hooks`、`/ide`、`/init`、`/insights`、`/login`、`/logout`、`/mcp`、`/memory`、`/model`、`/permissions`、`/plan`、`/plugin`、`/recap`、`/release-notes`、`/reload-plugins`、`/reload-skills`、`/remote-control`、`/rename`、`/resume`、`/review`、`/rewind`、`/sandbox`、`/security-review`、`/skills`、`/stats`、`/status`、`/statusline`、`/subtask`、`/tasks`、`/teleport`、`/terminal-setup`。
+
+### Codex
+
+`/agent`、`/apps`、`/approve`、`/archive`、`/clear`、`/compact`、`/copy`、`/debug-config`、`/delete`、`/diff`、`/exit`、`/experimental`、`/fast`、`/feedback`、`/fork`、`/goal`、`/hooks`、`/ide`、`/import`、`/init`、`/keymap`、`/logout`、`/mcp`、`/memories`、`/mention`、`/model`、`/new`、`/permissions`、`/personality`、`/plan`、`/plugins`、`/ps`、`/raw`、`/rename`、`/resume`、`/review`、`/sandbox-add-read-dir`、`/setup-default-sandbox`、`/side`、`/skills`、`/status`、`/statusline`、`/stop`、`/theme`、`/title`、`/usage`、`/vim`。
+
+### Qwen Code
+
+`/agents`、`/approval-mode`、`/arena`、`/auth`、`/branch`、`/btw`、`/bug`、`/cd`、`/clear`、`/compress`、`/compress-fast`、`/config`、`/context`、`/copy`、`/delete`、`/diff`、`/directory`、`/docs`、`/doctor`、`/dream`、`/editor`、`/effort`、`/export`、`/extensions`、`/forget`、`/fork`、`/goal`、`/help`、`/history`、`/hooks`、`/ide`、`/import-config`、`/init`、`/insight`、`/language`、`/learn`、`/lsp`、`/mcp`、`/memory`、`/model`、`/permissions`、`/plan`、`/quit`、`/recap`、`/reload-plugins`、`/remember`、`/rename`、`/restore`、`/resume`、`/rewind`、`/settings`、`/setup-github`、`/skills`、`/stats`、`/status`、`/statusline`、`/summary`、`/tasks`、`/terminal-setup`、`/theme`、`/tools`、`/trust`、`/update`、`/vim`、`/voice`、`/workflows`。
+
+### Kimi Code
+
+`/add-dir`、`/auto`、`/btw`、`/check-kimi-code-docs`、`/compact`、`/copy`、`/custom-theme`、`/editor`、`/exit`、`/experiments`、`/export-debug-zip`、`/export-md`、`/feedback`、`/fork`、`/goal`、`/help`、`/import-from-cc-codex`、`/init`、`/login`、`/logout`、`/mcp`、`/mcp-config`、`/model`、`/new`、`/permission`、`/plan`、`/plugins`、`/provider`、`/sessions`、`/settings`、`/status`、`/sub-skill`、`/swarm`、`/tasks`、`/theme`、`/title`、`/undo`、`/update-config`、`/usage`、`/version`、`/web`、`/yolo`。
+
+### Qoder CLI
+
+`/agents`、`/clear`、`/commands`、`/compact`、`/config`、`/context-window`、`/effort`、`/export`、`/fast`、`/feedback`、`/help`、`/init`、`/login`、`/logout`、`/mcp`、`/memory`、`/model`、`/quest`、`/quit`、`/release-notes`、`/resume`、`/review`、`/setup-github`、`/skills`、`/status`、`/tasks`、`/upgrade`、`/usage`、`/vim`、`/workflows`。
+
+## 来源
+
+- [Claude Code 交互命令](https://code.claude.com/docs/en/commands)
+- [Codex CLI 命令](https://developers.openai.com/codex/cli/slash-commands)
+- [Qwen Code 命令源码目录](https://github.com/QwenLM/qwen-code/tree/main/packages/cli/src/ui/commands)
+- [Kimi Code Slash 命令](https://github.com/MoonshotAI/kimi-code/blob/main/docs/zh/reference/slash-commands.md)
+- [Qoder CLI 命令](https://docs.qoder.com/en/cli/command)
