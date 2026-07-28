@@ -2,7 +2,7 @@ name: Daily capability research
 
 on:
   schedule:
-    - cron: "17 1 * * *"
+    - cron: "17 */8 * * *"
   workflow_dispatch:
     inputs:
       focus:
