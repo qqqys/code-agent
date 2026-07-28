@@ -11,6 +11,7 @@ on:
         type: string
 
 permissions:
+  actions: write
   contents: write
   pull-requests: write
 
@@ -145,6 +146,24 @@ jobs:
           npm run generate
           npm test
 
+      - name: Verify publish scope
+        if: steps.preflight.outputs.ready == 'true'
+        run: |
+          {
+            git diff --name-only
+            git ls-files --others --exclude-standard
+          } | sort -u > "$RUNNER_TEMP/research-paths.txt"
+
+          while IFS= read -r path; do
+            case "$path" in
+              README.md|docs/*|site/*|updates/*) ;;
+              *)
+                echo "::error file=$path::研究步骤修改了允许范围之外的文件"
+                exit 1
+                ;;
+            esac
+          done < "$RUNNER_TEMP/research-paths.txt"
+
       - name: Commit verified changes
         if: steps.preflight.outputs.ready == 'true'
         id: changes
@@ -179,6 +198,7 @@ jobs:
 
       - name: Open or update research pull request
         if: steps.preflight.outputs.ready == 'true' && steps.changes.outputs.changed == 'true'
+        id: pull_request
         env:
           GH_TOKEN: ${{ github.token }}
           BRANCH: ${{ steps.branch.outputs.name }}
@@ -197,12 +217,38 @@ jobs:
               --head "$BRANCH" \
               --title "docs: daily capability research" \
               --body-file .github/daily-research-pr.md)"
+            number="$(gh pr view "$url" --json number --jq '.number')"
           else
             url="https://github.com/${GITHUB_REPOSITORY}/pull/${number}"
           fi
+
+          echo "number=$number" >> "$GITHUB_OUTPUT"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
 
           {
             echo "## 每日能力研究已更新"
             echo
             echo "滚动 PR：$url"
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Merge verified research pull request
+        if: steps.preflight.outputs.ready == 'true' && steps.changes.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMBER: ${{ steps.pull_request.outputs.number }}
+          URL: ${{ steps.pull_request.outputs.url }}
+        run: |
+          gh pr merge "$NUMBER" \
+            --repo "$GITHUB_REPOSITORY" \
+            --squash \
+            --delete-branch
+          {
+            echo
+            echo "校验通过，已自动合并：$URL"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish merged site
+        if: steps.preflight.outputs.ready == 'true' && steps.changes.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run pages.yml --repo "$GITHUB_REPOSITORY" --ref main
