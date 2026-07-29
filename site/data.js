@@ -476,7 +476,7 @@ window.matrixData = {
     },
     'kimi-plugins-current': {
       label: 'Kimi Code current Plugins',
-      url: 'https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/customization/plugins.md',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/691ec4679ea1/docs/zh/customization/plugins.md',
     },
     'kimi-ide-current': {
       label: 'Kimi Code current IDE integrations',

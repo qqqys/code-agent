@@ -106,7 +106,7 @@
 | 权限与信任 | 命令产生的操作继续受 Kimi 工具权限约束。 |
 | 条件与边界 | 未发现公开的独立用户/项目 Command 目录；不要根据 `.kimi-code/skills` 推断 `.kimi-code/commands`。 |
 | 证据状态 | 官方确认 |
-| 来源 | [Kimi Code current Plugins](https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/customization/plugins.md)、[Kimi Code current Skills](https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/customization/skills.md) |
+| 来源 | [Kimi Code current Plugins](https://github.com/MoonshotAI/kimi-code/blob/691ec4679ea1/docs/zh/customization/plugins.md)、[Kimi Code current Skills](https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/customization/skills.md) |
 
 ### Qoder CLI
 
@@ -132,7 +132,7 @@
 - [Codex Agent Skills](https://learn.chatgpt.com/docs/build-skills)
 - [Qwen Code current custom commands](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/commands.md)
 - [Qwen Code current Extension runtime](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/core/src/extension/extensionManager.ts)
-- [Kimi Code current Plugins](https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/customization/plugins.md)
+- [Kimi Code current Plugins](https://github.com/MoonshotAI/kimi-code/blob/691ec4679ea1/docs/zh/customization/plugins.md)
 - [Kimi Code current Skills](https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/customization/skills.md)
 - [Qoder CLI commands](https://docs.qoder.com/en/cli/command)
 - [Qoder CLI Plugins](https://docs.qoder.com/en/cli/plugins)

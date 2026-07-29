@@ -35,7 +35,7 @@
 ## 跨产品事实
 
 1. 五家现在都存在可安装的扩展包；Qwen Code 将该体系称为 Extensions，并能导入 Qwen、Gemini 与 Claude 格式。
-2. 组件集合并不对齐：Kimi Code 当前 Plugin 文档没有 Agent 组件，Codex Plugin 当前不在 IDE 扩展中提供。
+2. 组件集合并不对齐：Codex Plugin 当前不在 IDE 扩展中提供；Kimi Code Plugin 已支持 Agent 组件，但优先级低于用户、额外目录、项目和 `--agent-file`。
 3. 安装作用域也不同：Kimi Code 当前只支持用户安装；Qoder CLI 提供 User、Project 与 Local scope。
 
 ## 逐产品记录
@@ -100,13 +100,13 @@
 | 文件与目录 | Manifest 为根目录 `kimi.plugin.json` 或 `.kimi-plugin/plugin.json`。 |
 | 具体行为 | 把多个自定义组件作为一个包安装到用户环境，并支持启用、禁用和重载。安装会消耗套餐额度的官方 plugin（当前为 `kimi-datasource`）会在安装结果中提示 `Note: This plugin consumes your quota.`。 |
 | 作用域与优先级 | 当前文档只支持用户级安装，没有项目级插件安装。 |
-| 扩展构成 | Skills、Session-start Skill、Skill instructions、MCP Servers、Hooks 与 Commands；当前 manifest 未列 Agents。 |
-| 加载与刷新 | 安装或修改后使用 `/reload` 或开启新会话生效。`/plugins` 的 Installed tab 在 marketplace 有新版本时显示更新徽章；使用过时官方 plugin（其 MCP 工具或 `/<plugin>:<command>` 命令）的 turn 结束后出现一次性更新提示，已通知版本写入 `~/.kimi-code/updates/plugin-notices.json`，每个 marketplace 版本只提醒一次。 |
+| 扩展构成 | Skills、Session-start Skill、Skill instructions、System prompt instructions（`systemPrompt` / `systemPromptPath`，各上限 32 KB，合计 64 KB）、Custom Agents（`agents` 字段或根 `agents/` 目录）、MCP Servers、Hooks 与 Commands。 |
+| 加载与刷新 | 安装或修改后使用 `/reload` 或开启新会话生效；v2 引擎中 `/plugins reload` 也可刷新当前会话。`/plugins` 的 Installed tab 在 marketplace 有新版本时显示更新徽章；使用过时官方 plugin（其 MCP 工具或 `/<plugin>:<command>` 命令）的 turn 结束后出现一次性更新提示，已通知版本写入 `~/.kimi-code/updates/plugin-notices.json`，每个 marketplace 版本只提醒一次。 |
 | 适用界面 | 以 Kimi Code CLI 为准；ACP、Web UI 和外部编辑器只在对应能力中单独列出。 |
-| 权限与信任 | Plugin 中的 MCP、Hook 与 Commands 具备执行能力，安装前需要审查来源。 |
-| 条件与边界 | 配额提示与更新提示只对官方来源、默认官方目录的 plugin 生效；自定义 `KIMI_CODE_PLUGIN_MARKETPLACE_URL` 或非官方安装不触发更新提示。当前公开 manifest 未列 Agents，不要把其他产品的 Agent 组件推断给 Kimi Plugin。 |
+| 权限与信任 | Plugin 中的 MCP、Hook、Commands 与 Agent 具备执行能力，安装前需要审查来源。 |
+| 条件与边界 | 配额提示与更新提示只对官方来源、默认官方目录的 plugin 生效；自定义 `KIMI_CODE_PLUGIN_MARKETPLACE_URL` 或非官方安装不触发更新提示。Plugin Agent 优先级低于用户、额外目录、项目和 `--agent-file`；替换同名内置 Agent 需要在 frontmatter 声明 `override: true`。`systemPrompt` 与 `systemPromptPath` 在 v1 引擎（交互 TUI 和 `kimi -p`）、`kimi web` 以及 v2 引擎（`KIMI_CODE_EXPERIMENTAL_FLAG=1`）中均生效。 |
 | 证据状态 | 官方确认 |
-| 来源 | [Kimi Code current Plugins](https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/customization/plugins.md) |
+| 来源 | [Kimi Code current Plugins](https://github.com/MoonshotAI/kimi-code/blob/691ec4679ea1/docs/zh/customization/plugins.md) |
 
 ### Qoder CLI
 
@@ -131,7 +131,7 @@
 - [Codex Plugins](https://learn.chatgpt.com/docs/plugins)
 - [Qwen Code current Extensions](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/extension/introduction.md)
 - [Qwen Code current Extension runtime](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/core/src/extension/extensionManager.ts)
-- [Kimi Code current Plugins](https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/customization/plugins.md)
+- [Kimi Code current Plugins](https://github.com/MoonshotAI/kimi-code/blob/691ec4679ea1/docs/zh/customization/plugins.md)
 - [Qoder CLI Plugins](https://docs.qoder.com/en/cli/plugins)
 
 ## 关联能力
