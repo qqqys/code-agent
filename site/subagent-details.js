@@ -68,11 +68,11 @@
       isolation:
         '当前 Agent 文档未列出每 Agent Worktree 隔离字段。',
       limits:
-        '当前 Agent frontmatter 字段表未列出最大轮数或超时。',
+        '全局 `[subagent] timeout_ms` 限制单个 Agent 或 AgentSwarm 运行时间，默认 7200000 ms（2 小时）；Agent 定义 frontmatter 无独立轮数或超时字段。',
       conditions:
         '`model_preference` 只在次主力模型实验功能开启的 Web 或实验 Headless 路径生效，TUI 忽略。',
       status: '官方确认',
-      sources: ['kimi-agents'],
+      sources: ['kimi-agents', 'kimi-subagent-config'],
     },
     qoder: {
       entry:
@@ -687,25 +687,30 @@
       id: 'agent-limits',
       definition:
         '限制单次 Subagent 调用的最大对话轮数、运行时间或并发线程数。',
-      includes: ['maxTurns', 'timeoutMins', '并发线程上限'],
+      includes: ['maxTurns', 'timeoutMins', 'timeout_ms', '并发线程上限', '嵌套深度上限'],
       excludes: ['模型 Token 上限', '全局 CLI 超时', '费用预算'],
       facts: [
-        'Qoder CLI 同时提供单 Agent 最大轮数和超时；Claude Code 与 Qwen Code提供最大轮数。',
-        'Codex 当前公开的是每会话并发线程控制；Kimi Code 当前字段表未列出这些限制。',
+        'Qoder CLI 同时提供单 Agent 最大轮数和超时；Claude Code 与 Qwen Code 提供最大轮数。',
+        'Kimi Code 通过全局 `[subagent] timeout_ms` 限制单个 Agent 运行时间（默认 2 小时），但 Agent 定义无独立轮数或超时字段。',
+        'Claude Code 另有全局 `CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS`（默认 20）、`CLAUDE_CODE_MAX_SUBAGENTS_PER_SESSION`（默认 200）和 `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH`（默认 3）。',
+        'Codex 通过 `agents.max_concurrent_threads_per_session` 控制每会话并发线程数。',
       ],
       notes: {
         claude:
-          '`maxTurns` 限制 Agentic 轮数；当前 Subagent frontmatter 表未列出超时字段。',
+          '`maxTurns` 限制 Agentic 轮数；全局环境变量控制并发（默认 20）、会话总数（默认 200）和嵌套深度（默认 3）；当前 Subagent frontmatter 表未列出超时字段。',
         codex:
           '`agents.max_concurrent_threads_per_session` 控制并发；Agent 文件未列出单 Agent 轮数或超时。',
         qwen:
           '`maxTurns` 写入 Agent 运行配置并限制轮数；当前 frontmatter 未列出单 Agent 超时。',
         kimi:
-          '当前 Agent frontmatter 字段表未列出最大轮数或超时。',
+          '全局 `[subagent] timeout_ms` 限制单个 Agent 或 AgentSwarm 运行时间，默认 7200000 ms（2 小时），print 模式未设置时默认 0（无限制）；环境变量 `KIMI_SUBAGENT_TIMEOUT_MS` 可覆盖；Agent 定义 frontmatter 无独立轮数或超时字段。',
         qoder:
           '`maxTurns` 限制单次会话轮数，`timeoutMins` 限制分钟数；设置覆盖也可修改两者。',
       },
       related: ['agent-background', 'agent-config', 'agent-effort'],
+      overrides: {
+        kimi: { sources: ['kimi-agents', 'kimi-subagent-config'] },
+      },
     }),
   });
 })();
