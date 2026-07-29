@@ -70,7 +70,7 @@
       limits:
         '全局 `[subagent] timeout_ms` 限制单个 Agent 或 AgentSwarm 运行时间，默认 7200000 ms（2 小时）；Agent 定义 frontmatter 无独立轮数或超时字段。',
       conditions:
-        '`model_preference` 只在次主力模型实验功能开启的 Web 或实验 Headless 路径生效，TUI 忽略。',
+        '`model_preference` 次主力模型为实验性功能，需 `KIMI_CODE_EXPERIMENTAL_SECONDARY_MODEL=1` 开启；开启后所有启动模式（包括 TUI）生效。',
       status: '官方确认',
       sources: ['kimi-agents', 'kimi-subagent-config'],
     },
@@ -419,7 +419,7 @@
         qwen:
           '`model` 支持 `inherit`、`fast`、模型 ID、`authType:modelId` 和受控模型 grade。',
         kimi:
-          '`model_preference` 只表达 `primary` 或 `secondary` 偏好；工具调用显式 `model` 优先。',
+          '`model_preference` 接受 `primary`（调用方主模型）或 `secondary`（`[secondary_model] model` 配置的模型）；优先级：显式 `model` > `model_preference` > 次主力模型 > 继承。实验性，需 `KIMI_CODE_EXPERIMENTAL_SECONDARY_MODEL=1`，开启后所有启动模式生效。',
         qoder:
           '`model` 接受具体模型或 `inherit`、`auto`、`lite`、`efficient`、`performance` 等别名。',
       },

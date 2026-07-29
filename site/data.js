@@ -416,7 +416,7 @@ window.matrixData = {
     },
     'kimi-agents': {
       label: 'Kimi Code Agents',
-      url: 'https://github.com/MoonshotAI/kimi-code/blob/main/docs/zh/customization/agents.md',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/efac96c8a95a/docs/zh/customization/agents.md',
     },
     'kimi-interaction': {
       label: 'Kimi Code Interaction and Permissions',
@@ -455,8 +455,8 @@ window.matrixData = {
       url: 'https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/configuration/config-files.md',
     },
     'kimi-subagent-config': {
-      label: 'Kimi Code subagent timeout configuration',
-      url: 'https://github.com/MoonshotAI/kimi-code/blob/16c7189bd54a/docs/zh/configuration/config-files.md',
+      label: 'Kimi Code subagent and secondary model configuration',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/efac96c8a95a/docs/zh/configuration/config-files.md',
     },
     'kimi-agents-current': {
       label: 'Kimi Code current agents',
@@ -923,7 +923,7 @@ window.matrixData = {
       category: 'subagents',
       capability: 'Agent 单独选模型',
       description: '单个 Agent 能否覆盖主会话模型。',
-      values: { claude: '`model`', codex: '`model`', qwen: '`model`: inherit · fast · modelId · authType:modelId', kimi: '`model_preference`', qoder: '`model`' },
+      values: { claude: '`model`', codex: '`model`', qwen: '`model`: inherit · fast · modelId · authType:modelId', kimi: '`model_preference`: `primary` · `secondary`（实验性）', qoder: '`model`' },
     },
     {
       id: 'agent-effort',

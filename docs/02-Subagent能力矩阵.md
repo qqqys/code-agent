@@ -33,7 +33,7 @@
 
 | 能力 | Claude Code | Codex | Qwen Code | Kimi Code | Qoder CLI |
 | --- | --- | --- | --- | --- | --- |
-| Agent 单独选模型 | `model` | `model` | `model`：inherit、fast、modelId 或 authType:modelId | `model_preference` | `model` |
+| Agent 单独选模型 | `model` | `model` | `model`：inherit、fast、modelId 或 authType:modelId | `model_preference`：`primary`、`secondary`（实验性） | `model` |
 | Agent 单独设推理强度 | `effort` | `model_reasoning_effort` | 未确认独立字段 | 未确认独立 `effort` 字段 | `effort` |
 | 工具白名单 | `tools` | 由 Agent 配置和沙箱控制 | `tools` | `tools` | `tools` |
 | 工具黑名单 | `disallowedTools` | 未确认独立 `disallowedTools` 字段 | `disallowedTools` | `disallowedTools` | `disallowedTools` |
