@@ -15,7 +15,7 @@
 | Claude Code | `model` | 官方确认 |
 | Codex | `model` | 官方确认 |
 | Qwen Code | `model`: inherit · fast · modelId · authType:modelId | 源码确认 |
-| Kimi Code | `model_preference` | 官方确认 |
+| Kimi Code | `model_preference`: `primary` · `secondary`（实验性） | 条件项 |
 | Qoder CLI | `model` | 官方确认 |
 
 ## 比较边界
@@ -91,17 +91,17 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 矩阵结论 | `model_preference` |
+| 矩阵结论 | `model_preference`: `primary` · `secondary`（实验性） |
 | 入口与配置 | 主 Agent 依据描述自动派发，也可在提示词中点名；`--agent-file` 可在启动时显式加载定义。 |
 | 定义格式 | Markdown 正文 + YAML frontmatter；正文作为 Agent 系统提示词模板。 |
-| 具体行为 | `model_preference` 只表达 `primary` 或 `secondary` 偏好；工具调用显式 `model` 优先。 |
+| 具体行为 | `model_preference` 接受 `primary`（调用方主模型）或 `secondary`（`[secondary_model] model` 配置的模型）；优先级：显式 `model` > `model_preference` > 次主力模型 > 继承。实验性，需 `KIMI_CODE_EXPERIMENTAL_SECONDARY_MODEL=1`，开启后所有启动模式生效。 |
 | 作用域 | 显式文件、项目、额外目录、用户、内置五级来源；更具体的作用域优先。 |
 | 上下文与继承 | 子 Agent 只接收任务描述，在独立上下文中工作，最后把完整结果返回主 Agent。 |
 | 工作区隔离 | 当前 Agent 文档未列出每 Agent Worktree 隔离字段。 |
 | 运行限制 | 全局 `[subagent] timeout_ms` 限制单个 Agent 或 AgentSwarm 运行时间，默认 7200000 ms（2 小时）；Agent 定义 frontmatter 无独立轮数或超时字段。 |
-| 条件与边界 | `model_preference` 只在次主力模型实验功能开启的 Web 或实验 Headless 路径生效，TUI 忽略。 |
-| 证据状态 | 官方确认 |
-| 来源 | [Kimi Code Agents](https://github.com/MoonshotAI/kimi-code/blob/main/docs/zh/customization/agents.md)、[Kimi Code subagent timeout configuration](https://github.com/MoonshotAI/kimi-code/blob/16c7189bd54a/docs/zh/configuration/config-files.md) |
+| 条件与边界 | `model_preference` 次主力模型为实验性功能，需 `KIMI_CODE_EXPERIMENTAL_SECONDARY_MODEL=1` 开启；开启后所有启动模式（包括 TUI）生效。 |
+| 证据状态 | 条件项 |
+| 来源 | [Kimi Code Agents](https://github.com/MoonshotAI/kimi-code/blob/efac96c8a95a/docs/zh/customization/agents.md)、[Kimi Code subagent and secondary model configuration](https://github.com/MoonshotAI/kimi-code/blob/efac96c8a95a/docs/zh/configuration/config-files.md) |
 
 ### Qoder CLI
 
@@ -124,8 +124,8 @@
 - [Claude Code Subagents](https://code.claude.com/docs/en/sub-agents)
 - [Codex Subagents](https://developers.openai.com/codex/subagents)
 - [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/sub-agents.md)
-- [Kimi Code Agents](https://github.com/MoonshotAI/kimi-code/blob/main/docs/zh/customization/agents.md)
-- [Kimi Code subagent timeout configuration](https://github.com/MoonshotAI/kimi-code/blob/16c7189bd54a/docs/zh/configuration/config-files.md)
+- [Kimi Code Agents](https://github.com/MoonshotAI/kimi-code/blob/efac96c8a95a/docs/zh/customization/agents.md)
+- [Kimi Code subagent and secondary model configuration](https://github.com/MoonshotAI/kimi-code/blob/efac96c8a95a/docs/zh/configuration/config-files.md)
 - [Qoder CLI Subagent](https://docs.qoder.com/en/cli/subagent)
 
 ## 关联能力
