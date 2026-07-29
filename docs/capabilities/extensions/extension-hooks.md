@@ -106,7 +106,7 @@
 | 权限与信任 | Hook command 在本机执行；阻断与 fail-open 语义取决于退出码。 |
 | 条件与边界 | “命令表没有 `/hooks`”不等于没有 Hook 能力；Kimi 的入口是 TOML 配置。 |
 | 证据状态 | 官方确认 |
-| 来源 | [Kimi Code current Hooks](https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/customization/hooks.md)、[Kimi Code current Plugins](https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/customization/plugins.md) |
+| 来源 | [Kimi Code current Hooks](https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/customization/hooks.md)、[Kimi Code current Plugins](https://github.com/MoonshotAI/kimi-code/blob/691ec4679ea1/docs/zh/customization/plugins.md) |
 
 ### Qoder CLI
 
@@ -132,7 +132,7 @@
 - [Qwen Code current Hooks](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/hooks.md)
 - [Qwen Code current Extension runtime](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/core/src/extension/extensionManager.ts)
 - [Kimi Code current Hooks](https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/customization/hooks.md)
-- [Kimi Code current Plugins](https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/customization/plugins.md)
+- [Kimi Code current Plugins](https://github.com/MoonshotAI/kimi-code/blob/691ec4679ea1/docs/zh/customization/plugins.md)
 - [Qoder CLI Hooks](https://docs.qoder.com/en/cli/hooks)
 - [Qoder CLI Plugins](https://docs.qoder.com/en/cli/plugins)
 
