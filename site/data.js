@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-07-27',
+  updatedAt: '2026-07-29',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -453,6 +453,10 @@ window.matrixData = {
     'kimi-config-current': {
       label: 'Kimi Code current configuration',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/configuration/config-files.md',
+    },
+    'kimi-subagent-config': {
+      label: 'Kimi Code subagent timeout configuration',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/16c7189bd54a/docs/zh/configuration/config-files.md',
     },
     'kimi-agents-current': {
       label: 'Kimi Code current agents',
@@ -996,7 +1000,7 @@ window.matrixData = {
       category: 'subagents',
       capability: '轮数与超时限制',
       description: 'Agent 定义能否直接指定最大轮数和超时。',
-      values: { claude: '`maxTurns`；超时字段未确认', codex: '并发数可配置；轮数和超时字段未确认', qwen: '`maxTurns`；超时字段未确认', kimi: '未确认独立字段', qoder: '`maxTurns` · `timeoutMins`' },
+      values: { claude: '`maxTurns`；全局并发与嵌套上限；超时字段未确认', codex: '`agents.max_concurrent_threads_per_session`；轮数和超时字段未确认', qwen: '`maxTurns`；超时字段未确认', kimi: '全局 `[subagent] timeout_ms`（默认 2 h）；Agent 定义无独立字段', qoder: '`maxTurns` · `timeoutMins`' },
     },
     {
       id: 'security-approval',
@@ -1392,6 +1396,7 @@ const agentSources = [
   'qwen-agents',
   'qwen-worktree',
   'kimi-agents',
+  'kimi-subagent-config',
   'qoder-agents',
 ];
 const generalSources = [

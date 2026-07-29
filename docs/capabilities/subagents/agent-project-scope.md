@@ -2,7 +2,7 @@
 
 [返回 Subagent 详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=agent-project-scope)
 
-> 核对日期：2026-07-27
+> 核对日期：2026-07-29
 
 ## 定义
 
@@ -98,10 +98,10 @@
 | 作用域 | 显式文件、项目、额外目录、用户、内置五级来源；更具体的作用域优先。 |
 | 上下文与继承 | 子 Agent 只接收任务描述，在独立上下文中工作，最后把完整结果返回主 Agent。 |
 | 工作区隔离 | 当前 Agent 文档未列出每 Agent Worktree 隔离字段。 |
-| 运行限制 | 当前 Agent frontmatter 字段表未列出最大轮数或超时。 |
+| 运行限制 | 全局 `[subagent] timeout_ms` 限制单个 Agent 或 AgentSwarm 运行时间，默认 7200000 ms（2 小时）；Agent 定义 frontmatter 无独立轮数或超时字段。 |
 | 条件与边界 | `model_preference` 只在次主力模型实验功能开启的 Web 或实验 Headless 路径生效，TUI 忽略。 |
 | 证据状态 | 官方确认 |
-| 来源 | [Kimi Code Agents](https://github.com/MoonshotAI/kimi-code/blob/main/docs/zh/customization/agents.md) |
+| 来源 | [Kimi Code Agents](https://github.com/MoonshotAI/kimi-code/blob/main/docs/zh/customization/agents.md)、[Kimi Code subagent timeout configuration](https://github.com/MoonshotAI/kimi-code/blob/16c7189bd54a/docs/zh/configuration/config-files.md) |
 
 ### Qoder CLI
 
@@ -125,6 +125,7 @@
 - [Codex Subagents](https://developers.openai.com/codex/subagents)
 - [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/sub-agents.md)
 - [Kimi Code Agents](https://github.com/MoonshotAI/kimi-code/blob/main/docs/zh/customization/agents.md)
+- [Kimi Code subagent timeout configuration](https://github.com/MoonshotAI/kimi-code/blob/16c7189bd54a/docs/zh/configuration/config-files.md)
 - [Qoder CLI Subagent](https://docs.qoder.com/en/cli/subagent)
 
 ## 关联能力

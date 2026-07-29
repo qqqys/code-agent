@@ -2,7 +2,7 @@
 
 [返回 Subagent 详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=agent-limits)
 
-> 核对日期：2026-07-27
+> 核对日期：2026-07-29
 
 ## 定义
 
@@ -12,10 +12,10 @@
 
 | 产品 | 结论 | 证据状态 |
 | --- | --- | --- |
-| Claude Code | `maxTurns`；超时字段未确认 | 未确认 |
-| Codex | 并发数可配置；轮数和超时字段未确认 | 未确认 |
+| Claude Code | `maxTurns`；全局并发与嵌套上限；超时字段未确认 | 未确认 |
+| Codex | `agents.max_concurrent_threads_per_session`；轮数和超时字段未确认 | 未确认 |
 | Qwen Code | `maxTurns`；超时字段未确认 | 未确认 |
-| Kimi Code | 未确认独立字段 | 未确认 |
+| Kimi Code | 全局 `[subagent] timeout_ms`（默认 2 h）；Agent 定义无独立字段 | 官方确认 |
 | Qoder CLI | `maxTurns` · `timeoutMins` | 官方确认 |
 
 ## 比较边界
@@ -24,7 +24,9 @@
 
 - maxTurns
 - timeoutMins
+- timeout_ms
 - 并发线程上限
+- 嵌套深度上限
 
 ### 本页不包含
 
@@ -34,8 +36,10 @@
 
 ## 跨产品事实
 
-1. Qoder CLI 同时提供单 Agent 最大轮数和超时；Claude Code 与 Qwen Code提供最大轮数。
-2. Codex 当前公开的是每会话并发线程控制；Kimi Code 当前字段表未列出这些限制。
+1. Qoder CLI 同时提供单 Agent 最大轮数和超时；Claude Code 与 Qwen Code 提供最大轮数。
+2. Kimi Code 通过全局 `[subagent] timeout_ms` 限制单个 Agent 运行时间（默认 2 小时），但 Agent 定义无独立轮数或超时字段。
+3. Claude Code 另有全局 `CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS`（默认 20）、`CLAUDE_CODE_MAX_SUBAGENTS_PER_SESSION`（默认 200）和 `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH`（默认 3）。
+4. Codex 通过 `agents.max_concurrent_threads_per_session` 控制每会话并发线程数。
 
 ## 逐产品记录
 
@@ -43,10 +47,10 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 矩阵结论 | `maxTurns`；超时字段未确认 |
+| 矩阵结论 | `maxTurns`；全局并发与嵌套上限；超时字段未确认 |
 | 入口与配置 | 自然语言自动委派或点名；定义文件位于 Agent 目录，也可用 `--agents` 临时注入、用 `--agent` 作为会话主 Agent。 |
 | 定义格式 | Markdown 正文 + YAML frontmatter；正文作为 Subagent 系统提示词。 |
-| 具体行为 | `maxTurns` 限制 Agentic 轮数；当前 Subagent frontmatter 表未列出超时字段。 |
+| 具体行为 | `maxTurns` 限制 Agentic 轮数；全局环境变量控制并发（默认 20）、会话总数（默认 200）和嵌套深度（默认 3）；当前 Subagent frontmatter 表未列出超时字段。 |
 | 作用域 | 组织托管、当前进程、项目、用户、插件五级来源；同名定义按官方优先级解析。 |
 | 上下文与继承 | 命名 Subagent 使用独立上下文；接收自身系统提示词、基础环境信息和父 Agent 给出的任务。 |
 | 工作区隔离 | 默认从主会话当前目录工作；`isolation: worktree` 可创建临时 Git Worktree。 |
@@ -59,7 +63,7 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 矩阵结论 | 并发数可配置；轮数和超时字段未确认 |
+| 矩阵结论 | `agents.max_concurrent_threads_per_session`；轮数和超时字段未确认 |
 | 入口与配置 | 直接要求 Codex 委派，或由项目指令、Skill 触发；CLI 用 `/agent` 查看和切换线程。 |
 | 定义格式 | 独立 TOML 文件；`name`、`description`、`developer_instructions` 为核心字段。 |
 | 具体行为 | `agents.max_concurrent_threads_per_session` 控制并发；Agent 文件未列出单 Agent 轮数或超时。 |
@@ -91,17 +95,17 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 矩阵结论 | 未确认独立字段 |
+| 矩阵结论 | 全局 `[subagent] timeout_ms`（默认 2 h）；Agent 定义无独立字段 |
 | 入口与配置 | 主 Agent 依据描述自动派发，也可在提示词中点名；`--agent-file` 可在启动时显式加载定义。 |
 | 定义格式 | Markdown 正文 + YAML frontmatter；正文作为 Agent 系统提示词模板。 |
-| 具体行为 | 当前 Agent frontmatter 字段表未列出最大轮数或超时。 |
+| 具体行为 | 全局 `[subagent] timeout_ms` 限制单个 Agent 或 AgentSwarm 运行时间，默认 7200000 ms（2 小时），print 模式未设置时默认 0（无限制）；环境变量 `KIMI_SUBAGENT_TIMEOUT_MS` 可覆盖；Agent 定义 frontmatter 无独立轮数或超时字段。 |
 | 作用域 | 显式文件、项目、额外目录、用户、内置五级来源；更具体的作用域优先。 |
 | 上下文与继承 | 子 Agent 只接收任务描述，在独立上下文中工作，最后把完整结果返回主 Agent。 |
 | 工作区隔离 | 当前 Agent 文档未列出每 Agent Worktree 隔离字段。 |
-| 运行限制 | 当前 Agent frontmatter 字段表未列出最大轮数或超时。 |
+| 运行限制 | 全局 `[subagent] timeout_ms` 限制单个 Agent 或 AgentSwarm 运行时间，默认 7200000 ms（2 小时）；Agent 定义 frontmatter 无独立轮数或超时字段。 |
 | 条件与边界 | `model_preference` 只在次主力模型实验功能开启的 Web 或实验 Headless 路径生效，TUI 忽略。 |
-| 证据状态 | 未确认 |
-| 来源 | [Kimi Code Agents](https://github.com/MoonshotAI/kimi-code/blob/main/docs/zh/customization/agents.md) |
+| 证据状态 | 官方确认 |
+| 来源 | [Kimi Code Agents](https://github.com/MoonshotAI/kimi-code/blob/main/docs/zh/customization/agents.md)、[Kimi Code subagent timeout configuration](https://github.com/MoonshotAI/kimi-code/blob/16c7189bd54a/docs/zh/configuration/config-files.md) |
 
 ### Qoder CLI
 
@@ -125,6 +129,7 @@
 - [Codex Subagents](https://developers.openai.com/codex/subagents)
 - [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/sub-agents.md)
 - [Kimi Code Agents](https://github.com/MoonshotAI/kimi-code/blob/main/docs/zh/customization/agents.md)
+- [Kimi Code subagent timeout configuration](https://github.com/MoonshotAI/kimi-code/blob/16c7189bd54a/docs/zh/configuration/config-files.md)
 - [Qoder CLI Subagent](https://docs.qoder.com/en/cli/subagent)
 
 ## 关联能力

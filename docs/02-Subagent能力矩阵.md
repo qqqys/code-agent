@@ -41,8 +41,9 @@
 | 预载 Skills | `skills` | `skills.config` | 可调用 Skill；未确认独立预载字段 | 可调用 Skill；未确认独立预载字段 | `skills` |
 | Agent Hooks | `hooks` | 未确认 Agent 独立 Hooks | `hooks`；v1 在 Agent 运行期按会话注册 | 未确认 | `hooks` |
 | Agent 持久记忆 | `memory` | 主产品 Memories；Agent 独立记忆字段未确认 | 未确认独立字段 | 未确认独立字段 | `memory` |
-| 最大轮数 | `maxTurns` | 未确认独立字段 | `maxTurns` | 未确认独立字段 | `maxTurns` |
-| 超时 | 未确认独立字段 | 未确认独立字段 | 未确认独立字段 | 未确认独立字段 | `timeoutMins` |
+| 最大轮数 | `maxTurns` | 未确认独立字段 | `maxTurns` | Agent 定义无独立字段 | `maxTurns` |
+| 超时 | 未确认独立字段 | 未确认独立字段 | 未确认独立字段 | 全局 `[subagent] timeout_ms`（默认 2 h） | `timeoutMins` |
+| 全局并发与嵌套 | 并发 20 · 会话 200 · 嵌套 3 层 | `max_concurrent_threads_per_session` | 未确认独立全局并发字段 | 未确认独立全局并发字段 | 未确认独立全局并发字段 |
 
 ## 权限、嵌套与工作区
 
