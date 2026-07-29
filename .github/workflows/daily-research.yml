@@ -2,7 +2,7 @@ name: Daily capability research
 
 on:
   schedule:
-    - cron: "17 */8 * * *"
+    - cron: '17 */8 * * *'
   workflow_dispatch:
     inputs:
       focus:
@@ -150,11 +150,11 @@ jobs:
         if: steps.preflight.outputs.ready == 'true'
         run: |
           {
-            git diff --name-only
-            git ls-files --others --exclude-standard
-          } | sort -u > "$RUNNER_TEMP/research-paths.txt"
+            git diff --name-only -z
+            git ls-files --others --exclude-standard -z
+          } | sort -zu > "$RUNNER_TEMP/research-paths.txt"
 
-          while IFS= read -r path; do
+          while IFS= read -r -d '' path; do
             case "$path" in
               README.md|docs/*|site/*|updates/*) ;;
               *)
