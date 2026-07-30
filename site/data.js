@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-07-29',
+  updatedAt: '2026-07-30',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -280,7 +280,7 @@ window.matrixData = {
     },
     'qwen-agents': {
       label: 'Qwen Code Subagents',
-      url: 'https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/sub-agents.md',
+      url: 'https://github.com/QwenLM/qwen-code/blob/7db57552e33a/docs/users/features/sub-agents.md',
     },
     'qwen-worktree': {
       label: 'Qwen Code Worktree',
@@ -923,7 +923,7 @@ window.matrixData = {
       category: 'subagents',
       capability: 'Agent 单独选模型',
       description: '单个 Agent 能否覆盖主会话模型。',
-      values: { claude: '`model`', codex: '`model`', qwen: '`model`: inherit · fast · modelId · authType:modelId', kimi: '`model_preference`: `primary` · `secondary`（实验性）', qoder: '`model`' },
+      values: { claude: '`model`', codex: '`model`', qwen: '`model`: inherit · fast · modelId · authType:modelId · `modelGrades` 名称', kimi: '`model_preference`: `primary` · `secondary`（实验性）', qoder: '`model`' },
     },
     {
       id: 'agent-effort',

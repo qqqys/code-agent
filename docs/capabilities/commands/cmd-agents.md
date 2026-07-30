@@ -2,7 +2,7 @@
 
 [返回 Slash 命令详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=cmd-agents)
 
-> 核对日期：2026-07-29
+> 核对日期：2026-07-30
 
 ## 定义
 
@@ -81,7 +81,7 @@
 | 保存范围 | 定义保存到用户、项目或扩展目录 |
 | 条件与边界 | 无额外条件 |
 | 证据状态 | 源码确认 |
-| 来源 | [Qwen Code commands documentation](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/commands.md)、[Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/sub-agents.md) |
+| 来源 | [Qwen Code commands documentation](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/commands.md)、[Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/7db57552e33a/docs/users/features/sub-agents.md) |
 
 ### Kimi Code
 
@@ -118,7 +118,7 @@
 - [Codex CLI commands](https://developers.openai.com/codex/cli/slash-commands)
 - [Codex Subagents](https://developers.openai.com/codex/subagents)
 - [Qwen Code commands documentation](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/commands.md)
-- [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/sub-agents.md)
+- [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/7db57552e33a/docs/users/features/sub-agents.md)
 - [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/main/docs/zh/reference/slash-commands.md)
 - [Qoder CLI commands](https://docs.qoder.com/en/cli/command)
 - [Qoder CLI Subagent](https://docs.qoder.com/en/cli/subagent)

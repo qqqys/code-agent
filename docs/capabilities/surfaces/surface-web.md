@@ -2,7 +2,7 @@
 
 [返回 Headless、SDK 与多端详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=surface-web)
 
-> 核对日期：2026-07-29
+> 核对日期：2026-07-30
 
 ## 定义
 
