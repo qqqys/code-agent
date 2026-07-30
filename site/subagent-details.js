@@ -455,19 +455,21 @@
       id: 'agent-tools',
       definition:
         '用允许列表限制单个 Agent 能看到和调用的内置工具、MCP 工具与 Agent 工具。',
-      includes: ['工具 allowlist', '省略字段时的继承', 'MCP 工具名称'],
+      includes: ['工具 allowlist', '省略字段时的继承', 'MCP 工具名称', 'Fork 调用时工具限制'],
       excludes: ['工具 denylist', '审批策略', '网络沙箱'],
       facts: [
         'Claude Code、Qwen Code、Kimi Code 与 Qoder CLI 都有明确的 Agent `tools` 字段。',
         'Codex 当前 Subagent 文档主要通过父工具面、沙箱、MCP 和 Skill 配置塑造能力，未列出独立 `tools` allowlist。',
+        'Qwen Code 另有 `fork_tools`：调用 Fork 时传入的执行限制，不改变模型可见的工具声明，未匹配的工具调用在调度或审批前被拒绝。',
+        'Claude Code Fork 跳过所有工具过滤器，直接获得主会话的完整工具池；其他产品当前未确认等价的 Fork 调用时工具限制。',
       ],
       notes: {
         claude:
-          '`tools` 省略时继承 Subagent 可用工具；可列内置工具、MCP 工具或 `Agent(name)`。',
+          '`tools` 省略时继承 Subagent 可用工具；可列内置工具、MCP 工具或 `Agent(name)`。Fork 跳过工具过滤器，获得主会话完整工具池。',
         codex:
           'Subagent 使用父会话可用工具，并由 Agent 的沙箱、MCP、Skill 配置收窄；独立 `tools` 字段未在当前 schema 中列出。',
         qwen:
-          '`tools` 省略时继承父会话可用工具；显式列表同时约束内置工具和 MCP 工具。',
+          '`tools` 省略时继承父会话可用工具；显式列表同时约束内置工具和 MCP 工具。Fork 可传 `fork_tools` 数组限制实际执行的工具，接受精确工具名、`mcp__server` 和 `mcp__server__tool_*` 等模式；省略时不限制，空数组拒绝全部。`fork_tools` 不改变模型可见的工具声明以保持 prompt cache 前缀，未匹配的调用在调度或审批前被拒绝。这是调用方提供的每次调用限制，不是管理员强制的安全沙箱。',
         kimi:
           '`tools` 支持 YAML 列表或逗号字符串；省略或 `*` 表示全部，空列表表示禁用全部。',
         qoder:
