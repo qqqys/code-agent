@@ -17,7 +17,7 @@
 | 选择模型 | `/model` | `/model` | `/model` | `/model` | `/model` |
 | 推理强度 | `/effort` | `/model`、`/fast` | `/effort` | — | `/effort`、`/fast` |
 | 权限设置 | `/permissions`、`/allowed-tools` | `/permissions` | `/approval-mode`、`/permissions` | `/permission`、`/yolo`、`/auto` | `/config` |
-| 计划模式 | `/plan` | `/plan` | `/plan` | `/plan`、`/plan clear` | 条件项：配置或 Agent |
+| 计划模式 | `/plan` | `/plan` | `/plan` | `/plan`、`/plan clear` | `/plan` |
 | 目标 | `/goal` | `/goal` | `/goal` | `/goal` | — |
 | Subagent 管理 | `/agents`、`/subtask` | `/agent`、`/subagents` | `/agents manage`、`/agents create` | `/swarm`；Agent 通过配置与工具调用 | `/agents`、`/agents reload` |
 | 任务列表 | `/tasks` | `/ps` | `/tasks` | `/tasks`、`/task` | `/tasks` |
@@ -144,7 +144,7 @@ Web Shell 还固定提供 4 个不属于 CLI/TUI 硬编码加载器的本地命�
 
 ### Qoder CLI
 
-`/agents`、`/clear`、`/commands`、`/compact`、`/config`、`/context-window`、`/effort`、`/export`、`/fast`、`/feedback`、`/help`、`/init`、`/login`、`/logout`、`/mcp`、`/memory`、`/model`、`/quest`、`/quit`、`/release-notes`、`/resume`、`/review`、`/setup-github`、`/skills`、`/status`、`/tasks`、`/upgrade`、`/usage`、`/vim`、`/workflows`。
+`/agents`、`/clear`、`/commands`、`/compact`、`/config`、`/context-window`、`/effort`、`/export`、`/fast`、`/feedback`、`/help`、`/init`、`/login`、`/logout`、`/mcp`、`/memory`、`/model`、`/plan`、`/quest`、`/quit`、`/release-notes`、`/resume`、`/review`、`/setup-github`、`/skills`、`/status`、`/tasks`、`/upgrade`、`/usage`、`/vim`、`/workflows`。
 
 ## 来源
 

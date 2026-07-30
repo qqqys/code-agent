@@ -180,9 +180,9 @@
       includes: ['进入和退出 Plan 模式', '可选任务描述', '清除已有计划', '权限边界'],
       excludes: ['长期目标循环', '普通对话中的计划文本', 'Subagent 的 Plan 内置角色'],
       facts: [
-        'Claude Code、Codex、Qwen Code 和 Kimi Code 都提供 `/plan`。',
+        '五家 CLI 都提供 `/plan`。',
         'Kimi Code 可用 `on|off` 显式设置，并提供 `/plan clear`。',
-        'Qoder CLI 的 Agent 权限模式支持 plan，但当前命令目录没有独立 `/plan`。',
+        'Qoder CLI 的 `/plan` 切换 Plan 工作状态；该状态独立于权限模式，可与任意 permission mode 共存。',
       ],
       products: {
         claude: command('claude', ['/plan [description]'], '进入 Plan 模式；带描述时进入后立即开始分析指定任务。', {
@@ -201,7 +201,11 @@
           persistence: '当前会话模式和当前计划',
           conditions: '单纯切换模式不会创建空计划文件',
         }),
-        qoder: unconfirmed('qoder', 'Agent 配置支持 `plan` permission mode，但官方 Slash 命令目录未列出 `/plan`。'),
+        qoder: command('qoder', ['/plan'], '切换 Plan 工作状态；Plan 独立于权限模式，可与任意 permission mode 共存。', {
+          persistence: '当前会话工作状态',
+          conditions: '`general.plan.enabled: false` 可禁用；禁用后 `/plan` 不可用，`--permission-mode plan` 回退 `default`',
+          sources: ['qoder-commands', 'qoder-permissions'],
+        }),
       },
       related: ['cmd-goal', 'cmd-permissions', 'agent-builtins'],
     },

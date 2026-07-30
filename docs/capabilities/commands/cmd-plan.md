@@ -16,7 +16,7 @@
 | Codex | `/plan [prompt]` | 官方确认 |
 | Qwen Code | `/plan` | 源码确认 |
 | Kimi Code | `/plan [on\|off]`、`/plan clear` | 官方确认 |
-| Qoder CLI | 无对应命令 | 未确认 |
+| Qoder CLI | `/plan` | 官方确认 |
 
 ## 比较边界
 
@@ -35,9 +35,9 @@
 
 ## 跨产品事实
 
-1. Claude Code、Codex、Qwen Code 和 Kimi Code 都提供 `/plan`。
+1. 五家 CLI 都提供 `/plan`。
 2. Kimi Code 可用 `on|off` 显式设置，并提供 `/plan clear`。
-3. Qoder CLI 的 Agent 权限模式支持 plan，但当前命令目录没有独立 `/plan`。
+3. Qoder CLI 的 `/plan` 切换 Plan 工作状态；该状态独立于权限模式，可与任意 permission mode 共存。
 
 ## 逐产品记录
 
@@ -101,15 +101,15 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 主命令 | 无对应命令 |
+| 主命令 | `/plan` |
 | 别名 | 无公开别名 |
-| 参数 | — |
-| 执行行为 | Agent 配置支持 `plan` permission mode，但官方 Slash 命令目录未列出 `/plan`。 |
+| 参数 | 无公开参数 |
+| 执行行为 | 切换 Plan 工作状态；Plan 独立于权限模式，可与任意 permission mode 共存。 |
 | 可用模式 | 交互式 CLI |
-| 保存范围 | — |
-| 条件与边界 | 不据此推断底层能力不存在 |
-| 证据状态 | 未确认 |
-| 来源 | [Qoder CLI commands](https://docs.qoder.com/en/cli/command) |
+| 保存范围 | 当前会话工作状态 |
+| 条件与边界 | `general.plan.enabled: false` 可禁用；禁用后 `/plan` 不可用，`--permission-mode plan` 回退 `default` |
+| 证据状态 | 官方确认 |
+| 来源 | [Qoder CLI commands](https://docs.qoder.com/en/cli/command)、[Qoder CLI Permissions](https://docs.qoder.com/en/cli/permissions) |
 
 ## 官方来源
 
@@ -118,6 +118,7 @@
 - [Qwen Code commands documentation](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/commands.md)
 - [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/main/docs/zh/reference/slash-commands.md)
 - [Qoder CLI commands](https://docs.qoder.com/en/cli/command)
+- [Qoder CLI Permissions](https://docs.qoder.com/en/cli/permissions)
 
 ## 关联能力
 

@@ -685,7 +685,7 @@ window.matrixData = {
       category: 'commands',
       capability: '计划模式',
       description: '切换到以分析和计划为主的执行模式。',
-      values: { claude: '`/plan`', codex: '`/plan`', qwen: '`/plan`', kimi: '`/plan` · `/plan clear`', qoder: '通过 Agent 或配置；无独立命令' },
+      values: { claude: '`/plan`', codex: '`/plan`', qwen: '`/plan`', kimi: '`/plan` · `/plan clear`', qoder: '`/plan`' },
     },
     {
       id: 'cmd-goal',
