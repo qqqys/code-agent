@@ -2,7 +2,7 @@
 
 [返回 Subagent 详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=agent-permission)
 
-> 核对日期：2026-07-29
+> 核对日期：2026-07-30
 
 ## 定义
 
@@ -85,7 +85,7 @@
 | 运行限制 | 支持 `maxTurns`；配置只对超长 description 和系统提示词给软警告，未列出超时字段。 |
 | 条件与边界 | `hooks` v1 在 Agent 运行期间按会话注册；`effort`、`skills`、`memory` 等 frontmatter 尚未落地。 |
 | 证据状态 | 源码确认 |
-| 来源 | [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/sub-agents.md) |
+| 来源 | [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/7db57552e33a/docs/users/features/sub-agents.md) |
 
 ### Kimi Code
 
@@ -123,7 +123,7 @@
 
 - [Claude Code Subagents](https://code.claude.com/docs/en/sub-agents)
 - [Codex Subagents](https://developers.openai.com/codex/subagents)
-- [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/sub-agents.md)
+- [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/7db57552e33a/docs/users/features/sub-agents.md)
 - [Kimi Code Agents](https://github.com/MoonshotAI/kimi-code/blob/efac96c8a95a/docs/zh/customization/agents.md)
 - [Kimi Code subagent and secondary model configuration](https://github.com/MoonshotAI/kimi-code/blob/efac96c8a95a/docs/zh/configuration/config-files.md)
 - [Qoder CLI Subagent](https://docs.qoder.com/en/cli/subagent)

@@ -417,7 +417,7 @@
         codex:
           'Agent TOML 可设置任意受支持的 `model`，显式 spawn 值还能覆盖默认 Subagent 模型。',
         qwen:
-          '`model` 支持 `inherit`、`fast`、模型 ID、`authType:modelId` 和受控模型 grade。',
+          '`model` 支持 `inherit`、`fast`、模型 ID、`authType:modelId` 和 `modelGrades` 名称。Grade 在 `settings.json` 的 `agents.modelGrades` 中定义，可用 `agents.allowedGrades` 限制；Fork 和命名 Teammate 不接受 grade；Agent 定义中的显式 `model` 优先于 grade。`agents.builtin.exploreModel` 可单独覆盖内置 Explore Agent 的模型。',
         kimi:
           '`model_preference` 接受 `primary`（调用方主模型）或 `secondary`（`[secondary_model] model` 配置的模型）；优先级：显式 `model` > `model_preference` > 次主力模型 > 继承。实验性，需 `KIMI_CODE_EXPERIMENTAL_SECONDARY_MODEL=1`，开启后所有启动模式生效。',
         qoder:

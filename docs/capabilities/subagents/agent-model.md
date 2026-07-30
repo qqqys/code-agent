@@ -2,7 +2,7 @@
 
 [返回 Subagent 详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=agent-model)
 
-> 核对日期：2026-07-29
+> 核对日期：2026-07-30
 
 ## 定义
 
@@ -14,7 +14,7 @@
 | --- | --- | --- |
 | Claude Code | `model` | 官方确认 |
 | Codex | `model` | 官方确认 |
-| Qwen Code | `model`: inherit · fast · modelId · authType:modelId | 源码确认 |
+| Qwen Code | `model`: inherit · fast · modelId · authType:modelId · `modelGrades` 名称 | 源码确认 |
 | Kimi Code | `model_preference`: `primary` · `secondary`（实验性） | 条件项 |
 | Qoder CLI | `model` | 官方确认 |
 
@@ -75,17 +75,17 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 矩阵结论 | `model`: inherit · fast · modelId · authType:modelId |
+| 矩阵结论 | `model`: inherit · fast · modelId · authType:modelId · `modelGrades` 名称 |
 | 入口与配置 | 使用 `/agents create`、`/agents manage` 管理；模型通过 Agent 工具按类型委派，也可显式点名。 |
 | 定义格式 | Markdown 正文 + YAML frontmatter；正文作为命名 Agent 的系统提示词。 |
-| 具体行为 | `model` 支持 `inherit`、`fast`、模型 ID、`authType:modelId` 和受控模型 grade。 |
+| 具体行为 | `model` 支持 `inherit`、`fast`、模型 ID、`authType:modelId` 和 `modelGrades` 名称。Grade 在 `settings.json` 的 `agents.modelGrades` 中定义，可用 `agents.allowedGrades` 限制；Fork 和命名 Teammate 不接受 grade；Agent 定义中的显式 `model` 优先于 grade。`agents.builtin.exploreModel` 可单独覆盖内置 Explore Agent 的模型。 |
 | 作用域 | 项目级 `.qwen/agents/`、用户级 `~/.qwen/agents/`、扩展 `agents/` 与内置定义。 |
 | 上下文与继承 | 命名 Agent 从新上下文开始；Fork 继承父会话全部或最近若干个真实用户轮次。 |
 | 工作区隔离 | Agent 调用可传 `isolation: "worktree"`；Fork 与 Worktree 隔离互斥。 |
 | 运行限制 | 支持 `maxTurns`；配置只对超长 description 和系统提示词给软警告，未列出超时字段。 |
 | 条件与边界 | `hooks` v1 在 Agent 运行期间按会话注册；`effort`、`skills`、`memory` 等 frontmatter 尚未落地。 |
 | 证据状态 | 源码确认 |
-| 来源 | [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/sub-agents.md) |
+| 来源 | [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/7db57552e33a/docs/users/features/sub-agents.md) |
 
 ### Kimi Code
 
@@ -123,7 +123,7 @@
 
 - [Claude Code Subagents](https://code.claude.com/docs/en/sub-agents)
 - [Codex Subagents](https://developers.openai.com/codex/subagents)
-- [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/sub-agents.md)
+- [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/7db57552e33a/docs/users/features/sub-agents.md)
 - [Kimi Code Agents](https://github.com/MoonshotAI/kimi-code/blob/efac96c8a95a/docs/zh/customization/agents.md)
 - [Kimi Code subagent and secondary model configuration](https://github.com/MoonshotAI/kimi-code/blob/efac96c8a95a/docs/zh/configuration/config-files.md)
 - [Qoder CLI Subagent](https://docs.qoder.com/en/cli/subagent)

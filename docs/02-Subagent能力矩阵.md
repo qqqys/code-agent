@@ -33,7 +33,7 @@
 
 | 能力 | Claude Code | Codex | Qwen Code | Kimi Code | Qoder CLI |
 | --- | --- | --- | --- | --- | --- |
-| Agent 单独选模型 | `model` | `model` | `model`：inherit、fast、modelId 或 authType:modelId | `model_preference`：`primary`、`secondary`（实验性） | `model` |
+| Agent 单独选模型 | `model` | `model` | `model`：inherit、fast、modelId、authType:modelId 或 `modelGrades` 名称 | `model_preference`：`primary`、`secondary`（实验性） | `model` |
 | Agent 单独设推理强度 | `effort` | `model_reasoning_effort` | 未确认独立字段 | 未确认独立 `effort` 字段 | `effort` |
 | 工具白名单 | `tools` | 由 Agent 配置和沙箱控制 | `tools` | `tools` | `tools` |
 | 工具黑名单 | `disallowedTools` | 未确认独立 `disallowedTools` 字段 | `disallowedTools` | `disallowedTools` | `disallowedTools` |
@@ -62,7 +62,7 @@
 
 - [Claude Code Subagents](https://code.claude.com/docs/en/sub-agents)
 - [Codex Subagents](https://developers.openai.com/codex/subagents)
-- [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/sub-agents.md)
+- [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/7db57552e33a/docs/users/features/sub-agents.md)
 - [Qwen Code Worktree](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/worktree.md)
 - [Kimi Code Agents](https://github.com/MoonshotAI/kimi-code/blob/main/docs/zh/customization/agents.md)
 - [Qoder CLI Subagent](https://docs.qoder.com/en/cli/subagent)
