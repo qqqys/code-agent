@@ -280,7 +280,7 @@ window.matrixData = {
     },
     'qwen-agents': {
       label: 'Qwen Code Subagents',
-      url: 'https://github.com/QwenLM/qwen-code/blob/7db57552e33a/docs/users/features/sub-agents.md',
+      url: 'https://github.com/QwenLM/qwen-code/blob/079ce5346af7/docs/users/features/sub-agents.md',
     },
     'qwen-worktree': {
       label: 'Qwen Code Worktree',
@@ -937,7 +937,7 @@ window.matrixData = {
       category: 'subagents',
       capability: '工具白名单',
       description: '限制 Agent 可调用的工具集合。',
-      values: { claude: '`tools`', codex: 'Agent 配置、沙箱与会话工具', qwen: '`tools`', kimi: '`tools`', qoder: '`tools`' },
+      values: { claude: '`tools`', codex: 'Agent 配置、沙箱与会话工具', qwen: '`tools`；Fork 可用 `fork_tools` 限制执行', kimi: '`tools`', qoder: '`tools`' },
     },
     {
       id: 'agent-deny-tools',

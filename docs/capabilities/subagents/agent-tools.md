@@ -14,7 +14,7 @@
 | --- | --- | --- |
 | Claude Code | `tools` | 官方确认 |
 | Codex | Agent 配置、沙箱与会话工具 | 官方确认 |
-| Qwen Code | `tools` | 源码确认 |
+| Qwen Code | `tools`；Fork 可用 `fork_tools` 限制执行 | 源码确认 |
 | Kimi Code | `tools` | 官方确认 |
 | Qoder CLI | `tools` | 官方确认 |
 
@@ -25,6 +25,7 @@
 - 工具 allowlist
 - 省略字段时的继承
 - MCP 工具名称
+- Fork 调用时工具限制
 
 ### 本页不包含
 
@@ -36,6 +37,8 @@
 
 1. Claude Code、Qwen Code、Kimi Code 与 Qoder CLI 都有明确的 Agent `tools` 字段。
 2. Codex 当前 Subagent 文档主要通过父工具面、沙箱、MCP 和 Skill 配置塑造能力，未列出独立 `tools` allowlist。
+3. Qwen Code 另有 `fork_tools`：调用 Fork 时传入的执行限制，不改变模型可见的工具声明，未匹配的工具调用在调度或审批前被拒绝。
+4. Claude Code Fork 跳过所有工具过滤器，直接获得主会话的完整工具池；其他产品当前未确认等价的 Fork 调用时工具限制。
 
 ## 逐产品记录
 
@@ -46,7 +49,7 @@
 | 矩阵结论 | `tools` |
 | 入口与配置 | 自然语言自动委派或点名；定义文件位于 Agent 目录，也可用 `--agents` 临时注入、用 `--agent` 作为会话主 Agent。 |
 | 定义格式 | Markdown 正文 + YAML frontmatter；正文作为 Subagent 系统提示词。 |
-| 具体行为 | `tools` 省略时继承 Subagent 可用工具；可列内置工具、MCP 工具或 `Agent(name)`。 |
+| 具体行为 | `tools` 省略时继承 Subagent 可用工具；可列内置工具、MCP 工具或 `Agent(name)`。Fork 跳过工具过滤器，获得主会话完整工具池。 |
 | 作用域 | 组织托管、当前进程、项目、用户、插件五级来源；同名定义按官方优先级解析。 |
 | 上下文与继承 | 命名 Subagent 使用独立上下文；接收自身系统提示词、基础环境信息和父 Agent 给出的任务。 |
 | 工作区隔离 | 默认从主会话当前目录工作；`isolation: worktree` 可创建临时 Git Worktree。 |
@@ -75,17 +78,17 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 矩阵结论 | `tools` |
+| 矩阵结论 | `tools`；Fork 可用 `fork_tools` 限制执行 |
 | 入口与配置 | 使用 `/agents create`、`/agents manage` 管理；模型通过 Agent 工具按类型委派，也可显式点名。 |
 | 定义格式 | Markdown 正文 + YAML frontmatter；正文作为命名 Agent 的系统提示词。 |
-| 具体行为 | `tools` 省略时继承父会话可用工具；显式列表同时约束内置工具和 MCP 工具。 |
+| 具体行为 | `tools` 省略时继承父会话可用工具；显式列表同时约束内置工具和 MCP 工具。Fork 可传 `fork_tools` 数组限制实际执行的工具，接受精确工具名、`mcp__server` 和 `mcp__server__tool_*` 等模式；省略时不限制，空数组拒绝全部。`fork_tools` 不改变模型可见的工具声明以保持 prompt cache 前缀，未匹配的调用在调度或审批前被拒绝。这是调用方提供的每次调用限制，不是管理员强制的安全沙箱。 |
 | 作用域 | 项目级 `.qwen/agents/`、用户级 `~/.qwen/agents/`、扩展 `agents/` 与内置定义。 |
 | 上下文与继承 | 命名 Agent 从新上下文开始；Fork 继承父会话全部或最近若干个真实用户轮次。 |
 | 工作区隔离 | Agent 调用可传 `isolation: "worktree"`；Fork 与 Worktree 隔离互斥。 |
 | 运行限制 | 支持 `maxTurns`；配置只对超长 description 和系统提示词给软警告，未列出超时字段。 |
 | 条件与边界 | `hooks` v1 在 Agent 运行期间按会话注册；`effort`、`skills`、`memory` 等 frontmatter 尚未落地。 |
 | 证据状态 | 源码确认 |
-| 来源 | [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/7db57552e33a/docs/users/features/sub-agents.md) |
+| 来源 | [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/079ce5346af7/docs/users/features/sub-agents.md) |
 
 ### Kimi Code
 
@@ -123,7 +126,7 @@
 
 - [Claude Code Subagents](https://code.claude.com/docs/en/sub-agents)
 - [Codex Subagents](https://developers.openai.com/codex/subagents)
-- [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/7db57552e33a/docs/users/features/sub-agents.md)
+- [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/079ce5346af7/docs/users/features/sub-agents.md)
 - [Kimi Code Agents](https://github.com/MoonshotAI/kimi-code/blob/efac96c8a95a/docs/zh/customization/agents.md)
 - [Kimi Code subagent and secondary model configuration](https://github.com/MoonshotAI/kimi-code/blob/efac96c8a95a/docs/zh/configuration/config-files.md)
 - [Qoder CLI Subagent](https://docs.qoder.com/en/cli/subagent)
