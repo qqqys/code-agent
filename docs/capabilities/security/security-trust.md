@@ -15,7 +15,7 @@
 | Claude Code | Workspace Trust | 官方确认 |
 | Codex | Project Trust；未信任时跳过项目 `.codex/` | 官方确认 |
 | Qwen Code | `/trust`；功能默认关闭 | 条件项 |
-| Kimi Code | 未确认独立目录信任门禁 | 未确认 |
+| Kimi Code | 条件：v2 引擎启动信任提示；项目 MCP 门禁 | 条件项 |
 | Qoder CLI | Trust Directories；未信任时回退 `default` | 官方确认 |
 
 ## 比较边界
@@ -35,7 +35,7 @@
 ## 跨产品事实
 
 1. Claude Code、Codex 与 Qoder CLI 都明确把目录信任用于限制项目配置或高权限模式。
-2. Qwen Code 具备完整目录信任实现，但当前设置默认关闭；Kimi Code 当前文档未列出独立信任门禁。
+2. Qwen Code 具备完整目录信任实现，但当前设置默认关闭；Kimi Code 在实验性 v2 引擎中加入了启动信任提示，门禁项目级 MCP。
 
 ## 逐产品记录
 
@@ -91,17 +91,17 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 矩阵结论 | 未确认独立目录信任门禁 |
-| 入口与切换 | `/permission` 选择模式；`/plan`、`/yolo`、`/auto` 快速切换。启动参数提供 `--plan`、`--yolo`、`--auto`。 |
+| 矩阵结论 | 条件：v2 引擎启动信任提示；项目 MCP 门禁 |
+| 入口与切换 | `/permission` 选择模式；`/plan`、`/yolo`、`/auto` 快速切换。v2 引擎在 TUI 启动时显示目录信任提示（无独立 Slash 命令）。 |
 | 默认状态 | `default_permission_mode` 默认为 `manual`，`default_plan_mode` 默认为 `false`。 |
-| 具体行为 | 文档要求仅在可信目录使用 YOLO，但未列出保存目录信任状态并据此阻断项目配置的独立机制。 |
+| 具体行为 | v2 引擎（`KIMI_CODE_EXPERIMENTAL_FLAG`）在 TUI 启动时显示目录信任提示；项目级 MCP（`.mcp.json`、`.kimi-code/mcp.json`）仅在受信任目录加载。拒绝信任退出程序，下次启动再次询问；信任按目录持久保存。v1 引擎无信任概念。 |
 | 规则能力 | `[[permission.rules]]` 按顺序匹配第一条 `allow`、`deny` 或 `ask`；`[tools].enabled` 与 `disabled` 另行限制模型能看到和调用的工具。 |
 | 隔离边界 | 权限规则覆盖文件、Bash、MCP 等工具调用。当前公开 CLI 文档未列出对这些工具子进程提供 OS 级文件系统或网络沙箱。 |
-| 保存与作用域 | 全局规则保存在 `~/.kimi-code/config.toml`；审批面板可放行当前会话。项目 `local.toml` 当前公开的是额外工作目录等本地设置。 |
+| 保存与作用域 | 全局规则保存在 `~/.kimi-code/config.toml`；审批面板可放行当前会话。v2 引擎的目录信任按目录持久保存。 |
 | 非交互行为 | `kimi -p` 固定使用 Auto 权限策略，不弹人工审批；静态 deny 规则仍生效，且 `--prompt` 不能与 `--yolo`、`--auto`、`--plan` 同用。 |
-| 条件与边界 | YOLO 跳过普通工具审批，但敏感文件与退出 Plan 仍可询问；Auto 会自动处理全部审批并禁止 Agent 向用户提问。 |
-| 证据状态 | 未确认 |
-| 来源 | [Kimi Code Interaction and Permissions](https://github.com/MoonshotAI/kimi-code/blob/086769bfadf1c86ba0569f16315010ffc77344f0/docs/zh/guides/interaction.md)、[Kimi Code Configuration](https://github.com/MoonshotAI/kimi-code/blob/086769bfadf1c86ba0569f16315010ffc77344f0/docs/zh/configuration/config-files.md)、[Kimi Code CLI Reference](https://github.com/MoonshotAI/kimi-code/blob/086769bfadf1c86ba0569f16315010ffc77344f0/docs/zh/reference/kimi-command.md) |
+| 条件与边界 | YOLO 跳过普通工具审批，但敏感文件与退出 Plan 仍可询问；Auto 会自动处理全部审批并禁止 Agent 向用户提问。目录信任仅在 v2 引擎（`KIMI_CODE_EXPERIMENTAL_FLAG`）中生效；v1 引擎始终视为受信任。 |
+| 证据状态 | 条件项 |
+| 来源 | [Kimi Code Interaction and Permissions](https://github.com/MoonshotAI/kimi-code/blob/086769bfadf1c86ba0569f16315010ffc77344f0/docs/zh/guides/interaction.md)、[Kimi Code Configuration](https://github.com/MoonshotAI/kimi-code/blob/086769bfadf1c86ba0569f16315010ffc77344f0/docs/zh/configuration/config-files.md)、[Kimi Code CLI Reference](https://github.com/MoonshotAI/kimi-code/blob/086769bfadf1c86ba0569f16315010ffc77344f0/docs/zh/reference/kimi-command.md)、[Kimi Code workspace trust (v2 engine)](https://github.com/MoonshotAI/kimi-code/commit/32d693f644de) |
 
 ### Qoder CLI
 
@@ -134,6 +134,7 @@
 - [Kimi Code Interaction and Permissions](https://github.com/MoonshotAI/kimi-code/blob/086769bfadf1c86ba0569f16315010ffc77344f0/docs/zh/guides/interaction.md)
 - [Kimi Code Configuration](https://github.com/MoonshotAI/kimi-code/blob/086769bfadf1c86ba0569f16315010ffc77344f0/docs/zh/configuration/config-files.md)
 - [Kimi Code CLI Reference](https://github.com/MoonshotAI/kimi-code/blob/086769bfadf1c86ba0569f16315010ffc77344f0/docs/zh/reference/kimi-command.md)
+- [Kimi Code workspace trust (v2 engine)](https://github.com/MoonshotAI/kimi-code/commit/32d693f644de)
 - [Qoder CLI Permissions](https://docs.qoder.com/en/cli/permissions)
 - [Qoder CLI SDK Reference](https://docs.qoder.com/en/cli/sdk/references)
 
