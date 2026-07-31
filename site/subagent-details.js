@@ -561,17 +561,18 @@
       excludes: ['全局 Hooks', '插件安装脚本', '普通 Shell 命令'],
       facts: [
         'Claude Code、Qwen Code 与 Qoder CLI 都提供 Agent `hooks` 字段。',
-        'Codex 和 Kimi Code 当前 Subagent 文档未确认 Agent 独立 Hooks。',
+        'Kimi Code frontmatter 仅含 `name`、`description`、`whenToUse`、`override`、`model_preference`、`tools`、`disallowedTools`、`subagents`，未知字段被忽略；Hooks 只在 `config.toml` 全局配置。',
+        'Codex Subagent 文档列出 `model`、`model_reasoning_effort`、`sandbox_mode`、`mcp_servers`、`skills.config` 等键，未列独立 Hooks；Hooks 由全局 `/hooks` 管理。',
       ],
       notes: {
         claude:
           '`hooks` 可定义该 Subagent 的生命周期 Hook；插件 Agent 中该字段被忽略。',
         codex:
-          '产品支持 Hooks，但当前 Subagent 自定义 Agent schema 未列出 per-Agent Hooks 字段。',
+          '产品支持全局 Hooks（`/hooks`、config.toml `[hooks]`，当前仅 command 执行）；Subagent 自定义 Agent 文档列出 `model`、`model_reasoning_effort`、`sandbox_mode`、`mcp_servers`、`skills.config` 等键，未列独立 per-Agent Hooks 字段。',
         qwen:
           '`hooks` 在 Agent 运行时注册、结束后移除；v1 的匹配事件会影响同会话并发 Agent。',
         kimi:
-          '当前 Agent frontmatter 字段表未列出独立 Hooks。',
+          'frontmatter 仅支持 `name`、`description`、`whenToUse`、`override`、`model_preference`、`tools`、`disallowedTools`、`subagents`，未知字段被忽略；无独立 Hooks 字段。Hooks 由 `config.toml` 全局配置，可在子 Agent 完成等节点触发本地脚本。',
         qoder:
           '`hooks` 作用于 Subagent 会话，支持工具、启动、停止、通知等事件和多种 Hook 类型。',
       },

@@ -13,9 +13,9 @@
 | 产品 | 结论 | 证据状态 |
 | --- | --- | --- |
 | Claude Code | `hooks` | 官方确认 |
-| Codex | 未确认 | 未确认 |
+| Codex | 未确认独立字段；Hooks 为全局 `/hooks` | 未确认 |
 | Qwen Code | `hooks`；v1 运行期按会话注册 | 源码确认 |
-| Kimi Code | 未确认 | 未确认 |
+| Kimi Code | 无独立字段；Hooks 在全局 `config.toml` | 官方确认 |
 | Qoder CLI | `hooks` | 官方确认 |
 
 ## 比较边界
@@ -35,7 +35,8 @@
 ## 跨产品事实
 
 1. Claude Code、Qwen Code 与 Qoder CLI 都提供 Agent `hooks` 字段。
-2. Codex 和 Kimi Code 当前 Subagent 文档未确认 Agent 独立 Hooks。
+2. Kimi Code frontmatter 仅含 `name`、`description`、`whenToUse`、`override`、`model_preference`、`tools`、`disallowedTools`、`subagents`，未知字段被忽略；Hooks 只在 `config.toml` 全局配置。
+3. Codex Subagent 文档列出 `model`、`model_reasoning_effort`、`sandbox_mode`、`mcp_servers`、`skills.config` 等键，未列独立 Hooks；Hooks 由全局 `/hooks` 管理。
 
 ## 逐产品记录
 
@@ -59,10 +60,10 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 矩阵结论 | 未确认 |
+| 矩阵结论 | 未确认独立字段；Hooks 为全局 `/hooks` |
 | 入口与配置 | 直接要求 Codex 委派，或由项目指令、Skill 触发；CLI 用 `/agent` 查看和切换线程。 |
 | 定义格式 | 独立 TOML 文件；`name`、`description`、`developer_instructions` 为核心字段。 |
-| 具体行为 | 产品支持 Hooks，但当前 Subagent 自定义 Agent schema 未列出 per-Agent Hooks 字段。 |
+| 具体行为 | 产品支持全局 Hooks（`/hooks`、config.toml `[hooks]`，当前仅 command 执行）；Subagent 自定义 Agent 文档列出 `model`、`model_reasoning_effort`、`sandbox_mode`、`mcp_servers`、`skills.config` 等键，未列独立 per-Agent Hooks 字段。 |
 | 作用域 | 项目级 `.codex/agents/` 与用户级 `~/.codex/agents/`；同名自定义 Agent 可覆盖内置定义。 |
 | 上下文与继承 | 每个 Subagent 是独立线程；父线程负责委派、跟进、等待、关闭并汇总结果。 |
 | 工作区隔离 | 继承父线程当前沙箱与审批策略；当前 Subagent 页面未列出每 Agent Worktree。 |
@@ -91,16 +92,16 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 矩阵结论 | 未确认 |
+| 矩阵结论 | 无独立字段；Hooks 在全局 `config.toml` |
 | 入口与配置 | 主 Agent 依据描述自动派发，也可在提示词中点名；`--agent-file` 可在启动时显式加载定义。 |
 | 定义格式 | Markdown 正文 + YAML frontmatter；正文作为 Agent 系统提示词模板。 |
-| 具体行为 | 当前 Agent frontmatter 字段表未列出独立 Hooks。 |
+| 具体行为 | frontmatter 仅支持 `name`、`description`、`whenToUse`、`override`、`model_preference`、`tools`、`disallowedTools`、`subagents`，未知字段被忽略；无独立 Hooks 字段。Hooks 由 `config.toml` 全局配置，可在子 Agent 完成等节点触发本地脚本。 |
 | 作用域 | 显式文件、项目、额外目录、用户、内置五级来源；更具体的作用域优先。 |
 | 上下文与继承 | 子 Agent 只接收任务描述，在独立上下文中工作，最后把完整结果返回主 Agent。 |
 | 工作区隔离 | 当前 Agent 文档未列出每 Agent Worktree 隔离字段。 |
 | 运行限制 | 全局 `[subagent] timeout_ms` 限制单个 Agent 或 AgentSwarm 运行时间，默认 7200000 ms（2 小时）；Agent 定义 frontmatter 无独立轮数或超时字段。 |
 | 条件与边界 | `model_preference` 次主力模型为实验性功能，需 `KIMI_CODE_EXPERIMENTAL_SECONDARY_MODEL=1` 开启；开启后所有启动模式（包括 TUI）生效。 |
-| 证据状态 | 未确认 |
+| 证据状态 | 官方确认 |
 | 来源 | [Kimi Code Agents](https://github.com/MoonshotAI/kimi-code/blob/efac96c8a95a/docs/zh/customization/agents.md)、[Kimi Code subagent and secondary model configuration](https://github.com/MoonshotAI/kimi-code/blob/efac96c8a95a/docs/zh/configuration/config-files.md) |
 
 ### Qoder CLI
