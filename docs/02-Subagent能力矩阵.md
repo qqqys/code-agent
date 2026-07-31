@@ -39,7 +39,7 @@
 | 工具黑名单 | `disallowedTools` | 未确认独立 `disallowedTools` 字段 | `disallowedTools` | `disallowedTools` | `disallowedTools` |
 | MCP 范围 | `mcpServers`；工具规则可继续收窄 | `mcp_servers` | `mcpServers`；工具规则可继续收窄 | 通过工具列表控制 | `mcpServers` |
 | 预载 Skills | `skills` | `skills.config` | 可调用 Skill；未确认独立预载字段 | 可调用 Skill；未确认独立预载字段 | `skills` |
-| Agent Hooks | `hooks` | 未确认 Agent 独立 Hooks | `hooks`；v1 在 Agent 运行期按会话注册 | 未确认 | `hooks` |
+| Agent Hooks | `hooks` | 未确认独立字段；Hooks 为全局 `/hooks` | `hooks`；v1 在 Agent 运行期按会话注册 | 无独立字段；Hooks 在全局 `config.toml` | `hooks` |
 | Agent 持久记忆 | `memory` | 主产品 Memories；Agent 独立记忆字段未确认 | 未确认独立字段 | 未确认独立字段 | `memory` |
 | 最大轮数 | `maxTurns` | 未确认独立字段 | `maxTurns` | Agent 定义无独立字段 | `maxTurns` |
 | 超时 | 未确认独立字段 | 未确认独立字段 | 未确认独立字段 | 全局 `[subagent] timeout_ms`（默认 2 h） | `timeoutMins` |

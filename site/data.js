@@ -969,7 +969,7 @@ window.matrixData = {
       category: 'subagents',
       capability: 'Agent 独立 Hooks',
       description: '单个 Agent 能否配置自己的生命周期 Hooks。',
-      values: { claude: '`hooks`', codex: '未确认', qwen: '`hooks`；v1 运行期按会话注册', kimi: '未确认', qoder: '`hooks`' },
+      values: { claude: '`hooks`', codex: '未确认独立字段；Hooks 为全局 `/hooks`', qwen: '`hooks`；v1 运行期按会话注册', kimi: '无独立字段；Hooks 在全局 `config.toml`', qoder: '`hooks`' },
     },
     {
       id: 'agent-memory',
