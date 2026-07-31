@@ -2,7 +2,7 @@
 
 [返回模型与认证详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=auth-browser)
 
-> 核对日期：2026-07-30
+> 核对日期：2026-07-31
 
 ## 定义
 

@@ -2,7 +2,7 @@
 
 [返回 Slash 命令详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=cmd-model)
 
-> 核对日期：2026-07-30
+> 核对日期：2026-07-31
 
 ## 定义
 
@@ -15,7 +15,7 @@
 | Claude Code | `/model [model]` | 官方确认 |
 | Codex | `/model` | 官方确认 |
 | Qwen Code | `/model` | 源码确认 |
-| Kimi Code | `/model` | 官方确认 |
+| Kimi Code | `/model`、`/secondary_model` | 官方确认 |
 | Qoder CLI | `/model` | 官方确认 |
 
 ## 比较边界
@@ -87,13 +87,13 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 主命令 | `/model` |
+| 主命令 | `/model`、`/secondary_model` |
 | 别名 | 无公开别名 |
-| 参数 | 无公开参数 |
-| 执行行为 | 切换当前会话使用的 LLM 模型。 |
+| 参数 | `/secondary_model` 写入 `[secondary_model]` 配置 |
+| 执行行为 | 切换当前会话使用的 LLM 模型；`/secondary_model` 配置 Subagent 使用的次主力模型。 |
 | 可用模式 | 交互式 CLI |
-| 保存范围 | 当前会话 |
-| 条件与边界 | 流式输出期间也可使用 |
+| 保存范围 | `/model` 作用于当前会话；`/secondary_model` 写入配置并立即生效 |
+| 条件与边界 | `/secondary_model` 需要启用 `secondary-model` 实验性功能 |
 | 证据状态 | 官方确认 |
 | 来源 | [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/main/docs/zh/reference/slash-commands.md) |
 

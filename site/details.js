@@ -92,9 +92,10 @@
           persistence: '`--project` 写项目设置，`--global` 写用户设置；未指定时为当前会话',
           conditions: '一次性提示中的文本原样发送，不做 `@file` 展开',
         }),
-        kimi: command('kimi', ['/model'], '切换当前会话使用的 LLM 模型。', {
-          persistence: '当前会话',
-          conditions: '流式输出期间也可使用',
+        kimi: command('kimi', ['/model', '/secondary_model'], '切换当前会话使用的 LLM 模型；`/secondary_model` 配置 Subagent 使用的次主力模型。', {
+          parameters: '`/secondary_model` 写入 `[secondary_model]` 配置',
+          persistence: '`/model` 作用于当前会话；`/secondary_model` 写入配置并立即生效',
+          conditions: '`/secondary_model` 需要启用 `secondary-model` 实验性功能',
         }),
         qoder: command('qoder', ['/model'], '打开模型级别和模型设置管理界面。', {
           mode: 'TUI',
