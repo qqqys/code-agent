@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-07-30',
+  updatedAt: '2026-07-31',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -664,7 +664,7 @@ window.matrixData = {
       category: 'commands',
       capability: '选择模型',
       description: '在当前会话内查看或切换模型。',
-      values: { claude: '`/model`', codex: '`/model`', qwen: '`/model`', kimi: '`/model`', qoder: '`/model`' },
+      values: { claude: '`/model`', codex: '`/model`', qwen: '`/model`', kimi: '`/model` · `/secondary_model`', qoder: '`/model`' },
     },
     {
       id: 'cmd-effort',

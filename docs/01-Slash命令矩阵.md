@@ -14,7 +14,7 @@
 | --- | --- | --- | --- | --- | --- |
 | 登录 | `/login` | — | `/auth`、`/connect`、`/login` | `/login` | `/login` |
 | 退出登录 | `/logout` | `/logout` | `/auth logout` | `/logout` | `/logout` |
-| 选择模型 | `/model` | `/model` | `/model` | `/model` | `/model` |
+| 选择模型 | `/model` | `/model` | `/model` | `/model`、`/secondary_model` | `/model` |
 | 推理强度 | `/effort` | `/model`、`/fast` | `/effort` | — | `/effort`、`/fast` |
 | 权限设置 | `/permissions`、`/allowed-tools` | `/permissions` | `/approval-mode`、`/permissions` | `/permission`、`/yolo`、`/auto` | `/config` |
 | 计划模式 | `/plan` | `/plan` | `/plan` | `/plan`、`/plan clear` | `/plan` |
@@ -140,7 +140,7 @@ Web Shell 还固定提供 4 个不属于 CLI/TUI 硬编码加载器的本地命�
 
 ### Kimi Code
 
-`/add-dir`、`/auto`、`/btw`、`/check-kimi-code-docs`、`/compact`、`/copy`、`/custom-theme`、`/editor`、`/exit`、`/experiments`、`/export-debug-zip`、`/export-md`、`/feedback`、`/fork`、`/goal`、`/help`、`/import-from-cc-codex`、`/init`、`/login`、`/logout`、`/mcp`、`/mcp-config`、`/model`、`/new`、`/permission`、`/plan`、`/plugins`、`/provider`、`/sessions`、`/settings`、`/status`、`/sub-skill`、`/swarm`、`/tasks`、`/theme`、`/title`、`/undo`、`/update-config`、`/usage`、`/version`、`/web`、`/yolo`。
+`/add-dir`、`/auto`、`/btw`、`/check-kimi-code-docs`、`/compact`、`/copy`、`/custom-theme`、`/editor`、`/exit`、`/experiments`、`/export-debug-zip`、`/export-md`、`/feedback`、`/fork`、`/goal`、`/help`、`/import-from-cc-codex`、`/init`、`/login`、`/logout`、`/mcp`、`/mcp-config`、`/model`、`/new`、`/permission`、`/plan`、`/plugins`、`/provider`、`/secondary_model`、`/sessions`、`/settings`、`/status`、`/sub-skill`、`/swarm`、`/tasks`、`/theme`、`/title`、`/undo`、`/update-config`、`/usage`、`/version`、`/web`、`/yolo`。
 
 ### Qoder CLI
 
