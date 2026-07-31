@@ -542,6 +542,10 @@ window.matrixData = {
       label: 'Kimi Code current CLI reference',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/reference/kimi-command.md',
     },
+    'kimi-trust-v2': {
+      label: 'Kimi Code workspace trust (v2 engine)',
+      url: 'https://github.com/MoonshotAI/kimi-code/commit/32d693f644de',
+    },
     'qoder-commands': {
       label: 'Qoder CLI commands',
       url: 'https://docs.qoder.com/en/cli/command',
@@ -1049,7 +1053,7 @@ window.matrixData = {
       category: 'security',
       capability: '项目目录信任',
       description: '首次进入项目时确认是否信任仓库配置与指令。',
-      values: { claude: 'Workspace Trust', codex: 'Project Trust；未信任时跳过项目 `.codex/`', qwen: '`/trust`；功能默认关闭', kimi: '未确认独立目录信任门禁', qoder: 'Trust Directories；未信任时回退 `default`' },
+      values: { claude: 'Workspace Trust', codex: 'Project Trust；未信任时跳过项目 `.codex/`', qwen: '`/trust`；功能默认关闭', kimi: '条件：v2 引擎启动信任提示；项目 MCP 门禁', qoder: 'Trust Directories；未信任时回退 `default`' },
     },
     {
       id: 'security-noninteractive',

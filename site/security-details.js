@@ -327,7 +327,7 @@
       excludes: ['Git Safe Directory', 'TLS 证书信任', 'MCP Server 单独信任'],
       facts: [
         'Claude Code、Codex 与 Qoder CLI 都明确把目录信任用于限制项目配置或高权限模式。',
-        'Qwen Code 具备完整目录信任实现，但当前设置默认关闭；Kimi Code 当前文档未列出独立信任门禁。',
+        'Qwen Code 具备完整目录信任实现，但当前设置默认关闭；Kimi Code 在实验性 v2 引擎中加入了启动信任提示，门禁项目级 MCP。',
       ],
       behavior: {
         claude:
@@ -337,9 +337,20 @@
         qwen:
           '启用 `security.folderTrust.enabled` 后显示 `/trust`；未信任目录限制高权限模式和项目级命令、Skill、Hook 等内容。',
         kimi:
-          '文档要求仅在可信目录使用 YOLO，但未列出保存目录信任状态并据此阻断项目配置的独立机制。',
+          'v2 引擎（`KIMI_CODE_EXPERIMENTAL_FLAG`）在 TUI 启动时显示目录信任提示；项目级 MCP（`.mcp.json`、`.kimi-code/mcp.json`）仅在受信任目录加载。拒绝信任退出程序，下次启动再次询问；信任按目录持久保存。v1 引擎无信任概念。',
         qoder:
           '启动 CWD 是主信任目录；未信任时强制回退 `default`。可用 add-dir 或 `permissions.trustDirectories` 扩展。',
+      },
+      overrides: {
+        kimi: {
+          entry:
+            '`/permission` 选择模式；`/plan`、`/yolo`、`/auto` 快速切换。v2 引擎在 TUI 启动时显示目录信任提示（无独立 Slash 命令）。',
+          persistence:
+            '全局规则保存在 `~/.kimi-code/config.toml`；审批面板可放行当前会话。v2 引擎的目录信任按目录持久保存。',
+          conditions:
+            'YOLO 跳过普通工具审批，但敏感文件与退出 Plan 仍可询问；Auto 会自动处理全部审批并禁止 Agent 向用户提问。目录信任仅在 v2 引擎（`KIMI_CODE_EXPERIMENTAL_FLAG`）中生效；v1 引擎始终视为受信任。',
+          sources: ['kimi-interaction', 'kimi-config', 'kimi-cli', 'kimi-trust-v2'],
+        },
       },
       related: ['security-filesystem', 'security-auto-edit', 'security-bypass'],
     }),
