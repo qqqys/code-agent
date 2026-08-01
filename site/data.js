@@ -362,6 +362,10 @@ window.matrixData = {
       label: 'Qwen Code disabled skill levels',
       url: 'https://github.com/QwenLM/qwen-code/commit/de022664dc59a3c2f7af083acaaba6a86f14115c',
     },
+    'qwen-skill-learning': {
+      label: 'Qwen Code skill learning and curation',
+      url: 'https://github.com/QwenLM/qwen-code/blob/8673151ebdb1e6a101bc4cb3e2c2beb6e0141b7c/docs/users/features/skills.md',
+    },
     'qwen-hooks-current': {
       label: 'Qwen Code current Hooks',
       url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/hooks.md',
@@ -1139,6 +1143,13 @@ window.matrixData = {
       capability: 'Agent Skills',
       description: '从项目或用户目录加载可复用指令与资源。',
       values: { claude: '`/<skill-name>` · `.claude/skills/`', codex: '`$skill` · `.agents/skills/`', qwen: '`/<skill-name>` · `.qwen/skills/` · `skills.disabledLevels`', kimi: '`/skill:<name>` · `.kimi-code/skills/`', qoder: '`/<skill-name>` · `.qoder/skills/`' },
+    },
+    {
+      id: 'extension-skill-generation',
+      category: 'extensions',
+      capability: 'Skill 生成与维护',
+      description: '从知识源或成功任务自动生成 Skill，并按活跃度清理、归档或恢复。',
+      values: { claude: '`/run-skill-generator` · `/verify` 记录配方；无 `/learn`', codex: 'Record & Replay · `$skill-creator` · `$skill-installer`', qwen: '`/learn` · Auto Skill · `/curator` 归档', kimi: '手动编写 `SKILL.md`；无生成与维护', qoder: '手动编写 `SKILL.md`；无生成与维护' },
     },
     {
       id: 'extension-hooks',

@@ -352,6 +352,126 @@
       ],
     }),
 
+    'extension-skill-generation': createDetail({
+      id: 'extension-skill-generation',
+      definition:
+        '从知识源或成功任务自动生成 Skill，并按活跃度对生成的 Skill 进行清理、归档、固定或恢复，比较入口、来源标记与维护边界。',
+      includes: [
+        '从 URL、路径、文本、视频或工作流演示生成 Skill 的入口',
+        '自动生成的来源标记与管理范围',
+        '按活跃度清理、归档、固定或恢复 Skill 的维护命令',
+      ],
+      excludes: [
+        'Skill 的发现目录、调用方式与禁用粒度（见 Agent Skills）',
+        '仅有一段提示词的自定义 Slash 命令',
+        '插件整包分发 Skills',
+      ],
+      facts: [
+        '只有 Qwen Code 提供从任意知识源生成 Skill 的通用入口 `/learn`，并配套 Auto Skill 与 `/curator` 的 stale、archive、restore 维护；其余四家没有等价的 `/learn` 或按活跃度归档的 curator。',
+        'Claude Code 与 Codex 在特定工作流中自动写入 Skill：Claude 的 `/run-skill-generator`、`/verify` 记录运行配方，Codex 的 Record & Replay 起草 Skill、`$skill-creator` 问答生成、`$skill-installer` 安装策展 Skill。',
+        'Kimi Code 与 Qoder CLI 的 Skill 仅手动编写；停用分别通过 frontmatter 关闭模型自动调用或删除目录，没有按活跃度归档的机制。',
+        '生成的 Skill 与手写 Skill 共用同一加载与权限模型；Qwen 用 frontmatter `source: learned` 与 `source: auto-skill` 区分来源，且 Auto Skill 只管理 `auto-skill-*` 目录，个人、扩展、内置和手写 Skill 永不被选中。',
+      ],
+      products: {
+        claude: {
+          entry:
+            '没有通用 `/learn`。`/run-skill-generator` 记录项目的构建与启动配方；`/verify` 在没有配方时记录自己的配方。',
+          location:
+            '生成的 Skill 写入项目目录：`/run-skill-generator` 写到 `.claude/skills/run-<name>/`；`/verify` 写到 `.claude/skills/verify/SKILL.md`，monorepo 可写在被改动的包目录。',
+          behavior:
+            '`/run-skill-generator` 捕获安装命令、环境变量和启动脚本并提交为每项目 Skill；`/verify` 只在之前引导错误（命令失败或缺步骤）时编辑已记录文件。',
+          scope:
+            '生成的 Skill 属于项目层，随仓库共享；仓库根的记录 Skill 会替代同名内置 `/verify`。',
+          components:
+            '标准 `SKILL.md` 前置元数据与正文指令；记录内容为可复现的运行配方。',
+          loading:
+            '运行中检测 Skill 变化；记录后的 `/run`、`/verify` 等按新配方执行。',
+          permissions:
+            '生成与调用仍经过 Claude Code 权限规则；`skillOverrides` 可手动隐藏或禁用。',
+          conditions:
+            '自动写入只发生在 `/run-skill-generator`、`/verify` 等特定内置工作流；没有从任意 URL 或文本生成 Skill 的通用入口，也没有归档未使用 Skill 的 curator。`skill-creator` 插件用于评测和描述调优，不从用户行为自动生成任意 Skill。',
+          sources: ['claude-skills'],
+        },
+        codex: {
+          entry:
+            'Record & Replay 录制工作流并起草可复用 Skill；内置 `$skill-creator` 通过问答生成 Skill；`$skill-installer` 安装策展 Skill（如 `$skill-installer linear`）。',
+          location:
+            '手动与生成的 Skill 都放在 `.agents/skills`（项目）、`~/.agents/skills`（用户）、`/etc/codex/skills`（管理员）；安装器可从其他仓库下载。',
+          behavior:
+            'Record & Replay 捕获演示步骤并草拟 Skill；`$skill-creator` 询问用途、触发时机，并选择仅指令或含脚本，默认仅指令。',
+          scope:
+            '项目、用户、管理员和系统四层来源；项目层可随代码共享。',
+          components:
+            '`SKILL.md`（必需 `name`、`description`）加可选脚本、模板和参考资料。',
+          loading:
+            'Codex 自动检测 Skill 变化与新安装；未出现时重启。',
+          permissions:
+            'Skill 不扩大工具授权；脚本仍受审批与沙箱约束。',
+          conditions:
+            '没有从成功任务自动生成 Skill 的 Auto Skill，也没有归档未使用 Skill 的 curator；不删除而停用可在 `~/.codex/config.toml` 的 `[[skills.config]]` 设 `enabled = false`（需重启）。',
+          sources: ['codex-skills', 'codex-config-reference'],
+        },
+        qwen: {
+          entry:
+            '`/learn <source> [focus]` 从 URL、本地路径、文本或视频生成项目 Skill；Auto Skill 自动生成并维护 `auto-skill-*`；`/curator` 查看与维护。',
+          location:
+            '`/learn` 结果写入 `.qwen/skills/learned-skill-<name>/SKILL.md`（frontmatter `source: learned`）；Auto Skill 管理 `.qwen/skills/auto-skill-*`（frontmatter `source: auto-skill`）；归档移到 `.qwen/archived-skills/`。',
+          behavior:
+            '`/learn` 作为普通 Agent 轮运行，把知识源蒸馏为可复用 Skill，可在路径或 URL 后加文本聚焦重点；Auto Skill 启用后定期把不活跃的生成 Skill 移出活跃库：30 天无成功使用或 `SKILL.md` 编辑标记为 stale，90 天整目录移到 `.qwen/archived-skills/`，不永久删除；自动维护在受信任工作区每 7 天至多一次。',
+          scope:
+            '生成与维护只作用于项目层 Skill；个人、扩展、内置和手写 Skill 永不被 Auto Skill 选中。',
+          components:
+            '标准 `SKILL.md` 加 frontmatter `source` 标记（`learned` 或 `auto-skill`）；本地记录成功使用以判断活跃度。',
+          loading:
+            '普通会话监视个人与项目 Skill 目录，增删改后短延迟自动刷新 Skill 列表与调用状态；bare mode 不启动监视，需重启。',
+          permissions:
+            '`/learn` 与 Skill 调用继续经过 approval mode、沙箱和工具策略。',
+          conditions:
+            '视频学习需要 OpenAI 兼容 Provider 上的视频模型，YouTube 页面 URL 不是直接视频输入；`/curator` 的 status 与 `run --dry-run` 在 safe mode 和未信任工作区可用，应用维护（`run`）、`pin`/`unpin`、`restore` 需要受信任且非 safe mode 工作区；pinned 的 auto-skill 在取消固定前不参与 stale 与归档；启用 Auto Skill 生成的具体配置键未在 skills.md 列出。',
+          sources: ['qwen-skill-learning'],
+        },
+        kimi: {
+          entry:
+            '手动创建 `SKILL.md`（目录形式）或单个 `.md`（扁平形式，名称取文件名）并放入扫描目录；无生成命令。',
+          location:
+            '用户 `~/.kimi-code/skills/`、项目 `.kimi-code/skills/`、`config.toml` 额外目录与内置 Skills。',
+          behavior:
+            'Skill 由用户编写后被斜杠调用，或模型按 `description`、`whenToUse` 自动调用；没有从知识源或成功任务自动生成 Skill 的机制。',
+          scope:
+            '优先级 Project、User、Extra、Built-in；同名时高优先级来源覆盖低优先级来源。',
+          components:
+            '`SKILL.md` frontmatter（`name`、`description`、`type`、`whenToUse`、`disableModelInvocation`、`arguments`）与正文占位符。',
+          loading:
+            '启动时按目录发现；变化通过 `/reload` 或新会话生效。',
+          permissions:
+            'Skill 不绕过工具权限与交互模式。',
+          conditions:
+            '官方 Skills 文档未列出任何自动生成、`/learn` 或归档/清理未使用 Skill 的维护功能；停用只能删除目录或用 frontmatter 关闭模型自动调用。',
+          sources: ['kimi-skills-current'],
+        },
+        qoder: {
+          entry:
+            '手动创建 Skill 目录并编写 `SKILL.md`（必需 `name`、`description`）；无生成命令。',
+          location:
+            '用户 `~/.qoder/skills/{name}/`、项目 `.qoder/skills/{name}/`；可含 `REFERENCE.md`、`EXAMPLES.md`、`scripts/`、`templates/`。',
+          behavior:
+            '新会话启动加载，运行中用 `/skills reload` 刷新；模型可按描述自动调用或 `/skill-name` 手动调用；没有自动生成或学习 Skill 的机制。',
+          scope:
+            '项目 Skill 覆盖同名用户 Skill；Plugin 可分发 Skills。',
+          components:
+            '`SKILL.md` 加可选参考、示例、脚本和模板。',
+          loading:
+            '更新直接编辑 `SKILL.md`，新会话或 `/skills reload` 生效。',
+          permissions:
+            'Skill 要求的工具调用继续走 Qoder CLI permission rules。',
+          conditions:
+            '官方 Skills 文档未列出任何自动生成、`/learn` 或归档/清理未使用 Skill 的维护功能；删除即 `rm -rf` Skill 目录，永久移除全部文件。',
+          sources: ['qoder-skills'],
+        },
+      },
+      related: ['extension-skills', 'cmd-memory', 'cmd-skills'],
+    }),
+
     'extension-hooks': createDetail({
       id: 'extension-hooks',
       definition:
