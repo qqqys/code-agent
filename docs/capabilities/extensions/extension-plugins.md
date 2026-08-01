@@ -37,6 +37,7 @@
 1. 五家现在都存在可安装的扩展包；Qwen Code 将该体系称为 Extensions，并能导入 Qwen、Gemini 与 Claude 格式。
 2. 组件集合并不对齐：Codex Plugin 当前不在 IDE 扩展中提供；Kimi Code Plugin 已支持 Agent 组件，但优先级低于用户、额外目录、项目和 `--agent-file`。
 3. 安装作用域也不同：Kimi Code 当前只支持用户安装；Qoder CLI 提供 User、Project 与 Local scope。
+4. 远程插件搜索目前只有 Codex 在 app-server 以 `plugin/search` JSON-RPC 提供，按 `global`/`workspace`/`personal` scope 直接查询远程插件服务；该端点仍在开发中并受功能开关控制，其余四家的插件发现仍走本地目录或 `/plugins` 浏览器。
 
 ## 逐产品记录
 
@@ -62,17 +63,17 @@
 | 字段 | 记录 |
 | --- | --- |
 | 矩阵结论 | `/plugins` |
-| 入口与配置 | Codex CLI 使用 `/plugins` 浏览插件；插件也可从统一目录安装。 |
+| 入口与配置 | Codex CLI 使用 `/plugins` 打开插件浏览器，可搜索或浏览统一插件目录并安装；app-server 另有 `plugin/search` JSON-RPC 直接查询远程插件服务。 |
 | 文件与目录 | 自建包使用 `.codex-plugin/plugin.json`，其余组件按插件规范组织。 |
-| 具体行为 | 把可复用能力组合成插件，并在 Codex 与 ChatGPT 的统一插件目录中分发。 |
+| 具体行为 | 把可复用能力组合成插件，并在 Codex 与 ChatGPT 的统一插件目录中分发。app-server 的 `plugin/search` 绕过本地目录缓存直接搜索远程服务，接受 `searchTerm`、可选 `global`/`workspace`/`personal` scope 以及 `cursor`/`limit`，返回带 marketplace 限定的插件摘要并以 `nextCursor` 透传分页令牌。 |
 | 作用域与优先级 | 安装到当前账号或环境；组织可通过管理策略提供或限制插件。 |
 | 扩展构成 | Skills、MCP/Connector、Hooks，以及可用于自动化的定时模板等组件。 |
 | 加载与刷新 | CLI 与 Codex 桌面端可使用已安装插件；客户端按启用状态加载。 |
-| 适用界面 | Codex CLI 和桌面端支持插件；当前官方文档明确不在 Codex IDE 扩展和移动端提供。 |
+| 适用界面 | Codex CLI 和桌面端支持插件浏览器；当前官方文档明确不在 Codex IDE 扩展和移动端提供。远程插件搜索只在 app-server JSON-RPC 暴露，不是 CLI 命令。 |
 | 权限与信任 | Connector、MCP 和 Hook 继续受认证、审批、沙箱及组织控制。 |
-| 条件与边界 | “Codex 支持 Skills”与“当前 Surface 支持 Plugin 浏览器”是两件事；IDE 扩展目前不加载插件。 |
+| 条件与边界 | “Codex 支持 Skills”与“当前 Surface 支持 Plugin 浏览器”是两件事；IDE 扩展目前不加载插件。`plugin/search` 受功能开关控制：`remote_plugin` 关闭时省略 scope 按 `workspace` 处理、`global`/`personal` 返回空页且不查询远程服务，`plugin_sharing` 关闭时共享/私有工作区结果在取回后被过滤；该端点不与已安装快照联表，返回项 `installed` 恒为 `false`，官方标注 under development、do not call from production clients yet。 |
 | 证据状态 | 官方确认 |
-| 来源 | [Codex Plugins](https://learn.chatgpt.com/docs/plugins) |
+| 来源 | [Codex Plugins](https://learn.chatgpt.com/docs/plugins)、[Codex remote plugin search (app-server)](https://github.com/openai/codex/commit/a850875a8eb603d18cb14cb2c5e80c930de9bd48) |
 
 ### Qwen Code
 
@@ -129,6 +130,7 @@
 
 - [Claude Code Plugins](https://code.claude.com/docs/en/plugins)
 - [Codex Plugins](https://learn.chatgpt.com/docs/plugins)
+- [Codex remote plugin search (app-server)](https://github.com/openai/codex/commit/a850875a8eb603d18cb14cb2c5e80c930de9bd48)
 - [Qwen Code current Extensions](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/extension/introduction.md)
 - [Qwen Code current Extension runtime](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/core/src/extension/extensionManager.ts)
 - [Kimi Code current Plugins](https://github.com/MoonshotAI/kimi-code/blob/691ec4679ea1/docs/zh/customization/plugins.md)

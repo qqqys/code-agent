@@ -210,6 +210,10 @@ window.matrixData = {
       label: 'Codex Plugins',
       url: 'https://learn.chatgpt.com/docs/plugins',
     },
+    'codex-plugin-search': {
+      label: 'Codex remote plugin search (app-server)',
+      url: 'https://github.com/openai/codex/commit/a850875a8eb603d18cb14cb2c5e80c930de9bd48',
+    },
     'codex-agents-md': {
       label: 'Codex AGENTS.md',
       url: 'https://learn.chatgpt.com/docs/agent-configuration/agents-md',

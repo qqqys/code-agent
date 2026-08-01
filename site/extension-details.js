@@ -497,6 +497,7 @@
         '五家现在都存在可安装的扩展包；Qwen Code 将该体系称为 Extensions，并能导入 Qwen、Gemini 与 Claude 格式。',
         '组件集合并不对齐：Codex Plugin 当前不在 IDE 扩展中提供；Kimi Code Plugin 已支持 Agent 组件，但优先级低于用户、额外目录、项目和 `--agent-file`。',
         '安装作用域也不同：Kimi Code 当前只支持用户安装；Qoder CLI 提供 User、Project 与 Local scope。',
+        '远程插件搜索目前只有 Codex 在 app-server 以 `plugin/search` JSON-RPC 提供，按 `global`/`workspace`/`personal` scope 直接查询远程插件服务；该端点仍在开发中并受功能开关控制，其余四家的插件发现仍走本地目录或 `/plugins` 浏览器。',
       ],
       products: {
         claude: {
@@ -520,11 +521,11 @@
         },
         codex: {
           entry:
-            'Codex CLI 使用 `/plugins` 浏览插件；插件也可从统一目录安装。',
+            'Codex CLI 使用 `/plugins` 打开插件浏览器，可搜索或浏览统一插件目录并安装；app-server 另有 `plugin/search` JSON-RPC 直接查询远程插件服务。',
           location:
             '自建包使用 `.codex-plugin/plugin.json`，其余组件按插件规范组织。',
           behavior:
-            '把可复用能力组合成插件，并在 Codex 与 ChatGPT 的统一插件目录中分发。',
+            '把可复用能力组合成插件，并在 Codex 与 ChatGPT 的统一插件目录中分发。app-server 的 `plugin/search` 绕过本地目录缓存直接搜索远程服务，接受 `searchTerm`、可选 `global`/`workspace`/`personal` scope 以及 `cursor`/`limit`，返回带 marketplace 限定的插件摘要并以 `nextCursor` 透传分页令牌。',
           scope:
             '安装到当前账号或环境；组织可通过管理策略提供或限制插件。',
           components:
@@ -532,12 +533,12 @@
           loading:
             'CLI 与 Codex 桌面端可使用已安装插件；客户端按启用状态加载。',
           surfaces:
-            'Codex CLI 和桌面端支持插件；当前官方文档明确不在 Codex IDE 扩展和移动端提供。',
+            'Codex CLI 和桌面端支持插件浏览器；当前官方文档明确不在 Codex IDE 扩展和移动端提供。远程插件搜索只在 app-server JSON-RPC 暴露，不是 CLI 命令。',
           permissions:
             'Connector、MCP 和 Hook 继续受认证、审批、沙箱及组织控制。',
           conditions:
-            '“Codex 支持 Skills”与“当前 Surface 支持 Plugin 浏览器”是两件事；IDE 扩展目前不加载插件。',
-          sources: ['codex-plugins'],
+            '“Codex 支持 Skills”与“当前 Surface 支持 Plugin 浏览器”是两件事；IDE 扩展目前不加载插件。`plugin/search` 受功能开关控制：`remote_plugin` 关闭时省略 scope 按 `workspace` 处理、`global`/`personal` 返回空页且不查询远程服务，`plugin_sharing` 关闭时共享/私有工作区结果在取回后被过滤；该端点不与已安装快照联表，返回项 `installed` 恒为 `false`，官方标注 under development、do not call from production clients yet。',
+          sources: ['codex-plugins', 'codex-plugin-search'],
         },
         qwen: {
           entry:
