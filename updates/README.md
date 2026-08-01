@@ -4,6 +4,7 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-08-01 | [Qwen Code Skill 禁用层级与五家禁用粒度核对](./2026-08-01-Qwen-Skill禁用层级.md) |
 | 2026-07-31 | [核对 Subagent 独立 Hooks 字段](./2026-07-31-Subagent独立Hooks核对.md) |
 | 2026-07-30 | [确认 Qoder CLI `/plan` 命令](./2026-07-30-Qoder计划模式命令确认.md) |
 | 2026-07-30 | [Qwen Code Agent 模型 Grade 选择](./2026-07-30-Qwen模型Grade与Agent选模型.md) |
