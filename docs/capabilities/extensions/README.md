@@ -10,6 +10,7 @@
 | --- | --- | --- |
 | MCP 客户端 | [打开](https://qqqys.github.io/code-agent/capability.html?id=extension-mcp) | [查看](./extension-mcp.md) |
 | Agent Skills | [打开](https://qqqys.github.io/code-agent/capability.html?id=extension-skills) | [查看](./extension-skills.md) |
+| Skill 生成与维护 | [打开](https://qqqys.github.io/code-agent/capability.html?id=extension-skill-generation) | [查看](./extension-skill-generation.md) |
 | 生命周期 Hooks | [打开](https://qqqys.github.io/code-agent/capability.html?id=extension-hooks) | [查看](./extension-hooks.md) |
 | 插件分发 | [打开](https://qqqys.github.io/code-agent/capability.html?id=extension-plugins) | [查看](./extension-plugins.md) |
 | 自定义 Slash 命令 | [打开](https://qqqys.github.io/code-agent/capability.html?id=extension-custom-commands) | [查看](./extension-custom-commands.md) |
