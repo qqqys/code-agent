@@ -245,6 +245,7 @@
         '五家当前都采用包含 `SKILL.md` 的目录结构，并允许把辅助文件与入口指令放在同一 Skill 包内。',
         'Codex 使用通用 `.agents/skills` 目录和 `$skill` 显式引用；Kimi Code 的明确命名空间是 `/skill:<name>`；其余三家支持 `/<skill-name>`。',
         'Skill 可被模型自动选择不代表一定执行；描述匹配、可用路径、禁用配置和同名优先级都会改变最终加载结果。',
+        '禁用粒度不对齐：Qwen Code 用 `skills.disabledLevels` 整体关闭某个发现层级（`project`/`user`/`extension`/`bundled`），Claude Code 用 `disableBundledSkills` 只关内置层并以 `skillOverrides` 逐个控制，Codex 按 `SKILL.md` 路径在 `[[skills.config]]` 逐个禁用，Kimi Code 只在 frontmatter 逐个关闭模型自动调用，Qoder CLI 无独立技能软禁用、只能停用承载插件或删除目录。',
       ],
       products: {
         claude: {
@@ -263,8 +264,8 @@
           permissions:
             'Skill 只是指令与资源包；其中要求调用的工具仍经过 Claude Code 权限规则。',
           conditions:
-            '同名 Skill 与旧式 Command 需要避免冲突；可通过元数据控制是否允许模型自动调用。',
-          sources: ['claude-skills'],
+            '同名 Skill 与旧式 Command 需要避免冲突。禁用分多层：`skillOverrides` 按名称设 `on`/`name-only`/`user-invocable-only`/`off`（`/skills` 写入 `.claude/settings.local.json`，不影响 Plugin Skill）；`disableBundledSkills` 关闭除 `/doctor` 外的全部内置 Skill；`/permissions` 可用 `Skill`、`Skill(name)`、`Skill(name *)` 拒绝；SKILL.md 可用 `disable-model-invocation`、`user-invocable`、`paths` 收窄。',
+          sources: ['claude-skills', 'claude-settings'],
         },
         codex: {
           entry:
@@ -282,8 +283,8 @@
           permissions:
             'Skill 不扩大工具授权；脚本和命令仍受审批、沙箱及组织配置约束。',
           conditions:
-            'Codex 当前项目目录是 `.agents/skills`，不是旧对照表中的 `.codex/skills`。',
-          sources: ['codex-skills'],
+            'Codex 当前项目目录是 `.agents/skills`，不是旧对照表中的 `.codex/skills`。逐个禁用可在 `~/.codex/config.toml` 的 `[[skills.config]]` 中按 `path` 指向 `SKILL.md` 并设 `enabled = false`（需重启）；SKILL.md 元数据 `allow_implicit_invocation: false` 禁止隐式调用但保留 `$skill` 显式调用。',
+          sources: ['codex-skills', 'codex-config-reference'],
         },
         qwen: {
           entry:
@@ -293,7 +294,7 @@
           behavior:
             '按需读取 SKILL.md，并可访问 Skill 目录中的脚本、文档和其他资源。',
           scope:
-            '项目、用户和 Extension 来源合并；设置可以禁用 Skills 或限定发现路径。',
+            '项目、用户和 Extension 来源合并。`skills.disabledLevels` 可整体跳过 `project`、`user`、`extension`、`bundled` 任一发现层级（默认 `undefined`，跨作用域取并集，`requiresRestart`）；`skills.directories` 按 `user` 层发现，因此 `["user"]` 会一并隐藏。逐个控制另有 `skills.disabled`、`skills.enabled` 与 `skills.defaultDisabled`，但 `skills.enabled` 不能恢复已被 `disabledLevels` 排除的层级。',
           components:
             '`SKILL.md`、辅助文件和可执行脚本；内置 Skill 与外部 Skill 使用同一调用模型。',
           loading:
@@ -301,9 +302,9 @@
           permissions:
             'Skill 触发的工具继续经过 approval mode、沙箱和工具策略。',
           conditions:
-            'Slash 名称可能与内置命令、自定义 Command 或 MCP Prompt 冲突；加载器按来源和命令注册规则处理。',
+            'Slash 名称可能与内置命令、自定义 Command 或 MCP Prompt 冲突；加载器按来源和命令注册规则处理。`skills.disabledLevels` 在 safe mode、bare mode 下被忽略；daemon 在工作区未信任时也不读取。',
           status: '源码确认',
-          sources: ['qwen-skills-current', 'qwen-extensions-current'],
+          sources: ['qwen-skills-current', 'qwen-extensions-current', 'qwen-skills-disabled-levels'],
         },
         kimi: {
           entry:
@@ -321,7 +322,7 @@
           permissions:
             'Skill 内容不绕过 Kimi 的工具权限和交互模式。',
           conditions:
-            '无前缀 `/<name>` 只有在不与已有命令冲突时才作为回退；稳定写法是 `/skill:<name>`。',
+            '无前缀 `/<name>` 只有在不与已有命令冲突时才作为回退；稳定写法是 `/skill:<name>`。逐个禁用只走 frontmatter：`disableModelInvocation: true`（别名 `disable-model-invocation`）禁止模型自动调用但仍可 `/skill:<name>` 手动调用，`type: flow` 仅手动调用；当前无按名称或按层级的禁用配置键。',
           sources: ['kimi-skills-current', 'kimi-plugins-current'],
         },
         qoder: {
@@ -340,7 +341,7 @@
           permissions:
             'Skill 要求的工具调用继续走 Qoder CLI permission rules。',
           conditions:
-            '项目目录适合随仓库共享，用户目录适合个人复用；同名覆盖需要结合来源检查。',
+            '项目目录适合随仓库共享，用户目录适合个人复用；同名覆盖需要结合来源检查。独立 user/project Skill 无设置级软禁用，官方文档只给出删除目录；插件携带的 Skill 随插件停用（`enabledPlugins` 或 `qodercli plugins disable`，停用插件在新会话不再加载）。',
           sources: ['qoder-skills', 'qoder-plugins'],
         },
       },

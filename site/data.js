@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-07-31',
+  updatedAt: '2026-08-01',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -353,6 +353,10 @@ window.matrixData = {
     'qwen-skills-current': {
       label: 'Qwen Code current Skills',
       url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/skills.md',
+    },
+    'qwen-skills-disabled-levels': {
+      label: 'Qwen Code disabled skill levels',
+      url: 'https://github.com/QwenLM/qwen-code/commit/de022664dc59a3c2f7af083acaaba6a86f14115c',
     },
     'qwen-hooks-current': {
       label: 'Qwen Code current Hooks',
@@ -1130,7 +1134,7 @@ window.matrixData = {
       category: 'extensions',
       capability: 'Agent Skills',
       description: '从项目或用户目录加载可复用指令与资源。',
-      values: { claude: '`/<skill-name>` · `.claude/skills/`', codex: '`$skill` · `.agents/skills/`', qwen: '`/<skill-name>` · `.qwen/skills/`', kimi: '`/skill:<name>` · `.kimi-code/skills/`', qoder: '`/<skill-name>` · `.qoder/skills/`' },
+      values: { claude: '`/<skill-name>` · `.claude/skills/`', codex: '`$skill` · `.agents/skills/`', qwen: '`/<skill-name>` · `.qwen/skills/` · `skills.disabledLevels`', kimi: '`/skill:<name>` · `.kimi-code/skills/`', qoder: '`/<skill-name>` · `.qoder/skills/`' },
     },
     {
       id: 'extension-hooks',
