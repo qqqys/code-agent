@@ -619,6 +619,7 @@
         '组件集合并不对齐：Codex Plugin 当前不在 IDE 扩展中提供；Kimi Code Plugin 已支持 Agent 组件，但优先级低于用户、额外目录、项目和 `--agent-file`。',
         '安装作用域也不同：Kimi Code 当前只支持用户安装；Qoder CLI 提供 User、Project 与 Local scope。',
         '远程插件搜索目前只有 Codex 在 app-server 以 `plugin/search` JSON-RPC 提供，按 `global`/`workspace`/`personal` scope 直接查询远程插件服务；该端点仍在开发中并受功能开关控制，其余四家的插件发现仍走本地目录或 `/plugins` 浏览器。',
+        'Codex 在仓库中增加了对 `agent-plugins.org` 1.0.0 清单的支持：根目录 `plugin.json` 与 `.codex-plugin/plugin.json` 并存，`extensions` 字段按反向域名命名空间承载客户端特定数据。其余四家当前一手资料未列出对同一清单的支持。',
       ],
       products: {
         claude: {
@@ -644,7 +645,7 @@
           entry:
             'Codex CLI 使用 `/plugins` 打开插件浏览器，可搜索或浏览统一插件目录并安装；app-server 另有 `plugin/search` JSON-RPC 直接查询远程插件服务。',
           location:
-            '自建包使用 `.codex-plugin/plugin.json`，其余组件按插件规范组织。',
+            '自建包使用 `.codex-plugin/plugin.json`；也接受根目录 `plugin.json`（`$schema` 指向 `agent-plugins.org/schemas/1.0.0/plugin.schema.json`）的便携 Agent Plugin 清单。其余组件按插件规范组织。',
           behavior:
             '把可复用能力组合成插件，并在 Codex 与 ChatGPT 的统一插件目录中分发。app-server 的 `plugin/search` 绕过本地目录缓存直接搜索远程服务，接受 `searchTerm`、可选 `global`/`workspace`/`personal` scope 以及 `cursor`/`limit`，返回带 marketplace 限定的插件摘要并以 `nextCursor` 透传分页令牌。',
           scope:
@@ -658,8 +659,8 @@
           permissions:
             'Connector、MCP 和 Hook 继续受认证、审批、沙箱及组织控制。',
           conditions:
-            '“Codex 支持 Skills”与“当前 Surface 支持 Plugin 浏览器”是两件事；IDE 扩展目前不加载插件。`plugin/search` 受功能开关控制：`remote_plugin` 关闭时省略 scope 按 `workspace` 处理、`global`/`personal` 返回空页且不查询远程服务，`plugin_sharing` 关闭时共享/私有工作区结果在取回后被过滤；该端点不与已安装快照联表，返回项 `installed` 恒为 `false`，官方标注 under development、do not call from production clients yet。',
-          sources: ['codex-plugins', 'codex-plugin-search'],
+            '"Codex 支持 Skills"与"当前 Surface 支持 Plugin 浏览器"是两件事；IDE 扩展目前不加载插件。`plugin/search` 受功能开关控制：`remote_plugin` 关闭时省略 scope 按 `workspace` 处理、`global`/`personal` 返回空页且不查询远程服务，`plugin_sharing` 关闭时共享/私有工作区结果在取回后被过滤；该端点不与已安装快照联表，返回项 `installed` 恒为 `false`，官方标注 under development、do not call from production clients yet。便携 Agent Plugin 清单只要求 `$schema` 和 `name`（允许点号，最长 64 字符）；`version` 缺省为 `1.0.0`，非目录安全版本内部派生 `agent-plugins-<sha256-hex>` 目录名且不改写原清单。Agent Plugin 跳过旧式命令迁移；安装时拒绝符号链接和不受支持的文件类型。',
+          sources: ['codex-plugins', 'codex-plugin-search', 'codex-portable-plugins'],
         },
         qwen: {
           entry:
