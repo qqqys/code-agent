@@ -14,7 +14,7 @@
 | --- | --- | --- |
 | Claude Code | `/review` · `/code-review` · GitHub Review | 官方确认 |
 | Codex | `/review` · GitHub Review | 官方确认 |
-| Qwen Code | `/review` 内置 Skill | 源码确认 |
+| Qwen Code | `/review` 内置 Skill · `publish-assets` 证据图 | 源码确认 |
 | Kimi Code | 自然语言；无内置 `/review` | 条件项 |
 | Qoder CLI | `/review [instruction]` | 官方确认 |
 
@@ -37,6 +37,7 @@
 1. Codex、Qwen Code、Claude Code 和 Qoder CLI 都提供明确 Review 入口；Kimi Code 当前命令目录没有内置 `/review`。
 2. Qwen Code `/review` 是随产品加载的内置 Skill，不是硬编码命令；它能审本地、文件与 PR，同仓 PR 使用隔离 Worktree。
 3. Claude 与 Codex 的 GitHub 托管 Review 和本地 `/review` 是不同 Surface：前者可在 PR 上自动触发，后者在当前会话输出结果。
+4. Qwen Code `/review` 自 2026-08-02 起提供 `publish-assets`：把证据图发布到用户指定的资产仓库并回写 URL，供 PR 评论嵌入；其余四家当前一手资料未列出同类内置入口。
 
 ## 逐产品记录
 
@@ -76,17 +77,17 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 矩阵结论 | `/review` 内置 Skill |
-| 入口与工具 | `/review` 审本地变化；`/review <file>` 审文件；`/review <pr>` 审 PR；`--comment` 发布 GitHub Review。 |
-| 核心机制 | 内置 Skill 用 `qwen review fetch-pr`、并行审查 Agent、锚点验证和一次 Create Review API 提交。 |
-| 执行行为 | 本地默认 medium effort，PR 默认 high；同仓 PR 强制在临时 Worktree 中读、测、审，跨仓 URL 使用轻量模式。 |
+| 矩阵结论 | `/review` 内置 Skill · `publish-assets` 证据图 |
+| 入口与工具 | `/review` 审本地变化；`/review <file>` 审文件；`/review <pr>` 审 PR；`--comment` 发布 GitHub Review；`qwen review publish-assets` 发布证据图。 |
+| 核心机制 | 内置 Skill 用 `qwen review fetch-pr`、并行审查 Agent、锚点验证和一次 Create Review API 提交；证据图经 Contents API（`gh` HTTPS）写入指定仓库，不克隆、不走 SSH。 |
+| 执行行为 | 本地默认 medium effort，PR 默认 high；同仓 PR 强制在临时 Worktree 中读、测、审，跨仓 URL 使用轻量模式。证据图只接受 png/jpg/jpeg/gif/webp（拒绝 SVG），单文件 10 MiB、单批 40 MiB 上限，任一文件不合格则整批拒绝。 |
 | 运行范围 | 本地 working tree、单文件、PR number 或 URL；规则来自系统、项目 AGENTS.md 和 Skill。 |
 | 后台与并发 | 多维度审查 Agent 可并行执行；进度在当前 Surface 展示。 |
-| Git 与平台联动 | `--comment` 在 GitHub 提交一次 Review；Qwen Code Action 还能在 PR 事件中自动运行审查。 |
-| 状态与产物 | 本地 findings、临时审查记录、可选 GitHub 行内评论；Worktree 按流程清理。 |
-| 条件与边界 | Bare mode、禁用 Skills 或 Slash 时不可用；PR 读取/评论需要 GitHub 访问权限。 |
+| Git 与平台联动 | `--comment` 在 GitHub 提交一次 Review；Qwen Code Action 还能在 PR 事件中自动运行审查。GitHub API 不能给 Review 评论附图，`publish-assets` 把证据图托管到 `QWEN_REVIEW_ASSETS_REPO`（`owner/repo`），写入 `pr-assets/<pr>-review` 分支并以 commit 固定的 URL 嵌入评论；GitHub Enterprise 加 `--host`。 |
+| 状态与产物 | 本地 findings、临时审查记录、可选 GitHub 行内评论；findings 带 `assetFiles` 本地路径与 `assets` 已发布 URL，资产清单记录每个文件及落点 commit；Worktree 按流程清理。 |
+| 条件与边界 | Bare mode、禁用 Skills 或 Slash 时不可用；PR 读取/评论需要 GitHub 访问权限。`publish-assets` 还要求 `QWEN_REVIEW_ASSETS_REPO` 指定可推送仓库（未设置或格式错误退出码 3，不自动选仓库），并与 `submit` 共用授权门禁：只有被授权发布评论的运行才能推送，有效 `--comment` 强制 high effort，因此 low/medium 运行不会发布。 |
 | 证据状态 | 源码确认 |
-| 来源 | [Qwen Code current code review](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/code-review.md)、[Qwen Code review Skill](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/core/src/skills/bundled/review/SKILL.md)、[Qwen Code current worktree](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/worktree.md) |
+| 来源 | [Qwen Code current code review](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/code-review.md)、[Qwen Code review Skill](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/core/src/skills/bundled/review/SKILL.md)、[Qwen Code review evidence image publishing](https://github.com/QwenLM/qwen-code/commit/186812694c8d28c3434fa1c48dbca987281378f9)、[Qwen Code current worktree](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/worktree.md) |
 
 ### Kimi Code
 
@@ -129,6 +130,7 @@
 - [Codex CLI commands](https://developers.openai.com/codex/cli/slash-commands)
 - [Qwen Code current code review](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/code-review.md)
 - [Qwen Code review Skill](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/core/src/skills/bundled/review/SKILL.md)
+- [Qwen Code review evidence image publishing](https://github.com/QwenLM/qwen-code/commit/186812694c8d28c3434fa1c48dbca987281378f9)
 - [Qwen Code current worktree](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/worktree.md)
 - [Kimi Code current slash commands](https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/reference/slash-commands.md)
 - [Kimi Code current built-in tools](https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/reference/tools.md)
