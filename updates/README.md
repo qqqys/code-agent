@@ -4,6 +4,8 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-08-02 | [Qwen Code Review 证据图发布](./2026-08-02-Qwen-Review证据图发布.md) |
+| 2026-08-02 | [Codex 便携 Agent Plugin 清单](./2026-08-02-Codex便携Agent-Plugin清单.md) |
 | 2026-08-02 | [Codex MCP 发现项收集上限](./2026-08-02-Codex-MCP发现项上限.md) |
 | 2026-08-01 | [Qwen Code Skill 禁用层级与五家禁用粒度核对](./2026-08-01-Qwen-Skill禁用层级.md) |
 | 2026-07-31 | [核对 Subagent 独立 Hooks 字段](./2026-07-31-Subagent独立Hooks核对.md) |

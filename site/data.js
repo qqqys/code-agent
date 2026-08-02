@@ -286,6 +286,10 @@ window.matrixData = {
       label: 'Qwen Code review Skill',
       url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/core/src/skills/bundled/review/SKILL.md',
     },
+    'qwen-review-assets': {
+      label: 'Qwen Code review evidence image publishing',
+      url: 'https://github.com/QwenLM/qwen-code/commit/186812694c8d28c3434fa1c48dbca987281378f9',
+    },
     'qwen-command-modes': {
       label: 'Qwen Code command mode filter',
       url: 'https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/commandUtils.ts',
@@ -1227,7 +1231,7 @@ window.matrixData = {
       category: 'execution',
       capability: '代码 Review',
       description: '由产品提供的审查命令或工作流。',
-      values: { claude: '`/review` · `/code-review` · GitHub Review', codex: '`/review` · GitHub Review', qwen: '`/review` 内置 Skill', kimi: '自然语言；无内置 `/review`', qoder: '`/review [instruction]`' },
+      values: { claude: '`/review` · `/code-review` · GitHub Review', codex: '`/review` · GitHub Review', qwen: '`/review` 内置 Skill · `publish-assets` 证据图', kimi: '自然语言；无内置 `/review`', qoder: '`/review [instruction]`' },
     },
     {
       id: 'execution-git',
