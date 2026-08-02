@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-08-01',
+  updatedAt: '2026-08-02',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -197,6 +197,10 @@ window.matrixData = {
     'codex-mcp': {
       label: 'Codex MCP',
       url: 'https://learn.chatgpt.com/docs/extend/mcp',
+    },
+    'codex-mcp-catalog': {
+      label: 'Codex MCP discovery item limit',
+      url: 'https://github.com/openai/codex/commit/582569998181aad08a88bacc151a94b2048a5d1f',
     },
     'codex-skills': {
       label: 'Codex Agent Skills',

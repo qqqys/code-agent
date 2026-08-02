@@ -2,7 +2,7 @@
 
 [返回模型与认证详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=auth-api-key)
 
-> 核对日期：2026-08-01
+> 核对日期：2026-08-02
 
 ## 定义
 

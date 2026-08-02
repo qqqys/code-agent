@@ -2,7 +2,7 @@
 
 [返回扩展系统详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=extension-mcp)
 
-> 核对日期：2026-08-01
+> 核对日期：2026-08-02
 
 ## 定义
 
@@ -37,6 +37,7 @@
 1. 五家都能作为 MCP 客户端，但支持的传输集合不同：Codex 当前公开范围是 STDIO 与 Streamable HTTP，Claude Code 和 Qoder CLI 还覆盖 WebSocket。
 2. 项目级 MCP 配置通常进入仓库或工作目录，因此 Claude Code、Kimi Code 和 Qoder CLI 都明确区分项目配置与用户配置。
 3. “连上 Server”不等于所有工具无条件执行；工具过滤、审批、沙箱和工作区信任仍在 MCP 之外继续生效。
+4. Codex 公开了 MCP 发现项收集上限：工具、资源与资源模板的分页结果合计最多 2,048 项（`MAX_MCP_CATALOG_ITEMS`，原 1,024）；其余四家当前一手资料未列出同类上限。
 
 ## 逐产品记录
 
@@ -70,9 +71,9 @@
 | 加载与刷新 | 修改 TOML 或运行 `codex mcp` 后由客户端加载；OAuth 通过登录命令建立授权。 |
 | 适用界面 | CLI、Codex 桌面端和 IDE 扩展共享 MCP 配置，但每个 Surface 的可用工具和交互入口仍可能不同。 |
 | 权限与信任 | Server 级 `enabled_tools`、`disabled_tools` 与工具审批策略先缩小暴露范围，实际执行仍受当前审批和沙箱配置约束。 |
-| 条件与边界 | 当前官方 MCP 文档未列 SSE 或 WebSocket；不要把其他客户端支持的传输推断给 Codex。 |
+| 条件与边界 | 当前官方 MCP 文档未列 SSE 或 WebSocket；不要把其他客户端支持的传输推断给 Codex。MCP 工具、资源与资源模板的分页发现结果合计最多收集 2,048 项（`MAX_MCP_CATALOG_ITEMS`，原 1,024），超出部分不会进入工具列表。 |
 | 证据状态 | 官方确认 |
-| 来源 | [Codex MCP](https://learn.chatgpt.com/docs/extend/mcp) |
+| 来源 | [Codex MCP](https://learn.chatgpt.com/docs/extend/mcp)、[Codex MCP discovery item limit](https://github.com/openai/codex/commit/582569998181aad08a88bacc151a94b2048a5d1f) |
 
 ### Qwen Code
 
@@ -129,6 +130,7 @@
 
 - [Claude Code MCP](https://code.claude.com/docs/en/mcp)
 - [Codex MCP](https://learn.chatgpt.com/docs/extend/mcp)
+- [Codex MCP discovery item limit](https://github.com/openai/codex/commit/582569998181aad08a88bacc151a94b2048a5d1f)
 - [Qwen Code current MCP](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/mcp.md)
 - [Kimi Code current MCP](https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/customization/mcp.md)
 - [Qoder CLI MCP servers](https://docs.qoder.com/en/cli/mcp-servers)
