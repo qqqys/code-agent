@@ -12,7 +12,7 @@
 
 | 产品 | 结论 | 证据状态 |
 | --- | --- | --- |
-| Claude Code | Sandbox 域名代理与 Allow/Deny | 官方确认 |
+| Claude Code | Sandbox 域名代理与 Allow/Deny；`strictAllowlist` 直接拒绝未列主机 | 官方确认 |
 | Codex | `workspace-write` 默认断网；可单独启用与限域 | 官方确认 |
 | Qwen Code | Seatbelt Profile 与代理；依配置 | 条件项 |
 | Kimi Code | 网络工具权限；OS 网络隔离未确认 | 未确认 |
@@ -36,6 +36,7 @@
 
 1. 网络工具 Allow/Deny 与命令子进程的 OS 网络隔离不是同一层。
 2. Codex 的 `workspace-write` 默认关闭命令网络；Claude Code 和 Qwen Code 可在启用 Sandbox 时按域名或 Profile 控制。
+3. Claude Code 对未列域名默认逐次审批，`sandbox.network.strictAllowlist` 或 Managed `allowManagedDomainsOnly` 可改为直接阻断。
 
 ## 逐产品记录
 
@@ -43,17 +44,17 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 矩阵结论 | Sandbox 域名代理与 Allow/Deny |
+| 矩阵结论 | Sandbox 域名代理与 Allow/Deny；`strictAllowlist` 直接拒绝未列主机 |
 | 入口与切换 | `/permissions` 管理规则，`Shift+Tab` 切换常用模式；启动参数使用 `--permission-mode`，`/sandbox` 单独配置 Bash 沙箱。 |
 | 默认状态 | 默认权限模式为 `default`。只读工具通常直接运行；Bash 和文件修改按权限规则与当前模式决定是否询问。 |
-| 具体行为 | Sandbox 通过外部代理限制 Bash 及子进程域名，新域名可触发审批；WebFetch 规则与 Sandbox allow/deny domains 合并。 |
+| 具体行为 | Sandbox 通过外部代理限制 Bash 及子进程域名，默认不预允许任何域名，首次使用新域名触发审批；`sandbox.network.strictAllowlist` 开启后直接拒绝 Allowlist 之外主机，Managed 的 `allowManagedDomainsOnly` 同样自动阻断未列域名且只认 Managed 来源的 Allow 规则。严格名单只约束沙箱内命令，WebFetch 等进程内工具仍按自身权限规则判断；WebFetch 规则与 Sandbox allow/deny domains 合并。 |
 | 规则能力 | `permissions.allow`、`ask`、`deny` 按 deny → ask → allow 处理；规则覆盖 Bash、Read、Edit、WebFetch、MCP、Agent 等工具。 |
 | 隔离边界 | 权限系统覆盖全部工具；OS 沙箱只覆盖 Bash 及其子进程。沙箱默认只允许向工作目录和会话临时目录写入，并通过代理限制网络域名。 |
-| 保存与作用域 | 规则和模式可保存在用户、项目、本地项目或 Managed Settings；交互审批也可只放行一次或当前会话。 |
+| 保存与作用域 | 规则和模式可保存在用户、项目、本地项目或 Managed Settings；交互审批也可只放行一次或当前会话。`strictAllowlist` 只在用户、Managed 或 `--settings` 设置中生效，仓库 `.claude/settings.json` 或 `.claude/settings.local.json` 中设置无效。 |
 | 非交互行为 | `claude -p` 没有确认界面。未被规则或模式预授权的 Shell、网络等操作会使运行中止；`dontAsk` 会直接拒绝所有仍需询问的操作。 |
 | 条件与边界 | OS 沙箱依赖 macOS Seatbelt、Linux bubblewrap 或 WSL2；默认不可用时会警告并回退，`sandbox.failIfUnavailable` 可改为失败关闭。 |
 | 证据状态 | 官方确认 |
-| 来源 | [Claude Code Permissions](https://code.claude.com/docs/en/permissions)、[Claude Code Permission Modes](https://code.claude.com/docs/en/permission-modes)、[Claude Code Sandboxing](https://code.claude.com/docs/en/sandboxing)、[Claude Code Headless Mode](https://code.claude.com/docs/en/headless) |
+| 来源 | [Claude Code Permissions](https://code.claude.com/docs/en/permissions)、[Claude Code Permission Modes](https://code.claude.com/docs/en/permission-modes)、[Claude Code Sandboxing](https://code.claude.com/docs/en/sandboxing)、[Claude Code Headless Mode](https://code.claude.com/docs/en/headless)、[Claude Code v2.1.219 changelog](https://github.com/anthropics/claude-code/blob/0c188278cdf9/CHANGELOG.md) |
 
 ### Codex
 
@@ -125,6 +126,7 @@
 - [Claude Code Permission Modes](https://code.claude.com/docs/en/permission-modes)
 - [Claude Code Sandboxing](https://code.claude.com/docs/en/sandboxing)
 - [Claude Code Headless Mode](https://code.claude.com/docs/en/headless)
+- [Claude Code v2.1.219 changelog](https://github.com/anthropics/claude-code/blob/0c188278cdf9/CHANGELOG.md)
 - [Codex Agent approvals and security](https://learn.chatgpt.com/docs/agent-approvals-security)
 - [Codex Advanced Configuration](https://learn.chatgpt.com/docs/config-file/config-advanced)
 - [Qwen Code Approval Mode](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/approval-mode.md)
