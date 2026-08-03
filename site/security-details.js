@@ -303,10 +303,11 @@
       facts: [
         '网络工具 Allow/Deny 与命令子进程的 OS 网络隔离不是同一层。',
         'Codex 的 `workspace-write` 默认关闭命令网络；Claude Code 和 Qwen Code 可在启用 Sandbox 时按域名或 Profile 控制。',
+        'Claude Code 对未列域名默认逐次审批，`sandbox.network.strictAllowlist` 或 Managed `allowManagedDomainsOnly` 可改为直接阻断。',
       ],
       behavior: {
         claude:
-          'Sandbox 通过外部代理限制 Bash 及子进程域名，新域名可触发审批；WebFetch 规则与 Sandbox allow/deny domains 合并。',
+          'Sandbox 通过外部代理限制 Bash 及子进程域名，默认不预允许任何域名，首次使用新域名触发审批；`sandbox.network.strictAllowlist` 开启后直接拒绝 Allowlist 之外主机，Managed 的 `allowManagedDomainsOnly` 同样自动阻断未列域名且只认 Managed 来源的 Allow 规则。严格名单只约束沙箱内命令，WebFetch 等进程内工具仍按自身权限规则判断；WebFetch 规则与 Sandbox allow/deny domains 合并。',
         codex:
           '`workspace-write` 默认 `network_access = false`；开启后可再启用 `network_proxy`，用 allow/deny 域名、私网和 Unix Socket 规则限域。',
         qwen:
@@ -315,6 +316,19 @@
           '可用工具规则限制 Bash 或特定网络工具，内置搜索/抓取服务也可单独配置；当前 CLI 文档未确认命令子进程的 OS 网络沙箱。',
         qoder:
           '主 CLI 可对 WebFetch/WebSearch 使用 ask/deny；SDK `sandbox.network` 可配置本地绑定、Unix Socket、HTTP 与 SOCKS 代理。',
+      },
+      overrides: {
+        claude: {
+          persistence:
+            '规则和模式可保存在用户、项目、本地项目或 Managed Settings；交互审批也可只放行一次或当前会话。`strictAllowlist` 只在用户、Managed 或 `--settings` 设置中生效，仓库 `.claude/settings.json` 或 `.claude/settings.local.json` 中设置无效。',
+          sources: [
+            'claude-permissions',
+            'claude-permission-modes',
+            'claude-sandboxing',
+            'claude-headless',
+            'claude-sandbox-strict-allowlist',
+          ],
+        },
       },
       related: ['security-filesystem', 'security-approval', 'security-bypass'],
     }),

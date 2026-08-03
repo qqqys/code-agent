@@ -146,6 +146,10 @@ window.matrixData = {
       label: 'Claude Code keybindings',
       url: 'https://code.claude.com/docs/en/keybindings',
     },
+    'claude-sandbox-strict-allowlist': {
+      label: 'Claude Code v2.1.219 changelog',
+      url: 'https://github.com/anthropics/claude-code/blob/0c188278cdf9/CHANGELOG.md',
+    },
     'codex-commands': {
       label: 'Codex CLI commands',
       url: 'https://developers.openai.com/codex/cli/slash-commands',
@@ -1085,7 +1089,7 @@ window.matrixData = {
       category: 'security',
       capability: '网络隔离',
       description: '单独限制 Agent 进程访问网络。',
-      values: { claude: 'Sandbox 域名代理与 Allow/Deny', codex: '`workspace-write` 默认断网；可单独启用与限域', qwen: 'Seatbelt Profile 与代理；依配置', kimi: '网络工具权限；OS 网络隔离未确认', qoder: 'Web 工具规则；SDK 条件网络 Sandbox' },
+      values: { claude: 'Sandbox 域名代理与 Allow/Deny；`strictAllowlist` 直接拒绝未列主机', codex: '`workspace-write` 默认断网；可单独启用与限域', qwen: 'Seatbelt Profile 与代理；依配置', kimi: '网络工具权限；OS 网络隔离未确认', qoder: 'Web 工具规则；SDK 条件网络 Sandbox' },
     },
     {
       id: 'security-trust',
