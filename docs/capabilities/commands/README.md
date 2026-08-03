@@ -2,7 +2,7 @@
 
 [返回 Slash 命令矩阵](../../01-Slash命令矩阵.md) · [打开网页矩阵](https://qqqys.github.io/code-agent/#commands)
 
-> 核对日期：2026-08-02
+> 核对日期：2026-08-03
 
 每一页固定记录能力定义、比较边界、五家命令、参数、行为、可用模式、保存范围、条件和官方来源。
 
@@ -36,3 +36,4 @@
 | GitHub 设置 | [打开](https://qqqys.github.io/code-agent/capability.html?id=cmd-github) | [查看](./cmd-github.md) |
 | 多模型或多代理模式 | [打开](https://qqqys.github.io/code-agent/capability.html?id=cmd-collaboration) | [查看](./cmd-collaboration.md) |
 | 远程与跨端 | [打开](https://qqqys.github.io/code-agent/capability.html?id=cmd-remote) | [查看](./cmd-remote.md) |
+| TUI 快捷键自定义 | [打开](https://qqqys.github.io/code-agent/capability.html?id=cmd-keymap) | [查看](./cmd-keymap.md) |
