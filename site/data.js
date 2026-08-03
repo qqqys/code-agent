@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-08-02',
+  updatedAt: '2026-08-03',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -142,6 +142,10 @@ window.matrixData = {
       label: 'Claude Code environment variables',
       url: 'https://code.claude.com/docs/en/env-vars',
     },
+    'claude-keybindings': {
+      label: 'Claude Code keybindings',
+      url: 'https://code.claude.com/docs/en/keybindings',
+    },
     'codex-commands': {
       label: 'Codex CLI commands',
       url: 'https://developers.openai.com/codex/cli/slash-commands',
@@ -261,6 +265,10 @@ window.matrixData = {
     'codex-config-reference': {
       label: 'Codex configuration reference',
       url: 'https://learn.chatgpt.com/docs/config-file/config-reference',
+    },
+    'codex-keymap-chords': {
+      label: 'Codex TUI two-stroke key chords',
+      url: 'https://github.com/openai/codex/commit/1e85ca099e4265bf89f4016772d299816e231bb3',
     },
     'qwen-commands': {
       label: 'Qwen Code commands documentation',
@@ -875,6 +883,13 @@ window.matrixData = {
       capability: '远程与跨端',
       description: '把本地会话连接到桌面端、Web 或远程控制入口。',
       values: { claude: '`/remote-control` · `/rc` · `/teleport` · `/desktop`', codex: '`/app`', qwen: '—', kimi: '`/web`', qoder: 'Cloud Mode；无对应 Slash 命令' },
+    },
+    {
+      id: 'cmd-keymap',
+      category: 'commands',
+      capability: 'TUI 快捷键自定义',
+      description: '重新映射或自定义终端交互界面的键盘快捷键。',
+      values: { claude: '`/keybindings` · `keybindings.json`', codex: '`/keymap` · `tui.keymap` · 双键 chord', qwen: '无自定义入口；仅 `/vim` 与 `general.vimMode`', kimi: '官方文档未列出快捷键自定义', qoder: '无自定义入口；仅 `/vim` 切换' },
     },
     {
       id: 'agent-builtins',

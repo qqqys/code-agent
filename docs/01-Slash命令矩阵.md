@@ -4,9 +4,9 @@
 
 > `—` 表示当前官方 Slash 命令目录没有列出对应命令，不表示底层能力不存在。命令可能受版本、平台或功能开关影响。
 
-[打开 28 个 Slash 命令独立详情](./capabilities/commands/)
+[打开 29 个 Slash 命令独立详情](./capabilities/commands/)
 
-这里的 28 指归一化后的对比能力，不是任何一家产品的命令总数。原生命令、别名、随产品提供的 Skill 命令和动态加载命令在下方分别列出。
+这里的 29 指归一化后的对比能力，不是任何一家产品的命令总数。原生命令、别名、随产品提供的 Skill 命令和动态加载命令在下方分别列出。
 
 ## 对照表
 
@@ -50,6 +50,7 @@
 | IDE 或编辑器 | `/ide` | `/ide` | `/ide`、`/editor` | `/editor` | — |
 | 主题 | — | `/theme` | `/theme` | `/theme`、`/custom-theme` | — |
 | Vim 模式 | — | `/vim` | `/vim` | — | `/vim` |
+| 快捷键自定义 | `/keybindings`、`keybindings.json` | `/keymap`、`tui.keymap`、双键 chord | 无自定义入口；仅 `/vim`、`general.vimMode` | 官方文档未列出快捷键自定义 | 无自定义入口；仅 `/vim` |
 | 状态栏 | `/statusline` | `/statusline` | `/statusline` | — | — |
 | 终端安装 | `/terminal-setup` | — | `/terminal-setup` | — | — |
 | GitHub 设置 | `/install-github-app` | 无对应 Slash 命令 | `/setup-github` | — | `/setup-github` |
@@ -149,7 +150,9 @@ Web Shell 还固定提供 4 个不属于 CLI/TUI 硬编码加载器的本地命�
 ## 来源
 
 - [Claude Code 交互命令](https://code.claude.com/docs/en/commands)
+- [Claude Code 快捷键](https://code.claude.com/docs/en/keybindings)
 - [Codex CLI 命令](https://developers.openai.com/codex/cli/slash-commands)
+- [Codex 双键快捷键 chord 提交](https://github.com/openai/codex/commit/1e85ca099e4265bf89f4016772d299816e231bb3)
 - [Qwen Code 硬编码命令加载器](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/BuiltinCommandLoader.ts)
 - [Qwen Code bundled Skill 加载器](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/BundledSkillLoader.ts)
 - [Qwen Code 用户、项目与扩展 Skill 加载器](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/SkillCommandLoader.ts)
