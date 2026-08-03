@@ -86,7 +86,7 @@
 | 状态与产物 | GitHub Review、Action run、评论、分支修改和通过 gh 创建的 PR。 |
 | 条件与边界 | 创建 PR 没有独立 Slash 命令；需要 gh 或工作流权限，`--comment` 会产生外部写入。 |
 | 证据状态 | 源码确认 |
-| 来源 | [Qwen Code current code review](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/code-review.md)、[Qwen Code current GitHub Action](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/integration-github-action.md)、[Qwen Code current GitHub setup](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/cli/src/services/setup-github.ts) |
+| 来源 | [Qwen Code current code review](https://github.com/QwenLM/qwen-code/blob/7dfc554dffcf52930ac35d4ea9c2558dfe36c22c/docs/users/features/code-review.md)、[Qwen Code current GitHub Action](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/integration-github-action.md)、[Qwen Code current GitHub setup](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/cli/src/services/setup-github.ts) |
 
 ### Kimi Code
 
@@ -129,7 +129,7 @@
 - [Codex GitHub integration](https://learn.chatgpt.com/docs/third-party/github)
 - [Codex code review](https://learn.chatgpt.com/docs/code-review)
 - [Codex Documentation](https://developers.openai.com/codex)
-- [Qwen Code current code review](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/code-review.md)
+- [Qwen Code current code review](https://github.com/QwenLM/qwen-code/blob/7dfc554dffcf52930ac35d4ea9c2558dfe36c22c/docs/users/features/code-review.md)
 - [Qwen Code current GitHub Action](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/integration-github-action.md)
 - [Qwen Code current GitHub setup](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/cli/src/services/setup-github.ts)
 - [Kimi Code current built-in tools](https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/reference/tools.md)
