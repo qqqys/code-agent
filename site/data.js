@@ -274,6 +274,10 @@ window.matrixData = {
       label: 'Codex TUI two-stroke key chords',
       url: 'https://github.com/openai/codex/commit/1e85ca099e4265bf89f4016772d299816e231bb3',
     },
+    'codex-computer-use': {
+      label: 'Codex Computer Use',
+      url: 'https://learn.chatgpt.com/docs/computer-use',
+    },
     'qwen-commands': {
       label: 'Qwen Code commands documentation',
       url: 'https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/commands.md',
@@ -305,6 +309,10 @@ window.matrixData = {
     'qwen-review-web-shell': {
       label: 'Qwen Code structured Web Shell review results',
       url: 'https://github.com/QwenLM/qwen-code/commit/7dfc554dffcf52930ac35d4ea9c2558dfe36c22c',
+    },
+    'qwen-computer-use': {
+      label: 'Qwen Code Computer Use',
+      url: 'https://github.com/QwenLM/qwen-code/blob/0907edb909706cf7589f94723b26572eb1dd9512/docs/users/features/computer-use.md',
     },
     'qwen-command-modes': {
       label: 'Qwen Code command mode filter',
@@ -589,6 +597,10 @@ window.matrixData = {
     'kimi-trust-v2': {
       label: 'Kimi Code workspace trust (v2 engine)',
       url: 'https://github.com/MoonshotAI/kimi-code/commit/32d693f644de',
+    },
+    'kimi-builtin-capabilities': {
+      label: 'Kimi Code built-in Computer Use and WebBridge capabilities',
+      url: 'https://github.com/MoonshotAI/kimi-code/commit/0abcd00f7fd3e3cbf087509ffef1c54a6f8d396d',
     },
     'qoder-commands': {
       label: 'Qoder CLI commands',
@@ -1287,6 +1299,13 @@ window.matrixData = {
       capability: '并行 Worktree',
       description: '并行任务在独立 Git Worktree 中修改代码。',
       values: { claude: '`--worktree` · `EnterWorktree` · Agent 隔离', codex: '桌面 App Worktree；CLI 无对应隔离', qwen: '`--worktree` · `enter_worktree` · Agent 隔离', kimi: '无内置入口；可在已有 Worktree 中运行', qoder: '`--worktree` Job · Agent 隔离' },
+    },
+    {
+      id: 'execution-computer-use',
+      category: 'execution',
+      capability: '桌面与浏览器控制',
+      description: '由产品内置并分发的桌面 GUI 自动化或真实浏览器控制能力。',
+      values: { claude: '无内置桌面或浏览器控制工具；经 MCP 扩展', codex: '条件：ChatGPT 桌面 App 的 Computer Use；CLI 未提供', qwen: '`computer_use__*` 内置工具；默认开启；含浏览器 `page` 工具', kimi: '条件：`/plugins` 内置 `kimi-cu` 与 `kimi-webbridge`；v2 CLI', qoder: '内置工具表未列桌面或浏览器控制；经 MCP 扩展' },
     },
     {
       id: 'surface-headless',
