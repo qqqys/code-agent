@@ -213,11 +213,12 @@
 
     'cmd-goal': {
       definition: '保存一个跨多轮持续执行的目标，让 Agent 在每轮结束后根据目标状态决定继续、暂停、完成或阻塞。',
-      includes: ['创建和查看目标', '暂停、恢复、清除或替换', '后续目标队列', '非交互退出状态'],
+      includes: ['创建和查看目标', '暂停、恢复、清除或替换', '后续目标队列', '非交互退出状态', 'Headless Goal 工作流'],
       excludes: ['一次性任务提示', '计划模式', '后台 Shell 进程'],
       facts: [
         'Claude Code、Codex、Qwen Code 和 Kimi Code 都提供 `/goal`。',
         'Kimi Code 公开了 status、pause、resume、cancel、replace、next 等子命令及非交互退出码。',
+        'Qwen Code Headless 把 `/goal` 作为完整提示词，Goal 状态随会话保存，`--continue` 或 `--resume <sessionId>` 可跨进程查看或控制；stream-json 以 `goal_state` 为权威状态事件。',
         'Qoder CLI 当前命令目录没有 `/goal`。',
       ],
       products: {
@@ -228,10 +229,12 @@
         codex: command('codex', ['/goal'], '设置、编辑、暂停、恢复、查看或清除任务目标。', {
           persistence: '当前会话的持久目标状态',
         }),
-        qwen: command('qwen', ['/goal [condition|clear]'], '设置目标并持续工作直到满足条件。', {
-          parameters: '`[condition | clear]`',
+        qwen: command('qwen', ['/goal [condition|clear]'], '设置目标并持续工作直到满足条件。Headless 模式把 `/goal` 作为完整提示词运行 Goal 工作流：`/goal` 不调用模型直接报告保存状态，`/goal set`、`/goal edit <objective>` 创建、替换或修改，`/goal pause`、`/goal resume` 暂停或恢复，`/goal clear` 免确认清除。', {
+          parameters: '交互命令目录列 `/goal <condition>` 与 `/goal clear`；Headless 文档另列 `/goal`、`/goal set`、`/goal edit <objective>`、`/goal pause`、`/goal resume` 控制形式',
           mode: '交互式、非交互式、ACP',
-          persistence: '当前会话的目标状态',
+          persistence: 'Goal 状态随会话保存；跨进程查看或控制同一 Goal 用 `--continue` 或 `--resume <sessionId>`，并要求 `general.chatRecording` 保持启用（默认启用）',
+          conditions: 'Headless 中运行期调度的 Goal 续跑段不计入 `--max-session-turns`，真实用户提示仍计入；`--max-wall-time`、`--max-tool-calls` 预算继续生效，超限时先暂停活动 Goal 工作再以预算专属错误退出；`--output-format stream-json` 每次 Goal 状态变化发出 `event.type` 为 `goal_state` 的 `stream_event`（无需 `--include-partial-messages`），启用 partial messages 时旧版 `active_goal` 事件作为兼容投影跟随，自动化应以 `goal_state` 为准；该行为适用于标准 Headless CLI 运行，ACP 仍使用旧版 Goal 命令路径',
+          sources: ['qwen-commands', 'qwen-headless-goal'],
         }),
         kimi: command('kimi', ['/goal [...]'], '创建并管理目标模式，支持暂停、恢复、替换、取消和后续目标队列。', {
           parameters: '`status|pause|resume|cancel|replace <objective>|next <objective>|next manage`',

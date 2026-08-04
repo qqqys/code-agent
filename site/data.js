@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-08-03',
+  updatedAt: '2026-08-04',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -333,6 +333,10 @@ window.matrixData = {
     'qwen-headless': {
       label: 'Qwen Code Headless Mode',
       url: 'https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/headless.md',
+    },
+    'qwen-headless-goal': {
+      label: 'Qwen Code headless Goal workflows',
+      url: 'https://github.com/QwenLM/qwen-code/blob/48d37cdf704dbe4c5254cc4b31c2d62f1351bff1/docs/users/features/headless.md',
     },
     'qwen-docs': {
       label: 'Qwen Code Documentation',

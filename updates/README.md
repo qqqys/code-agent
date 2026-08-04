@@ -4,6 +4,7 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-08-04 | [Qwen Code Headless Goal 工作流](./2026-08-04-Qwen-Headless-Goal工作流.md) |
 | 2026-08-03 | [Claude Code Sandbox 网络严格 Allowlist](./2026-08-03-Claude-Sandbox网络严格Allowlist.md) |
 | 2026-08-03 | [TUI 快捷键自定义能力字段与 Codex 双键 chord](./2026-08-03-TUI快捷键自定义能力字段.md) |
 | 2026-08-03 | [Qwen Code Review 结构化 Web Shell 结果](./2026-08-03-Qwen-Review结构化Web-Shell结果.md) |
