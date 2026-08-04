@@ -150,6 +150,10 @@ window.matrixData = {
       label: 'Claude Code v2.1.219 changelog',
       url: 'https://github.com/anthropics/claude-code/blob/0c188278cdf9/CHANGELOG.md',
     },
+    'claude-credential-file-mask': {
+      label: 'Claude Code v2.1.221 changelog',
+      url: 'https://github.com/anthropics/claude-code/blob/dd796139237c/CHANGELOG.md',
+    },
     'codex-commands': {
       label: 'Codex CLI commands',
       url: 'https://developers.openai.com/codex/cli/slash-commands',
@@ -1110,6 +1114,13 @@ window.matrixData = {
       capability: '网络隔离',
       description: '单独限制 Agent 进程访问网络。',
       values: { claude: 'Sandbox 域名代理与 Allow/Deny；`strictAllowlist` 直接拒绝未列主机', codex: '`workspace-write` 默认断网；可单独启用与限域', qwen: 'Seatbelt Profile 与代理；依配置', kimi: '网络工具权限；OS 网络隔离未确认', qoder: 'Web 工具规则；SDK 条件网络 Sandbox' },
+    },
+    {
+      id: 'security-credentials',
+      category: 'security',
+      capability: '凭据保护',
+      description: '限制 Agent 执行的命令读取凭据文件与敏感环境变量，并可由出站代理注入真实值。',
+      values: { claude: '`sandbox.credentials.files` · `envVars` `deny`/`mask` · 出站代理注入', codex: '`shell_environment_policy` 过滤子进程环境变量；无文件打码', qwen: '官方沙箱文档未列凭据保护；容器挂载 `~/.qwen`', kimi: '未确认 OS 沙箱；文档未列凭据保护字段', qoder: '本地 CLI/SDK 文档未列同类凭据保护' },
     },
     {
       id: 'security-trust',

@@ -4,6 +4,7 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-08-04 | [Claude Code 沙箱凭据保护能力字段](./2026-08-04-Claude沙箱凭据保护能力字段.md) |
 | 2026-08-04 | [桌面与浏览器控制能力字段](./2026-08-04-桌面与浏览器控制能力字段.md) |
 | 2026-08-04 | [Qwen Code Headless Goal 工作流](./2026-08-04-Qwen-Headless-Goal工作流.md) |
 | 2026-08-03 | [Claude Code Sandbox 网络严格 Allowlist](./2026-08-03-Claude-Sandbox网络严格Allowlist.md) |

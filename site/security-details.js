@@ -333,6 +333,106 @@
       related: ['security-filesystem', 'security-approval', 'security-bypass'],
     }),
 
+    'security-credentials': createDetail({
+      id: 'security-credentials',
+      definition:
+        '限制 Agent 执行的命令及其子进程取得凭据文件与敏感环境变量的方式：拒绝读取、整体移除、以哨兵值打码，或由出站代理在请求中替换真实值。',
+      includes: ['凭据文件拒绝读取或打码', '敏感环境变量移除或打码', '出站请求真实值替换'],
+      excludes: ['产品自身账号登录凭据的存储与加密', '云厂商凭据链', '普通文件路径 Allow/Deny 规则'],
+      facts: [
+        'Claude Code 在 `sandbox.credentials` 下提供 files 与 envVars 的 `deny`，以及变量的 `mask`；v2.1.221 起 Linux 与 WSL 的凭据文件也支持 `mask`。',
+        'Codex 通过 `[shell_environment_policy]` 在环境变量继承层过滤，官方文档用于避免把不必要的 secret 传给子进程；不提供凭据文件打码或出站替换。',
+        'Qwen Code、Kimi Code 与 Qoder CLI 的公开沙箱或权限文档未列出同类凭据保护字段。',
+      ],
+      behavior: {
+        claude:
+          '文件 `deny` 等同 `filesystem.denyRead`，变量 `deny` 在每条沙箱命令执行前 unset；`mask` 让命令看到每会话哨兵值，请求离开沙箱前往 `injectHosts`（未设 `injectHosts` 时为 `network.allowedDomains` 内全部主机）时由代理替换真实值，命令与其日志不持有真实凭据。',
+        codex:
+          '`[shell_environment_policy]` 决定传给所生成命令的环境变量：`inherit = "none"|"core"`、`set` 显式赋值、`filters` exclude/include；官方文档用它避免把不必要的 secret 传给子进程。',
+        qwen:
+          '沙箱文档未提供凭据文件或敏感变量的保护字段；容器沙箱挂载工作区与 `~/.qwen`，认证与设置在沙箱内可见并在运行之间保留。',
+        kimi:
+          '配置文档无凭据保护字段；OS 或容器级沙箱未确认。可用 permission rules 限制文件读取等工具调用，但属于工具规则层。',
+        qoder:
+          '权限与 SDK 文档提供路径规则与 Sandbox Settings，但未列凭据文件或敏感变量的 deny/mask/替换；云端会话 `vault_ids` 引用云端凭据库，不是本地沙箱保护。',
+      },
+      overrides: {
+        claude: {
+          entry:
+            '在用户、Managed 或 `--settings` 设置中声明 `sandbox.credentials.files` 与 `sandbox.credentials.envVars`。',
+          defaults:
+            '没有内置凭据拒绝清单，只保护显式列出的文件和变量；仅作用于沙箱内 Bash 命令。',
+          rules:
+            '文件 `deny` 合并所有设置作用域，任何作用域不能移除其他作用域加入的条目；同名变量 `deny` 优先于 `mask`；`injectHosts` 每个条目本身必须被 `network.allowedDomains` 覆盖。',
+          boundary:
+            '文件保护属于文件系统层，`sandbox.filesystem.disabled` 时失效；变量保护仍生效。`CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` 可不经沙箱从所有子进程剥离 Anthropic 与云 Provider 凭据。',
+          persistence:
+            '配置保存在用户、Managed 或 `--settings` 设置；仓库 `.claude/settings.json` 或 `.claude/settings.local.json` 中的 `mask`、`network.tlsTerminate`、`credentials.allowPlaintextInject` 被忽略。',
+          noninteractive:
+            'Headless 与交互会话同样生效；`mask` 缺少 `network.tlsTerminate` 时启动报告配置错误并失败关闭：命令只见到哨兵值，认证失败。',
+          conditions:
+            '`sandbox.credentials` 需 v2.1.187+；envVars `mask` 需 v2.1.199+；v2.1.221 起 Linux 与 WSL 凭据文件支持 `mode: "mask"`（沙箱命令读取哨兵副本，可为整文件或 `extract` 正则捕获片段，代理在出站时替换真实值），macOS 文件打码回退 `deny`。',
+          sources: [
+            'claude-sandboxing',
+            'claude-env-vars',
+            'claude-credential-file-mask',
+          ],
+        },
+        codex: {
+          entry: '`~/.codex/config.toml` 的 `[shell_environment_policy]`。',
+          defaults:
+            '`ignore_default_excludes` 默认 `true`，即默认不自动移除名称含 KEY、SECRET、TOKEN 的变量；设为 `false` 才先应用该自动排除。',
+          rules:
+            '处理顺序为自动排除、自定义 exclude、`set` 赋值、include 允许列表；`set` 可恢复已排除变量，include 允许列表可再次移除。filter 大小写不敏感，支持 `*` 与 `?`；include 不恢复已被排除的变量。旧 `exclude`/`include_only` 数组仍受支持，但不能与 `filters` 在同一配置层混用。',
+          boundary:
+            '只约束传给所生成命令的环境变量；不提供凭据文件拒绝或打码，也没有出站真实值替换。文件系统与网络边界由 `sandbox_mode` 等另行控制。',
+          persistence: '写入 `config.toml`；filter 键跨配置层按大小写不敏感合并。',
+          noninteractive: '非交互运行同样按配置过滤子进程环境变量。',
+          conditions:
+            '`inherit = "none"` 从空环境开始，`"core"` 继承裁剪集合；无凭据文件打码或出站替换字段。',
+          sources: ['codex-config'],
+        },
+        qwen: {
+          entry:
+            '无独立凭据保护入口；沙箱经 `tools.sandbox`/`--sandbox` 与 Seatbelt Profile 或容器配置。',
+          defaults: '官方沙箱文档未列凭据文件或敏感变量的保护字段。',
+          rules:
+            '文件系统与网络边界由 Seatbelt Profile 或容器挂载与代理配置控制；文档不含凭据条目。',
+          boundary:
+            '容器沙箱挂载工作区与 `~/.qwen`，认证与设置在运行之间保留；挂载范围内的凭据对沙箱命令可见。',
+          persistence: '沙箱配置随 Settings 与环境变量保存。',
+          noninteractive: '沙箱行为在 Headless 同样按配置生效；文档未列凭据保护相关降级。',
+          conditions:
+            '官方文档化的隔离路径是 Seatbelt 或容器路径限制；没有凭据专用字段。',
+          status: '官方确认',
+          sources: ['qwen-sandbox'],
+        },
+        kimi: {
+          entry: '配置文档无凭据保护入口。',
+          defaults: 'OS 或容器级沙箱未确认；无凭据保护默认行为。',
+          rules:
+            '`[[permission.rules]]` 可限制文件读取等工具调用；属于工具规则层，不是沙箱凭据保护。',
+          boundary: '没有沙箱层承载凭据文件打码或出站真实值替换。',
+          persistence: '工具规则保存在 `~/.kimi-code/config.toml`。',
+          noninteractive: '`kimi -p` 固定使用 Auto 策略；静态 deny 规则仍生效（工具层）。',
+          conditions: '当前一手资料未列同类字段。',
+          sources: ['kimi-interaction', 'kimi-config'],
+        },
+        qoder: {
+          entry: '权限文档提供 Read/Edit 路径规则；SDK 提供 Sandbox Settings。',
+          defaults: '公开参考未列凭据文件或敏感变量的 deny/mask 清单。',
+          rules: '路径权限规则与 `canUseTool` 控制工具调用；无凭据专用键。',
+          boundary:
+            '本地 CLI/SDK 文档未列凭据文件打码或出站替换；云端会话 `vault_ids` 引用云端凭据库，不是本地沙箱保护。',
+          persistence: '权限规则按用户、项目、本地项目等设置层保存。',
+          noninteractive: 'Headless 中 `ask` 自动变为 `deny`；文档未列凭据保护行为。',
+          conditions: '本地 CLI/SDK 文档未列同类凭据保护字段。',
+          sources: ['qoder-permissions', 'qoder-sdk-reference'],
+        },
+      },
+      related: ['security-filesystem', 'security-network', 'auth-storage'],
+    }),
+
     'security-trust': createDetail({
       id: 'security-trust',
       definition:

@@ -14,5 +14,6 @@
 | 跳过审批 | [打开](https://qqqys.github.io/code-agent/capability.html?id=security-bypass) | [查看](./security-bypass.md) |
 | 文件系统隔离 | [打开](https://qqqys.github.io/code-agent/capability.html?id=security-filesystem) | [查看](./security-filesystem.md) |
 | 网络隔离 | [打开](https://qqqys.github.io/code-agent/capability.html?id=security-network) | [查看](./security-network.md) |
+| 凭据保护 | [打开](https://qqqys.github.io/code-agent/capability.html?id=security-credentials) | [查看](./security-credentials.md) |
 | 项目目录信任 | [打开](https://qqqys.github.io/code-agent/capability.html?id=security-trust) | [查看](./security-trust.md) |
 | 非交互审批 | [打开](https://qqqys.github.io/code-agent/capability.html?id=security-noninteractive) | [查看](./security-noninteractive.md) |
