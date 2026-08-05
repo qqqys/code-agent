@@ -610,6 +610,10 @@ window.matrixData = {
       label: 'Kimi Code built-in Computer Use and WebBridge capabilities',
       url: 'https://github.com/MoonshotAI/kimi-code/commit/0abcd00f7fd3e3cbf087509ffef1c54a6f8d396d',
     },
+    'kimi-cu-windows': {
+      label: 'Kimi Code Computer Use Windows support commit',
+      url: 'https://github.com/MoonshotAI/kimi-code/commit/68ba740ebfb3e32ad9abdb8607f48d4387cf6f69',
+    },
     'qoder-commands': {
       label: 'Qoder CLI commands',
       url: 'https://docs.qoder.com/en/cli/command',
@@ -1320,7 +1324,7 @@ window.matrixData = {
       category: 'execution',
       capability: '桌面与浏览器控制',
       description: '由产品内置并分发的桌面 GUI 自动化或真实浏览器控制能力。',
-      values: { claude: '无内置桌面或浏览器控制工具；经 MCP 扩展', codex: '条件：ChatGPT 桌面 App 的 Computer Use；CLI 未提供', qwen: '`computer_use__*` 内置工具；默认开启；含浏览器 `page` 工具', kimi: '条件：`/plugins` 内置 `kimi-cu` 与 `kimi-webbridge`；v2 CLI', qoder: '内置工具表未列桌面或浏览器控制；经 MCP 扩展' },
+      values: { claude: '无内置桌面或浏览器控制工具；经 MCP 扩展', codex: '条件：ChatGPT 桌面 App 的 Computer Use；CLI 未提供', qwen: '`computer_use__*` 内置工具；默认开启；含浏览器 `page` 工具', kimi: '条件：`/plugins` 内置 `kimi-cu` 与 `kimi-webbridge`；`kimi-cu` 支持 macOS 与 Windows x64（Windows 未发布）；v2 CLI', qoder: '内置工具表未列桌面或浏览器控制；经 MCP 扩展' },
     },
     {
       id: 'surface-headless',
