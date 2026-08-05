@@ -95,7 +95,7 @@
 | 保存范围 | — |
 | 条件与边界 | 不据此推断底层能力不存在 |
 | 证据状态 | 未确认 |
-| 来源 | [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/8db7d42f23472a692eb389a0e0e5a3e18aa1b94d/docs/zh/reference/slash-commands.md) |
+| 来源 | [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/7c919f0376c0331d0d057ef3643c7adcc2c55802/docs/zh/reference/slash-commands.md) |
 
 ### Qoder CLI
 
@@ -119,7 +119,7 @@
 - [Codex Subagents](https://developers.openai.com/codex/subagents)
 - [Qwen Code commands documentation](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/commands.md)
 - [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/079ce5346af7/docs/users/features/sub-agents.md)
-- [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/8db7d42f23472a692eb389a0e0e5a3e18aa1b94d/docs/zh/reference/slash-commands.md)
+- [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/7c919f0376c0331d0d057ef3643c7adcc2c55802/docs/zh/reference/slash-commands.md)
 - [Qoder CLI commands](https://docs.qoder.com/en/cli/command)
 - [Qoder CLI Subagent](https://docs.qoder.com/en/cli/subagent)
 

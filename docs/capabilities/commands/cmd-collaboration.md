@@ -96,7 +96,7 @@
 | 保存范围 | 模式属于当前会话 |
 | 条件与边界 | manual 权限模式下启动任务会询问是否切换到 auto 或 yolo |
 | 证据状态 | 官方确认 |
-| 来源 | [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/8db7d42f23472a692eb389a0e0e5a3e18aa1b94d/docs/zh/reference/slash-commands.md) |
+| 来源 | [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/7c919f0376c0331d0d057ef3643c7adcc2c55802/docs/zh/reference/slash-commands.md) |
 
 ### Qoder CLI
 
@@ -119,7 +119,7 @@
 - [Codex Subagents](https://developers.openai.com/codex/subagents)
 - [Qwen Code commands documentation](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/commands.md)
 - [Qwen Code bundled Skill loader](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/BundledSkillLoader.ts)
-- [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/8db7d42f23472a692eb389a0e0e5a3e18aa1b94d/docs/zh/reference/slash-commands.md)
+- [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/7c919f0376c0331d0d057ef3643c7adcc2c55802/docs/zh/reference/slash-commands.md)
 - [Qoder CLI commands](https://docs.qoder.com/en/cli/command)
 - [Qoder CLI Subagent](https://docs.qoder.com/en/cli/subagent)
 

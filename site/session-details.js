@@ -275,9 +275,10 @@
           sources: ['qwen-session-commands'],
         },
         kimi: {
-          entry: '`/fork` 在 TUI 派生当前会话。',
+          entry:
+            '`/fork` 在 TUI 派生当前会话；fork 后停留在原会话，派生副本之后用 `/sessions` 打开。',
           behavior:
-            '复制完整对话历史创建独立会话，新旧会话互不影响，可用 `/sessions` 切换。',
+            '复制完整对话历史创建独立会话，新旧会话互不影响；原会话保持活跃，后台任务继续运行，可随时用 `/sessions` 切换到副本。',
           scope:
             '复制对话，但不复制已保存的 `/goal`；需要在新会话重新启动 Goal。',
           automation:
@@ -285,8 +286,8 @@
           persistence:
             '新会话目录的 `state.json` 记录 `forkedFrom`，并拥有独立 Agent 事件流。',
           conditions:
-            '这是会话级派生，不会自动创建 Git 分支或隔离工作目录。',
-          sources: ['kimi-sessions-current', 'kimi-data-current'],
+            '这是会话级派生，不会自动创建 Git 分支或隔离工作目录；0.33.0 起 fork 不再自动切换到派生会话。',
+          sources: ['kimi-sessions-current', 'kimi-data-current', 'kimi-fork-stay'],
         },
         qoder: {
           entry:
