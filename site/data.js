@@ -468,7 +468,11 @@ window.matrixData = {
     },
     'kimi-commands': {
       label: 'Kimi Code Slash commands',
-      url: 'https://github.com/MoonshotAI/kimi-code/blob/8db7d42f23472a692eb389a0e0e5a3e18aa1b94d/docs/zh/reference/slash-commands.md',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/7c919f0376c0331d0d057ef3643c7adcc2c55802/docs/zh/reference/slash-commands.md',
+    },
+    'kimi-fork-stay': {
+      label: 'Kimi Code /fork stay-in-session commit',
+      url: 'https://github.com/MoonshotAI/kimi-code/commit/54c04bf03ddbeb46d02b2edb460ea091ae194509',
     },
     'kimi-agents': {
       label: 'Kimi Code Agents',
@@ -492,11 +496,11 @@ window.matrixData = {
     },
     'kimi-sessions-current': {
       label: 'Kimi Code current sessions',
-      url: 'https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/guides/sessions.md',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/7c919f0376c0331d0d057ef3643c7adcc2c55802/docs/zh/guides/sessions.md',
     },
     'kimi-commands-current': {
       label: 'Kimi Code current slash commands',
-      url: 'https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/reference/slash-commands.md',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/7c919f0376c0331d0d057ef3643c7adcc2c55802/docs/zh/reference/slash-commands.md',
     },
     'kimi-cli-current': {
       label: 'Kimi Code current CLI reference',

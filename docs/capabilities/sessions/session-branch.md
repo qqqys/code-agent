@@ -93,16 +93,16 @@
 | 字段 | 记录 |
 | --- | --- |
 | 矩阵结论 | `/fork` |
-| 入口与切换 | `/fork` 在 TUI 派生当前会话。 |
+| 入口与切换 | `/fork` 在 TUI 派生当前会话；fork 后停留在原会话，派生副本之后用 `/sessions` 打开。 |
 | 保存位置 | 会话位于 `$KIMI_CODE_HOME/sessions/<workDirKey>/<sessionId>/`，默认数据根为 `~/.kimi-code`；元数据在 `state.json`，消息和工具事件在 `agents/*/wire.jsonl`。 |
-| 具体行为 | 复制完整对话历史创建独立会话，新旧会话互不影响，可用 `/sessions` 切换。 |
+| 具体行为 | 复制完整对话历史创建独立会话，新旧会话互不影响；原会话保持活跃，后台任务继续运行，可随时用 `/sessions` 切换到副本。 |
 | 状态范围 | 复制对话，但不复制已保存的 `/goal`；需要在新会话重新启动 Goal。 |
 | 自动行为 | 无自动分支；由用户在 Agent 空闲时显式执行。 |
 | 保存与保留 | 新会话目录的 `state.json` 记录 `forkedFrom`，并拥有独立 Agent 事件流。 |
 | 适用界面 | 本页以交互式 TUI 和 `kimi` CLI 为主；只在 Web UI 中不同的行为会单独注明。 |
-| 条件与边界 | 这是会话级派生，不会自动创建 Git 分支或隔离工作目录。 |
+| 条件与边界 | 这是会话级派生，不会自动创建 Git 分支或隔离工作目录；0.33.0 起 fork 不再自动切换到派生会话。 |
 | 证据状态 | 官方确认 |
-| 来源 | [Kimi Code current sessions](https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/guides/sessions.md)、[Kimi Code current data locations](https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/configuration/data-locations.md) |
+| 来源 | [Kimi Code current sessions](https://github.com/MoonshotAI/kimi-code/blob/7c919f0376c0331d0d057ef3643c7adcc2c55802/docs/zh/guides/sessions.md)、[Kimi Code current data locations](https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/configuration/data-locations.md)、[Kimi Code /fork stay-in-session commit](https://github.com/MoonshotAI/kimi-code/commit/54c04bf03ddbeb46d02b2edb460ea091ae194509) |
 
 ### Qoder CLI
 
@@ -125,8 +125,9 @@
 - [Claude Code Manage sessions](https://code.claude.com/docs/en/sessions)
 - [Codex CLI commands](https://developers.openai.com/codex/cli/slash-commands)
 - [Qwen Code current commands](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/commands.md)
-- [Kimi Code current sessions](https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/guides/sessions.md)
+- [Kimi Code current sessions](https://github.com/MoonshotAI/kimi-code/blob/7c919f0376c0331d0d057ef3643c7adcc2c55802/docs/zh/guides/sessions.md)
 - [Kimi Code current data locations](https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/configuration/data-locations.md)
+- [Kimi Code /fork stay-in-session commit](https://github.com/MoonshotAI/kimi-code/commit/54c04bf03ddbeb46d02b2edb460ea091ae194509)
 - [Qoder CLI SDK Reference](https://docs.qoder.com/en/cli/sdk/references)
 
 ## 关联能力

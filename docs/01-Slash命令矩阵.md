@@ -54,7 +54,7 @@
 | 状态栏 | `/statusline` | `/statusline` | `/statusline` | — | — |
 | 终端安装 | `/terminal-setup` | — | `/terminal-setup` | — | — |
 | GitHub 设置 | `/install-github-app` | 无对应 Slash 命令 | `/setup-github` | — | `/setup-github` |
-| 反馈或问题上报 | `/feedback`、`/bug`、`/share` | `/feedback` | `/bug` | `/feedback`、`/bug`（条件：main 分支，尚未发布） | `/feedback` |
+| 反馈或问题上报 | `/feedback`、`/bug`、`/share` | `/feedback` | `/bug` | `/feedback`、`/bug` | `/feedback` |
 | 更新与发行说明 | `/release-notes` | — | `/update` | 内置更新 Skill | `/upgrade`、`/release-notes` |
 | 临时旁路问题 | `/btw` | `/side`、`/btw` | `/btw` | `/btw` | — |
 | 浏览器或 Web | `/chrome`、`/deep-research` | `/apps` | — | `/web` | — |
@@ -143,7 +143,7 @@ Web Shell 还固定提供 4 个不属于 CLI/TUI 硬编码加载器的本地命�
 
 `/add-dir`、`/auto`、`/btw`、`/bug`、`/check-kimi-code-docs`、`/compact`、`/copy`、`/custom-theme`、`/editor`、`/exit`、`/experiments`、`/export-debug-zip`、`/export-md`、`/feedback`、`/fork`、`/goal`、`/help`、`/import-from-cc-codex`、`/init`、`/login`、`/logout`、`/mcp`、`/mcp-config`、`/model`、`/new`、`/permission`、`/plan`、`/plugins`、`/provider`、`/secondary_model`、`/sessions`、`/settings`、`/status`、`/sub-skill`、`/swarm`、`/tasks`、`/theme`、`/title`、`/undo`、`/update-config`、`/usage`、`/version`、`/web`、`/yolo`。
 
-其中 `/bug` 是 `/feedback` 的别名，2026-08-04 合入 main 分支（提交 `8db7d42f2347`），尚未进入发布版本（0.32.0 不包含）。
+其中 `/bug` 是 `/feedback` 的别名（提交 `8db7d42f2347`），自 0.33.0（2026-08-05 发布）起包含。0.33.0 起 `/fork` 派生副本后不再切换到副本，仍停留在当前会话（提交 `54c04bf03ddb`）。
 
 ### Qoder CLI
 
@@ -164,6 +164,7 @@ Web Shell 还固定提供 4 个不属于 CLI/TUI 硬编码加载器的本地命�
 - [Qwen Code 命令合并与冲突处理](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/CommandService.ts)
 - [Qwen Code `/review` Skill](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/core/src/skills/bundled/review/SKILL.md)
 - [Qwen Code Web Shell 本地命令](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/web-shell/client/constants/localCommands.ts)
-- [Kimi Code Slash 命令](https://github.com/MoonshotAI/kimi-code/blob/8db7d42f23472a692eb389a0e0e5a3e18aa1b94d/docs/zh/reference/slash-commands.md)
+- [Kimi Code Slash 命令](https://github.com/MoonshotAI/kimi-code/blob/7c919f0376c0331d0d057ef3643c7adcc2c55802/docs/zh/reference/slash-commands.md)
 - [Kimi Code `/bug` 别名提交](https://github.com/MoonshotAI/kimi-code/commit/8db7d42f23472a692eb389a0e0e5a3e18aa1b94d)
+- [Kimi Code `/fork` 不再切换会话提交](https://github.com/MoonshotAI/kimi-code/commit/54c04bf03ddbeb46d02b2edb460ea091ae194509)
 - [Qoder CLI 命令](https://docs.qoder.com/en/cli/command)

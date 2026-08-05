@@ -383,9 +383,10 @@
       includes: ['会话分支', '上下文复制范围', '是否切换到新分支', '是否后台运行'],
       excludes: ['Git 分支创建', 'Subagent 的独立任务上下文', '文件检查点恢复'],
       facts: [
-        '同名 `/fork` 的运行方式并不一致：Claude Code 复制到后台会话，Codex 与 Kimi Code 创建新会话。',
+        '同名 `/fork` 的运行方式并不一致：Claude Code 复制到后台会话，Codex 创建新的聊天分支，Kimi Code 创建独立副本但不切换。',
         'Claude Code `/branch` 会切换到新分支，`/fork` 则保留当前会话继续工作。',
         'Qwen Code `/branch` 创建会话分支；`/fork` 创建继承完整对话的后台 Agent。',
+        'Kimi Code 0.33.0 起 `/fork` 后停留在原会话；此前版本 fork 后立即切换到派生会话并关闭原会话。',
       ],
       products: {
         claude: command('claude', ['/branch [name]', '/fork [prompt]'], '`/branch` 创建并切换会话分支；`/fork` 复制到独立后台会话而当前会话继续运行。', {
@@ -401,9 +402,10 @@
           mode: '`/fork` 仅交互式',
           persistence: '会话分支和 Fork Agent 独立保存',
         }),
-        kimi: command('kimi', ['/fork'], '基于当前会话创建新会话，并保留完整对话历史。', {
-          conditions: '仅空闲时使用',
-          persistence: '新会话独立保存',
+        kimi: command('kimi', ['/fork'], '基于当前会话派生保留完整对话历史的独立副本；fork 后停留在原会话，原会话后台任务继续运行，副本可随时通过 `/sessions` 打开。', {
+          conditions: '仅空闲时使用；0.33.0 起不再切换到派生会话，此前版本 fork 后立即切换并关闭原会话',
+          persistence: '派生副本独立保存；副本在打开前不占用运行时会话',
+          sources: ['kimi-commands', 'kimi-fork-stay'],
         }),
         qoder: unconfirmed('qoder'),
       },

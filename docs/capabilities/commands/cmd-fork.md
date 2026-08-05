@@ -35,9 +35,10 @@
 
 ## 跨产品事实
 
-1. 同名 `/fork` 的运行方式并不一致：Claude Code 复制到后台会话，Codex 与 Kimi Code 创建新会话。
+1. 同名 `/fork` 的运行方式并不一致：Claude Code 复制到后台会话，Codex 创建新的聊天分支，Kimi Code 创建独立副本但不切换。
 2. Claude Code `/branch` 会切换到新分支，`/fork` 则保留当前会话继续工作。
 3. Qwen Code `/branch` 创建会话分支；`/fork` 创建继承完整对话的后台 Agent。
+4. Kimi Code 0.33.0 起 `/fork` 后停留在原会话；此前版本 fork 后立即切换到派生会话并关闭原会话。
 
 ## 逐产品记录
 
@@ -90,12 +91,12 @@
 | 主命令 | `/fork` |
 | 别名 | 无公开别名 |
 | 参数 | 无公开参数 |
-| 执行行为 | 基于当前会话创建新会话，并保留完整对话历史。 |
+| 执行行为 | 基于当前会话派生保留完整对话历史的独立副本；fork 后停留在原会话，原会话后台任务继续运行，副本可随时通过 `/sessions` 打开。 |
 | 可用模式 | 交互式 CLI |
-| 保存范围 | 新会话独立保存 |
-| 条件与边界 | 仅空闲时使用 |
+| 保存范围 | 派生副本独立保存；副本在打开前不占用运行时会话 |
+| 条件与边界 | 仅空闲时使用；0.33.0 起不再切换到派生会话，此前版本 fork 后立即切换并关闭原会话 |
 | 证据状态 | 官方确认 |
-| 来源 | [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/8db7d42f23472a692eb389a0e0e5a3e18aa1b94d/docs/zh/reference/slash-commands.md) |
+| 来源 | [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/7c919f0376c0331d0d057ef3643c7adcc2c55802/docs/zh/reference/slash-commands.md)、[Kimi Code /fork stay-in-session commit](https://github.com/MoonshotAI/kimi-code/commit/54c04bf03ddbeb46d02b2edb460ea091ae194509) |
 
 ### Qoder CLI
 
@@ -116,7 +117,8 @@
 - [Claude Code Commands](https://code.claude.com/docs/en/commands)
 - [Codex CLI commands](https://developers.openai.com/codex/cli/slash-commands)
 - [Qwen Code commands documentation](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/commands.md)
-- [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/8db7d42f23472a692eb389a0e0e5a3e18aa1b94d/docs/zh/reference/slash-commands.md)
+- [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/7c919f0376c0331d0d057ef3643c7adcc2c55802/docs/zh/reference/slash-commands.md)
+- [Kimi Code /fork stay-in-session commit](https://github.com/MoonshotAI/kimi-code/commit/54c04bf03ddbeb46d02b2edb460ea091ae194509)
 - [Qoder CLI commands](https://docs.qoder.com/en/cli/command)
 
 ## 关联能力

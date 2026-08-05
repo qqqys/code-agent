@@ -22,7 +22,7 @@
 | --- | --- | --- | --- | --- | --- |
 | 独立上下文 | 是 | 是 | 命名 Agent 是 | 是 | 是 |
 | 初始上下文 | 父任务传入的任务描述；可预载 Skills | 父任务与委派描述 | 命名 Agent 使用任务提示；Fork 可继承全部或最近若干轮 | 只接收任务提示 | 任务提示，可配置 `initialPrompt` |
-| Fork 会话 | `/fork` 创建独立后台会话 | `/fork` 创建会话副本 | Fork Agent 继承父上下文 | `/fork` | 未确认 Slash Fork |
+| Fork 会话 | `/fork` 创建独立后台会话 | `/fork` 创建会话副本 | Fork Agent 继承父上下文 | `/fork` 创建副本；fork 后停留原会话 | 未确认 Slash Fork |
 | 结果回传 | 返回父会话 | 返回主线程汇总 | 命名 Agent 返回；Fork 不自动回传给父模型 | 返回父会话 | 返回父会话 |
 | 后台运行 | 支持 | 支持并发线程 | 命名 Agent 默认后台；可设前台 | 支持后台 | `background` 可配置 |
 | 前台运行 | 支持 | 支持 | `run_in_background: false` | 支持 | `background: false` |
