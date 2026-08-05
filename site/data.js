@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-08-04',
+  updatedAt: '2026-08-05',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -468,7 +468,7 @@ window.matrixData = {
     },
     'kimi-commands': {
       label: 'Kimi Code Slash commands',
-      url: 'https://github.com/MoonshotAI/kimi-code/blob/main/docs/zh/reference/slash-commands.md',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/8db7d42f23472a692eb389a0e0e5a3e18aa1b94d/docs/zh/reference/slash-commands.md',
     },
     'kimi-agents': {
       label: 'Kimi Code Agents',
