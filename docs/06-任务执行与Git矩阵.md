@@ -15,7 +15,7 @@
 | [Pull Request](./capabilities/execution/execution-pr.md) | `/review` · `/autofix-pr` · GitHub App | Codex Cloud · GitHub Review · `gh` | `/review --comment` · Actions · `gh` | `Bash`/`gh`；无专用入口 | Qoder Action · `@qoder` · `gh` |
 | [CI 自动化](./capabilities/execution/execution-ci.md) | GitHub Actions · `/autofix-pr` | `openai/codex-action@v1` | `/setup-github` · Qwen Code Action | 自定义 Shell/CI；无内置工作流 | `/setup-github` · Qoder Action |
 | [并行 Worktree](./capabilities/execution/execution-worktree.md) | `--worktree` · `EnterWorktree` · Agent 隔离 | 桌面 App Worktree；CLI 无对应隔离 | `--worktree` · `enter_worktree` · Agent 隔离 | 无内置入口；可在已有 Worktree 中运行 | `--worktree` Job · Agent 隔离 |
-| [桌面与浏览器控制](./capabilities/execution/execution-computer-use.md) | 无内置桌面或浏览器控制工具；经 MCP 扩展 | 条件：ChatGPT 桌面 App 的 Computer Use；CLI 未提供 | `computer_use__*` 内置工具；默认开启；含浏览器 `page` 工具 | 条件：`/plugins` 内置 `kimi-cu` 与 `kimi-webbridge`；v2 CLI | 内置工具表未列桌面或浏览器控制；经 MCP 扩展 |
+| [桌面与浏览器控制](./capabilities/execution/execution-computer-use.md) | 无内置桌面或浏览器控制工具；经 MCP 扩展 | 条件：ChatGPT 桌面 App 的 Computer Use；CLI 未提供 | `computer_use__*` 内置工具；默认开启；含浏览器 `page` 工具 | 条件：`/plugins` 内置 `kimi-cu` 与 `kimi-webbridge`；`kimi-cu` 支持 macOS 与 Windows x64（Windows 未发布）；v2 CLI | 内置工具表未列桌面或浏览器控制；经 MCP 扩展 |
 
 ## 阅读边界
 

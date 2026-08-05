@@ -4,6 +4,7 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-08-05 | [Kimi Computer Use 增加 Windows x64 支持](./2026-08-05-Kimi-ComputerUse-Windows支持.md) |
 | 2026-08-05 | [Kimi Code `/fork` 派生后停留原会话](./2026-08-05-Kimi-fork派生后停留原会话.md) |
 | 2026-08-05 | [Kimi Code `/feedback` 命令 `/bug` 别名](./2026-08-05-Kimi-feedback命令bug别名.md) |
 | 2026-08-04 | [Claude Code 沙箱凭据保护能力字段](./2026-08-04-Claude沙箱凭据保护能力字段.md) |

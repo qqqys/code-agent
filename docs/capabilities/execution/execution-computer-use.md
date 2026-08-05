@@ -15,7 +15,7 @@
 | Claude Code | 无内置桌面或浏览器控制工具；经 MCP 扩展 | 官方确认 |
 | Codex | 条件：ChatGPT 桌面 App 的 Computer Use；CLI 未提供 | 条件项 |
 | Qwen Code | `computer_use__*` 内置工具；默认开启；含浏览器 `page` 工具 | 官方确认 |
-| Kimi Code | 条件：`/plugins` 内置 `kimi-cu` 与 `kimi-webbridge`；v2 CLI | 条件项 |
+| Kimi Code | 条件：`/plugins` 内置 `kimi-cu` 与 `kimi-webbridge`；`kimi-cu` 支持 macOS 与 Windows x64（Windows 未发布）；v2 CLI | 条件项 |
 | Qoder CLI | 内置工具表未列桌面或浏览器控制；经 MCP 扩展 | 官方确认 |
 
 ## 比较边界
@@ -34,7 +34,7 @@
 
 ## 跨产品事实
 
-1. Qwen Code 在 CLI 内默认注册 `computer_use__*` 桌面控制工具，并含浏览器 `page` 工具；Kimi Code 于 2026-08-04 把 `kimi-cu` 与 `kimi-webbridge` 作为 `/plugins` 内置能力合入主分支，尚未进入发布版本。
+1. Qwen Code 在 CLI 内默认注册 `computer_use__*` 桌面控制工具，并含浏览器 `page` 工具；Kimi Code 的 `/plugins` 内置 `kimi-cu` 与 `kimi-webbridge` 已随 0.33.0 发布，`kimi-cu` 又于 2026-08-05 增加 Windows x64 支持（main 分支，尚未发布）。
 2. Codex 的 Computer Use 属于 ChatGPT 桌面 App Surface：macOS 支持后台与锁屏使用，Windows 只操作活动桌面；Codex CLI 不提供同类内置工具。
 3. Claude Code 与 Qoder CLI 的官方内置工具表没有桌面或浏览器控制工具，官方路径是经 MCP 扩展。
 4. 提供桌面控制的产品都要求 macOS 授予辅助功能与屏幕录制权限，并把动作类操作置于审批或用户授权之下。
@@ -93,17 +93,17 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 矩阵结论 | 条件：`/plugins` 内置 `kimi-cu` 与 `kimi-webbridge`；v2 CLI |
-| 入口与工具 | v2 CLI 的 `/plugins` 面板内置 `Kimi Computer Use`（`kimi-cu`）与 `Kimi WebBridge`（`kimi-webbridge`）条目，安装时一并配置最新托管运行时与插件，报告缺失的手动步骤并支持中断后重试。 |
-| 核心机制 | `kimi-cu` 安装 `KimiCU.app`、同名插件与 `ai.kimi.cu.service` launchd 服务，提供后台 macOS GUI 自动化：读取应用 UI、点击、输入、滚动、拖拽，不抢占鼠标或前台；`kimi-webbridge` 安装 `~/.kimi-webbridge/bin/` 守护进程与官方浏览器控制插件，控制带登录态的真实浏览器（导航、点击、输入、读取页面、截图），浏览器扩展为可选手动安装。 |
-| 执行行为 | 安装为幂等托管流程：按插件、应用、服务、权限（`kimi-cu`）或守护进程、插件、扩展连接（`kimi-webbridge`）逐项检测就绪状态；WebBridge 守护进程只在未运行时启动（start-if-down，与 Kimi Work 共存）。 |
-| 运行范围 | `kimi-cu` 仅 macOS；`kimi-webbridge` 支持 macOS arm64/x64、Linux arm64/x64、Windows x64；条目由客户端按发布版本注入默认 Official marketplace，旧版本客户端不会看到。 |
-| 后台与并发 | `kimi-cu` 经后台 launchd 服务运行；`kimi-webbridge` 守护进程常驻，就绪检测轮询 `/status`。 |
-| Git 与平台联动 | macOS 辅助功能与屏幕录制（TCC）权限只能由用户手动授予，就绪检测经 `xpc-ping` 校验；WebBridge 会检测 `~/.kimi-code/skills/` 与 `~/.agents/skills/` 下冲突的旧技能副本并在安装进度中标记迁移。 |
-| 状态与产物 | `KimiCU.app`、launchd 服务、`~/.kimi-webbridge/bin/kimi-webbridge[.exe]` 及版本文件、已安装的官方插件。 |
-| 条件与边界 | 2026-08-04 合入主分支，changeset 标记为 minor，当前发布版本（0.32.0）尚未包含；仅 v2 CLI 提供；安装进行中会返回 `capability.install_in_progress`。 |
+| 矩阵结论 | 条件：`/plugins` 内置 `kimi-cu` 与 `kimi-webbridge`；`kimi-cu` 支持 macOS 与 Windows x64（Windows 未发布）；v2 CLI |
+| 入口与工具 | v2 CLI 的 `/plugins` 面板内置 `Kimi Computer Use`（`kimi-cu`）与 `Kimi WebBridge`（`kimi-webbridge`）条目，安装时一并配置最新托管运行时与插件，报告缺失的手动步骤并支持中断后重试；Windows x64 上同一 `kimi-cu` 条目对应后端插件 `kimi-cu-win`。 |
+| 核心机制 | `kimi-cu` 在 macOS 安装 `KimiCU.app`、同名插件与 `ai.kimi.cu.service` launchd 服务，提供后台 GUI 自动化：读取应用 UI、点击、输入、滚动、拖拽，不抢占鼠标或前台；在 Windows x64 安装插件 `kimi-cu-win` 与官方签名运行时 `kimi-cu.exe`，提供同类 Windows GUI 自动化（读取应用 UI、点击、输入、滚动、拖拽）；`kimi-webbridge` 安装 `~/.kimi-webbridge/bin/` 守护进程与官方浏览器控制插件，控制带登录态的真实浏览器（导航、点击、输入、读取页面、截图），浏览器扩展为可选手动安装。 |
+| 执行行为 | 安装为幂等托管流程：macOS 按插件、应用、服务、权限（`kimi-cu`）或守护进程、插件、扩展连接（`kimi-webbridge`）逐项检测就绪状态；Windows x64 按插件、下载、运行时三步执行，经系统自带 PowerShell 以 `-NoProfile -NonInteractive -ExecutionPolicy Bypass` 运行安装脚本 `setup_windows.ps1`（超时 180 秒），doctor 检测运行时健康时跳过运行时重装；WebBridge 守护进程只在未运行时启动（start-if-down，与 Kimi Work 共存）。 |
+| 运行范围 | `kimi-cu` 支持 macOS 与 Windows x64（仅 `win32` + `x64`，不含 Windows arm64）；`kimi-webbridge` 支持 macOS arm64/x64、Linux arm64/x64、Windows x64；条目由客户端按发布版本注入默认 Official marketplace，旧版本客户端不会看到。 |
+| 后台与并发 | `kimi-cu` 在 macOS 经后台 launchd 服务运行；Windows x64 安装流程没有服务注册步骤，运行状态由 doctor 脚本检测；`kimi-webbridge` 守护进程常驻，就绪检测轮询 `/status`。 |
+| Git 与平台联动 | macOS 辅助功能与屏幕录制（TCC）权限只能由用户手动授予，就绪检测经 `xpc-ping` 校验；Windows x64 doctor 脚本按 `KIMI_CU_WINDOWS_EXE`、`KIMI_CU_WINDOWS_HOME`、`%LOCALAPPDATA%\KimiCU\kimi-cu.exe`、`%ProgramFiles%\KimiCU\kimi-cu.exe` 查找运行时，要求输出 `mcp=true` 且 `helper=embedded`；官方插件来源允许列表新增 `cdn.kimi.com/kimi-computer-use-windows/`；WebBridge 会检测 `~/.kimi-code/skills/` 与 `~/.agents/skills/` 下冲突的旧技能副本并在安装进度中标记迁移。 |
+| 状态与产物 | `KimiCU.app` 与 launchd 服务（macOS）、`kimi-cu.exe` 运行时（Windows x64）、`~/.kimi-webbridge/bin/kimi-webbridge[.exe]` 及版本文件、已安装的官方插件。 |
+| 条件与边界 | `kimi-cu` 与 `kimi-webbridge` 内置条目 2026-08-04 合入主分支，已随 0.33.0 发布；Windows x64 支持 2026-08-05 合入主分支（changeset 标记为 minor），0.33.0 未包含，尚未发布；仅 v2 CLI 提供；安装进行中会返回 `capability.install_in_progress`。 |
 | 证据状态 | 条件项 |
-| 来源 | [Kimi Code built-in Computer Use and WebBridge capabilities](https://github.com/MoonshotAI/kimi-code/commit/0abcd00f7fd3e3cbf087509ffef1c54a6f8d396d) |
+| 来源 | [Kimi Code built-in Computer Use and WebBridge capabilities](https://github.com/MoonshotAI/kimi-code/commit/0abcd00f7fd3e3cbf087509ffef1c54a6f8d396d)、[Kimi Code Computer Use Windows support commit](https://github.com/MoonshotAI/kimi-code/commit/68ba740ebfb3e32ad9abdb8607f48d4387cf6f69) |
 
 ### Qoder CLI
 
@@ -129,6 +129,7 @@
 - [Codex configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference)
 - [Qwen Code Computer Use](https://github.com/QwenLM/qwen-code/blob/0907edb909706cf7589f94723b26572eb1dd9512/docs/users/features/computer-use.md)
 - [Kimi Code built-in Computer Use and WebBridge capabilities](https://github.com/MoonshotAI/kimi-code/commit/0abcd00f7fd3e3cbf087509ffef1c54a6f8d396d)
+- [Kimi Code Computer Use Windows support commit](https://github.com/MoonshotAI/kimi-code/commit/68ba740ebfb3e32ad9abdb8607f48d4387cf6f69)
 - [Qoder CLI SDK Reference](https://docs.qoder.com/en/cli/sdk/references)
 - [Qoder CLI MCP servers](https://docs.qoder.com/en/cli/mcp-servers)
 
