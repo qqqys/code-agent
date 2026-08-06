@@ -67,7 +67,9 @@
 
 ### Claude Code
 
-`/add-dir`、`/advisor`、`/agents`、`/autofix-pr`、`/background`、`/batch`、`/branch`、`/btw`、`/bug`、`/cd`、`/chrome`、`/claude-api`、`/clear`、`/code-review`、`/color`、`/compact`、`/config`、`/context`、`/copy`、`/cost`、`/dataviz`、`/debug`、`/deep-research`、`/design-login`、`/design-sync`、`/desktop`、`/diff`、`/doctor`、`/effort`、`/exit`、`/export`、`/fast`、`/feedback`、`/fewer-permission-prompts`、`/focus`、`/fork`、`/goal`、`/heapdump`、`/help`、`/hooks`、`/ide`、`/init`、`/insights`、`/install-github-app`、`/install-slack-app`、`/keybindings`、`/login`、`/logout`、`/loop`、`/mcp`、`/memory`、`/mobile`、`/model`、`/passes`、`/permissions`、`/plan`、`/plugin`、`/powerup`、`/privacy-settings`、`/radio`、`/recap`、`/release-notes`、`/reload-plugins`、`/reload-skills`、`/remote-control`、`/remote-env`、`/rename`、`/resume`、`/review`、`/rewind`、`/run`、`/run-skill-generator`、`/sandbox`、`/schedule`、`/scroll-speed`、`/security-review`、`/setup-bedrock`、`/setup-vertex`、`/simplify`、`/skills`、`/stats`、`/status`、`/statusline`、`/stickers`、`/stop`、`/subtask`、`/tasks`、`/team-onboarding`、`/teleport`、`/terminal-setup`、`/theme`、`/tui`、`/ultraplan`、`/ultrareview`、`/upgrade`、`/usage`、`/usage-credits`、`/verify`、`/voice`、`/web-setup`、`/workflows`。
+`/add-dir`、`/advisor`、`/agents`、`/autofix-pr`、`/background`、`/batch`、`/branch`、`/btw`、`/bug`、`/cd`、`/chrome`、`/claude-api`、`/clear`、`/code-review`、`/color`、`/compact`、`/config`、`/context`、`/copy`、`/cost`、`/dataviz`、`/debug`、`/deep-research`、`/design-login`、`/design-sync`、`/desktop`、`/diff`、`/doctor`、`/effort`、`/exit`、`/export`、`/fast`、`/feedback`、`/fewer-permission-prompts`、`/focus`、`/fork`、`/goal`、`/heapdump`、`/help`、`/hooks`、`/ide`、`/init`、`/insights`、`/install-github-app`、`/install-slack-app`、`/keybindings`、`/login`、`/logout`、`/loop`、`/mcp`、`/memory`、`/mobile`、`/model`、`/passes`、`/permissions`、`/plan`、`/plugin`、`/powerup`、`/privacy-settings`、`/radio`、`/recap`、`/release-notes`、`/reload-plugins`、`/reload-skills`、`/remote-control`、`/remote-env`、`/rename`、`/resume`、`/review`、`/rewind`、`/run`、`/run-skill-generator`、`/sandbox`、`/schedule`、`/scroll-speed`、`/security-review`、`/setup-bedrock`、`/setup-vertex`、`/simplify`、`/skills`、`/stats`、`/status`、`/statusline`、`/stickers`、`/stop`、`/subtask`、`/tasks`、`/team-onboarding`、`/teleport`、`/terminal-setup`、`/theme`、`/tui`、`/ultrareview`、`/upgrade`、`/usage`、`/usage-credits`、`/verify`、`/voice`、`/web-setup`、`/workflows`。
+
+v2.1.222（2026-08-04 发布）移除了 ultraplan 功能，官方命令表不再列出 `/ultraplan`（更新日志原文 “Removed ultraplan feature”）。自 v2.1.223（2026-08-06 发布）起，`/review` 是 `/code-review` 的别名，旧的快速 PR Review 行为由 `/code-review` 取代；`/ultrareview` 在账号可用 ultrareview 时是 `/code-review ultra` 的别名。
 
 ### Codex
 
@@ -153,6 +155,9 @@ Web Shell 还固定提供 4 个不属于 CLI/TUI 硬编码加载器的本地命�
 
 - [Claude Code 交互命令](https://code.claude.com/docs/en/commands)
 - [Claude Code 快捷键](https://code.claude.com/docs/en/keybindings)
+- [Claude Code v2.1.222 更新日志](https://github.com/anthropics/claude-code/blob/3b272769d0c8/CHANGELOG.md)
+- [Claude Code v2.1.223 更新日志](https://github.com/anthropics/claude-code/blob/5cf69b18c86d/CHANGELOG.md)
+- [Claude Code ultrareview](https://code.claude.com/docs/en/ultrareview)
 - [Codex CLI 命令](https://developers.openai.com/codex/cli/slash-commands)
 - [Codex 双键快捷键 chord 提交](https://github.com/openai/codex/commit/1e85ca099e4265bf89f4016772d299816e231bb3)
 - [Qwen Code 硬编码命令加载器](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/BuiltinCommandLoader.ts)

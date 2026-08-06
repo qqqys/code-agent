@@ -581,7 +581,8 @@
       facts: [
         'Codex、Qwen Code、Claude Code 和 Qoder CLI 都提供明确 Review 入口；Kimi Code 当前命令目录没有内置 `/review`。',
         'Qwen Code `/review` 是随产品加载的内置 Skill，不是硬编码命令；它能审本地、文件与 PR，同仓 PR 使用隔离 Worktree。',
-        'Claude 与 Codex 的 GitHub 托管 Review 和本地 `/review` 是不同 Surface：前者可在 PR 上自动触发，后者在当前会话输出结果。',
+        'Claude Code 自 v2.1.223 起把 `/review` 改为 `/code-review` 的别名；`/code-review` 不带级别时复用会话最近一次输入的级别，`ultra` 级别在云端运行 ultrareview。',
+        'Claude 与 Codex 的 GitHub 托管 Review 和本地 `/code-review` 是不同 Surface：前者可在 PR 上自动触发，后者在当前会话输出结果。',
         'Qwen Code `/review` 自 2026-08-02 起提供 `publish-assets`：把证据图发布到用户指定的资产仓库并回写 URL，供 PR 评论嵌入；其余四家当前一手资料未列出同类内置入口。',
         'Qwen Code medium/high effort Review 会在 `.qwen/reviews/` 保存结构化 JSON 产物，Web Shell 将其渲染为可筛选 findings 的交互式审查视图；其余四家当前一手资料未列出同类内置结构化审查结果视图。',
         'Qwen Code v0.21.6 起提供 `qwen review cost-ledger`：从本次审查在磁盘上的用量记录聚合主循环与各 Agent 的模型调用和 token 消耗，内置 Review Skill 在 Step 8 运行并把结果归档进报告；其余四家当前一手资料未列出同类内置 Review 成本聚合入口。',
@@ -589,22 +590,27 @@
       products: {
         claude: {
           entry:
-            '`/review [PR]` 做快速审查；`/code-review` 提供多级本地/云审查；`/security-review` 聚焦当前分支安全。',
+            'v2.1.223 起 `/review` 是 `/code-review` 的别名；`/code-review [low|medium|high|xhigh|max|ultra] [--fix] [--comment] [target]` 审查当前 Diff 或指定目标，`ultra` 运行云端 ultrareview；`/security-review` 检查 Diff 的安全漏洞。',
           primitives:
-            '本地命令读取 Git Diff 和相关代码；托管 Code Review 用多 Agent 在 GitHub PR 上分析并验证问题。',
+            '`/code-review` 是 bundled Skill，默认作为带独立上下文窗口的后台 subagent 运行；`ultra` 与托管 Code Review 使用多 Agent 流水线，分别在云端与 GitHub PR 上分析并验证问题。',
           behavior:
-            '可输出本地问题清单，或在 PR 行上发布带严重级别的评论；`--fix`、`--comment` 只在对应工作流使用。',
+            '默认审查分支领先 upstream 的提交加未提交改动；target 可为文件路径、PR 编号、分支名或 ref range（如 `main...my-feature`）。不带级别时复用会话最近一次输入的级别（v2.1.223，官方文档表述为使用会话当前 effort）；`low`/`medium` 只报高置信度 findings，`high` 至 `max` 放宽覆盖。`--fix` 把 findings 应用到工作树；`--comment` 把 findings 发布为 GitHub PR 行内评论。`/code-review ultra` 运行云端 ultrareview，不可用时回退为会话内本地审查。',
           scope:
-            '可针对当前改动、指定 target 或 PR；托管 Review 由仓库触发策略决定。',
+            '本地为当前分支 Diff 或指定 target；ultrareview 默认审查当前分支与默认分支的差异（含未提交与 staged 改动），可接受自定义 base 分支、PR 编号/URL 或说明文字，单次默认上限 500 个文件和 8,000 行变更。托管 Review 由仓库触发策略决定（PR 打开、每次 push 或手动 `@claude review`）。',
           background:
-            '托管 Code Review 在 Anthropic 基础设施并行运行；本地 Review 占用当前会话或插件 Agent。',
+            '本地审查默认后台 subagent，不占用会话上下文；上一次审查未完成、`-p` 模式或 `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` 时改为前台。托管 Code Review 在 Anthropic 基础设施并行运行。',
           integration:
-            '`CLAUDE.md`、`REVIEW.md` 定义团队规则；GitHub App 发布评论与 check run。',
+            '本地审查遵循 `CLAUDE.md`，不读取 `REVIEW.md`；托管 Code Review 把仓库根目录 `REVIEW.md` 以最高优先级注入审查流水线每个 Agent。findings 去重、按严重级别排序后以行内评论发布到 PR，摘要进 review body，并生成 Claude Code Review check run。',
           artifacts:
-            '本地报告、文件修改、GitHub Review 评论和 check run，取决于入口。',
+            '本地 findings 文本（桌面等宿主应用经 `ReportFindings` 工具）、`--fix` 文件修改、GitHub 行内评论、review 摘要与 check run。',
           conditions:
-            '托管 Code Review 处于 research preview，面向 Team/Enterprise，ZDR 组织不可用。',
-          sources: ['claude-commands', 'claude-code-review'],
+            '`/code-review` 标记 `disable-model-invocation`，只在显式调用时运行。`ultra` 需要 claude.ai 账号登录并开启 usage credits；Amazon Bedrock、Google Cloud Agent Platform、Microsoft Foundry 与 ZDR 组织不可用，不可用时回退本地审查；账号可用 ultrareview 时 `/ultrareview` 是 `/code-review ultra` 的别名。后台审查的 `--fix` 编辑不经过会话检查点（`/rewind` 不回退），前台编辑可被 `/rewind` 回退。托管 Code Review 为 research preview，面向 Team/Enterprise，ZDR 组织不可用。',
+          sources: [
+            'claude-commands',
+            'claude-code-review',
+            'claude-review-alias',
+            'claude-ultrareview',
+          ],
         },
         codex: {
           entry:

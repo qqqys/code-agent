@@ -154,6 +154,14 @@ window.matrixData = {
       label: 'Claude Code v2.1.221 changelog',
       url: 'https://github.com/anthropics/claude-code/blob/dd796139237c/CHANGELOG.md',
     },
+    'claude-review-alias': {
+      label: 'Claude Code v2.1.223 changelog',
+      url: 'https://github.com/anthropics/claude-code/blob/5cf69b18c86d/CHANGELOG.md',
+    },
+    'claude-ultrareview': {
+      label: 'Claude Code ultrareview',
+      url: 'https://code.claude.com/docs/en/ultrareview',
+    },
     'codex-commands': {
       label: 'Codex CLI commands',
       url: 'https://developers.openai.com/codex/cli/slash-commands',
@@ -1293,7 +1301,7 @@ window.matrixData = {
       category: 'execution',
       capability: '代码 Review',
       description: '由产品提供的审查命令或工作流。',
-      values: { claude: '`/review` · `/code-review` · GitHub Review', codex: '`/review` · GitHub Review', qwen: '`/review` 内置 Skill · `publish-assets` 证据图 · Web Shell 结构化结果 · `cost-ledger` 成本台账', kimi: '自然语言；无内置 `/review`', qoder: '`/review [instruction]`' },
+      values: { claude: '`/review` 为 `/code-review` 别名 · `ultra` 云审查 · GitHub Review', codex: '`/review` · GitHub Review', qwen: '`/review` 内置 Skill · `publish-assets` 证据图 · Web Shell 结构化结果 · `cost-ledger` 成本台账', kimi: '自然语言；无内置 `/review`', qoder: '`/review [instruction]`' },
     },
     {
       id: 'execution-git',
