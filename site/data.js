@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-08-05',
+  updatedAt: '2026-08-06',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -313,6 +313,10 @@ window.matrixData = {
     'qwen-review-web-shell': {
       label: 'Qwen Code structured Web Shell review results',
       url: 'https://github.com/QwenLM/qwen-code/commit/7dfc554dffcf52930ac35d4ea9c2558dfe36c22c',
+    },
+    'qwen-review-cost-ledger': {
+      label: 'Qwen Code review cost ledger',
+      url: 'https://github.com/QwenLM/qwen-code/commit/4f79036a2269bb43f95f736ca8c44bc60b0cc9d6',
     },
     'qwen-computer-use': {
       label: 'Qwen Code Computer Use',
@@ -1289,7 +1293,7 @@ window.matrixData = {
       category: 'execution',
       capability: '代码 Review',
       description: '由产品提供的审查命令或工作流。',
-      values: { claude: '`/review` · `/code-review` · GitHub Review', codex: '`/review` · GitHub Review', qwen: '`/review` 内置 Skill · `publish-assets` 证据图 · Web Shell 结构化结果', kimi: '自然语言；无内置 `/review`', qoder: '`/review [instruction]`' },
+      values: { claude: '`/review` · `/code-review` · GitHub Review', codex: '`/review` · GitHub Review', qwen: '`/review` 内置 Skill · `publish-assets` 证据图 · Web Shell 结构化结果 · `cost-ledger` 成本台账', kimi: '自然语言；无内置 `/review`', qoder: '`/review [instruction]`' },
     },
     {
       id: 'execution-git',
