@@ -539,16 +539,19 @@
       includes: ['本地 Diff Review', 'PR Review', '安全审查', '自动应用或发表评论参数'],
       excludes: ['普通提示词要求“看看代码”', 'CI 检查', '自动修复 PR 后续评论'],
       facts: [
-        'Claude Code 将快速 PR Review、本地多级 Code Review 和安全 Review 拆成三个命令。',
+        'Claude Code 自 v2.1.223 起把 `/review` 改为 `/code-review` 的别名，`/security-review` 仍是独立的安全审查命令。',
         'Codex `/review` 面向工作树审查。',
         'Qwen Code `/review` 由随产品提供的 Skill 注册，不在硬编码命令加载器中。',
         'Kimi Code 当前官方内置命令目录没有独立 Review 命令。',
       ],
       products: {
-        claude: command('claude', ['/review [PR]', '/code-review [level] [--fix] [--comment] [target]', '/security-review'], '支持只读 PR Review、本地或云端多级 Review，以及当前分支安全审查。', {
-          parameters: 'effort level、`--fix`、`--comment`、PR 或 target',
-          persistence: '`--fix` 可修改文件，`--comment` 可写入 GitHub；其他形式只读',
-          conditions: 'GitHub 相关形式需要仓库和相应访问权限',
+        claude: command('claude', ['/code-review [low|medium|high|xhigh|max|ultra] [--fix] [--comment] [target]', '/security-review'], '`/code-review` bundled Skill 审查当前 Diff 或指定 target；不带级别时复用会话最近一次输入的级别；`ultra` 运行云端 ultrareview，不可用时回退本地审查；`/security-review` 检查 Diff 的安全漏洞。', {
+          aliases: ['/review'],
+          parameters: '级别为 `low|medium|high|xhigh|max|ultra`；target 为文件路径、PR 编号、分支名或 ref range；`--fix`、`--comment`',
+          mode: '交互式；`-p` 支持 `/code-review ultra`，另有 `claude ultrareview` 子命令',
+          persistence: '`--fix` 把 findings 应用到工作树（后台审查编辑不经过会话检查点，`/rewind` 不回退；前台编辑可回退）；`--comment` 发布 GitHub PR 行内评论；其余形式只读',
+          conditions: 'v2.1.223 起 `/review` 为 `/code-review` 别名；账号可用 ultrareview 时 `/ultrareview` 是 `/code-review ultra` 的别名。`ultra` 需要 claude.ai 账号登录并开启 usage credits，Amazon Bedrock、Google Cloud Agent Platform、Microsoft Foundry 与 ZDR 组织不可用，不可用时回退本地审查；`/code-review` 标记 `disable-model-invocation`，只在显式调用时运行',
+          sources: ['claude-commands', 'claude-code-review', 'claude-review-alias', 'claude-ultrareview'],
         }),
         codex: command('codex', ['/review'], '进入代码审查模式，审查未提交变化或与基线分支比较。', {
           persistence: '默认产生审查结果，不等同于自动修改',

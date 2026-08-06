@@ -12,7 +12,7 @@
 
 | 产品 | 命令摘要 | 证据状态 |
 | --- | --- | --- |
-| Claude Code | `/review [PR]`、`/code-review [level] [--fix] [--comment] [target]`、`/security-review` | 官方确认 |
+| Claude Code | `/code-review [low\|medium\|high\|xhigh\|max\|ultra] [--fix] [--comment] [target]`、`/security-review` | 官方确认 |
 | Codex | `/review` | 官方确认 |
 | Qwen Code | `/review [pr-number\|file-path] [--effort low\|medium\|high] [--comment]` | 源码确认 |
 | Kimi Code | 无对应命令 | 未确认 |
@@ -35,7 +35,7 @@
 
 ## 跨产品事实
 
-1. Claude Code 将快速 PR Review、本地多级 Code Review 和安全 Review 拆成三个命令。
+1. Claude Code 自 v2.1.223 起把 `/review` 改为 `/code-review` 的别名，`/security-review` 仍是独立的安全审查命令。
 2. Codex `/review` 面向工作树审查。
 3. Qwen Code `/review` 由随产品提供的 Skill 注册，不在硬编码命令加载器中。
 4. Kimi Code 当前官方内置命令目录没有独立 Review 命令。
@@ -46,15 +46,15 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 主命令 | `/review [PR]`、`/code-review [level] [--fix] [--comment] [target]`、`/security-review` |
-| 别名 | 无公开别名 |
-| 参数 | effort level、`--fix`、`--comment`、PR 或 target |
-| 执行行为 | 支持只读 PR Review、本地或云端多级 Review，以及当前分支安全审查。 |
-| 可用模式 | 交互式 CLI |
-| 保存范围 | `--fix` 可修改文件，`--comment` 可写入 GitHub；其他形式只读 |
-| 条件与边界 | GitHub 相关形式需要仓库和相应访问权限 |
+| 主命令 | `/code-review [low\|medium\|high\|xhigh\|max\|ultra] [--fix] [--comment] [target]`、`/security-review` |
+| 别名 | `/review` |
+| 参数 | 级别为 `low\|medium\|high\|xhigh\|max\|ultra`；target 为文件路径、PR 编号、分支名或 ref range；`--fix`、`--comment` |
+| 执行行为 | `/code-review` bundled Skill 审查当前 Diff 或指定 target；不带级别时复用会话最近一次输入的级别；`ultra` 运行云端 ultrareview，不可用时回退本地审查；`/security-review` 检查 Diff 的安全漏洞。 |
+| 可用模式 | 交互式；`-p` 支持 `/code-review ultra`，另有 `claude ultrareview` 子命令 |
+| 保存范围 | `--fix` 把 findings 应用到工作树（后台审查编辑不经过会话检查点，`/rewind` 不回退；前台编辑可回退）；`--comment` 发布 GitHub PR 行内评论；其余形式只读 |
+| 条件与边界 | v2.1.223 起 `/review` 为 `/code-review` 别名；账号可用 ultrareview 时 `/ultrareview` 是 `/code-review ultra` 的别名。`ultra` 需要 claude.ai 账号登录并开启 usage credits，Amazon Bedrock、Google Cloud Agent Platform、Microsoft Foundry 与 ZDR 组织不可用，不可用时回退本地审查；`/code-review` 标记 `disable-model-invocation`，只在显式调用时运行 |
 | 证据状态 | 官方确认 |
-| 来源 | [Claude Code Commands](https://code.claude.com/docs/en/commands) |
+| 来源 | [Claude Code Commands](https://code.claude.com/docs/en/commands)、[Claude Code Review](https://code.claude.com/docs/en/code-review)、[Claude Code v2.1.223 changelog](https://github.com/anthropics/claude-code/blob/5cf69b18c86d/CHANGELOG.md)、[Claude Code ultrareview](https://code.claude.com/docs/en/ultrareview) |
 
 ### Codex
 
@@ -115,6 +115,9 @@
 ## 官方来源
 
 - [Claude Code Commands](https://code.claude.com/docs/en/commands)
+- [Claude Code Review](https://code.claude.com/docs/en/code-review)
+- [Claude Code v2.1.223 changelog](https://github.com/anthropics/claude-code/blob/5cf69b18c86d/CHANGELOG.md)
+- [Claude Code ultrareview](https://code.claude.com/docs/en/ultrareview)
 - [Codex CLI commands](https://developers.openai.com/codex/cli/slash-commands)
 - [Qwen Code bundled Skill loader](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/BundledSkillLoader.ts)
 - [Qwen Code review Skill](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/core/src/skills/bundled/review/SKILL.md)
