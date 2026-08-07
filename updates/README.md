@@ -4,6 +4,7 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-08-07 | [Qwen Code Review 仓库上下文清单 `repo-context`](./2026-08-07-Qwen-Review仓库上下文清单.md) |
 | 2026-08-07 | [Codex `codex exec` 会话分支 `fork`](./2026-08-07-Codex-exec会话分支fork.md) |
 | 2026-08-07 | [Codex TUI 会话 Markdown 导出 `/export`](./2026-08-07-Codex-TUI会话导出命令.md) |
 | 2026-08-06 | [Claude Code `/review` 成为 `/code-review` 别名与 `ultra` 云审查](./2026-08-06-Claude-review别名与ultra云审查.md) |
