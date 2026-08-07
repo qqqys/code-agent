@@ -13,7 +13,7 @@
 | 产品 | 结论 | 证据状态 |
 | --- | --- | --- |
 | Claude Code | `/branch` · `--fork-session` | 官方确认 |
-| Codex | `/fork` | 官方确认 |
+| Codex | `/fork` · `codex exec fork`（条件：main 分支，尚未发布） | 源码确认 |
 | Qwen Code | `/branch` | 源码确认 |
 | Kimi Code | `/fork` | 官方确认 |
 | Qoder CLI | SDK：`resume` + `forkSession` | 条件项 |
@@ -35,8 +35,9 @@
 ## 跨产品事实
 
 1. Claude Code、Codex、Qwen Code 和 Kimi Code 都有直接会话分支入口；Qoder CLI 当前只在 SDK 公开了同类选项。
-2. Qwen Code 的 `/fork` 是继承完整对话的后台 Agent，不是会话分支；会话分支入口是 `/branch`。
-3. 会话分支复制的是对话状态，不代表复制所有进程内授权、Goal、后台任务或工作区状态。
+2. Claude Code 和 Codex 还在 Headless 流程提供会话分支：Claude Code 用 `--fork-session`，Codex 用 `codex exec fork`（条件：main 分支，尚未发布）。
+3. Qwen Code 的 `/fork` 是继承完整对话的后台 Agent，不是会话分支；会话分支入口是 `/branch`。
+4. 会话分支复制的是对话状态，不代表复制所有进程内授权、Goal、后台任务或工作区状态。
 
 ## 逐产品记录
 
@@ -60,17 +61,17 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 矩阵结论 | `/fork` |
-| 入口与切换 | `/fork` 把当前本地聊天复制为新的本地聊天。 |
+| 矩阵结论 | `/fork` · `codex exec fork`（条件：main 分支，尚未发布） |
+| 入口与切换 | `/fork` 把当前本地聊天复制为新的本地聊天；非交互流程使用 `codex exec fork <SESSION_ID> [PROMPT]`，`SESSION_ID` 接受会话 UUID 或线程名称。 |
 | 保存位置 | 本地会话记录位于 `$CODEX_HOME/sessions`，默认是 `~/.codex/sessions`；归档会话单独位于 `$CODEX_HOME/archived_sessions`。 |
-| 具体行为 | 新聊天获得独立线程标识并带入当前可见上下文，原聊天仍可继续或重新打开。 |
-| 状态范围 | 复制的是本地聊天上下文；不表示创建 Git 分支、Worktree 或云任务。 |
+| 具体行为 | `/fork` 使新聊天获得独立线程标识并带入当前可见上下文，原聊天仍可继续或重新打开。`codex exec fork` 从既有会话创建新会话且原会话保持不变；不带提示词时只创建新线程、不开始回合，输出包含 `forked_from_id` 的会话配置后立即退出，带提示词时（`-` 从 stdin 读取）立即在派生会话中继续执行。 |
+| 状态范围 | 复制的是本地聊天上下文；不表示创建 Git 分支、Worktree 或云任务。`codex exec fork` 可用 `--image`/`-i`（逗号分隔）为 fork 后的提示词附加图片。 |
 | 自动行为 | 无自动分支；由用户在需要保留原路径时显式触发。 |
-| 保存与保留 | 新线程作为独立本地会话进入 Codex 的会话存储。 |
+| 保存与保留 | 新线程作为独立本地会话进入 Codex 的会话存储；`codex exec fork` 输出的会话配置用 `forked_from_id` 记录来源会话。 |
 | 适用界面 | 本页区分交互式 Codex 与 `codex exec`。桌面端、IDE 和 CLI 可能随各自版本提供不同的命令集合。 |
-| 条件与边界 | 命令可用性取决于当前 Codex 客户端 Surface 和版本；本页不把 `/side` 临时旁路聊天计作持久分支。 |
-| 证据状态 | 官方确认 |
-| 来源 | [Codex CLI commands](https://developers.openai.com/codex/cli/slash-commands) |
+| 条件与边界 | 命令可用性取决于当前 Codex 客户端 Surface 和版本；本页不把 `/side` 临时旁路聊天计作持久分支。条件：`codex exec fork` 于 2026-08-07 合入 main 分支，尚未进入 Release，官方非交互文档未列出；不带提示词的 fork 不能搭配 `--image`、`--output-schema`/`--output-last-message` 等输出参数或 ephemeral 模式，否则报错。 |
+| 证据状态 | 源码确认 |
+| 来源 | [Codex CLI commands](https://developers.openai.com/codex/cli/slash-commands)、[Codex exec session fork](https://github.com/openai/codex/commit/80858a8cce7f3ba0aaf6a76ad9462dca1604daeb) |
 
 ### Qwen Code
 
@@ -124,6 +125,7 @@
 
 - [Claude Code Manage sessions](https://code.claude.com/docs/en/sessions)
 - [Codex CLI commands](https://developers.openai.com/codex/cli/slash-commands)
+- [Codex exec session fork](https://github.com/openai/codex/commit/80858a8cce7f3ba0aaf6a76ad9462dca1604daeb)
 - [Qwen Code current commands](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/commands.md)
 - [Kimi Code current sessions](https://github.com/MoonshotAI/kimi-code/blob/7c919f0376c0331d0d057ef3643c7adcc2c55802/docs/zh/guides/sessions.md)
 - [Kimi Code current data locations](https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/configuration/data-locations.md)

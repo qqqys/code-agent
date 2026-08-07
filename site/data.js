@@ -294,6 +294,10 @@ window.matrixData = {
       label: 'Codex TUI Markdown conversation export',
       url: 'https://github.com/openai/codex/commit/2801d12661bea3c7ff1a6a39c810348222453a27',
     },
+    'codex-exec-fork': {
+      label: 'Codex exec session fork',
+      url: 'https://github.com/openai/codex/commit/80858a8cce7f3ba0aaf6a76ad9462dca1604daeb',
+    },
     'qwen-commands': {
       label: 'Qwen Code commands documentation',
       url: 'https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/commands.md',
@@ -1172,7 +1176,7 @@ window.matrixData = {
       category: 'sessions',
       capability: '会话分支',
       description: '从当前上下文复制出独立会话。',
-      values: { claude: '`/branch` · `--fork-session`', codex: '`/fork`', qwen: '`/branch`', kimi: '`/fork`', qoder: 'SDK：`resume` + `forkSession`' },
+      values: { claude: '`/branch` · `--fork-session`', codex: '`/fork` · `codex exec fork`（条件：main 分支，尚未发布）', qwen: '`/branch`', kimi: '`/fork`', qoder: 'SDK：`resume` + `forkSession`' },
     },
     {
       id: 'session-naming',
