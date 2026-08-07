@@ -4,6 +4,7 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-08-07 | [Codex TUI 会话 Markdown 导出 `/export`](./2026-08-07-Codex-TUI会话导出命令.md) |
 | 2026-08-06 | [Claude Code `/review` 成为 `/code-review` 别名与 `ultra` 云审查](./2026-08-06-Claude-review别名与ultra云审查.md) |
 | 2026-08-06 | [Qwen Code Review 成本台账 `cost-ledger`](./2026-08-06-Qwen-Review成本台账cost-ledger.md) |
 | 2026-08-05 | [Kimi Computer Use 增加 Windows x64 支持](./2026-08-05-Kimi-ComputerUse-Windows支持.md) |

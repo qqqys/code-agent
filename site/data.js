@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-08-06',
+  updatedAt: '2026-08-07',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -289,6 +289,10 @@ window.matrixData = {
     'codex-computer-use': {
       label: 'Codex Computer Use',
       url: 'https://learn.chatgpt.com/docs/computer-use',
+    },
+    'codex-tui-export': {
+      label: 'Codex TUI Markdown conversation export',
+      url: 'https://github.com/openai/codex/commit/2801d12661bea3c7ff1a6a39c810348222453a27',
     },
     'qwen-commands': {
       label: 'Qwen Code commands documentation',
@@ -853,7 +857,7 @@ window.matrixData = {
       category: 'commands',
       capability: '导出会话',
       description: '把会话输出为文件或可分享内容。',
-      values: { claude: '`/export`', codex: '—', qwen: '`/export html|md|json|jsonl`', kimi: '`/export-md` · `/export-debug-zip`', qoder: '`/export`' },
+      values: { claude: '`/export`', codex: '`/export`（条件：main 分支，尚未发布）', qwen: '`/export html|md|json|jsonl`', kimi: '`/export-md` · `/export-debug-zip`', qoder: '`/export`' },
     },
     {
       id: 'cmd-config',
@@ -1196,7 +1200,7 @@ window.matrixData = {
       category: 'sessions',
       capability: '会话导出',
       description: '将会话保存为 Markdown、JSON 或其他文件。',
-      values: { claude: '`/export [filename]`', codex: 'CLI 命令表未列出', qwen: 'HTML · Markdown · JSON · JSONL', kimi: 'Markdown · 诊断 ZIP', qoder: '`/export [filename]`' },
+      values: { claude: '`/export [filename]`', codex: '`/export` · Markdown · 剪贴板（条件：main 分支，尚未发布）', qwen: 'HTML · Markdown · JSON · JSONL', kimi: 'Markdown · 诊断 ZIP', qoder: '`/export [filename]`' },
     },
     {
       id: 'session-checkpoint',

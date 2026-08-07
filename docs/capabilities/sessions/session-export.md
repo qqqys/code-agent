@@ -2,7 +2,7 @@
 
 [返回会话与上下文详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=session-export)
 
-> 核对日期：2026-08-06
+> 核对日期：2026-08-07
 
 ## 定义
 
@@ -13,7 +13,7 @@
 | 产品 | 结论 | 证据状态 |
 | --- | --- | --- |
 | Claude Code | `/export [filename]` | 官方确认 |
-| Codex | CLI 命令表未列出 | 未确认 |
+| Codex | `/export` · Markdown · 剪贴板（条件：main 分支，尚未发布） | 源码确认 |
 | Qwen Code | HTML · Markdown · JSON · JSONL | 源码确认 |
 | Kimi Code | Markdown · 诊断 ZIP | 官方确认 |
 | Qoder CLI | `/export [filename]` | 官方确认 |
@@ -34,7 +34,7 @@
 
 ## 跨产品事实
 
-1. Claude Code、Qwen Code、Kimi Code 和 Qoder CLI 都有显式会话导出；Codex 当前 CLI 命令表未列出会话导出命令。
+1. 五家都有显式会话导出入口；Codex 的 TUI `/export` 于 2026-08-07 合入 main 分支，官方命令文档尚未列出。
 2. Kimi Code 明确区分人类可读 Markdown 与包含日志的诊断 ZIP，Web UI 的 `/export` 还与 TUI 同名命令行为不同。
 3. 导出内容可能包含提示词、代码、命令输出、本地路径和诊断信息，公开分享前应检查并脱敏。
 
@@ -60,17 +60,17 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 矩阵结论 | CLI 命令表未列出 |
-| 入口与切换 | 当前 Codex CLI 命令表未列出会话导出命令。 |
+| 矩阵结论 | `/export` · Markdown · 剪贴板（条件：main 分支，尚未发布） |
+| 入口与切换 | `/export [path]`（TUI）；不带参数打开 Export conversation 选择器，可选 Copy to clipboard 或 Save to file。 |
 | 保存位置 | 本地会话记录位于 `$CODEX_HOME/sessions`，默认是 `~/.codex/sessions`；归档会话单独位于 `$CODEX_HOME/archived_sessions`。 |
-| 具体行为 | 本地会话 JSONL 可用于故障排查，`codex exec --json` 可输出单次非交互运行事件，但两者都不等于“导出当前交互会话”的命令。 |
-| 状态范围 | 本项只认显式的当前会话导出，不把反馈上传、日志目录或复制单条消息视为等价入口。 |
-| 自动行为 | 可由外部脚本读取 `$CODEX_HOME/sessions` 做归档，但这不是当前官方 CLI 导出 Surface。 |
-| 保存与保留 | 会话原始记录保留在 Codex Home；结构和清理应按诊断材料处理。 |
+| 具体行为 | 把完整会话历史渲染为结构化 Markdown：用户与助手消息、计划、推理、活动、图片标签、文件改动和 MCP 工具细节，并遵循推理可见性设置；历史分页加载，分页不可用时回退旧加载方式，ephemeral 会话使用可见 transcript。 |
+| 状态范围 | 只导出当前会话；结果写入指定路径、默认文件名或剪贴板，并在会话中报告成功或失败；无会话或无内容时分别提示 “No active conversation to export.” 与 “No conversation content to export.”。 |
+| 自动行为 | 该命令只在 TUI 提供；`codex exec --json` 仍只输出单次非交互运行事件，外部脚本可读取 `$CODEX_HOME/sessions` 原始记录做归档。 |
+| 保存与保留 | 保存文件默认名 `codex-session-<thread_id>.md`（无 thread ID 时 `codex-session.md`）；写入使用 `persist_noclobber`，不覆盖已存在文件；导出文件独立于原会话。 |
 | 适用界面 | 本页区分交互式 Codex 与 `codex exec`。桌面端、IDE 和 CLI 可能随各自版本提供不同的命令集合。 |
-| 条件与边界 | 保留为未确认/未列出，直到官方 CLI 提供可读或结构化的会话导出命令。 |
-| 证据状态 | 未确认 |
-| 来源 | [Codex CLI commands](https://developers.openai.com/codex/cli/slash-commands)、[Codex Non-interactive mode](https://learn.chatgpt.com/docs/non-interactive-mode)、[Codex Troubleshooting](https://learn.chatgpt.com/docs/reference/troubleshooting) |
+| 条件与边界 | 条件：2026-08-07 合入 main 分支，尚未进入 Release，官方 CLI 命令文档尚未列出；相对路径按当前工作目录解析（远程工作区使用启动目录），`~` 展开为主目录。 |
+| 证据状态 | 源码确认 |
+| 来源 | [Codex TUI Markdown conversation export](https://github.com/openai/codex/commit/2801d12661bea3c7ff1a6a39c810348222453a27)、[Codex Non-interactive mode](https://learn.chatgpt.com/docs/non-interactive-mode)、[Codex Troubleshooting](https://learn.chatgpt.com/docs/reference/troubleshooting) |
 
 ### Qwen Code
 
@@ -124,7 +124,7 @@
 
 - [Claude Code Manage sessions](https://code.claude.com/docs/en/sessions)
 - [Claude Code Headless Mode](https://code.claude.com/docs/en/headless)
-- [Codex CLI commands](https://developers.openai.com/codex/cli/slash-commands)
+- [Codex TUI Markdown conversation export](https://github.com/openai/codex/commit/2801d12661bea3c7ff1a6a39c810348222453a27)
 - [Codex Non-interactive mode](https://learn.chatgpt.com/docs/non-interactive-mode)
 - [Codex Troubleshooting](https://learn.chatgpt.com/docs/reference/troubleshooting)
 - [Qwen Code current commands](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/commands.md)
