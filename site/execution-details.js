@@ -586,6 +586,7 @@
         'Qwen Code `/review` 自 2026-08-02 起提供 `publish-assets`：把证据图发布到用户指定的资产仓库并回写 URL，供 PR 评论嵌入；其余四家当前一手资料未列出同类内置入口。',
         'Qwen Code medium/high effort Review 会在 `.qwen/reviews/` 保存结构化 JSON 产物，Web Shell 将其渲染为可筛选 findings 的交互式审查视图；其余四家当前一手资料未列出同类内置结构化审查结果视图。',
         'Qwen Code v0.21.6 起提供 `qwen review cost-ledger`：从本次审查在磁盘上的用量记录聚合主循环与各 Agent 的模型调用和 token 消耗，内置 Review Skill 在 Step 8 运行并把结果归档进报告；其余四家当前一手资料未列出同类内置 Review 成本聚合入口。',
+        'Qwen Code v0.21.7 起提供 `.qwen/review-context.json` 仓库上下文清单与 `qwen review repo-context`：仓库用严格 JSON 声明路径、领域、推荐测试、必需审查角色等有界审查指引，medium/high effort 的本地与同仓 PR 审查在计划采集后并入审查计划，PR 审查只从 merge base 读取清单；其余四家当前一手资料未列出同类内置 Review 仓库上下文入口。',
       ],
       products: {
         claude: {
@@ -633,27 +634,28 @@
         },
         qwen: {
           entry:
-            '`/review` 审本地变化；`/review <file>` 审文件；`/review <pr>` 审 PR；`--comment` 发布 GitHub Review；`qwen review publish-assets` 发布证据图；`qwen review cost-ledger --plan <计划报告> [--out <路径>]` 聚合本次审查成本。',
+            '`/review` 审本地变化；`/review <file>` 审文件；`/review <pr>` 审 PR；`--comment` 发布 GitHub Review；`qwen review publish-assets` 发布证据图；`qwen review cost-ledger --plan <计划报告> [--out <路径>]` 聚合本次审查成本；`qwen review repo-context --plan <计划 JSON> --worktree <工作树> --out <产物路径>` 为审查计划附加有界仓库上下文，medium/high effort 审查在计划采集后由流程调用。',
           primitives:
-            '内置 Skill 用 `qwen review fetch-pr`、并行审查 Agent、锚点验证和一次 Create Review API 提交；证据图经 Contents API（`gh` HTTPS）写入指定仓库，不克隆、不走 SSH。`cost-ledger` 聚合 chat 与 subagent transcript JSONL 中 assistant 事件携带的 `usageMetadata`，与 coverage gate 读取同一批记录。',
+            '内置 Skill 用 `qwen review fetch-pr`、并行审查 Agent、锚点验证和一次 Create Review API 提交；证据图经 Contents API（`gh` HTTPS）写入指定仓库，不克隆、不走 SSH。`cost-ledger` 聚合 chat 与 subagent transcript JSONL 中 assistant 事件携带的 `usageMetadata`，与 coverage gate 读取同一批记录。仓库上下文来自 `.qwen/review-context.json` 严格 JSON 清单：顶层字段固定为 `version`、`label`、`rules`；每条规则必填 `paths`（仓库相对、`/` 分隔 glob，支持 `*`、`?` 与完整 `**` 段，区分大小写），可选 `relatedPaths`、`domains`、`recommendedTests`、`requiredConfigurations`、`requiredAgents`、`unverifiedDimensions`、`verificationNotes`；未知字段、注释、不支持的版本、超限值、控制字符与重复数组项被拒绝。manifest provider 在进程内静态注册（provider 名 `manifest`），输出经共享 `validateRepositoryContext` 校验；不支持动态插件注册、shell 执行、模板或不透明载荷。',
           behavior:
-            '本地默认 medium effort，PR 默认 high；同仓 PR 强制在临时 Worktree 中读、测、审，跨仓 URL 使用轻量模式。证据图只接受 png/jpg/jpeg/gif/webp（拒绝 SVG），单文件 10 MiB、单批 40 MiB 上限，任一文件不合格则整批拒绝。medium/high effort 审查还会把规范 findings 与组合结论保存为与报告同名的结构化 JSON 产物，Web Shell 把它渲染成可筛选 findings 的交互式审查视图，Markdown 报告保持人类可读存档。`cost-ledger` 以 `--plan` 计划报告的 mtime 为计费窗口起点（计划前的引导轮次与台账运行后的组装不计入），按流输出主循环与每个审查 Agent 的模型调用数、输入/缓存/输出/思考 token 数与耗时；模型调用只统计携带 `usageMetadata` 的 assistant 记录，计数是下限而非精确 API 调用数。',
+            '本地默认 medium effort，PR 默认 high；同仓 PR 强制在临时 Worktree 中读、测、审，跨仓 URL 使用轻量模式。证据图只接受 png/jpg/jpeg/gif/webp（拒绝 SVG），单文件 10 MiB、单批 40 MiB 上限，任一文件不合格则整批拒绝。medium/high effort 审查还会把规范 findings 与组合结论保存为与报告同名的结构化 JSON 产物，Web Shell 把它渲染成可筛选 findings 的交互式审查视图，Markdown 报告保持人类可读存档。`cost-ledger` 以 `--plan` 计划报告的 mtime 为计费窗口起点（计划前的引导轮次与台账运行后的组装不计入），按流输出主循环与每个审查 Agent 的模型调用数、输入/缓存/输出/思考 token 数与耗时；模型调用只统计携带 `usageMetadata` 的 assistant 记录，计数是下限而非精确 API 调用数。仓库上下文规则在任一变更文件命中其 `paths` glob 时生效，所有命中规则的指引合并、去重并排序：审查 Agent 获得领域与相关文件，build-and-test Agent 获得推荐测试、必需配置与验证说明，`requiredAgents` 只在所选 effort 与拓扑本就运行相应角色时并入名册，`unverifiedDimensions` 在最终审查中作为非阻塞证据边界披露。`relatedPaths` 通配符从工作树展开（启用点文件、不返回目录、不跟随符号链接），必须以非通配目录段开头，解析文件必须留在工作树内且不进入 `node_modules`、`dist` 等依赖或构建产物目录；访问条目 16384、解析文件 128 或匹配工作量预算任一超限即失败关闭。`repo-context` 校验 `--out` 与 `--plan` 不是同一文件、worktree 是目录且与 `plan.worktreePath` 一致、`plan.mergeBaseSha` 格式有效且可解析，成功后把上下文 JSON 写入 `--out` 并原子覆写计划文件，stdout 输出 `Wrote repository context (manifest) to <路径>`，无上下文时输出 `Wrote null repository context to <路径>`。',
           scope:
-            '本地 working tree、单文件、PR number 或 URL；规则来自系统、项目 AGENTS.md 和 Skill。`cost-ledger` 的记录位置来自 CLI 导出的 `QWEN_CODE_PROJECT_DIR`/`QWEN_CODE_SESSION_ID` 环境变量，不接受模型指定的路径。',
+            '本地 working tree、单文件、PR number 或 URL；规则来自系统、项目 AGENTS.md 和 Skill。`cost-ledger` 的记录位置来自 CLI 导出的 `QWEN_CODE_PROJECT_DIR`/`QWEN_CODE_SESSION_ID` 环境变量，不接受模型指定的路径。仓库上下文只在 medium/high effort 的本地与同仓 PR 审查中生效；low effort 与跨仓轻量审查跳过。PR 审查的清单从 merge base 提交读取，PR head 无法为自己加入或移除指引；本地审查的清单从当前 worktree 读取。',
           background:
             '多维度审查 Agent 可并行执行；进度在当前 Surface 展示。',
           integration:
             '`--comment` 在 GitHub 提交一次 Review；Qwen Code Action 还能在 PR 事件中自动运行审查。GitHub API 不能给 Review 评论附图，`publish-assets` 把证据图托管到 `QWEN_REVIEW_ASSETS_REPO`（`owner/repo`），写入 `pr-assets/<pr>-review` 分支并以 commit 固定的 URL 嵌入评论；GitHub Enterprise 加 `--host`。',
           artifacts:
-            '同仓审查在项目 `.qwen/reviews/` 保存 Markdown 报告，medium/high effort 另有同名结构化 JSON 产物（跨仓轻量审查不落盘报告）；本地 findings、可选 GitHub 行内评论；findings 带 `assetFiles` 本地路径与 `assets` 已发布 URL，资产清单记录每个文件及落点 commit；Worktree 按流程清理。内置 Skill Step 8 运行 `cost-ledger`，把打印块原样粘贴进报告并在终端摘要转述首行；`--out` 保存完整台账 JSON（Skill 约定 `.qwen/reviews/<报告名>-cost-ledger.json`，worktree 模式落在主项目目录），打印块只列最大的 8 个 Agent，JSON 保留全部。',
+            '同仓审查在项目 `.qwen/reviews/` 保存 Markdown 报告，medium/high effort 另有同名结构化 JSON 产物（跨仓轻量审查不落盘报告）；本地 findings、可选 GitHub 行内评论；findings 带 `assetFiles` 本地路径与 `assets` 已发布 URL，资产清单记录每个文件及落点 commit；Worktree 按流程清理。内置 Skill Step 8 运行 `cost-ledger`，把打印块原样粘贴进报告并在终端摘要转述首行；`--out` 保存完整台账 JSON（Skill 约定 `.qwen/reviews/<报告名>-cost-ledger.json`，worktree 模式落在主项目目录），打印块只列最大的 8 个 Agent，JSON 保留全部。`repo-context` 把校验后的 `RepositoryContext` 对象（无上下文时为 `null`）以带结尾换行的 JSON 写入 `--out` 指定路径，并回写更新后的计划文件。',
           conditions:
-            'Bare mode、禁用 Skills 或 Slash 时不可用；PR 读取/评论需要 GitHub 访问权限。`publish-assets` 还要求 `QWEN_REVIEW_ASSETS_REPO` 指定可推送仓库（未设置或格式错误退出码 3，不自动选仓库），并与 `submit` 共用授权门禁：只有被授权发布评论的运行才能推送，有效 `--comment` 强制 high effort，因此 low/medium 运行不会发布。结构化 JSON 产物与 Web Shell 视图只来自 medium/high effort 审查；low effort 不生成。`cost-ledger` 定位为 informational：记录缺失或无法计算时在 stderr 输出 `cost-ledger unavailable — <原因>` 并以退出码 0 结束，`--out` 写入失败降级为警告，均不阻塞审查。',
+            'Bare mode、禁用 Skills 或 Slash 时不可用；PR 读取/评论需要 GitHub 访问权限。`publish-assets` 还要求 `QWEN_REVIEW_ASSETS_REPO` 指定可推送仓库（未设置或格式错误退出码 3，不自动选仓库），并与 `submit` 共用授权门禁：只有被授权发布评论的运行才能推送，有效 `--comment` 强制 high effort，因此 low/medium 运行不会发布。结构化 JSON 产物与 Web Shell 视图只来自 medium/high effort 审查；low effort 不生成。`cost-ledger` 定位为 informational：记录缺失或无法计算时在 stderr 输出 `cost-ledger unavailable — <原因>` 并以退出码 0 结束，`--out` 写入失败降级为警告，均不阻塞审查。仓库上下文清单失败关闭：清单缺失得到 `null` 上下文；清单存在但不可读、超过 1 MB 或内容非法时抛错，存在但非法的上下文会让所有下游消费者失败而不是被静默丢弃；PR 计划的 merge base 未解析（`mergeBaseSha: null` 或 base 抓取失败）时不读 worktree，直接写 `null` 产物。',
           sources: [
             'qwen-review-current',
             'qwen-review-skill',
             'qwen-review-assets',
             'qwen-review-web-shell',
             'qwen-review-cost-ledger',
+            'qwen-review-repo-context',
             'qwen-worktree-current',
           ],
         },

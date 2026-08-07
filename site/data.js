@@ -334,6 +334,10 @@ window.matrixData = {
       label: 'Qwen Code review cost ledger',
       url: 'https://github.com/QwenLM/qwen-code/commit/4f79036a2269bb43f95f736ca8c44bc60b0cc9d6',
     },
+    'qwen-review-repo-context': {
+      label: 'Qwen Code review repository context manifest',
+      url: 'https://github.com/QwenLM/qwen-code/commit/e76dff1c6b3069cd12709a82bd15d62f7a6ab282',
+    },
     'qwen-computer-use': {
       label: 'Qwen Code Computer Use',
       url: 'https://github.com/QwenLM/qwen-code/blob/0907edb909706cf7589f94723b26572eb1dd9512/docs/users/features/computer-use.md',
@@ -1309,7 +1313,7 @@ window.matrixData = {
       category: 'execution',
       capability: '代码 Review',
       description: '由产品提供的审查命令或工作流。',
-      values: { claude: '`/review` 为 `/code-review` 别名 · `ultra` 云审查 · GitHub Review', codex: '`/review` · GitHub Review', qwen: '`/review` 内置 Skill · `publish-assets` 证据图 · Web Shell 结构化结果 · `cost-ledger` 成本台账', kimi: '自然语言；无内置 `/review`', qoder: '`/review [instruction]`' },
+      values: { claude: '`/review` 为 `/code-review` 别名 · `ultra` 云审查 · GitHub Review', codex: '`/review` · GitHub Review', qwen: '`/review` 内置 Skill · `publish-assets` 证据图 · Web Shell 结构化结果 · `cost-ledger` 成本台账 · `repo-context` 仓库上下文清单', kimi: '自然语言；无内置 `/review`', qoder: '`/review [instruction]`' },
     },
     {
       id: 'execution-git',
