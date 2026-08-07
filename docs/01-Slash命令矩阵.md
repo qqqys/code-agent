@@ -33,7 +33,7 @@
 | 查看 Diff | `/diff` | `/diff` | `/diff` | — | — |
 | 代码审查 | `/review`、`/code-review`、`/security-review` | `/review` | `/review` | — | `/review` |
 | 复制回答 | `/copy` | `/copy` | `/copy` | `/copy` | — |
-| 导出会话 | `/export` | — | `/export html`、`/export md`、`/export json`、`/export jsonl` | `/export-md`、`/export`、`/export-debug-zip` | `/export` |
+| 导出会话 | `/export` | `/export`（条件：main 分支，尚未发布） | `/export html`、`/export md`、`/export json`、`/export jsonl` | `/export-md`、`/export`、`/export-debug-zip` | `/export` |
 | 添加工作目录 | `/add-dir` | `/mention` | `/directory`、`/dir` | `/add-dir` | — |
 | 切换目录 | `/cd` | — | `/cd` | — | — |
 | 配置 | `/config`、`/settings` | `/debug-config` | `/config`、`/settings`、`/import-config` | `/settings`、`/config`、`/update-config` | `/config` |
@@ -73,7 +73,9 @@ v2.1.222（2026-08-04 发布）移除了 ultraplan 功能，官方命令表不�
 
 ### Codex
 
-`/agent`、`/apps`、`/approve`、`/archive`、`/clear`、`/compact`、`/copy`、`/debug-config`、`/delete`、`/diff`、`/exit`、`/experimental`、`/fast`、`/feedback`、`/fork`、`/goal`、`/hooks`、`/ide`、`/import`、`/init`、`/keymap`、`/logout`、`/mcp`、`/memories`、`/mention`、`/model`、`/new`、`/permissions`、`/personality`、`/pet`、`/pets`、`/plan`、`/plugins`、`/ps`、`/raw`、`/rename`、`/resume`、`/review`、`/sandbox-add-read-dir`、`/setup-default-sandbox`、`/side`、`/skills`、`/status`、`/statusline`、`/stop`、`/theme`、`/title`、`/usage`、`/vim`。
+`/agent`、`/apps`、`/approve`、`/archive`、`/clear`、`/compact`、`/copy`、`/debug-config`、`/delete`、`/diff`、`/exit`、`/experimental`、`/export`、`/fast`、`/feedback`、`/fork`、`/goal`、`/hooks`、`/ide`、`/import`、`/init`、`/keymap`、`/logout`、`/mcp`、`/memories`、`/mention`、`/model`、`/new`、`/permissions`、`/personality`、`/pet`、`/pets`、`/plan`、`/plugins`、`/ps`、`/raw`、`/rename`、`/resume`、`/review`、`/sandbox-add-read-dir`、`/setup-default-sandbox`、`/side`、`/skills`、`/status`、`/statusline`、`/stop`、`/theme`、`/title`、`/usage`、`/vim`。
+
+`/export`（会话 Markdown 导出）于 2026-08-07 合入 main 分支（提交 `2801d12661be`，PR #37358），尚未进入 Release，官方命令文档也尚未列出；不带参数时可在复制到剪贴板与保存文件之间选择。
 
 ### Qwen Code
 

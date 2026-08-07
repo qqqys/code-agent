@@ -580,14 +580,20 @@
       facts: [
         'Qwen Code 提供 HTML、Markdown、JSON、JSONL 四种格式。',
         'Kimi Code 将普通 Markdown 导出与调试 ZIP 分开。',
-        'Codex 当前 CLI Slash 命令表未列出会话导出命令。',
+        'Codex TUI 的 `/export` 于 2026-08-07 合入 main 分支，导出结构化 Markdown；官方命令文档尚未列出。',
       ],
       products: {
         claude: command('claude', ['/export [filename]'], '导出为纯文本；无文件名时打开复制或保存对话框。', {
           parameters: '`[filename]`',
           persistence: '写文件或剪贴板',
         }),
-        codex: unconfirmed('codex'),
+        codex: command('codex', ['/export [path]'], '把完整会话历史导出为结构化 Markdown，保留用户与助手消息、计划、推理、活动、图片标签、文件改动和 MCP 工具细节，并遵循推理可见性设置；不带参数时打开 Export conversation 选择器。', {
+          parameters: '`[path]`；不带参数打开选择器（Copy to clipboard · Save to file）',
+          persistence: '写入 Markdown 文件或剪贴板；保存默认文件名 `codex-session-<thread_id>.md`，无 thread ID 时为 `codex-session.md`',
+          conditions: '条件：main 分支合入，尚未进入 Release；不覆盖已存在文件；相对路径按当前工作目录解析，`~` 展开为主目录',
+          status: '源码确认',
+          sources: ['codex-tui-export'],
+        }),
         qwen: command('qwen', ['/export [md|html|json|jsonl] [path]'], '按指定格式写出当前会话消息历史；不带子命令默认 HTML。', {
           parameters: '`[md|html|json|jsonl] [path]`',
           mode: '交互式、非交互式、ACP',

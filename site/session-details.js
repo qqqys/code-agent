@@ -591,7 +591,7 @@
       includes: ['人类可读导出', '结构化格式', '诊断包及其内容边界'],
       excludes: ['只复制最后一条回答', '会话原始存储本身', '提交到远程分享服务'],
       facts: [
-        'Claude Code、Qwen Code、Kimi Code 和 Qoder CLI 都有显式会话导出；Codex 当前 CLI 命令表未列出会话导出命令。',
+        '五家都有显式会话导出入口；Codex 的 TUI `/export` 于 2026-08-07 合入 main 分支，官方命令文档尚未列出。',
         'Kimi Code 明确区分人类可读 Markdown 与包含日志的诊断 ZIP，Web UI 的 `/export` 还与 TUI 同名命令行为不同。',
         '导出内容可能包含提示词、代码、命令输出、本地路径和诊断信息，公开分享前应检查并脱敏。',
       ],
@@ -612,20 +612,21 @@
           sources: ['claude-sessions', 'claude-headless'],
         },
         codex: {
-          entry: '当前 Codex CLI 命令表未列出会话导出命令。',
+          entry:
+            '`/export [path]`（TUI）；不带参数打开 Export conversation 选择器，可选 Copy to clipboard 或 Save to file。',
           behavior:
-            '本地会话 JSONL 可用于故障排查，`codex exec --json` 可输出单次非交互运行事件，但两者都不等于“导出当前交互会话”的命令。',
+            '把完整会话历史渲染为结构化 Markdown：用户与助手消息、计划、推理、活动、图片标签、文件改动和 MCP 工具细节，并遵循推理可见性设置；历史分页加载，分页不可用时回退旧加载方式，ephemeral 会话使用可见 transcript。',
           scope:
-            '本项只认显式的当前会话导出，不把反馈上传、日志目录或复制单条消息视为等价入口。',
+            '只导出当前会话；结果写入指定路径、默认文件名或剪贴板，并在会话中报告成功或失败；无会话或无内容时分别提示 “No active conversation to export.” 与 “No conversation content to export.”。',
           automation:
-            '可由外部脚本读取 `$CODEX_HOME/sessions` 做归档，但这不是当前官方 CLI 导出 Surface。',
+            '该命令只在 TUI 提供；`codex exec --json` 仍只输出单次非交互运行事件，外部脚本可读取 `$CODEX_HOME/sessions` 原始记录做归档。',
           persistence:
-            '会话原始记录保留在 Codex Home；结构和清理应按诊断材料处理。',
+            '保存文件默认名 `codex-session-<thread_id>.md`（无 thread ID 时 `codex-session.md`）；写入使用 `persist_noclobber`，不覆盖已存在文件；导出文件独立于原会话。',
           conditions:
-            '保留为未确认/未列出，直到官方 CLI 提供可读或结构化的会话导出命令。',
-          status: '未确认',
+            '条件：2026-08-07 合入 main 分支，尚未进入 Release，官方 CLI 命令文档尚未列出；相对路径按当前工作目录解析（远程工作区使用启动目录），`~` 展开为主目录。',
+          status: '源码确认',
           sources: [
-            'codex-commands',
+            'codex-tui-export',
             'codex-noninteractive',
             'codex-troubleshooting',
           ],

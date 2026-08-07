@@ -2,7 +2,7 @@
 
 [返回 Slash 命令详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=cmd-export)
 
-> 核对日期：2026-08-06
+> 核对日期：2026-08-07
 
 ## 定义
 
@@ -13,7 +13,7 @@
 | 产品 | 命令摘要 | 证据状态 |
 | --- | --- | --- |
 | Claude Code | `/export [filename]` | 官方确认 |
-| Codex | 无对应命令 | 未确认 |
+| Codex | `/export [path]` | 源码确认 |
 | Qwen Code | `/export [md\|html\|json\|jsonl] [path]` | 源码确认 |
 | Kimi Code | `/export-md [path]`、`/export-debug-zip` | 官方确认 |
 | Qoder CLI | `/export [filename]` | 官方确认 |
@@ -37,7 +37,7 @@
 
 1. Qwen Code 提供 HTML、Markdown、JSON、JSONL 四种格式。
 2. Kimi Code 将普通 Markdown 导出与调试 ZIP 分开。
-3. Codex 当前 CLI Slash 命令表未列出会话导出命令。
+3. Codex TUI 的 `/export` 于 2026-08-07 合入 main 分支，导出结构化 Markdown；官方命令文档尚未列出。
 
 ## 逐产品记录
 
@@ -59,15 +59,15 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 主命令 | 无对应命令 |
+| 主命令 | `/export [path]` |
 | 别名 | 无公开别名 |
-| 参数 | — |
-| 执行行为 | 当前官方命令目录未列出对应 Slash 命令。 |
+| 参数 | `[path]`；不带参数打开选择器（Copy to clipboard · Save to file） |
+| 执行行为 | 把完整会话历史导出为结构化 Markdown，保留用户与助手消息、计划、推理、活动、图片标签、文件改动和 MCP 工具细节，并遵循推理可见性设置；不带参数时打开 Export conversation 选择器。 |
 | 可用模式 | 交互式 CLI |
-| 保存范围 | — |
-| 条件与边界 | 不据此推断底层能力不存在 |
-| 证据状态 | 未确认 |
-| 来源 | [Codex CLI commands](https://developers.openai.com/codex/cli/slash-commands) |
+| 保存范围 | 写入 Markdown 文件或剪贴板；保存默认文件名 `codex-session-<thread_id>.md`，无 thread ID 时为 `codex-session.md` |
+| 条件与边界 | 条件：main 分支合入，尚未进入 Release；不覆盖已存在文件；相对路径按当前工作目录解析，`~` 展开为主目录 |
+| 证据状态 | 源码确认 |
+| 来源 | [Codex TUI Markdown conversation export](https://github.com/openai/codex/commit/2801d12661bea3c7ff1a6a39c810348222453a27) |
 
 ### Qwen Code
 
@@ -114,7 +114,7 @@
 ## 官方来源
 
 - [Claude Code Commands](https://code.claude.com/docs/en/commands)
-- [Codex CLI commands](https://developers.openai.com/codex/cli/slash-commands)
+- [Codex TUI Markdown conversation export](https://github.com/openai/codex/commit/2801d12661bea3c7ff1a6a39c810348222453a27)
 - [Qwen Code commands documentation](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/commands.md)
 - [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/7c919f0376c0331d0d057ef3643c7adcc2c55802/docs/zh/reference/slash-commands.md)
 - [Qoder CLI commands](https://docs.qoder.com/en/cli/command)
