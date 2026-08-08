@@ -166,6 +166,18 @@ window.matrixData = {
       label: 'Claude Code ultrareview',
       url: 'https://code.claude.com/docs/en/ultrareview',
     },
+    'claude-cross-session-messaging': {
+      label: 'Claude Code cross-session messaging',
+      url: 'https://code.claude.com/docs/en/cross-session-messaging',
+    },
+    'claude-messaging-v224': {
+      label: 'Claude Code v2.1.224 changelog (SendMessage)',
+      url: 'https://github.com/anthropics/claude-code/blob/66edf5358349/CHANGELOG.md',
+    },
+    'claude-messaging-v225': {
+      label: 'Claude Code v2.1.225 changelog (SendMessage by name)',
+      url: 'https://github.com/anthropics/claude-code/blob/53f9910f6ef0/CHANGELOG.md',
+    },
     'codex-commands': {
       label: 'Codex CLI commands',
       url: 'https://developers.openai.com/codex/cli/slash-commands',
@@ -354,6 +366,10 @@ window.matrixData = {
       label: 'Qwen Code Subagents',
       url: 'https://github.com/QwenLM/qwen-code/blob/079ce5346af7/docs/users/features/sub-agents.md',
     },
+    'qwen-agent-messaging': {
+      label: 'Qwen Code background agent messaging',
+      url: 'https://github.com/QwenLM/qwen-code/blob/412eae24b48ff16f54166c2b17eb4d4a9cdcdd1e/docs/users/features/sub-agents.md',
+    },
     'qwen-worktree': {
       label: 'Qwen Code Worktree',
       url: 'https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/worktree.md',
@@ -530,6 +546,10 @@ window.matrixData = {
       label: 'Kimi Code current slash commands',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/7c919f0376c0331d0d057ef3643c7adcc2c55802/docs/zh/reference/slash-commands.md',
     },
+    'kimi-commands-messaging-current': {
+      label: 'Kimi Code current slash commands (no messaging command)',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/8db7d42f23472a692eb389a0e0e5a3e18aa1b94d/docs/zh/reference/slash-commands.md',
+    },
     'kimi-cli-current': {
       label: 'Kimi Code current CLI reference',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/reference/kimi-command.md',
@@ -685,6 +705,10 @@ window.matrixData = {
     'qoder-checkpoint': {
       label: 'Qoder CLI SDK Checkpoint',
       url: 'https://docs.qoder.com/en/cli/sdk/checkpoint',
+    },
+    'qoder-agent-teams': {
+      label: 'Qoder CLI Agent Teams',
+      url: 'https://docs.qoder.com/cli/agent-teams',
     },
     'qoder-mcp': {
       label: 'Qoder CLI MCP servers',
@@ -1235,6 +1259,13 @@ window.matrixData = {
       capability: '跨会话记忆',
       description: '保存项目或用户信息供后续会话使用。',
       values: { claude: '`CLAUDE.md` + Auto memory', codex: '条件：`/memories`；默认关闭', qwen: '`QWEN.md` + Auto-memory', kimi: '`AGENTS.md`；自动记忆未列出', qoder: '`AGENTS.md`；条件：Auto-memory' },
+    },
+    {
+      id: 'session-messaging',
+      category: 'sessions',
+      capability: '跨会话消息',
+      description: '发现其他会话、后台 Agent 或队友并互相发送消息。',
+      values: { claude: '`/list-agents` · `/peers` · `SendMessage`/`ListAgents` · `crossSessionInbound`', codex: '官方命令与文档未列出会话间消息', qwen: '`send_message` · `list_agents`；限当前会话后台 Agent', kimi: '官方命令表未列出会话间消息', qoder: '条件：`QODER_AGENT_TEAMS=1` Agent Teams `SendMessage`（beta，单会话内）' },
     },
     {
       id: 'extension-mcp',
