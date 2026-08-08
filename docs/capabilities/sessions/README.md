@@ -16,3 +16,4 @@
 | 会话导出 | [打开](https://qqqys.github.io/code-agent/capability.html?id=session-export) | [查看](./session-export.md) |
 | 检查点与回退 | [打开](https://qqqys.github.io/code-agent/capability.html?id=session-checkpoint) | [查看](./session-checkpoint.md) |
 | 跨会话记忆 | [打开](https://qqqys.github.io/code-agent/capability.html?id=session-memory) | [查看](./session-memory.md) |
+| 跨会话消息 | [打开](https://qqqys.github.io/code-agent/capability.html?id=session-messaging) | [查看](./session-messaging.md) |
