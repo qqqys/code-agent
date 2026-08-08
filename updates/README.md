@@ -4,6 +4,7 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-08-08 | [Kimi Computer Use Windows x64 支持随 0.34.0 发布](./2026-08-08-Kimi-ComputerUse-Windows随0.34.0发布.md) |
 | 2026-08-07 | [Qwen Code Review 仓库上下文清单 `repo-context`](./2026-08-07-Qwen-Review仓库上下文清单.md) |
 | 2026-08-07 | [Codex `codex exec` 会话分支 `fork`](./2026-08-07-Codex-exec会话分支fork.md) |
 | 2026-08-07 | [Codex TUI 会话 Markdown 导出 `/export`](./2026-08-07-Codex-TUI会话导出命令.md) |

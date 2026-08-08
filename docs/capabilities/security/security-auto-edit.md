@@ -2,7 +2,7 @@
 
 [返回权限与沙箱详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=security-auto-edit)
 
-> 核对日期：2026-08-07
+> 核对日期：2026-08-08
 
 ## 定义
 
