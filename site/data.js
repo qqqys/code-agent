@@ -154,6 +154,10 @@ window.matrixData = {
       label: 'Claude Code v2.1.221 changelog',
       url: 'https://github.com/anthropics/claude-code/blob/dd796139237c/CHANGELOG.md',
     },
+    'claude-credential-mask-v224': {
+      label: 'Claude Code v2.1.224 changelog',
+      url: 'https://github.com/anthropics/claude-code/blob/66edf5358349/CHANGELOG.md',
+    },
     'claude-review-alias': {
       label: 'Claude Code v2.1.223 changelog',
       url: 'https://github.com/anthropics/claude-code/blob/5cf69b18c86d/CHANGELOG.md',
@@ -1160,7 +1164,7 @@ window.matrixData = {
       category: 'security',
       capability: '凭据保护',
       description: '限制 Agent 执行的命令读取凭据文件与敏感环境变量，并可由出站代理注入真实值。',
-      values: { claude: '`sandbox.credentials.files` · `envVars` `deny`/`mask` · 出站代理注入', codex: '`shell_environment_policy` 过滤子进程环境变量；无文件打码', qwen: '官方沙箱文档未列凭据保护；容器挂载 `~/.qwen`', kimi: '未确认 OS 沙箱；文档未列凭据保护字段', qoder: '本地 CLI/SDK 文档未列同类凭据保护' },
+      values: { claude: '`sandbox.credentials.files` · `envVars` `deny`/`mask` · `extract`/`decode: "jwt"` 打码 · `awsPairs`/`sigv4` SigV4 重签名 · 出站代理注入', codex: '`shell_environment_policy` 过滤子进程环境变量；无文件打码', qwen: '官方沙箱文档未列凭据保护；容器挂载 `~/.qwen`', kimi: '未确认 OS 沙箱；文档未列凭据保护字段', qoder: '本地 CLI/SDK 文档未列同类凭据保护' },
     },
     {
       id: 'security-trust',
