@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-08-07',
+  updatedAt: '2026-08-08',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -637,6 +637,14 @@ window.matrixData = {
     'kimi-cu-windows': {
       label: 'Kimi Code Computer Use Windows support commit',
       url: 'https://github.com/MoonshotAI/kimi-code/commit/68ba740ebfb3e32ad9abdb8607f48d4387cf6f69',
+    },
+    'kimi-cu-windows-release': {
+      label: 'Kimi Code 0.34.0 release notes',
+      url: 'https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%400.34.0',
+    },
+    'kimi-cu-powershell': {
+      label: 'Kimi Code compatible PowerShell selection commit',
+      url: 'https://github.com/MoonshotAI/kimi-code/commit/ef610840098a57819d62d407f33256e14b512c77',
     },
     'qoder-commands': {
       label: 'Qoder CLI commands',
@@ -1348,7 +1356,7 @@ window.matrixData = {
       category: 'execution',
       capability: '桌面与浏览器控制',
       description: '由产品内置并分发的桌面 GUI 自动化或真实浏览器控制能力。',
-      values: { claude: '无内置桌面或浏览器控制工具；经 MCP 扩展', codex: '条件：ChatGPT 桌面 App 的 Computer Use；CLI 未提供', qwen: '`computer_use__*` 内置工具；默认开启；含浏览器 `page` 工具', kimi: '条件：`/plugins` 内置 `kimi-cu` 与 `kimi-webbridge`；`kimi-cu` 支持 macOS 与 Windows x64（Windows 未发布）；v2 CLI', qoder: '内置工具表未列桌面或浏览器控制；经 MCP 扩展' },
+      values: { claude: '无内置桌面或浏览器控制工具；经 MCP 扩展', codex: '条件：ChatGPT 桌面 App 的 Computer Use；CLI 未提供', qwen: '`computer_use__*` 内置工具；默认开启；含浏览器 `page` 工具', kimi: '条件：`/plugins` 内置 `kimi-cu` 与 `kimi-webbridge`；`kimi-cu` 支持 macOS 与 Windows x64（0.34.0 起）；v2 CLI', qoder: '内置工具表未列桌面或浏览器控制；经 MCP 扩展' },
     },
     {
       id: 'surface-headless',

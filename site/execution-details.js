@@ -1216,7 +1216,7 @@
         '产品自身的 Web 界面、桌面端或远程接管入口',
       ],
       facts: [
-        'Qwen Code 在 CLI 内默认注册 `computer_use__*` 桌面控制工具，并含浏览器 `page` 工具；Kimi Code 的 `/plugins` 内置 `kimi-cu` 与 `kimi-webbridge` 已随 0.33.0 发布，`kimi-cu` 又于 2026-08-05 增加 Windows x64 支持（main 分支，尚未发布）。',
+        'Qwen Code 在 CLI 内默认注册 `computer_use__*` 桌面控制工具，并含浏览器 `page` 工具；Kimi Code 的 `/plugins` 内置 `kimi-cu` 与 `kimi-webbridge` 已随 0.33.0 发布，`kimi-cu` 的 Windows x64 支持随 0.34.0（2026-08-06 发布）进入正式版本。',
         'Codex 的 Computer Use 属于 ChatGPT 桌面 App Surface：macOS 支持后台与锁屏使用，Windows 只操作活动桌面；Codex CLI 不提供同类内置工具。',
         'Claude Code 与 Qoder CLI 的官方内置工具表没有桌面或浏览器控制工具，官方路径是经 MCP 扩展。',
         '提供桌面控制的产品都要求 macOS 授予辅助功能与屏幕录制权限，并把动作类操作置于审批或用户授权之下。',
@@ -1283,11 +1283,11 @@
         },
         kimi: {
           entry:
-            'v2 CLI 的 `/plugins` 面板内置 `Kimi Computer Use`（`kimi-cu`）与 `Kimi WebBridge`（`kimi-webbridge`）条目，安装时一并配置最新托管运行时与插件，报告缺失的手动步骤并支持中断后重试；Windows x64 上同一 `kimi-cu` 条目对应后端插件 `kimi-cu-win`。',
+            'v2 CLI 的 `/plugins` 面板内置 `Kimi Computer Use`（`kimi-cu`）与 `Kimi WebBridge`（`kimi-webbridge`）条目，安装时一并配置最新托管运行时与插件，报告缺失的手动步骤并支持中断后重试；Windows x64 上同一 `kimi-cu` 条目对应后端插件 `kimi-cu-win`，marketplace 显示名为 `Kimi Computer Use for Windows`，能力安装失败时展示底层错误。',
           primitives:
             '`kimi-cu` 在 macOS 安装 `KimiCU.app`、同名插件与 `ai.kimi.cu.service` launchd 服务，提供后台 GUI 自动化：读取应用 UI、点击、输入、滚动、拖拽，不抢占鼠标或前台；在 Windows x64 安装插件 `kimi-cu-win` 与官方签名运行时 `kimi-cu.exe`，提供同类 Windows GUI 自动化（读取应用 UI、点击、输入、滚动、拖拽）；`kimi-webbridge` 安装 `~/.kimi-webbridge/bin/` 守护进程与官方浏览器控制插件，控制带登录态的真实浏览器（导航、点击、输入、读取页面、截图），浏览器扩展为可选手动安装。',
           behavior:
-            '安装为幂等托管流程：macOS 按插件、应用、服务、权限（`kimi-cu`）或守护进程、插件、扩展连接（`kimi-webbridge`）逐项检测就绪状态；Windows x64 按插件、下载、运行时三步执行，经系统自带 PowerShell 以 `-NoProfile -NonInteractive -ExecutionPolicy Bypass` 运行安装脚本 `setup_windows.ps1`（超时 180 秒），doctor 检测运行时健康时跳过运行时重装；WebBridge 守护进程只在未运行时启动（start-if-down，与 Kimi Work 共存）。',
+            '安装为幂等托管流程：macOS 按插件、应用、服务、权限（`kimi-cu`）或守护进程、插件、扩展连接（`kimi-webbridge`）逐项检测就绪状态；Windows x64 按插件、下载、运行时三步执行，安装前先探测 PowerShell 候选（系统 Windows PowerShell，随后 PowerShell 7 的 `pwsh.exe`），要求版本不低于 5.1 且具备安装脚本所需命令（探测超时 10 秒），再以 `-NoProfile -NonInteractive -ExecutionPolicy Bypass -Command` 运行 `setup_windows.ps1`（UTF-8 输出，安装超时 180 秒）；doctor 检测运行时健康时跳过运行时重装，doctor 探测失败时同样回退 PowerShell 7；插件文件被当前 Kimi Code 进程占用（EBUSY）时提示重启 Kimi Code 后重装；WebBridge 守护进程只在未运行时启动（start-if-down，与 Kimi Work 共存）。',
           scope:
             '`kimi-cu` 支持 macOS 与 Windows x64（仅 `win32` + `x64`，不含 Windows arm64）；`kimi-webbridge` 支持 macOS arm64/x64、Linux arm64/x64、Windows x64；条目由客户端按发布版本注入默认 Official marketplace，旧版本客户端不会看到。',
           background:
@@ -1297,9 +1297,14 @@
           artifacts:
             '`KimiCU.app` 与 launchd 服务（macOS）、`kimi-cu.exe` 运行时（Windows x64）、`~/.kimi-webbridge/bin/kimi-webbridge[.exe]` 及版本文件、已安装的官方插件。',
           conditions:
-            '`kimi-cu` 与 `kimi-webbridge` 内置条目 2026-08-04 合入主分支，已随 0.33.0 发布；Windows x64 支持 2026-08-05 合入主分支（changeset 标记为 minor），0.33.0 未包含，尚未发布；仅 v2 CLI 提供；安装进行中会返回 `capability.install_in_progress`。',
+            '`kimi-cu` 与 `kimi-webbridge` 内置条目已随 0.33.0 发布；Windows x64 支持（PR #2652 与 #2686 的 PowerShell 兼容、占用文件恢复修正）随 0.34.0（2026-08-06 发布）进入正式版本；仅 v2 CLI 提供；安装进行中会返回 `capability.install_in_progress`。',
           status: '条件项',
-          sources: ['kimi-builtin-capabilities', 'kimi-cu-windows'],
+          sources: [
+            'kimi-builtin-capabilities',
+            'kimi-cu-windows',
+            'kimi-cu-powershell',
+            'kimi-cu-windows-release',
+          ],
         },
         qoder: {
           entry:
