@@ -14,7 +14,7 @@
 | --- | --- | --- |
 | Claude Code | `/remote-control` · `/teleport` | 官方确认 |
 | Codex | `app-server --listen` · `codex --remote` · Cloud | 条件项 |
-| Qwen Code | `qwen serve` 多客户端；需自建网络 | 条件项 |
+| Qwen Code | `qwen serve` 多客户端；条件：`--local-control` 局域网扫码配对（main 分支，尚未发布）；公网需自建网络 | 条件项 |
 | Kimi Code | `kimi web --host`；需自建网络 | 条件项 |
 | Qoder CLI | `/remote-control` · `qodercli remote-control` | 官方确认 |
 
@@ -35,7 +35,7 @@
 ## 跨产品事实
 
 1. Claude 与 Qoder 提供账号中继的本地会话远程控制，浏览器/手机可处理审批并继续发消息。
-2. Codex app-server 可让另一个 CLI TUI 跨机器连接服务端 workspace；Qwen serve 与 kimi web 也能被远程客户端连接，但网络由用户自建。
+2. Codex app-server 可让另一个 CLI TUI 跨机器连接服务端 workspace；Qwen serve 与 kimi web 也能被远程客户端连接，公网网络仍由用户自建；Qwen Code 另以 `--local-control` 提供局域网扫码配对（main 分支，尚未发布）。
 3. Claude teleport 是把云会话与分支拉回 CLI；它与 Remote Control 同品牌但状态移动方式不同。
 
 ## 逐产品记录
@@ -76,17 +76,17 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 矩阵结论 | `qwen serve` 多客户端；需自建网络 |
-| 入口与调用 | 远程客户端连接 `qwen serve`；Web Shell、SDK DaemonClient 或 Channel 都可成为客户端。 |
-| 协议与输出 | HTTP + SSE；多客户端可共享会话和权限请求，SSE 使用 Last-Event-ID 重连。 |
-| 具体行为 | 远程浏览器或自定义客户端发送 prompt、处理审批、查看 Diff 与会话状态；文件操作发生在 daemon 主机。 |
-| 会话与状态 | 会话和 transcript 留在 daemon 主机；客户端重连可恢复事件窗口或加载历史。 |
+| 矩阵结论 | `qwen serve` 多客户端；条件：`--local-control` 局域网扫码配对（main 分支，尚未发布）；公网需自建网络 |
+| 入口与调用 | 远程客户端连接 `qwen serve`；Web Shell、SDK DaemonClient 或 Channel 都可成为客户端。局域网配对：CLI `qwen serve --local-control`，Desktop `Control → Local Control…` 菜单。 |
+| 协议与输出 | HTTP + SSE；多客户端可共享会话和权限请求，SSE 使用 Last-Event-ID 重连。Local Control 绑定所有非回环 IPv4 接口，配对令牌放在 URL fragment，浏览器不会在 HTTP 请求、日志或 referrer 中发送；Desktop 网关把 HTTP、SSE 与 WebSocket 转发到既有 loopback daemon。 |
+| 具体行为 | 远程浏览器或自定义客户端发送 prompt、处理审批、查看 Diff 与会话状态；文件操作发生在 daemon 主机。`--local-control` 每次进程生成全新 256-bit bearer token，为每个局域网地址打印带标签的终端二维码，并在启用期间尽力抑制系统睡眠；Desktop Local Control 不重启现有 daemon 即开启临时局域网网关，关闭或停用即关闭监听并使令牌失效。 |
+| 会话与状态 | 会话和 transcript 留在 daemon 主机；客户端重连可恢复事件窗口或加载历史。Local Control 令牌为进程级临时凭据，退出或停用即失效；Desktop 网关不改变 Desktop PID、daemon PID、loopback 地址和进行中的会话。 |
 | 工具与能力 | 使用 daemon workspace 的 Qwen 工具、MCP、Skills 与 Channel。 |
-| 认证与权限 | 非 loopback 必须 bearer token；远程设备登录可由 daemon device flow 完成。 |
-| 运行位置 | 用户自建网络和服务主机；当前不是 Qwen 账号托管的全局中继。 |
-| 条件与边界 | qwen serve alpha 明确以本地单机/小团队为边界；生产跨公网需自行承担 TLS、代理、故障恢复和版本协商。 |
+| 认证与权限 | 非 loopback 必须 bearer token；远程设备登录可由 daemon device flow 完成。Local Control 自行生成令牌、不复用环境变量令牌，受保护路由仍要求该令牌；只放行被广播的局域网 origin 与 daemon 的 loopback 自访问 origin。 |
+| 运行位置 | 公网访问由用户自建网络和服务主机；当前不是 Qwen 账号托管的全局中继。Local Control 仅覆盖同一局域网内扫码配对的设备（如手机），官方明确不以端口转发或未认证隧道暴露该网关作为互联网远控方案。 |
+| 条件与边界 | qwen serve alpha 明确以本地单机/小团队为边界；生产跨公网需自行承担 TLS、代理、故障恢复和版本协商。`--local-control` 与 `--token`、`--allow-origin`、`--no-web`、`--port 0` 和非默认 `--hostname` 冲突（直接报错而不静默覆盖）；要求固定端口，端口被占用时启动失败不重试；找不到非回环 IPv4 地址时报错；该能力位于 main 分支，尚未随 Release 发布。 |
 | 证据状态 | 条件项 |
-| 来源 | [Qwen Code current daemon and Web Shell](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/qwen-serve.md)、[Qwen Code current TypeScript SDK](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/sdk-typescript/README.md) |
+| 来源 | [Qwen Code current daemon and Web Shell](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/qwen-serve.md)、[Qwen Code current TypeScript SDK](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/sdk-typescript/README.md)、[Qwen Code Local Control pairing commit](https://github.com/QwenLM/qwen-code/commit/bf84caf1737163e3e15acff6c6a1c8a6af91df4d)、[Qwen Code qwen serve Local Control documentation](https://github.com/QwenLM/qwen-code/blob/bf84caf1737163e3e15acff6c6a1c8a6af91df4d/docs/users/qwen-serve.md)、[Qwen Code Local Control CLI design document](https://github.com/QwenLM/qwen-code/blob/bf84caf1737163e3e15acff6c6a1c8a6af91df4d/docs/design/local-control-cli.md)、[Qwen Code Desktop Local Control README](https://github.com/QwenLM/qwen-code/blob/bf84caf1737163e3e15acff6c6a1c8a6af91df4d/packages/desktop-shell/README.md)、[Qwen Code serve command source (--local-control flag)](https://github.com/QwenLM/qwen-code/blob/bf84caf1737163e3e15acff6c6a1c8a6af91df4d/packages/cli/src/commands/serve.ts) |
 
 ### Kimi Code
 
@@ -128,6 +128,11 @@
 - [Codex cloud](https://learn.chatgpt.com/docs/cloud)
 - [Qwen Code current daemon and Web Shell](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/qwen-serve.md)
 - [Qwen Code current TypeScript SDK](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/sdk-typescript/README.md)
+- [Qwen Code Local Control pairing commit](https://github.com/QwenLM/qwen-code/commit/bf84caf1737163e3e15acff6c6a1c8a6af91df4d)
+- [Qwen Code qwen serve Local Control documentation](https://github.com/QwenLM/qwen-code/blob/bf84caf1737163e3e15acff6c6a1c8a6af91df4d/docs/users/qwen-serve.md)
+- [Qwen Code Local Control CLI design document](https://github.com/QwenLM/qwen-code/blob/bf84caf1737163e3e15acff6c6a1c8a6af91df4d/docs/design/local-control-cli.md)
+- [Qwen Code Desktop Local Control README](https://github.com/QwenLM/qwen-code/blob/bf84caf1737163e3e15acff6c6a1c8a6af91df4d/packages/desktop-shell/README.md)
+- [Qwen Code serve command source (--local-control flag)](https://github.com/QwenLM/qwen-code/blob/bf84caf1737163e3e15acff6c6a1c8a6af91df4d/packages/cli/src/commands/serve.ts)
 - [Kimi Code current CLI, Headless and Web reference](https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/reference/kimi-command.md)
 - [Qoder CLI Remote Control](https://docs.qoder.com/en/cli/remote-control)
 - [Qoder Web remote and cloud tasks](https://docs.qoder.com/mobile/web/remote-control)
