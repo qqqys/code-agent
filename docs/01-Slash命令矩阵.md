@@ -20,7 +20,7 @@
 | 计划模式 | `/plan` | `/plan` | `/plan` | `/plan`、`/plan clear` | `/plan` |
 | 目标 | `/goal` | `/goal` | `/goal` | `/goal` | — |
 | Subagent 管理 | `/agents`、`/subtask` | `/agent`、`/subagents` | `/agents manage`、`/agents create` | `/swarm`；Agent 通过配置与工具调用 | `/agents`、`/agents reload` |
-| 任务列表 | `/tasks` | `/ps` | `/tasks` | `/tasks`、`/task` | `/tasks` |
+| 任务列表 | `/tasks` | `/ps` | `/tasks`；Background Tasks `p` 或 `/workflows p <runId>` 协作暂停/恢复后台 Workflow（条件：Workflows 开关、仅后台运行） | `/tasks`、`/task` | `/tasks` |
 | 新会话 | `/clear`、`/reset`、`/new` | `/new`、`/clear` | `/clear` | `/new`、`/clear` | `/clear` |
 | 恢复会话 | `/resume`、`/continue` | `/resume` | `/resume`、`/continue` | `/sessions`、`/resume` | `/resume` |
 | 重命名会话 | `/rename` | `/rename`、`/title` | `/rename`、`/tag` | `/title`、`/rename` | — |
@@ -91,11 +91,13 @@ Qwen Code 的固定命令面由两套加载器共同组成。只扫描硬编码�
 
 | 命令 | 出现条件 |
 | --- | --- |
-| `/workflows` | Workflows 功能开关开启 |
+| `/workflows` | Workflows 功能开关开启（`QWEN_CODE_ENABLE_WORKFLOWS=1`） |
 | `/dream`、`/forget` | Managed Memory 可用 |
 | `/trust` | Folder Trust 开启 |
 | `/restore` | File Checkpointing 开启 |
 | `/lsp` | LSP 开启 |
+
+v0.21.8（2026-08-08 发布）起，`/workflows` 增加 `p <runId>` 形式（提交 `88a325bce9db`）：Background Tasks 对话框的 `p` 键或 `/workflows p <runId>` 协作暂停/恢复后台 Workflow 运行，运行状态在 running、pausing、paused 之间迁移。暂停控制只在交互式 TUI 提供，且只作用于后台运行；暂停期间不启动新 Agent，已在运行的 Agent 收敛后进入 paused，暂停状态只保留在当前进程。
 
 硬编码命令还提供 13 个别名：
 
@@ -167,6 +169,10 @@ Web Shell 还固定提供 4 个不属于 CLI/TUI 硬编码加载器的本地命�
 - [Qwen Code 用户、项目与扩展 Skill 加载器](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/SkillCommandLoader.ts)
 - [Qwen Code Markdown/TOML 命令加载器](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/FileCommandLoader.ts)
 - [Qwen Code 保存的 Workflow 加载器](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/saved-workflow-loader.ts)
+- [Qwen Code `/workflows` 暂停/恢复命令文档](https://github.com/QwenLM/qwen-code/blob/88a325bce9dbdbfafe0d5dc6e4667b4c2942818b/docs/users/features/commands.md)
+- [Qwen Code Background Tasks 快捷键文档](https://github.com/QwenLM/qwen-code/blob/88a325bce9dbdbfafe0d5dc6e4667b4c2942818b/docs/users/reference/keyboard-shortcuts.md)
+- [Qwen Code workflows 命令源码](https://github.com/QwenLM/qwen-code/blob/88a325bce9dbdbfafe0d5dc6e4667b4c2942818b/packages/cli/src/ui/commands/workflowsCommand.ts)
+- [Qwen Code v0.21.8 Release](https://github.com/QwenLM/qwen-code/releases/tag/v0.21.8)
 - [Qwen Code MCP Prompt 加载器](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/McpPromptLoader.ts)
 - [Qwen Code 命令合并与冲突处理](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/CommandService.ts)
 - [Qwen Code `/review` Skill](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/core/src/skills/bundled/review/SKILL.md)

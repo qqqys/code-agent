@@ -4,6 +4,7 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-08-09 | [Qwen Code Dynamic Workflows 协作暂停/恢复](./2026-08-09-Qwen-Workflows协作暂停恢复.md) |
 | 2026-08-08 | [跨会话消息能力字段](./2026-08-08-跨会话消息能力字段.md) |
 | 2026-08-08 | [Claude Code v2.1.224 沙箱凭据打码扩展](./2026-08-08-Claude沙箱凭据打码扩展.md) |
 | 2026-08-08 | [Kimi Computer Use Windows x64 支持随 0.34.0 发布](./2026-08-08-Kimi-ComputerUse-Windows随0.34.0发布.md) |

@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-08-08',
+  updatedAt: '2026-08-09',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -333,6 +333,22 @@ window.matrixData = {
     'qwen-workflow-commands': {
       label: 'Qwen Code saved Workflow loader',
       url: 'https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/saved-workflow-loader.ts',
+    },
+    'qwen-workflow-pause-docs': {
+      label: 'Qwen Code /workflows pause/resume command docs',
+      url: 'https://github.com/QwenLM/qwen-code/blob/88a325bce9dbdbfafe0d5dc6e4667b4c2942818b/docs/users/features/commands.md',
+    },
+    'qwen-workflow-pause-shortcuts': {
+      label: 'Qwen Code Background Tasks keyboard shortcuts',
+      url: 'https://github.com/QwenLM/qwen-code/blob/88a325bce9dbdbfafe0d5dc6e4667b4c2942818b/docs/users/reference/keyboard-shortcuts.md',
+    },
+    'qwen-workflow-pause-source': {
+      label: 'Qwen Code workflows command source',
+      url: 'https://github.com/QwenLM/qwen-code/blob/88a325bce9dbdbfafe0d5dc6e4667b4c2942818b/packages/cli/src/ui/commands/workflowsCommand.ts',
+    },
+    'qwen-v0218-release': {
+      label: 'Qwen Code v0.21.8 release notes',
+      url: 'https://github.com/QwenLM/qwen-code/releases/tag/v0.21.8',
     },
     'qwen-review-skill': {
       label: 'Qwen Code review Skill',
@@ -837,8 +853,8 @@ window.matrixData = {
       id: 'cmd-tasks',
       category: 'commands',
       capability: '任务列表',
-      description: '查看后台进程、Agent 或长任务状态。',
-      values: { claude: '`/tasks` · `/background`', codex: '`/ps` · `/stop`', qwen: '`/tasks`', kimi: '`/tasks` · `/task`', qoder: '`/tasks`' },
+      description: '查看或控制后台进程、Agent 或长任务状态。',
+      values: { claude: '`/tasks` · `/background`', codex: '`/ps` · `/stop`', qwen: '`/tasks` · 条件：Workflows 开启时 Background Tasks `p` 或 `/workflows p <runId>` 协作暂停/恢复后台 Workflow', kimi: '`/tasks` · `/task`', qoder: '`/tasks`' },
     },
     {
       id: 'cmd-new',
