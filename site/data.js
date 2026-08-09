@@ -350,6 +350,26 @@ window.matrixData = {
       label: 'Qwen Code v0.21.8 release notes',
       url: 'https://github.com/QwenLM/qwen-code/releases/tag/v0.21.8',
     },
+    'qwen-local-control-commit': {
+      label: 'Qwen Code Local Control pairing commit',
+      url: 'https://github.com/QwenLM/qwen-code/commit/bf84caf1737163e3e15acff6c6a1c8a6af91df4d',
+    },
+    'qwen-local-control-serve-docs': {
+      label: 'Qwen Code qwen serve Local Control documentation',
+      url: 'https://github.com/QwenLM/qwen-code/blob/bf84caf1737163e3e15acff6c6a1c8a6af91df4d/docs/users/qwen-serve.md',
+    },
+    'qwen-local-control-design': {
+      label: 'Qwen Code Local Control CLI design document',
+      url: 'https://github.com/QwenLM/qwen-code/blob/bf84caf1737163e3e15acff6c6a1c8a6af91df4d/docs/design/local-control-cli.md',
+    },
+    'qwen-local-control-desktop': {
+      label: 'Qwen Code Desktop Local Control README',
+      url: 'https://github.com/QwenLM/qwen-code/blob/bf84caf1737163e3e15acff6c6a1c8a6af91df4d/packages/desktop-shell/README.md',
+    },
+    'qwen-local-control-source': {
+      label: 'Qwen Code serve command source (--local-control flag)',
+      url: 'https://github.com/QwenLM/qwen-code/blob/bf84caf1737163e3e15acff6c6a1c8a6af91df4d/packages/cli/src/commands/serve.ts',
+    },
     'qwen-review-skill': {
       label: 'Qwen Code review Skill',
       url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/core/src/skills/bundled/review/SKILL.md',
@@ -1477,7 +1497,7 @@ window.matrixData = {
       category: 'surfaces',
       capability: '远程接管与跨端继续',
       description: '从另一设备控制本地会话，或在本地与云端 Surface 之间继续工作。',
-      values: { claude: '`/remote-control` · `/teleport`', codex: '`app-server --listen` · `codex --remote` · Cloud', qwen: '`qwen serve` 多客户端；需自建网络', kimi: '`kimi web --host`；需自建网络', qoder: '`/remote-control` · `qodercli remote-control`' },
+      values: { claude: '`/remote-control` · `/teleport`', codex: '`app-server --listen` · `codex --remote` · Cloud', qwen: '`qwen serve` 多客户端；条件：`--local-control` 局域网扫码配对（main 分支，尚未发布）；公网需自建网络', kimi: '`kimi web --host`；需自建网络', qoder: '`/remote-control` · `qodercli remote-control`' },
     },
     {
       id: 'model-switch',

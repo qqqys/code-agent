@@ -1192,7 +1192,7 @@
       ],
       facts: [
         'Claude 与 Qoder 提供账号中继的本地会话远程控制，浏览器/手机可处理审批并继续发消息。',
-        'Codex app-server 可让另一个 CLI TUI 跨机器连接服务端 workspace；Qwen serve 与 kimi web 也能被远程客户端连接，但网络由用户自建。',
+        'Codex app-server 可让另一个 CLI TUI 跨机器连接服务端 workspace；Qwen serve 与 kimi web 也能被远程客户端连接，公网网络仍由用户自建；Qwen Code 另以 `--local-control` 提供局域网扫码配对（main 分支，尚未发布）。',
         'Claude teleport 是把云会话与分支拉回 CLI；它与 Remote Control 同品牌但状态移动方式不同。',
       ],
       products: {
@@ -1237,23 +1237,31 @@
         },
         qwen: {
           entry:
-            '远程客户端连接 `qwen serve`；Web Shell、SDK DaemonClient 或 Channel 都可成为客户端。',
+            '远程客户端连接 `qwen serve`；Web Shell、SDK DaemonClient 或 Channel 都可成为客户端。局域网配对：CLI `qwen serve --local-control`，Desktop `Control → Local Control…` 菜单。',
           protocol:
-            'HTTP + SSE；多客户端可共享会话和权限请求，SSE 使用 Last-Event-ID 重连。',
+            'HTTP + SSE；多客户端可共享会话和权限请求，SSE 使用 Last-Event-ID 重连。Local Control 绑定所有非回环 IPv4 接口，配对令牌放在 URL fragment，浏览器不会在 HTTP 请求、日志或 referrer 中发送；Desktop 网关把 HTTP、SSE 与 WebSocket 转发到既有 loopback daemon。',
           behavior:
-            '远程浏览器或自定义客户端发送 prompt、处理审批、查看 Diff 与会话状态；文件操作发生在 daemon 主机。',
+            '远程浏览器或自定义客户端发送 prompt、处理审批、查看 Diff 与会话状态；文件操作发生在 daemon 主机。`--local-control` 每次进程生成全新 256-bit bearer token，为每个局域网地址打印带标签的终端二维码，并在启用期间尽力抑制系统睡眠；Desktop Local Control 不重启现有 daemon 即开启临时局域网网关，关闭或停用即关闭监听并使令牌失效。',
           state:
-            '会话和 transcript 留在 daemon 主机；客户端重连可恢复事件窗口或加载历史。',
+            '会话和 transcript 留在 daemon 主机；客户端重连可恢复事件窗口或加载历史。Local Control 令牌为进程级临时凭据，退出或停用即失效；Desktop 网关不改变 Desktop PID、daemon PID、loopback 地址和进行中的会话。',
           tools:
             '使用 daemon workspace 的 Qwen 工具、MCP、Skills 与 Channel。',
           auth:
-            '非 loopback 必须 bearer token；远程设备登录可由 daemon device flow 完成。',
+            '非 loopback 必须 bearer token；远程设备登录可由 daemon device flow 完成。Local Control 自行生成令牌、不复用环境变量令牌，受保护路由仍要求该令牌；只放行被广播的局域网 origin 与 daemon 的 loopback 自访问 origin。',
           deployment:
-            '用户自建网络和服务主机；当前不是 Qwen 账号托管的全局中继。',
+            '公网访问由用户自建网络和服务主机；当前不是 Qwen 账号托管的全局中继。Local Control 仅覆盖同一局域网内扫码配对的设备（如手机），官方明确不以端口转发或未认证隧道暴露该网关作为互联网远控方案。',
           conditions:
-            'qwen serve alpha 明确以本地单机/小团队为边界；生产跨公网需自行承担 TLS、代理、故障恢复和版本协商。',
+            'qwen serve alpha 明确以本地单机/小团队为边界；生产跨公网需自行承担 TLS、代理、故障恢复和版本协商。`--local-control` 与 `--token`、`--allow-origin`、`--no-web`、`--port 0` 和非默认 `--hostname` 冲突（直接报错而不静默覆盖）；要求固定端口，端口被占用时启动失败不重试；找不到非回环 IPv4 地址时报错；该能力位于 main 分支，尚未随 Release 发布。',
           status: '条件项',
-          sources: ['qwen-serve-current', 'qwen-sdk-current'],
+          sources: [
+            'qwen-serve-current',
+            'qwen-sdk-current',
+            'qwen-local-control-commit',
+            'qwen-local-control-serve-docs',
+            'qwen-local-control-design',
+            'qwen-local-control-desktop',
+            'qwen-local-control-source',
+          ],
         },
         kimi: {
           entry:
