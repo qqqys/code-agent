@@ -178,6 +178,22 @@ window.matrixData = {
       label: 'Claude Code v2.1.225 changelog (SendMessage by name)',
       url: 'https://github.com/anthropics/claude-code/blob/53f9910f6ef0/CHANGELOG.md',
     },
+    'claude-self-hosted': {
+      label: 'Claude Code self-hosted environments',
+      url: 'https://code.claude.com/docs/en/self-hosted-environments',
+    },
+    'claude-self-hosted-quickstart': {
+      label: 'Claude Code self-hosted environments quickstart',
+      url: 'https://code.claude.com/docs/en/self-hosted-environments-quickstart',
+    },
+    'claude-self-hosted-reference': {
+      label: 'Claude Code self-hosted environments reference',
+      url: 'https://code.claude.com/docs/en/self-hosted-environments-reference',
+    },
+    'claude-self-hosted-v224': {
+      label: 'Claude Code v2.1.224 changelog (self-hosted environments)',
+      url: 'https://github.com/anthropics/claude-code/blob/66edf5358349/CHANGELOG.md',
+    },
     'codex-commands': {
       label: 'Codex CLI commands',
       url: 'https://developers.openai.com/codex/cli/slash-commands',
@@ -1490,7 +1506,7 @@ window.matrixData = {
       category: 'surfaces',
       capability: '云端仓库任务',
       description: '在托管环境中克隆仓库并执行任务。',
-      values: { claude: '`claude --remote` · Web Cloud', codex: 'Codex Cloud', qwen: '无托管云任务；`qwen serve` 为自托管', kimi: '无托管云任务；`kimi web` 为自托管', qoder: '`qodercli --remote` · Cloud Mode' },
+      values: { claude: '`claude --remote` · Web Cloud · 条件：`claude self-hosted-runner` 自托管云会话执行（Team/Enterprise 公测）', codex: 'Codex Cloud', qwen: '无托管云任务；`qwen serve` 为自托管', kimi: '无托管云任务；`kimi web` 为自托管', qoder: '`qodercli --remote` · Cloud Mode' },
     },
     {
       id: 'surface-remote-control',
