@@ -486,6 +486,18 @@ window.matrixData = {
       label: 'Qwen Code current daemon and Web Shell',
       url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/qwen-serve.md',
     },
+    'qwen-web-shell-image-dnd': {
+      label: 'Qwen Code Web Shell image drag and drop commit',
+      url: 'https://github.com/QwenLM/qwen-code/commit/e46586782cf8fc85d535051830bcc743bcd6b47a',
+    },
+    'qwen-web-shell-image-design': {
+      label: 'Qwen Code Web Shell image drag and drop design document',
+      url: 'https://github.com/QwenLM/qwen-code/blob/e46586782cf8fc85d535051830bcc743bcd6b47a/docs/design/web-shell/web-shell-image-drag-and-drop.md',
+    },
+    'qwen-web-shell-image-ingestion': {
+      label: 'Qwen Code Web Shell image ingestion source',
+      url: 'https://github.com/QwenLM/qwen-code/blob/e46586782cf8fc85d535051830bcc743bcd6b47a/packages/web-shell/client/utils/imageIngestion.ts',
+    },
     'qwen-desktop-current': {
       label: 'Qwen Code current Desktop',
       url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/desktop/README.md',
@@ -1504,7 +1516,7 @@ window.matrixData = {
       category: 'surfaces',
       capability: 'Web 界面',
       description: '通过浏览器创建、查看或继续 Agent 会话。',
-      values: { claude: 'claude.ai/code · Remote Control', codex: 'ChatGPT Web · Codex Cloud', qwen: '`qwen serve` 内置 Web Shell', kimi: '`kimi web` 本地 Web UI', qoder: 'Qoder Web · Cloud Agents Console' },
+      values: { claude: 'claude.ai/code · Remote Control', codex: 'ChatGPT Web · Codex Cloud', qwen: '`qwen serve` 内置 Web Shell；条件：图片拖拽/粘贴输入（main 分支，尚未发布）', kimi: '`kimi web` 本地 Web UI', qoder: 'Qoder Web · Cloud Agents Console' },
     },
     {
       id: 'surface-desktop',

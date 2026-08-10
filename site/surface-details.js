@@ -828,6 +828,7 @@
         'Claude、Codex 与 Qoder 提供账号托管的 Web Surface；Qwen 和 Kimi 当前提供由本地服务进程托管的 Web UI。',
         '本地 Web UI 能否从其他设备访问取决于网络、绑定地址、TLS 与 token；它不自动成为厂商托管云服务。',
         'Web Surface 的工具、命令和文件位置取决于会话实际运行在本机还是云端。',
+        'Qwen Web Shell 的 main 分支源码支持向输入区拖拽或粘贴图片并发送只含图片的 prompt；Claude、Codex、Kimi、Qoder 的官方 Web 文档未列图片拖拽、粘贴或附件上传。',
       ],
       products: {
         claude: {
@@ -870,13 +871,13 @@
         },
         qwen: {
           entry:
-            '`qwen serve` 根路径自带 Web Shell；`--open` 自动打开浏览器，`--no-web` 可禁用。',
+            '`qwen serve` 根路径自带 Web Shell；`--open` 自动打开浏览器，`--no-web` 可禁用；条件：图片输入经输入区拖拽或粘贴进入（main 分支）。',
           protocol:
-            '同源静态 Web App 通过 HTTP REST 与 SSE 连接本地 daemon。',
+            '同源静态 Web App 通过 HTTP REST 与 SSE 连接本地 daemon；图片以 base64 附件随 prompt 载荷提交，daemon、ACP 与公开 Web Shell API 协议不变。',
           behavior:
-            '提供聊天、Diff、提交历史、工具调用、权限请求、会话与工作区管理。',
+            '提供聊天、Diff、提交历史、工具调用、权限请求、会话与工作区管理；条件：main 分支可向输入区拖拽或粘贴图片（`image/png`、`image/jpeg`、`image/gif`、`image/webp`、`image/bmp`；SVG、TIFF、HEIC、PDF、目录与远程 URL 拒绝），`image/x-bmp`/`image/x-ms-bmp` 归一为 BMP，并支持只含图片、不带文字的 prompt；BMP 在 Anthropic Provider 路径降级为文本说明。',
           state:
-            '会话由本地 daemon 和磁盘 transcript 管理；多浏览器客户端可共享同一会话。',
+            '会话由本地 daemon 和磁盘 transcript 管理；多浏览器客户端可共享同一会话；条件：排队 prompt 的图片附件在重试/编辑流程中恢复；admission 结果未知时输入区进入只读锁定，需手动丢弃或恢复，恢复不自动发送；页面重载后恢复的排队项仅含摘要、不含图片数据。',
           tools:
             'Web Shell 使用 qwen serve 背后的 ACP 运行时和本地工具。',
           auth:
@@ -884,9 +885,14 @@
           deployment:
             'Web UI 与 API 由用户机器上的 qwen serve 提供，不是 Qwen 托管 Web 产品。',
           conditions:
-            '当前 Daemon 为实验性本地部署；远程暴露需要自行处理网络和安全边界。',
+            '当前 Daemon 为实验性本地部署；远程暴露需要自行处理网络和安全边界。图片输入于 2026-08-10 合入 main，尚未进入 Release；官方用户文档未描述该输入方式，仍把 prompt 路径图片/文件附件列为已知缺口（`MessageEmitter` 只渲染文本）。客户端单批 base64 预算 8 MiB、并发读取上限 4，超预算按 `too-large` 拒绝；daemon 请求体上限 10 MB（超出返回 413）；Core 内联媒体默认上限 10 MiB（解码后字节，可经 daemon 环境变量配置）。',
           status: '条件项',
-          sources: ['qwen-serve-current'],
+          sources: [
+            'qwen-serve-current',
+            'qwen-web-shell-image-dnd',
+            'qwen-web-shell-image-design',
+            'qwen-web-shell-image-ingestion',
+          ],
         },
         kimi: {
           entry:
