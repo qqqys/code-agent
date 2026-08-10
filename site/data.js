@@ -538,6 +538,18 @@ window.matrixData = {
       label: 'Qwen Code current Extension runtime',
       url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/core/src/extension/extensionManager.ts',
     },
+    'qwen-qoder-plugin-compat': {
+      label: 'Qwen Code Qoder plugin compatibility commit',
+      url: 'https://github.com/QwenLM/qwen-code/commit/0a6c50c7a7241b42ddce0acd0fde0a6f70bcdf9e',
+    },
+    'qwen-qoder-plugin-docs': {
+      label: 'Qwen Code Qoder plugin installation documentation',
+      url: 'https://github.com/QwenLM/qwen-code/blob/0a6c50c7a7241b42ddce0acd0fde0a6f70bcdf9e/docs/users/extension/introduction.md',
+    },
+    'qwen-v0219-release': {
+      label: 'Qwen Code v0.21.9 release notes',
+      url: 'https://github.com/QwenLM/qwen-code/releases/tag/v0.21.9',
+    },
     'qwen-commands-current': {
       label: 'Qwen Code current custom commands',
       url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/commands.md',
@@ -1376,7 +1388,7 @@ window.matrixData = {
       category: 'extensions',
       capability: '插件分发',
       description: '把 Skills、Agents、Hooks 或 MCP 配置作为一个包分发。',
-      values: { claude: '`/plugin`', codex: '`/plugins`', qwen: '`/extensions` · `qwen extensions`', kimi: '`/plugins`', qoder: '`qodercli plugins` · `/plugins reload`' },
+      values: { claude: '`/plugin`', codex: '`/plugins`', qwen: '`/extensions` · `qwen extensions` · 可安装 Qoder 插件', kimi: '`/plugins`', qoder: '`qodercli plugins` · `/plugins reload`' },
     },
     {
       id: 'extension-custom-commands',

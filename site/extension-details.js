@@ -615,7 +615,7 @@
         '没有安装生命周期的普通项目配置',
       ],
       facts: [
-        '五家现在都存在可安装的扩展包；Qwen Code 将该体系称为 Extensions，并能导入 Qwen、Gemini 与 Claude 格式。',
+        '五家现在都存在可安装的扩展包；Qwen Code 将该体系称为 Extensions，除自有格式外还能安装 Gemini、Claude 与 Qoder 格式的包（Qoder 插件兼容随 v0.21.9 引入）。',
         '组件集合并不对齐：Codex Plugin 当前不在 IDE 扩展中提供；Kimi Code Plugin 已支持 Agent 组件，但优先级低于用户、额外目录、项目和 `--agent-file`。',
         '安装作用域也不同：Kimi Code 当前只支持用户安装；Qoder CLI 提供 User、Project 与 Local scope。',
         '远程插件搜索目前只有 Codex 在 app-server 以 `plugin/search` JSON-RPC 提供，按 `global`/`workspace`/`personal` scope 直接查询远程插件服务；该端点仍在开发中并受功能开关控制，其余四家的插件发现仍走本地目录或 `/plugins` 浏览器。',
@@ -664,11 +664,11 @@
         },
         qwen: {
           entry:
-            '`/extensions` 在 TUI 管理；`qwen extensions` 提供安装、列表、更新、启用和禁用等 CLI 操作。',
+            '`/extensions` 在 TUI 管理；`qwen extensions` 提供安装、列表、更新、启用和禁用等 CLI 操作。Qoder 插件同样用现有 `qwen extensions install` 安装。',
           location:
-            'Qwen 原生 manifest 为 `qwen-extension.json`；也能安装兼容的 Gemini 与 Claude 扩展结构。',
+            'Qwen 原生 manifest 为 `qwen-extension.json`；也能安装兼容的 Gemini 与 Claude 扩展结构。Qoder 插件以 `.qoder-plugin/plugin.json` 为 manifest，安装时转换为 `qwen-extension.json` 保存。',
           behavior:
-            '从 npm、Git、归档或本地目录安装，并把扩展组件合并到当前运行时。',
+            '从 npm、Git、归档或本地目录安装，并把扩展组件合并到当前运行时。Qoder 插件可从本地目录、归档、Git 仓库、归档 URL 或 scoped npm 包安装：保留标准 `commands/`、`agents/`、`skills/` 目录；manifest 未声明 `mcpServers` 时，根 `.mcp.json` 的 MCP Server 规范化为 Qwen 传输后作为扩展 MCP 加载；根目录存在 `system-prompt.md` 时作为扩展上下文加载，与 `QWEN.md` 及显式声明的上下文文件去重后并存。',
           scope:
             'User 与 Project scope；Project 扩展可随仓库配置。',
           components:
@@ -678,11 +678,14 @@
           permissions:
             '扩展中的 Hook、MCP、Command 和 Agent 仍经过工作区信任、approval mode 与工具策略。',
           conditions:
-            'Qwen 的正式名称是 Extension；“Plugin”只应在兼容格式或具体组件语境使用，不能与整个管理入口混写。',
+            'Qwen 的正式名称是 Extension；“Plugin”只应在兼容格式或具体组件语境使用，不能与整个管理入口混写。Qoder 插件兼容随 v0.21.9 引入：manifest 必须在插件目录内解析为含 `name` 的有效 JSON，引用的资源与上下文文件必须留在插件内部，复制时跳过逃逸源目录根的符号链接且不复制 Git 元数据；归档的 manifest 可位于根目录或一个受支持的顶层包装目录内；Git 安装在安装元数据记录检出提交（`gitCommit`）供更新检查，`version` 缺省为 `1.0.0`，来源记录为 `Qoder`。',
           status: '源码确认',
           sources: [
             'qwen-extensions-current',
             'qwen-extension-runtime-current',
+            'qwen-qoder-plugin-compat',
+            'qwen-qoder-plugin-docs',
+            'qwen-v0219-release',
           ],
         },
         kimi: {
