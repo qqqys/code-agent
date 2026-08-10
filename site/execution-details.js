@@ -98,6 +98,7 @@
         '五家都提供模型可直接调用的文件读写能力，不需要先拼接 Shell 命令。',
         'Claude Code、Qwen Code 和 Qoder CLI 单独提供 Notebook 编辑工具；Kimi Code 的当前工具表把媒体读取与文本读取分开。',
         '工具名称相近不代表审批相同：只读工具通常可直接运行，写入和编辑仍受各自权限模式、工作区边界与沙箱约束。',
+        '换行处理不同：Codex `apply_patch` 默认把更新文件归一为 LF，`apply_patch_preserve_line_endings` 开关（已合入 main，尚未发布）启用后才保留原换行；Qwen Code `edit` 默认检测并保留原换行风格。Claude Code、Kimi Code 与 Qoder CLI 的官方工具文档未列同类换行保留或规范化配置。',
       ],
       products: {
         claude: {
@@ -116,14 +117,14 @@
           artifacts:
             '修改直接落在当前工作区或当前 Worktree；检查点与 Git 决定后续回退方式。',
           conditions:
-            '工具可被 `permissions.deny`、Subagent 工具列表或 Plugin 配置移除；Plan 模式会限制写入。',
+            '工具可被 `permissions.deny`、Subagent 工具列表或 Plugin 配置移除；Plan 模式会限制写入。官方工具参考未列 `Edit`/`Write` 的换行保留或规范化配置。',
           sources: ['claude-tools', 'claude-permissions'],
         },
         codex: {
           entry:
             '模型使用内置文件读取与补丁编辑能力；需要整文件或批量机械操作时也可通过 Shell 完成。',
           primitives:
-            '核心路径是读取文件后提交结构化补丁；当前公开文档不要求用户记住内部工具名。',
+            '核心路径是读取文件后提交结构化补丁；`apply_patch` 默认 `NormalizeToLf`（把更新文件归一为 LF），main 分支新增 `PreserveLineEndings` 模式：未改动行保留原换行，插入行采用文件首个已有换行风格，文件无换行时用 LF。当前公开文档不要求用户记住内部工具名。',
           behavior:
             '补丁在应用前后仍受当前审批预设和文件系统沙箱控制；只读模式不会允许持久修改。',
           scope:
@@ -135,8 +136,15 @@
           artifacts:
             '结果是工作区文件修改和可审阅 Diff；不会因为生成补丁自动创建提交。',
           conditions:
-            '实际可写范围取决于 Read Only、Auto 等权限预设以及运行时沙箱；Cloud 任务使用远端环境。',
-          sources: ['codex-docs', 'codex-approvals', 'codex-review'],
+            '实际可写范围取决于 Read Only、Auto 等权限预设以及运行时沙箱；Cloud 任务使用远端环境。条件：`config.toml` 的 `[features]` 下 `apply_patch_preserve_line_endings` 开关（默认关闭、UnderDevelopment 阶段）启用换行保留；启用后进程内 apply_patch 直接读取该 Feature，Core 同时清除继承值并向子进程环境注入 `CODEX_APPLY_PATCH_PRESERVE_LINE_ENDINGS=1`，独立 `apply_patch` 可执行文件按该环境变量选择模式。该开关 2026-08-10 合入 main 分支，尚未进入 Release，官方配置参考未列出。',
+          status: '源码确认',
+          sources: [
+            'codex-docs',
+            'codex-approvals',
+            'codex-review',
+            'codex-apply-patch-mode',
+            'codex-apply-patch-preserve-flag',
+          ],
         },
         qwen: {
           entry:
@@ -144,7 +152,7 @@
           primitives:
             '`read_file` 分页读取；`edit` 做受控替换；`write_file` 写入完整内容；`notebook_edit` 修改 Notebook 单元。',
           behavior:
-            '读取与编辑分别经过路径权限、工作区信任和 approval mode；读后再改规则可阻止模型基于过期内容直接覆盖。',
+            '读取与编辑分别经过路径权限、工作区信任和 approval mode；读后再改规则可阻止模型基于过期内容直接覆盖。`edit` 匹配前把 CRLF 归一为 LF，写回已有文件时按检测到的原换行风格恢复。',
           scope:
             '默认工作区是启动目录；`--include-directories`、Worktree 或 Daemon workspace 可改变有效路径范围。',
           background:
@@ -155,7 +163,12 @@
             '修改写入当前工作区、当前 Worktree 或显式 Agent 工作目录；不会自动暂存或提交。',
           conditions:
             'Plan mode 禁止普通写入；auto-edit、auto、yolo 对审批的处理不同，沙箱仍是独立边界。',
-          sources: ['qwen-tools-current', 'qwen-settings', 'qwen-worktree-current'],
+          sources: [
+            'qwen-tools-current',
+            'qwen-settings',
+            'qwen-worktree-current',
+            'qwen-edit-tool',
+          ],
         },
         kimi: {
           entry:
@@ -173,7 +186,7 @@
           artifacts:
             '写入直接落盘；会话日志记录工具事件，但不会自动把修改变成 Git 提交。',
           conditions:
-            'Plan 模式下 Write/Edit 只允许写计划文件；YOLO 跳过普通审批但不改变文件系统权限。',
+            'Plan 模式下 Write/Edit 只允许写计划文件；YOLO 跳过普通审批但不改变文件系统权限。官方工具文档未列换行保留或规范化配置；`Write` 的 append 模式不自动补换行。',
           sources: ['kimi-tools-current', 'kimi-config-current'],
         },
         qoder: {
@@ -192,7 +205,7 @@
           artifacts:
             '修改写入当前 workspace 或所选 Worktree；是否进入提交由后续 Git 操作决定。',
           conditions:
-            '权限规则、Subagent `tools`/`disallowedTools` 和 SDK query options 都可能缩小可用集合。',
+            '权限规则、Subagent `tools`/`disallowedTools` 和 SDK query options 都可能缩小可用集合。官方内置工具文档未列换行保留或规范化配置。',
           sources: ['qoder-tools', 'qoder-permissions', 'qoder-sdk-reference'],
         },
       },
