@@ -4,6 +4,7 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-08-10 | [Codex apply_patch 换行保留模式](./2026-08-10-Codex-apply_patch换行保留.md) |
 | 2026-08-09 | [Qwen Code qwen serve Local Control 局域网配对](./2026-08-09-Qwen-Local-Control局域网配对.md) |
 | 2026-08-09 | [Qwen Code Dynamic Workflows 协作暂停/恢复](./2026-08-09-Qwen-Workflows协作暂停恢复.md) |
 | 2026-08-08 | [跨会话消息能力字段](./2026-08-08-跨会话消息能力字段.md) |

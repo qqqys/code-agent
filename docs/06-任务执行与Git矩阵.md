@@ -2,11 +2,11 @@
 
 [返回文档目录](./README.md) · [网页矩阵](https://qqqys.github.io/code-agent/#execution) · [详情目录](./capabilities/execution/)
 
-> 核对日期：2026-08-09
+> 核对日期：2026-08-10
 
 | 能力 | Claude Code | Codex | Qwen Code | Kimi Code | Qoder CLI |
 | --- | --- | --- | --- | --- | --- |
-| [文件读写](./capabilities/execution/execution-files.md) | `Read` · `Edit` · `Write` | 内置读取 · 补丁编辑 | `read_file` · `edit` · `write_file` | `Read` · `Edit` · `Write` | `Read` · `Edit` · `Write` |
+| [文件读写](./capabilities/execution/execution-files.md) | `Read` · `Edit` · `Write` | 内置读取 · 补丁编辑 · `apply_patch_preserve_line_endings` 换行保留（条件：main 分支，尚未发布） | `read_file` · `edit` · `write_file` | `Read` · `Edit` · `Write` | `Read` · `Edit` · `Write` |
 | [Shell 执行](./capabilities/execution/execution-shell.md) | `Bash` | 统一 PTY Shell | `run_shell_command` | `Bash` | `Bash` · `!` 模式 |
 | [代码搜索](./capabilities/execution/execution-search.md) | `Glob` · `Grep` · `LSP` | 内置搜索 · Shell/`rg` | `glob` · `grep_search` · `LSP` | `Glob` · `Grep` | `Glob` · `Grep` |
 | [后台任务](./capabilities/execution/execution-background.md) | `/background` · `/tasks` · `Monitor` | `/ps` · `/stop` | `is_background` · `Ctrl+B` · `/tasks` | `run_in_background` · `/tasks` | `/tasks` · `TaskOutput` · `TaskStop` |

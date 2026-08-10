@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-08-09',
+  updatedAt: '2026-08-10',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -330,6 +330,14 @@ window.matrixData = {
       label: 'Codex exec session fork',
       url: 'https://github.com/openai/codex/commit/80858a8cce7f3ba0aaf6a76ad9462dca1604daeb',
     },
+    'codex-apply-patch-mode': {
+      label: 'Codex apply_patch line-ending preservation mode',
+      url: 'https://github.com/openai/codex/commit/21aa552e8727c03189d0f7d18bbd6e7583e88f88',
+    },
+    'codex-apply-patch-preserve-flag': {
+      label: 'Codex apply_patch_preserve_line_endings feature flag',
+      url: 'https://github.com/openai/codex/commit/c9c6c0daa994109cec50fddcb57d076fdf9e738c',
+    },
     'qwen-commands': {
       label: 'Qwen Code commands documentation',
       url: 'https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/commands.md',
@@ -533,6 +541,10 @@ window.matrixData = {
     'qwen-shell-current': {
       label: 'Qwen Code current shell tool',
       url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/core/src/tools/shell.ts',
+    },
+    'qwen-edit-tool': {
+      label: 'Qwen Code current edit tool source',
+      url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/core/src/tools/edit.ts',
     },
     'qwen-review-current': {
       label: 'Qwen Code current code review',
@@ -1380,7 +1392,7 @@ window.matrixData = {
       category: 'execution',
       capability: '文件读写',
       description: '读取、创建和修改工作区文件。',
-      values: { claude: '`Read` · `Edit` · `Write`', codex: '内置读取 · 补丁编辑', qwen: '`read_file` · `edit` · `write_file`', kimi: '`Read` · `Edit` · `Write`', qoder: '`Read` · `Edit` · `Write`' },
+      values: { claude: '`Read` · `Edit` · `Write`', codex: '内置读取 · 补丁编辑 · `apply_patch_preserve_line_endings` 换行保留（条件：main 分支，尚未发布）', qwen: '`read_file` · `edit` · `write_file`', kimi: '`Read` · `Edit` · `Write`', qoder: '`Read` · `Edit` · `Write`' },
     },
     {
       id: 'execution-shell',
