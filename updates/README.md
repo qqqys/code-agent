@@ -4,6 +4,7 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-08-10 | [Qwen Code 原生安装 Qoder 插件](./2026-08-10-Qwen-Qoder插件兼容.md) |
 | 2026-08-10 | [Qwen Code Web Shell 图片拖拽/粘贴输入](./2026-08-10-Qwen-Web-Shell图片输入.md) |
 | 2026-08-10 | [Codex apply_patch 换行保留模式](./2026-08-10-Codex-apply_patch换行保留.md) |
 | 2026-08-09 | [Claude Code Self-hosted environments 自托管云会话执行](./2026-08-09-Claude自托管云环境.md) |
