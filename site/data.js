@@ -200,7 +200,7 @@ window.matrixData = {
     },
     'codex-agents': {
       label: 'Codex Subagents',
-      url: 'https://developers.openai.com/codex/subagents',
+      url: 'https://learn.chatgpt.com/docs/agent-configuration/subagents',
     },
     'codex-docs': {
       label: 'Codex Documentation',
@@ -436,7 +436,7 @@ window.matrixData = {
     },
     'qwen-agents': {
       label: 'Qwen Code Subagents',
-      url: 'https://github.com/QwenLM/qwen-code/blob/079ce5346af7/docs/users/features/sub-agents.md',
+      url: 'https://github.com/QwenLM/qwen-code/blob/412eae24b48ff16f54166c2b17eb4d4a9cdcdd1e/docs/users/features/sub-agents.md',
     },
     'qwen-agent-messaging': {
       label: 'Qwen Code background agent messaging',
@@ -620,7 +620,7 @@ window.matrixData = {
     },
     'kimi-agents': {
       label: 'Kimi Code Agents',
-      url: 'https://github.com/MoonshotAI/kimi-code/blob/efac96c8a95a/docs/zh/customization/agents.md',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/29c9e2ab20a1646ad33f2b7c999b450152f9c01a/docs/zh/customization/agents.md',
     },
     'kimi-interaction': {
       label: 'Kimi Code Interaction and Permissions',
@@ -1169,7 +1169,7 @@ window.matrixData = {
       category: 'subagents',
       capability: 'Agent 推理强度',
       description: '单个 Agent 能否设置独立的推理预算。',
-      values: { claude: '`effort`', codex: '`model_reasoning_effort`', qwen: '未确认独立字段', kimi: '未确认独立 effort 字段', qoder: '`effort`' },
+      values: { claude: '`effort`', codex: '`model_reasoning_effort` · `[agents] default_subagent_reasoning_effort` 全局默认', qwen: '未确认独立字段', kimi: '未确认独立 effort 字段', qoder: '`effort`' },
     },
     {
       id: 'agent-tools',
