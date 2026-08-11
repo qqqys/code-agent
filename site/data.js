@@ -770,6 +770,14 @@ window.matrixData = {
       label: 'Kimi Code compatible PowerShell selection commit',
       url: 'https://github.com/MoonshotAI/kimi-code/commit/ef610840098a57819d62d407f33256e14b512c77',
     },
+    'kimi-background-activity-commit': {
+      label: 'Kimi Code /tasks live background agent activity commit',
+      url: 'https://github.com/MoonshotAI/kimi-code/commit/ad12ad8a140d24051d93ec98a4a6921ab33723ff',
+    },
+    'kimi-background-activity-changeset': {
+      label: 'Kimi Code background agent activity changeset',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/ad12ad8a140d24051d93ec98a4a6921ab33723ff/.changeset/background-agent-activity-view.md',
+    },
     'qoder-commands': {
       label: 'Qoder CLI commands',
       url: 'https://docs.qoder.com/en/cli/command',
@@ -1456,7 +1464,7 @@ window.matrixData = {
       category: 'execution',
       capability: '后台任务',
       description: '在不阻塞主交互的情况下执行命令或 Agent。',
-      values: { claude: '`/background` · `/tasks` · `Monitor`', codex: '`/ps` · `/stop`', qwen: '`is_background` · `Ctrl+B` · `/tasks`', kimi: '`run_in_background` · `/tasks`', qoder: '`/tasks` · `TaskOutput` · `TaskStop`' },
+      values: { claude: '`/background` · `/tasks` · `Monitor`', codex: '`/ps` · `/stop`', qwen: '`is_background` · `Ctrl+B` · `/tasks`', kimi: '`run_in_background` · `/tasks`；条件：`/tasks` 后台 Agent 实时活动（main 分支，尚未发布）', qoder: '`/tasks` · `TaskOutput` · `TaskStop`' },
     },
     {
       id: 'execution-review',
