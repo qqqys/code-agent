@@ -4,6 +4,8 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-08-11 | [Codex Subagent 全局默认推理强度](./2026-08-11-Codex-Subagent默认推理强度.md) |
+| 2026-08-11 | [审批自动审查能力字段](./2026-08-11-审批自动审查能力字段.md) |
 | 2026-08-10 | [Qwen Code 原生安装 Qoder 插件](./2026-08-10-Qwen-Qoder插件兼容.md) |
 | 2026-08-10 | [Qwen Code Web Shell 图片拖拽/粘贴输入](./2026-08-10-Qwen-Web-Shell图片输入.md) |
 | 2026-08-10 | [Codex apply_patch 换行保留模式](./2026-08-10-Codex-apply_patch换行保留.md) |

@@ -67,7 +67,7 @@
 | 保存范围 | 线程属于当前会话 |
 | 条件与边界 | 无额外条件 |
 | 证据状态 | 官方确认 |
-| 来源 | [Codex CLI commands](https://developers.openai.com/codex/cli/slash-commands)、[Codex Subagents](https://developers.openai.com/codex/subagents) |
+| 来源 | [Codex CLI commands](https://developers.openai.com/codex/cli/slash-commands)、[Codex Subagents](https://learn.chatgpt.com/docs/agent-configuration/subagents) |
 
 ### Qwen Code
 
@@ -81,7 +81,7 @@
 | 保存范围 | 定义保存到用户、项目或扩展目录 |
 | 条件与边界 | 无额外条件 |
 | 证据状态 | 源码确认 |
-| 来源 | [Qwen Code commands documentation](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/commands.md)、[Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/079ce5346af7/docs/users/features/sub-agents.md) |
+| 来源 | [Qwen Code commands documentation](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/commands.md)、[Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/412eae24b48ff16f54166c2b17eb4d4a9cdcdd1e/docs/users/features/sub-agents.md) |
 
 ### Kimi Code
 
@@ -116,9 +116,9 @@
 - [Claude Code Commands](https://code.claude.com/docs/en/commands)
 - [Claude Code Subagents](https://code.claude.com/docs/en/sub-agents)
 - [Codex CLI commands](https://developers.openai.com/codex/cli/slash-commands)
-- [Codex Subagents](https://developers.openai.com/codex/subagents)
+- [Codex Subagents](https://learn.chatgpt.com/docs/agent-configuration/subagents)
 - [Qwen Code commands documentation](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/commands.md)
-- [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/079ce5346af7/docs/users/features/sub-agents.md)
+- [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/412eae24b48ff16f54166c2b17eb4d4a9cdcdd1e/docs/users/features/sub-agents.md)
 - [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/7c919f0376c0331d0d057ef3643c7adcc2c55802/docs/zh/reference/slash-commands.md)
 - [Qoder CLI commands](https://docs.qoder.com/en/cli/command)
 - [Qoder CLI Subagent](https://docs.qoder.com/en/cli/subagent)

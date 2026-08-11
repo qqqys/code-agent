@@ -430,25 +430,29 @@
       id: 'agent-effort',
       definition:
         '为单个 Agent 覆盖主会话的推理强度、思考档位或推理预算。',
-      includes: ['Agent 级 effort 字段', '继承规则', '可用取值'],
+      includes: ['Agent 级 effort 字段', '继承规则', '可用取值', '派生 Agent 的全局默认 effort'],
       excludes: ['模型选择', '温度', '全局推理设置'],
       facts: [
         'Claude Code、Codex 与 Qoder CLI 提供明确的 Agent 级推理强度字段。',
-        'Qwen Code 和 Kimi Code 当前 Agent 文档未确认独立 effort 字段。',
+        'Codex 另有 config.toml 的 `agents.default_subagent_reasoning_effort`，为派生 Agent 设置全局默认推理强度。',
+        'Qwen Code 和 Kimi Code 当前 Agent 文档未确认独立 effort 字段；Qwen Code 把 `effort` 列为尚未落地的兼容字段。',
       ],
       notes: {
         claude:
-          '`effort` 覆盖会话 effort，可用档位取决于模型；扩展思考开关仍继承主会话。',
+          '`effort` 覆盖会话 effort，可用档位为 `low`、`medium`、`high`、`xhigh`、`max`，具体取决于模型；省略时继承会话 effort；v2.1.198 起扩展思考配置也继承主会话。官方未列出 Subagent 全局默认 effort 设置。',
         codex:
-          '`model_reasoning_effort` 可写入 Agent TOML，也可由显式 spawn 参数覆盖默认值。',
+          '`model_reasoning_effort` 可写入 Agent TOML；Agent 文件设置 `model` 或 `model_reasoning_effort` 时文件值优先。否则 Codex 按显式 spawn 值、`[agents]` 默认值、父会话值的顺序独立解析，`agents.default_subagent_reasoning_effort` 是派生 Agent 的全局默认，显式 spawn effort 优先于该默认。spawn 切换模型且没有显式或配置的 effort 时，使用该模型的默认 effort。取值：Subagent 页列出 `ultra`、`max`、`xhigh`、`high`、`medium`、`low`；配置参考 `model_reasoning_effort` 条目列出 `minimal | low | medium | high | xhigh`（Responses API，`xhigh` 依模型而定）。',
         qwen:
-          '当前 `effort` frontmatter 尚未落地；模型 grade 和 `model` 选择不等同于推理强度。',
+          '当前 Agent 文档把 `effort` 列为尚未落地的 Claude Code 兼容字段，需模型层参数等前置基础设施后随后续版本引入；模型 grade 和 `model` 选择不等同于推理强度。',
         kimi:
-          '`model_preference` 选择主/备模型，不是独立 reasoning effort；当前字段表未列出 effort。',
+          '`model_preference` 选择主/备模型，不是独立 reasoning effort；当前字段表未列出 effort，也没有 Subagent 全局默认 effort 设置。',
         qoder:
-          '`effort` 接受 `low`、`medium`、`high`、`xhigh`、`max` 或正整数预算。',
+          '`effort` 接受 `low`、`medium`、`high`、`xhigh`、`max` 或正整数预算；文档未说明省略时的继承行为，settings.json 覆盖 schema 不含 effort 键。',
       },
       related: ['agent-model', 'cmd-effort', 'agent-limits'],
+      overrides: {
+        codex: { sources: ['codex-agents', 'codex-config-reference'] },
+      },
     }),
 
     'agent-tools': createDetail({

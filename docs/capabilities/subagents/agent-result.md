@@ -69,7 +69,7 @@ Subagent 完成或失败后，把结论、状态或通知交回主会话的方�
 | 运行限制 | 可配置每会话并发线程数；当前 Agent 文件字段未列出单 Agent 轮数和超时。 |
 | 条件与边界 | 父回合的实时沙箱和审批覆盖会在派生时重新应用。 |
 | 证据状态 | 官方确认 |
-| 来源 | [Codex Subagents](https://developers.openai.com/codex/subagents) |
+| 来源 | [Codex Subagents](https://learn.chatgpt.com/docs/agent-configuration/subagents) |
 
 ### Qwen Code
 
@@ -85,7 +85,7 @@ Subagent 完成或失败后，把结论、状态或通知交回主会话的方�
 | 运行限制 | 支持 `maxTurns`；配置只对超长 description 和系统提示词给软警告，未列出超时字段。 |
 | 条件与边界 | `hooks` v1 在 Agent 运行期间按会话注册；`effort`、`skills`、`memory` 等 frontmatter 尚未落地。 |
 | 证据状态 | 源码确认 |
-| 来源 | [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/079ce5346af7/docs/users/features/sub-agents.md) |
+| 来源 | [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/412eae24b48ff16f54166c2b17eb4d4a9cdcdd1e/docs/users/features/sub-agents.md) |
 
 ### Kimi Code
 
@@ -101,7 +101,7 @@ Subagent 完成或失败后，把结论、状态或通知交回主会话的方�
 | 运行限制 | 全局 `[subagent] timeout_ms` 限制单个 Agent 或 AgentSwarm 运行时间，默认 7200000 ms（2 小时）；Agent 定义 frontmatter 无独立轮数或超时字段。 |
 | 条件与边界 | `model_preference` 次主力模型为实验性功能，需 `KIMI_CODE_EXPERIMENTAL_SECONDARY_MODEL=1` 开启；开启后所有启动模式（包括 TUI）生效。 |
 | 证据状态 | 官方确认 |
-| 来源 | [Kimi Code Agents](https://github.com/MoonshotAI/kimi-code/blob/efac96c8a95a/docs/zh/customization/agents.md)、[Kimi Code subagent and secondary model configuration](https://github.com/MoonshotAI/kimi-code/blob/efac96c8a95a/docs/zh/configuration/config-files.md) |
+| 来源 | [Kimi Code Agents](https://github.com/MoonshotAI/kimi-code/blob/29c9e2ab20a1646ad33f2b7c999b450152f9c01a/docs/zh/customization/agents.md)、[Kimi Code subagent and secondary model configuration](https://github.com/MoonshotAI/kimi-code/blob/efac96c8a95a/docs/zh/configuration/config-files.md) |
 
 ### Qoder CLI
 
@@ -122,9 +122,9 @@ Subagent 完成或失败后，把结论、状态或通知交回主会话的方�
 ## 官方来源
 
 - [Claude Code Subagents](https://code.claude.com/docs/en/sub-agents)
-- [Codex Subagents](https://developers.openai.com/codex/subagents)
-- [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/079ce5346af7/docs/users/features/sub-agents.md)
-- [Kimi Code Agents](https://github.com/MoonshotAI/kimi-code/blob/efac96c8a95a/docs/zh/customization/agents.md)
+- [Codex Subagents](https://learn.chatgpt.com/docs/agent-configuration/subagents)
+- [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/412eae24b48ff16f54166c2b17eb4d4a9cdcdd1e/docs/users/features/sub-agents.md)
+- [Kimi Code Agents](https://github.com/MoonshotAI/kimi-code/blob/29c9e2ab20a1646ad33f2b7c999b450152f9c01a/docs/zh/customization/agents.md)
 - [Kimi Code subagent and secondary model configuration](https://github.com/MoonshotAI/kimi-code/blob/efac96c8a95a/docs/zh/configuration/config-files.md)
 - [Qoder CLI Subagent](https://docs.qoder.com/en/cli/subagent)
 

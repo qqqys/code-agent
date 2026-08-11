@@ -34,7 +34,7 @@
 | 能力 | Claude Code | Codex | Qwen Code | Kimi Code | Qoder CLI |
 | --- | --- | --- | --- | --- | --- |
 | Agent 单独选模型 | `model` | `model` | `model`：inherit、fast、modelId、authType:modelId 或 `modelGrades` 名称 | `model_preference`：`primary`、`secondary`（实验性） | `model` |
-| Agent 单独设推理强度 | `effort` | `model_reasoning_effort` | 未确认独立字段 | 未确认独立 `effort` 字段 | `effort` |
+| Agent 单独设推理强度 | `effort` | `model_reasoning_effort`、`[agents] default_subagent_reasoning_effort` 全局默认 | 未确认独立字段 | 未确认独立 `effort` 字段 | `effort` |
 | 工具白名单 | `tools` | 由 Agent 配置和沙箱控制 | `tools`；Fork 可用 `fork_tools` 限制执行 | `tools` | `tools` |
 | 工具黑名单 | `disallowedTools` | 未确认独立 `disallowedTools` 字段 | `disallowedTools` | `disallowedTools` | `disallowedTools` |
 | MCP 范围 | `mcpServers`；工具规则可继续收窄 | `mcp_servers` | `mcpServers`；工具规则可继续收窄 | 通过工具列表控制 | `mcpServers` |
@@ -61,8 +61,9 @@
 ## 来源
 
 - [Claude Code Subagents](https://code.claude.com/docs/en/sub-agents)
-- [Codex Subagents](https://developers.openai.com/codex/subagents)
-- [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/079ce5346af7/docs/users/features/sub-agents.md)
+- [Codex Subagents](https://learn.chatgpt.com/docs/agent-configuration/subagents)
+- [Codex configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference)
+- [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/412eae24b48ff16f54166c2b17eb4d4a9cdcdd1e/docs/users/features/sub-agents.md)
 - [Qwen Code Worktree](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/worktree.md)
-- [Kimi Code Agents](https://github.com/MoonshotAI/kimi-code/blob/main/docs/zh/customization/agents.md)
+- [Kimi Code Agents](https://github.com/MoonshotAI/kimi-code/blob/29c9e2ab20a1646ad33f2b7c999b450152f9c01a/docs/zh/customization/agents.md)
 - [Qoder CLI Subagent](https://docs.qoder.com/en/cli/subagent)
