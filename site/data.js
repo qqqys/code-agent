@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-08-10',
+  updatedAt: '2026-08-11',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -337,6 +337,18 @@ window.matrixData = {
     'codex-apply-patch-preserve-flag': {
       label: 'Codex apply_patch_preserve_line_endings feature flag',
       url: 'https://github.com/openai/codex/commit/c9c6c0daa994109cec50fddcb57d076fdf9e738c',
+    },
+    'codex-auto-review': {
+      label: 'Codex automatic approval reviews',
+      url: 'https://learn.chatgpt.com/docs/sandboxing/auto-review',
+    },
+    'codex-approve-for-me': {
+      label: 'Codex v0.147.0 release notes (--approve-for-me)',
+      url: 'https://github.com/openai/codex/releases/tag/rust-v0.147.0',
+    },
+    'codex-approve-for-me-commit': {
+      label: 'Codex --approve-for-me commit',
+      url: 'https://github.com/openai/codex/commit/b7a61066081644e0d8b2c0b4dbfd7408ac1514df',
     },
     'qwen-commands': {
       label: 'Qwen Code commands documentation',
@@ -1249,6 +1261,13 @@ window.matrixData = {
       capability: '自动接受编辑',
       description: '允许文件编辑自动执行，同时保留其他操作审批。',
       values: { claude: '`acceptEdits`', codex: '`workspace-write` 配合 `on-request`', qwen: '`auto-edit`', kimi: '无仅编辑模式；`/auto` 范围更广', qoder: '`accept_edits` · `acceptEdits`' },
+    },
+    {
+      id: 'security-auto-review',
+      category: 'security',
+      capability: '审批自动审查',
+      description: '需审批的操作由产品内置的分类器或审查代理自动裁决，而不是等待用户确认。',
+      values: { claude: '`auto` 权限模式 · classifier 审查', codex: '`approvals_reviewer = "auto_review"` · `--approve-for-me`', qwen: 'Auto 审批模式 · LLM 分类器', kimi: '无同类机制；`/auto` 为全部审批自动放行', qoder: '`auto` 权限模式 · AI 分类器' },
     },
     {
       id: 'security-bypass',
