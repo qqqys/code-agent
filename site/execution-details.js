@@ -472,6 +472,7 @@
         '五家都能管理后台工作，但对象不同：Codex 公开的是后台终端，Claude、Qwen、Kimi、Qoder 还把 Agent 或任务输出纳入统一面板。',
         'Qwen Code 支持 `Ctrl+B` 把已经运行的前台 Shell 提升为后台任务；Kimi Code 的前台 Bash 超时默认也会转后台继续。',
         '后台不等于无人监管：TaskOutput、任务日志、完成通知、超时和精确停止共同决定任务是否可控。',
+        'Kimi Code 的后台 Agent 输出原在任务终态时一次性捕获，完成前输出视图显示 `[no output captured]`；main 分支（尚未发布）起 `/tasks` 预览窗格改为实时显示步骤级活动，活动记录只保存在内存、上限最近 20 步，不落盘。',
       ],
       products: {
         claude: {
@@ -533,25 +534,27 @@
         },
         kimi: {
           entry:
-            '`Bash.run_in_background`、`Agent.run_in_background` 或后台 AskUserQuestion；`/tasks` 打开任务浏览器。',
+            '`Bash.run_in_background`、`Agent.run_in_background` 或后台 AskUserQuestion；`/tasks` 打开任务浏览器。条件：main 分支起 `/tasks` 预览窗格实时显示后台 Agent（`run_in_background` 或 `Ctrl+B` 启动）的活动，Enter/O 打开全屏活动详情，Ctrl+O 展开或收起。',
           primitives:
-            '`TaskList`、`TaskOutput`、`TaskStop`；Bash/Agent/问题任务共用任务服务。',
+            '`TaskList`、`TaskOutput`、`TaskStop`；Bash/Agent/问题任务共用任务服务。条件：main 分支新增按 Agent 的内存活动流（subagent activity store），子 Agent 事件分流进该存储，按引擎 `turn.step.started` 事件分段，上限 `MAX_SUBAGENT_ACTIVITY_STEPS = 20` 步、步骤文本尾段 4000 字符、单条工具输出 8000 字符、工具参数字符串 16 KiB。',
           behavior:
-            '立即返回 task id，终态自动通知主 Agent；TaskOutput 可阻塞等待最多 3600 秒。',
+            '立即返回 task id，终态自动通知主 Agent；TaskOutput 可阻塞等待最多 3600 秒。条件：main 分支起后台 Agent 事件实时写入活动流，预览窗格展示步骤级进展，不再等待任务结束；全屏详情按步骤分组渲染 Markdown 文本和各工具结果。',
           scope:
             '任务状态与输出保存在当前会话目录；后台 Agent 有独立上下文。',
           background:
             'Bash 默认 10 分钟、Agent 默认 2 小时；print 模式两者默认无超时，可在配置中调整。',
           integration:
-            'TUI、Web、SDK 都能显示或轮询任务状态；完整日志路径可交给 Read。',
+            'TUI、Web、SDK 都能显示或轮询任务状态；完整日志路径可交给 Read。实时活动视图只在 TUI 任务浏览器实现（`apps/kimi-code/src/tui/`），Web 与 SDK 未提供。',
           artifacts:
-            'TaskOutput 内联最近 32 KB，完整日志落盘；任务修改留在工作目录。',
+            'TaskOutput 内联最近 32 KB，完整日志落盘；任务修改留在工作目录。活动流仅存内存，会话切换时释放（`clear`），不落盘。',
           conditions:
-            '停止后台任务需要审批；Plan 模式会拦截 TaskStop。',
+            '停止后台任务需要审批；Plan 模式会拦截 TaskStop。条件：实时活动随 PR #2816（提交 `ad12ad8a140d`）于 2026-08-11 合入 main 分支，changeset 仍待发布，最新 Release 仍为 0.34.0；会话恢复后没有内存活动记录的任务（如 lost 任务）回退到原捕获输出视图，Agent 任务输出仍在终态时一次性捕获。',
           sources: [
             'kimi-tools-current',
             'kimi-commands-execution-current',
             'kimi-agents-execution-current',
+            'kimi-background-activity-commit',
+            'kimi-background-activity-changeset',
           ],
         },
         qoder: {
