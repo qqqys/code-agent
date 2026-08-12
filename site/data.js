@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-08-11',
+  updatedAt: '2026-08-12',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -561,6 +561,18 @@ window.matrixData = {
     'qwen-v0219-release': {
       label: 'Qwen Code v0.21.9 release notes',
       url: 'https://github.com/QwenLM/qwen-code/releases/tag/v0.21.9',
+    },
+    'qwen-agent-plugins-v1-docs': {
+      label: 'Qwen Code Agent Plugins v1 documentation',
+      url: 'https://github.com/QwenLM/qwen-code/blob/a64d1291d2f6298f67763d0953b1653cf7b34060/docs/users/extension/agent-plugins.md',
+    },
+    'qwen-agent-plugins-v1-commit': {
+      label: 'Qwen Code Agent Plugins v1 native loading commit',
+      url: 'https://github.com/QwenLM/qwen-code/commit/a64d1291d2f6298f67763d0953b1653cf7b34060',
+    },
+    'qwen-v02111-preview-release': {
+      label: 'Qwen Code v0.21.11-preview.0 release notes',
+      url: 'https://github.com/QwenLM/qwen-code/releases/tag/v0.21.11-preview.0',
     },
     'qwen-commands-current': {
       label: 'Qwen Code current custom commands',
@@ -1415,7 +1427,7 @@ window.matrixData = {
       category: 'extensions',
       capability: '插件分发',
       description: '把 Skills、Agents、Hooks 或 MCP 配置作为一个包分发。',
-      values: { claude: '`/plugin`', codex: '`/plugins`', qwen: '`/extensions` · `qwen extensions` · 可安装 Qoder 插件', kimi: '`/plugins`', qoder: '`qodercli plugins` · `/plugins reload`' },
+      values: { claude: '`/plugin`', codex: '`/plugins`', qwen: '`/extensions` · `qwen extensions` · 可安装 Qoder 插件 · Agent Plugins v1 原生加载（条件：v0.21.11-preview.0 预览通道）', kimi: '`/plugins`', qoder: '`qodercli plugins` · `/plugins reload`' },
     },
     {
       id: 'extension-custom-commands',

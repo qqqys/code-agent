@@ -4,6 +4,7 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-08-12 | [Qwen Code Agent Plugins v1 原生加载](./2026-08-12-Qwen-Agent-Plugins-v1原生加载.md) |
 | 2026-08-11 | [Kimi Code `/tasks` 后台 Agent 实时活动](./2026-08-11-Kimi后台Agent实时活动.md) |
 | 2026-08-11 | [Codex Subagent 全局默认推理强度](./2026-08-11-Codex-Subagent默认推理强度.md) |
 | 2026-08-11 | [审批自动审查能力字段](./2026-08-11-审批自动审查能力字段.md) |
