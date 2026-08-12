@@ -466,6 +466,10 @@ window.matrixData = {
       label: 'Qwen Code headless Goal workflows',
       url: 'https://github.com/QwenLM/qwen-code/blob/48d37cdf704dbe4c5254cc4b31c2d62f1351bff1/docs/users/features/headless.md',
     },
+    'qwen-goal-v3-acp': {
+      label: 'Qwen Code Goal v3 adoption in ACP sessions commit',
+      url: 'https://github.com/QwenLM/qwen-code/commit/05079297d26c9c42013c3699743350d1d272fac2',
+    },
     'qwen-docs': {
       label: 'Qwen Code Documentation',
       url: 'https://github.com/QwenLM/qwen-code/tree/main/docs/users',
