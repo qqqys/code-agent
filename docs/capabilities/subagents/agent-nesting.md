@@ -15,7 +15,7 @@
 | Claude Code | 默认最多 3 层；可限制可派生 Agent | 官方确认 |
 | Codex | 当前 Subagent 页面未确认 | 未确认 |
 | Qwen Code | 命名 Agent 受工具规则控制；Fork 禁止递归 Fork | 源码确认 |
-| Kimi Code | coder 可嵌套；自定义 Agent 用 `subagents` | 官方确认 |
+| Kimi Code | 内置 `coder` 默认不可嵌套（0.35.0 起移除 `Agent`/`AgentSwarm`）；自定义 Agent 用 `subagents`，显式列 `Agent` 工具可恢复 | 官方确认 |
 | Qoder CLI | Agent 工具可嵌套并支持 `Agent(name)` | 官方确认 |
 
 ## 比较边界
@@ -34,8 +34,9 @@
 
 ## 跨产品事实
 
-1. Claude Code、Qwen Code 命名 Agent、Kimi Code coder 与 Qoder CLI 都存在嵌套派生路径。
+1. Claude Code、Qwen Code 命名 Agent 与 Qoder CLI 存在嵌套派生路径；Kimi Code 自 0.35.0 起内置 coder 默认不再派生，自定义 profile 显式列出 `Agent`/`AgentSwarm` 工具可恢复。
 2. Qwen Code Fork 明确禁止递归 Fork；Codex 当前 Subagent 页面未确认嵌套规则。
+3. Kimi Code 官方 Agents 文档页（main 分支）仍写内置 coder 可派发嵌套子 Agent，与 0.35.0 Release 说明及仓库 profile 代码不一致；本矩阵以 Release 说明与代码为准。
 
 ## 逐产品记录
 
@@ -91,17 +92,17 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 矩阵结论 | coder 可嵌套；自定义 Agent 用 `subagents` |
+| 矩阵结论 | 内置 `coder` 默认不可嵌套（0.35.0 起移除 `Agent`/`AgentSwarm`）；自定义 Agent 用 `subagents`，显式列 `Agent` 工具可恢复 |
 | 入口与配置 | 主 Agent 依据描述自动派发，也可在提示词中点名；`--agent-file` 可在启动时显式加载定义。 |
 | 定义格式 | Markdown 正文 + YAML frontmatter；正文作为 Agent 系统提示词模板。 |
-| 具体行为 | 内置 coder 可嵌套；自定义 Agent 用 `subagents` 指定允许类型，工具层还会再次校验。 |
+| 具体行为 | 0.35.0 起内置 coder profile（v1 与 v2 引擎）移除 `Agent` 与 `AgentSwarm` 工具，coder 子 Agent 默认不能再派生；主 Agent 保留这两个工具，默认会话仍可委派。自定义 Agent 用 `subagents` 指定允许委派的类型，派发前仍会强制校验；自定义 profile 在 `tools` 显式列出 `Agent`/`AgentSwarm` 可恢复嵌套。 |
 | 作用域 | 显式文件、项目、额外目录、用户、内置五级来源；更具体的作用域优先。 |
 | 上下文与继承 | 子 Agent 只接收任务描述，在独立上下文中工作，最后把完整结果返回主 Agent。 |
 | 工作区隔离 | 当前 Agent 文档未列出每 Agent Worktree 隔离字段。 |
 | 运行限制 | 全局 `[subagent] timeout_ms` 限制单个 Agent 或 AgentSwarm 运行时间，默认 7200000 ms（2 小时）；Agent 定义 frontmatter 无独立轮数或超时字段。 |
-| 条件与边界 | `model_preference` 次主力模型为实验性功能，需 `KIMI_CODE_EXPERIMENTAL_SECONDARY_MODEL=1` 开启；开启后所有启动模式（包括 TUI）生效。 |
+| 条件与边界 | `model_preference` 次主力模型为实验性功能，需 `KIMI_CODE_EXPERIMENTAL_SECONDARY_MODEL=1` 开启；开启后所有启动模式（包括 TUI）生效。官方 Agents 文档页尚未同步 coder 默认工具变化。 |
 | 证据状态 | 官方确认 |
-| 来源 | [Kimi Code Agents](https://github.com/MoonshotAI/kimi-code/blob/29c9e2ab20a1646ad33f2b7c999b450152f9c01a/docs/zh/customization/agents.md)、[Kimi Code subagent and secondary model configuration](https://github.com/MoonshotAI/kimi-code/blob/efac96c8a95a/docs/zh/configuration/config-files.md) |
+| 来源 | [Kimi Code Agents](https://github.com/MoonshotAI/kimi-code/blob/29c9e2ab20a1646ad33f2b7c999b450152f9c01a/docs/zh/customization/agents.md)、[Kimi Code subagent and secondary model configuration](https://github.com/MoonshotAI/kimi-code/blob/efac96c8a95a/docs/zh/configuration/config-files.md)、[Kimi Code coder profile Agent tool removal commit](https://github.com/MoonshotAI/kimi-code/commit/101c4d199746bf2ed4f26375b65a6fcb6cba2a60)、[Kimi Code coder profile Agent tool removal changeset](https://github.com/MoonshotAI/kimi-code/blob/101c4d199746bf2ed4f26375b65a6fcb6cba2a60/.changeset/v2-profile-drop-agent-tools.md)、[Kimi Code 0.35.0 release notes](https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%400.35.0) |
 
 ### Qoder CLI
 
@@ -126,6 +127,9 @@
 - [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/412eae24b48ff16f54166c2b17eb4d4a9cdcdd1e/docs/users/features/sub-agents.md)
 - [Kimi Code Agents](https://github.com/MoonshotAI/kimi-code/blob/29c9e2ab20a1646ad33f2b7c999b450152f9c01a/docs/zh/customization/agents.md)
 - [Kimi Code subagent and secondary model configuration](https://github.com/MoonshotAI/kimi-code/blob/efac96c8a95a/docs/zh/configuration/config-files.md)
+- [Kimi Code coder profile Agent tool removal commit](https://github.com/MoonshotAI/kimi-code/commit/101c4d199746bf2ed4f26375b65a6fcb6cba2a60)
+- [Kimi Code coder profile Agent tool removal changeset](https://github.com/MoonshotAI/kimi-code/blob/101c4d199746bf2ed4f26375b65a6fcb6cba2a60/.changeset/v2-profile-drop-agent-tools.md)
+- [Kimi Code 0.35.0 release notes](https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%400.35.0)
 - [Qoder CLI Subagent](https://docs.qoder.com/en/cli/subagent)
 
 ## 关联能力

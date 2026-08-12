@@ -640,8 +640,9 @@
       includes: ['嵌套派生', '深度上限', 'Agent 类型 allowlist'],
       excludes: ['父会话并行', 'Agent Team 通信', '普通任务列表'],
       facts: [
-        'Claude Code、Qwen Code 命名 Agent、Kimi Code coder 与 Qoder CLI 都存在嵌套派生路径。',
+        'Claude Code、Qwen Code 命名 Agent 与 Qoder CLI 存在嵌套派生路径；Kimi Code 自 0.35.0 起内置 coder 默认不再派生，自定义 profile 显式列出 `Agent`/`AgentSwarm` 工具可恢复。',
         'Qwen Code Fork 明确禁止递归 Fork；Codex 当前 Subagent 页面未确认嵌套规则。',
+        'Kimi Code 官方 Agents 文档页（main 分支）仍写内置 coder 可派发嵌套子 Agent，与 0.35.0 Release 说明及仓库 profile 代码不一致；本矩阵以 Release 说明与代码为准。',
       ],
       notes: {
         claude:
@@ -650,12 +651,27 @@
           '当前 Subagent 页面说明父线程负责编排，但未列出子线程继续派生的公开规则。',
         qwen:
           '普通命名 Agent 是否可派生取决于 Agent 工具是否可用；Fork 在运行时禁止再创建 Fork。',
-        kimi:
-          '内置 coder 可嵌套；自定义 Agent 用 `subagents` 指定允许类型，工具层还会再次校验。',
+        kimi: {
+          behavior:
+            '0.35.0 起内置 coder profile（v1 与 v2 引擎）移除 `Agent` 与 `AgentSwarm` 工具，coder 子 Agent 默认不能再派生；主 Agent 保留这两个工具，默认会话仍可委派。自定义 Agent 用 `subagents` 指定允许委派的类型，派发前仍会强制校验；自定义 profile 在 `tools` 显式列出 `Agent`/`AgentSwarm` 可恢复嵌套。',
+          conditions:
+            '`model_preference` 次主力模型为实验性功能，需 `KIMI_CODE_EXPERIMENTAL_SECONDARY_MODEL=1` 开启；开启后所有启动模式（包括 TUI）生效。官方 Agents 文档页尚未同步 coder 默认工具变化。',
+        },
         qoder:
           '允许 Agent 工具继续派生；`Agent(name)` 限定类型，`disallowedTools: [Agent]` 完全关闭。',
       },
       related: ['agent-tools', 'agent-deny-tools', 'agent-background'],
+      overrides: {
+        kimi: {
+          sources: [
+            'kimi-agents',
+            'kimi-subagent-config',
+            'kimi-coder-nesting-commit',
+            'kimi-coder-nesting-changeset',
+            'kimi-v035-release',
+          ],
+        },
+      },
     }),
 
     'agent-worktree': createDetail({
