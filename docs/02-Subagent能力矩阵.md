@@ -51,9 +51,9 @@
 | --- | --- | --- | --- | --- | --- |
 | 权限继承 | 默认继承父会话；可设 `permissionMode` | 继承父会话沙箱和权限 | 父会话宽松模式优先 | 继承主会话权限 | 省略时继承；宽松父模式可限制子 Agent 变严格 |
 | Agent 单独权限模式 | `permissionMode` | `sandbox_mode`；审批仍受会话控制 | `approvalMode` | 未提供独立权限字段 | `permissionMode` |
-| 嵌套派生 | 默认最多 3 层；可限制可派生 Agent | 当前 Subagent 页面未确认 | 命名 Agent 受工具规则控制；Fork 禁止递归 Fork | coder 可嵌套；自定义 Agent 用 `subagents` 限制 | Agent 工具可嵌套并支持 `Agent(name)` |
+| 嵌套派生 | 默认最多 3 层；可限制可派生 Agent | 当前 Subagent 页面未确认 | 命名 Agent 受工具规则控制；Fork 禁止递归 Fork | 内置 coder 默认不可嵌套（0.35.0 起移除 `Agent`/`AgentSwarm`）；自定义 Agent 用 `subagents` 限制，显式列工具可恢复 | Agent 工具可嵌套并支持 `Agent(name)` |
 | 嵌套白名单 | 可通过工具与 Agent 配置约束 | 未确认 | 工具规则约束 | `subagents` | `Agent(name)` |
-| 禁止嵌套 | 移除相关 Agent 工具 | 未确认 | 禁用 Agent 工具；Fork 固定禁止递归 Fork | `subagents` 留空或禁用 Agent 工具 | 禁用 Agent 工具 |
+| 禁止嵌套 | 移除相关 Agent 工具 | 未确认 | 禁用 Agent 工具；Fork 固定禁止递归 Fork | `subagents` 留空或禁用 Agent 工具；0.35.0 起内置 coder 默认不含 `Agent` 工具 | 禁用 Agent 工具 |
 | Worktree 隔离 | `isolation: worktree` | Subagent 页面未确认 | Agent 调用可设 `isolation: "worktree"`；Fork 不支持 | Agent 页面未确认 | `isolation: worktree` |
 | Worktree 生命周期 | 无差异时清理，有差异时保留 | 未确认 | 无差异时清理，有差异时保留 | 未确认 | 由 Agent 隔离机制管理 |
 | 非交互审批失败行为 | 取决于调用入口和权限模式 | 无法向用户展示的审批会失败并返回错误 | 取决于 approvalMode | 继承主会话权限 | 取决于 permissionMode |
@@ -66,4 +66,6 @@
 - [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/412eae24b48ff16f54166c2b17eb4d4a9cdcdd1e/docs/users/features/sub-agents.md)
 - [Qwen Code Worktree](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/worktree.md)
 - [Kimi Code Agents](https://github.com/MoonshotAI/kimi-code/blob/29c9e2ab20a1646ad33f2b7c999b450152f9c01a/docs/zh/customization/agents.md)
+- [Kimi Code coder profile Agent tool removal commit](https://github.com/MoonshotAI/kimi-code/commit/101c4d199746bf2ed4f26375b65a6fcb6cba2a60)
+- [Kimi Code 0.35.0 release notes](https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%400.35.0)
 - [Qoder CLI Subagent](https://docs.qoder.com/en/cli/subagent)

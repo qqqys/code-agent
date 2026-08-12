@@ -4,6 +4,7 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-08-12 | [Kimi Code 内置 coder 默认取消嵌套派生](./2026-08-12-Kimi-coder默认取消嵌套派生.md) |
 | 2026-08-12 | [Qwen Code Agent Plugins v1 原生加载](./2026-08-12-Qwen-Agent-Plugins-v1原生加载.md) |
 | 2026-08-11 | [Kimi Code `/tasks` 后台 Agent 实时活动](./2026-08-11-Kimi后台Agent实时活动.md) |
 | 2026-08-11 | [Codex Subagent 全局默认推理强度](./2026-08-11-Codex-Subagent默认推理强度.md) |

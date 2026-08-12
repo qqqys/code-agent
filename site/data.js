@@ -790,6 +790,18 @@ window.matrixData = {
       label: 'Kimi Code background agent activity changeset',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/ad12ad8a140d24051d93ec98a4a6921ab33723ff/.changeset/background-agent-activity-view.md',
     },
+    'kimi-coder-nesting-commit': {
+      label: 'Kimi Code coder profile Agent tool removal commit',
+      url: 'https://github.com/MoonshotAI/kimi-code/commit/101c4d199746bf2ed4f26375b65a6fcb6cba2a60',
+    },
+    'kimi-coder-nesting-changeset': {
+      label: 'Kimi Code coder profile Agent tool removal changeset',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/101c4d199746bf2ed4f26375b65a6fcb6cba2a60/.changeset/v2-profile-drop-agent-tools.md',
+    },
+    'kimi-v035-release': {
+      label: 'Kimi Code 0.35.0 release notes',
+      url: 'https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%400.35.0',
+    },
     'qoder-commands': {
       label: 'Qoder CLI commands',
       url: 'https://docs.qoder.com/en/cli/command',
@@ -1245,7 +1257,7 @@ window.matrixData = {
       category: 'subagents',
       capability: '嵌套派生',
       description: 'Subagent 能否继续创建下一级 Agent。',
-      values: { claude: '默认最多 3 层；可限制可派生 Agent', codex: '当前 Subagent 页面未确认', qwen: '命名 Agent 受工具规则控制；Fork 禁止递归 Fork', kimi: 'coder 可嵌套；自定义 Agent 用 `subagents`', qoder: 'Agent 工具可嵌套并支持 `Agent(name)`' },
+      values: { claude: '默认最多 3 层；可限制可派生 Agent', codex: '当前 Subagent 页面未确认', qwen: '命名 Agent 受工具规则控制；Fork 禁止递归 Fork', kimi: '内置 `coder` 默认不可嵌套（0.35.0 起移除 `Agent`/`AgentSwarm`）；自定义 Agent 用 `subagents`，显式列 `Agent` 工具可恢复', qoder: 'Agent 工具可嵌套并支持 `Agent(name)`' },
     },
     {
       id: 'agent-worktree',
@@ -1476,7 +1488,7 @@ window.matrixData = {
       category: 'execution',
       capability: '后台任务',
       description: '在不阻塞主交互的情况下执行命令或 Agent。',
-      values: { claude: '`/background` · `/tasks` · `Monitor`', codex: '`/ps` · `/stop`', qwen: '`is_background` · `Ctrl+B` · `/tasks`', kimi: '`run_in_background` · `/tasks`；条件：`/tasks` 后台 Agent 实时活动（main 分支，尚未发布）', qoder: '`/tasks` · `TaskOutput` · `TaskStop`' },
+      values: { claude: '`/background` · `/tasks` · `Monitor`', codex: '`/ps` · `/stop`', qwen: '`is_background` · `Ctrl+B` · `/tasks`', kimi: '`run_in_background` · `/tasks`；条件：`/tasks` 后台 Agent 实时活动（0.35.0 起）', qoder: '`/tasks` · `TaskOutput` · `TaskStop`' },
     },
     {
       id: 'execution-review',
