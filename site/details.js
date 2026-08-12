@@ -213,12 +213,13 @@
 
     'cmd-goal': {
       definition: '保存一个跨多轮持续执行的目标，让 Agent 在每轮结束后根据目标状态决定继续、暂停、完成或阻塞。',
-      includes: ['创建和查看目标', '暂停、恢复、清除或替换', '后续目标队列', '非交互退出状态', 'Headless Goal 工作流'],
+      includes: ['创建和查看目标', '暂停、恢复、清除或替换', '后续目标队列', '非交互退出状态', 'Headless Goal 工作流', 'ACP 会话 Goal 行为'],
       excludes: ['一次性任务提示', '计划模式', '后台 Shell 进程'],
       facts: [
         'Claude Code、Codex、Qwen Code 和 Kimi Code 都提供 `/goal`。',
         'Kimi Code 公开了 status、pause、resume、cancel、replace、next 等子命令及非交互退出码。',
         'Qwen Code Headless 把 `/goal` 作为完整提示词，Goal 状态随会话保存，`--continue` 或 `--resume <sessionId>` 可跨进程查看或控制；stream-json 以 `goal_state` 为权威状态事件。',
+        'Qwen Code ACP 会话自提交 `05079297d26c`（2026-08-12 合入 main，尚未发布）起采用 Goal v3 规范运行时，Goal 状态变化经 `_meta.goalState` 下发。',
         'Qoder CLI 当前命令目录没有 `/goal`。',
       ],
       products: {
@@ -229,12 +230,12 @@
         codex: command('codex', ['/goal'], '设置、编辑、暂停、恢复、查看或清除任务目标。', {
           persistence: '当前会话的持久目标状态',
         }),
-        qwen: command('qwen', ['/goal [condition|clear]'], '设置目标并持续工作直到满足条件。Headless 模式把 `/goal` 作为完整提示词运行 Goal 工作流：`/goal` 不调用模型直接报告保存状态，`/goal set`、`/goal edit <objective>` 创建、替换或修改，`/goal pause`、`/goal resume` 暂停或恢复，`/goal clear` 免确认清除。', {
+        qwen: command('qwen', ['/goal [condition|clear]'], '设置目标并持续工作直到满足条件。Headless 模式把 `/goal` 作为完整提示词运行 Goal 工作流：`/goal` 不调用模型直接报告保存状态，`/goal set`、`/goal edit <objective>` 创建、替换或修改，`/goal pause`、`/goal resume` 暂停或恢复，`/goal clear` 免确认清除。ACP 会话自提交 `05079297d26c`（2026-08-12 合入 main，尚未发布）起采用 Goal v3 规范运行时。', {
           parameters: '交互命令目录列 `/goal <condition>` 与 `/goal clear`；Headless 文档另列 `/goal`、`/goal set`、`/goal edit <objective>`、`/goal pause`、`/goal resume` 控制形式',
           mode: '交互式、非交互式、ACP',
           persistence: 'Goal 状态随会话保存；跨进程查看或控制同一 Goal 用 `--continue` 或 `--resume <sessionId>`，并要求 `general.chatRecording` 保持启用（默认启用）',
-          conditions: 'Headless 中运行期调度的 Goal 续跑段不计入 `--max-session-turns`，真实用户提示仍计入；`--max-wall-time`、`--max-tool-calls` 预算继续生效，超限时先暂停活动 Goal 工作再以预算专属错误退出；`--output-format stream-json` 每次 Goal 状态变化发出 `event.type` 为 `goal_state` 的 `stream_event`（无需 `--include-partial-messages`），启用 partial messages 时旧版 `active_goal` 事件作为兼容投影跟随，自动化应以 `goal_state` 为准；该行为适用于标准 Headless CLI 运行，ACP 仍使用旧版 Goal 命令路径',
-          sources: ['qwen-commands', 'qwen-headless-goal'],
+          conditions: 'Headless 中运行期调度的 Goal 续跑段不计入 `--max-session-turns`，真实用户提示仍计入；`--max-wall-time`、`--max-tool-calls` 预算继续生效，超限时先暂停活动 Goal 工作再以预算专属错误退出；`--output-format stream-json` 每次 Goal 状态变化发出 `event.type` 为 `goal_state` 的 `stream_event`（无需 `--include-partial-messages`），启用 partial messages 时旧版 `active_goal` 事件作为兼容投影跟随，自动化应以 `goal_state` 为准；预算与事件行为适用于标准 Headless CLI 运行。ACP 会话自提交 `05079297d26c`（main 分支，尚未发布）起改用 Goal v3 规范运行时，不再走旧版 Goal 命令路径：Goal 状态变化经 `_meta.goalState` 下发给客户端，paused 状态在 Web Shell 与 WebUI 渲染；Goal 持久化不可用（`general.chatRecording` 关闭或会话写入失败）时，查看状态与 `/goal clear` 降级返回空快照，`/goal set`、`/goal edit`、`/goal resume` 仍然失败；新到达的用户提示会打断进行中的 Goal 轮次；运行期调度的 Goal 续跑不触发 UserPromptSubmit 钩子；官方 Headless 文档页尚未同步该变化',
+          sources: ['qwen-commands', 'qwen-headless-goal', 'qwen-goal-v3-acp'],
         }),
         kimi: command('kimi', ['/goal [...]'], '创建并管理目标模式，支持暂停、恢复、替换、取消和后续目标队列。', {
           parameters: '`status|pause|resume|cancel|replace <objective>|next <objective>|next manage`',
