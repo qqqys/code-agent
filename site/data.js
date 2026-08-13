@@ -640,7 +640,7 @@ window.matrixData = {
     },
     'kimi-commands': {
       label: 'Kimi Code Slash commands',
-      url: 'https://github.com/MoonshotAI/kimi-code/blob/7c919f0376c0331d0d057ef3643c7adcc2c55802/docs/zh/reference/slash-commands.md',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/reference/slash-commands.md',
     },
     'kimi-fork-stay': {
       label: 'Kimi Code /fork stay-in-session commit',
@@ -648,7 +648,7 @@ window.matrixData = {
     },
     'kimi-agents': {
       label: 'Kimi Code Agents',
-      url: 'https://github.com/MoonshotAI/kimi-code/blob/29c9e2ab20a1646ad33f2b7c999b450152f9c01a/docs/zh/customization/agents.md',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/customization/agents.md',
     },
     'kimi-interaction': {
       label: 'Kimi Code Interaction and Permissions',
@@ -692,7 +692,15 @@ window.matrixData = {
     },
     'kimi-subagent-config': {
       label: 'Kimi Code subagent and secondary model configuration',
-      url: 'https://github.com/MoonshotAI/kimi-code/blob/efac96c8a95a/docs/zh/configuration/config-files.md',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/configuration/config-files.md',
+    },
+    'kimi-subagent-model-pool-commit': {
+      label: 'Kimi Code subagent model pool commit',
+      url: 'https://github.com/MoonshotAI/kimi-code/commit/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860',
+    },
+    'kimi-v036-release': {
+      label: 'Kimi Code 0.36.0 release notes',
+      url: 'https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%400.36.0',
     },
     'kimi-agents-current': {
       label: 'Kimi Code current agents',
@@ -944,7 +952,7 @@ window.matrixData = {
       category: 'commands',
       capability: '选择模型',
       description: '在当前会话内查看或切换模型。',
-      values: { claude: '`/model`', codex: '`/model`', qwen: '`/model`', kimi: '`/model` · `/secondary_model`', qoder: '`/model`' },
+      values: { claude: '`/model`', codex: '`/model`', qwen: '`/model`', kimi: '`/model` · `/secondary-model`（别名 `/subagent-model`）', qoder: '`/model`' },
     },
     {
       id: 'cmd-effort',
@@ -1210,7 +1218,7 @@ window.matrixData = {
       category: 'subagents',
       capability: 'Agent 单独选模型',
       description: '单个 Agent 能否覆盖主会话模型。',
-      values: { claude: '`model`', codex: '`model`', qwen: '`model`: inherit · fast · modelId · authType:modelId · `modelGrades` 名称', kimi: '`model_preference`: `primary` · `secondary`（实验性）', qoder: '`model`' },
+      values: { claude: '`model`', codex: '`model`', qwen: '`model`: inherit · fast · modelId · authType:modelId · `modelGrades` 名称', kimi: '`model`：`[secondary_model]` 池别名 · `primary`（实验性）', qoder: '`model`' },
     },
     {
       id: 'agent-effort',

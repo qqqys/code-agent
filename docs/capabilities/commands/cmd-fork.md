@@ -96,7 +96,7 @@
 | 保存范围 | 派生副本独立保存；副本在打开前不占用运行时会话 |
 | 条件与边界 | 仅空闲时使用；0.33.0 起不再切换到派生会话，此前版本 fork 后立即切换并关闭原会话 |
 | 证据状态 | 官方确认 |
-| 来源 | [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/7c919f0376c0331d0d057ef3643c7adcc2c55802/docs/zh/reference/slash-commands.md)、[Kimi Code /fork stay-in-session commit](https://github.com/MoonshotAI/kimi-code/commit/54c04bf03ddbeb46d02b2edb460ea091ae194509) |
+| 来源 | [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/reference/slash-commands.md)、[Kimi Code /fork stay-in-session commit](https://github.com/MoonshotAI/kimi-code/commit/54c04bf03ddbeb46d02b2edb460ea091ae194509) |
 
 ### Qoder CLI
 
@@ -117,7 +117,7 @@
 - [Claude Code Commands](https://code.claude.com/docs/en/commands)
 - [Codex CLI commands](https://developers.openai.com/codex/cli/slash-commands)
 - [Qwen Code commands documentation](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/commands.md)
-- [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/7c919f0376c0331d0d057ef3643c7adcc2c55802/docs/zh/reference/slash-commands.md)
+- [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/reference/slash-commands.md)
 - [Kimi Code /fork stay-in-session commit](https://github.com/MoonshotAI/kimi-code/commit/54c04bf03ddbeb46d02b2edb460ea091ae194509)
 - [Qoder CLI commands](https://docs.qoder.com/en/cli/command)
 

@@ -95,7 +95,7 @@
 | 保存范围 | 仅影响当前会话或当前操作 |
 | 条件与边界 | 流式输出期间也可使用 |
 | 证据状态 | 官方确认 |
-| 来源 | [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/7c919f0376c0331d0d057ef3643c7adcc2c55802/docs/zh/reference/slash-commands.md) |
+| 来源 | [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/reference/slash-commands.md) |
 
 ### Qoder CLI
 
@@ -120,7 +120,7 @@
 - [Qwen Code Background Tasks keyboard shortcuts](https://github.com/QwenLM/qwen-code/blob/88a325bce9dbdbfafe0d5dc6e4667b4c2942818b/docs/users/reference/keyboard-shortcuts.md)
 - [Qwen Code workflows command source](https://github.com/QwenLM/qwen-code/blob/88a325bce9dbdbfafe0d5dc6e4667b4c2942818b/packages/cli/src/ui/commands/workflowsCommand.ts)
 - [Qwen Code v0.21.8 release notes](https://github.com/QwenLM/qwen-code/releases/tag/v0.21.8)
-- [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/7c919f0376c0331d0d057ef3643c7adcc2c55802/docs/zh/reference/slash-commands.md)
+- [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/reference/slash-commands.md)
 - [Qoder CLI commands](https://docs.qoder.com/en/cli/command)
 
 ## 关联能力
