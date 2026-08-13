@@ -2,7 +2,7 @@
 
 [返回 Slash 命令详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=cmd-collaboration)
 
-> 核对日期：2026-08-12
+> 核对日期：2026-08-13
 
 ## 定义
 
@@ -14,7 +14,7 @@
 | --- | --- | --- |
 | Claude Code | `/advisor [model\|off]`、`/batch <instruction>` | 官方确认 |
 | Codex | `/agent` | 官方确认 |
-| Qwen Code | `/arena start`、`/arena status`、`/arena select`、`/arena stop`、`/batch <operation> <file-pattern>` | 源码确认 |
+| Qwen Code | `/arena start`、`/arena status`、`/arena select`、`/arena stop`、`/batch <operation> <file-pattern>`、`/coordinate <goal>` | 源码确认 |
 | Kimi Code | `/swarm on\|off`、`/swarm <task>` | 官方确认 |
 | Qoder CLI | `/quest` | 官方确认 |
 
@@ -26,6 +26,7 @@
 - 并行任务拆分
 - 模型竞赛
 - Swarm 和工作流编排
+- 多 Agent 团队协作与共享任务清单
 
 ### 本页不包含
 
@@ -39,6 +40,7 @@
 2. Claude Code `/batch` 会拆分为 5–30 个单元并使用隔离 Worktree。
 3. Qwen Code Arena 让多个模型执行同一任务，之后选择一个结果并合并其 Diff。
 4. Qwen Code `/batch` 是随产品提供的 Skill：发现文件、分块后使用并行执行 Agent 完成批量操作。
+5. Qwen Code 于 2026-08-12 在 main 分支新增 `/coordinate` Skill 与 Agent Team 运行时（提交 `8858d4340bbb`，尚未发布）：最多 3 个队友共享任务清单并互发消息，调查队友被强制只读，可选 1 名写手固定在 Leader 拥有的 Worktree。
 
 ## 逐产品记录
 
@@ -74,15 +76,15 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 主命令 | `/arena start`、`/arena status`、`/arena select`、`/arena stop`、`/batch <operation> <file-pattern>` |
+| 主命令 | `/arena start`、`/arena status`、`/arena select`、`/arena stop`、`/batch <operation> <file-pattern>`、`/coordinate <goal>` |
 | 别名 | `/arena choose` |
-| 参数 | Arena 使用相应子命令；Batch 使用 `<operation> <file-pattern>` |
-| 执行行为 | Arena 让多个模型执行同一任务并选择结果；随产品提供的 `/batch` Skill 发现匹配文件、分块并交给并行执行 Agent。 |
-| 可用模式 | Arena 仅交互式；`/batch` 支持交互式、非交互式和 ACP |
-| 保存范围 | Arena 运行属于当前会话；Arena select 和 Batch 任务可修改工作区 |
-| 条件与边界 | `/batch` 在 bare mode 或被 Skill/Slash 禁用时不可用 |
+| 参数 | Arena 使用相应子命令；Batch 使用 `<operation> <file-pattern>`；Coordinate 使用目标描述（参数提示 `<goal>`） |
+| 执行行为 | Arena 让多个模型执行同一任务并选择结果；随产品提供的 `/batch` Skill 发现匹配文件、分块并交给并行执行 Agent；`/coordinate` 启动原生多代理协作：Leader 把目标拆分为最多 3 个独立工作流，调查队友被强制只读工具集（不能执行 shell 或写文件），可选将 1 名写手队友固定在 Leader 创建的 Git Worktree，队友共享任务清单、经 `send_message` 等团队工具互发消息并显示在 Agent View 页签。 |
+| 可用模式 | Arena 仅交互式；`/batch` 支持交互式、非交互式和 ACP；`/coordinate` 作为随产品提供的 Skill 加载，`disable-model-invocation: true`，只能由用户显式调用 |
+| 保存范围 | Arena 运行属于当前会话；Arena select 和 Batch 任务可修改工作区；`/coordinate` 队伍与共享任务清单属于当前会话，写手在 Worktree 中修改，仅 Leader 拥有当前分支合并权 |
+| 条件与边界 | `/batch` 在 bare mode 或被 Skill/Slash 禁用时不可用；`/coordinate` 完整团队协作需将 `experimental.agentTeam` 设为 `true` 并重启，或以 `QWEN_CODE_ENABLE_AGENT_TEAM=1` 启动；未启用时退回普通前台 Agent 做只读并行调查（仅委派、不协作）；Agent Team 运行时依赖 `team_create`、`send_message`、`task_list`、`task_update` 工具；条件：main 分支，尚未发布 |
 | 证据状态 | 源码确认 |
-| 来源 | [Qwen Code commands documentation](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/commands.md)、[Qwen Code bundled Skill loader](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/BundledSkillLoader.ts) |
+| 来源 | [Qwen Code commands documentation](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/commands.md)、[Qwen Code bundled Skill loader](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/BundledSkillLoader.ts)、[Qwen Code multi-agent coordination documentation](https://github.com/QwenLM/qwen-code/blob/8858d4340bbbb46f693dd09767aaaadc7ec7cc9b/docs/users/features/multi-agent-coordination.md)、[Qwen Code coordinate bundled Skill](https://github.com/QwenLM/qwen-code/blob/8858d4340bbbb46f693dd09767aaaadc7ec7cc9b/packages/core/src/skills/bundled/coordinate/SKILL.md)、[Qwen Code native multi-agent coordination commit](https://github.com/QwenLM/qwen-code/commit/8858d4340bbbb46f693dd09767aaaadc7ec7cc9b) |
 
 ### Kimi Code
 
@@ -119,6 +121,9 @@
 - [Codex Subagents](https://learn.chatgpt.com/docs/agent-configuration/subagents)
 - [Qwen Code commands documentation](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/commands.md)
 - [Qwen Code bundled Skill loader](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/BundledSkillLoader.ts)
+- [Qwen Code multi-agent coordination documentation](https://github.com/QwenLM/qwen-code/blob/8858d4340bbbb46f693dd09767aaaadc7ec7cc9b/docs/users/features/multi-agent-coordination.md)
+- [Qwen Code coordinate bundled Skill](https://github.com/QwenLM/qwen-code/blob/8858d4340bbbb46f693dd09767aaaadc7ec7cc9b/packages/core/src/skills/bundled/coordinate/SKILL.md)
+- [Qwen Code native multi-agent coordination commit](https://github.com/QwenLM/qwen-code/commit/8858d4340bbbb46f693dd09767aaaadc7ec7cc9b)
 - [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/7c919f0376c0331d0d057ef3643c7adcc2c55802/docs/zh/reference/slash-commands.md)
 - [Qoder CLI commands](https://docs.qoder.com/en/cli/command)
 - [Qoder CLI Subagent](https://docs.qoder.com/en/cli/subagent)

@@ -917,13 +917,14 @@
 
     'cmd-collaboration': {
       definition: '用多模型、多 Agent 或编排工作流并行处理同一个任务，并汇总、选择或提交各自结果。',
-      includes: ['第二模型顾问', '并行任务拆分', '模型竞赛', 'Swarm 和工作流编排'],
+      includes: ['第二模型顾问', '并行任务拆分', '模型竞赛', 'Swarm 和工作流编排', '多 Agent 团队协作与共享任务清单'],
       excludes: ['单个 Subagent 管理', '普通后台 Shell', '模型质量比较'],
       facts: [
         '五家的协作入口语义不同，不能仅按命令名称判断等价。',
         'Claude Code `/batch` 会拆分为 5–30 个单元并使用隔离 Worktree。',
         'Qwen Code Arena 让多个模型执行同一任务，之后选择一个结果并合并其 Diff。',
         'Qwen Code `/batch` 是随产品提供的 Skill：发现文件、分块后使用并行执行 Agent 完成批量操作。',
+        'Qwen Code 于 2026-08-12 在 main 分支新增 `/coordinate` Skill 与 Agent Team 运行时（提交 `8858d4340bbb`，尚未发布）：最多 3 个队友共享任务清单并互发消息，调查队友被强制只读，可选 1 名写手固定在 Leader 拥有的 Worktree。',
       ],
       products: {
         claude: command('claude', ['/advisor [model|off]', '/batch <instruction>'], 'Advisor 在关键时刻咨询第二模型；Batch 将大型改动拆为并行 Worktree 子任务。', {
@@ -935,13 +936,13 @@
           aliases: ['/subagents'],
           sources: ['codex-commands', 'codex-agents'],
         }),
-        qwen: command('qwen', ['/arena start', '/arena status', '/arena select', '/arena stop', '/batch <operation> <file-pattern>'], 'Arena 让多个模型执行同一任务并选择结果；随产品提供的 `/batch` Skill 发现匹配文件、分块并交给并行执行 Agent。', {
+        qwen: command('qwen', ['/arena start', '/arena status', '/arena select', '/arena stop', '/batch <operation> <file-pattern>', '/coordinate <goal>'], 'Arena 让多个模型执行同一任务并选择结果；随产品提供的 `/batch` Skill 发现匹配文件、分块并交给并行执行 Agent；`/coordinate` 启动原生多代理协作：Leader 把目标拆分为最多 3 个独立工作流，调查队友被强制只读工具集（不能执行 shell 或写文件），可选将 1 名写手队友固定在 Leader 创建的 Git Worktree，队友共享任务清单、经 `send_message` 等团队工具互发消息并显示在 Agent View 页签。', {
           aliases: ['/arena choose'],
-          parameters: 'Arena 使用相应子命令；Batch 使用 `<operation> <file-pattern>`',
-          mode: 'Arena 仅交互式；`/batch` 支持交互式、非交互式和 ACP',
-          persistence: 'Arena 运行属于当前会话；Arena select 和 Batch 任务可修改工作区',
-          conditions: '`/batch` 在 bare mode 或被 Skill/Slash 禁用时不可用',
-          sources: ['qwen-commands', 'qwen-bundled-skills'],
+          parameters: 'Arena 使用相应子命令；Batch 使用 `<operation> <file-pattern>`；Coordinate 使用目标描述（参数提示 `<goal>`）',
+          mode: 'Arena 仅交互式；`/batch` 支持交互式、非交互式和 ACP；`/coordinate` 作为随产品提供的 Skill 加载，`disable-model-invocation: true`，只能由用户显式调用',
+          persistence: 'Arena 运行属于当前会话；Arena select 和 Batch 任务可修改工作区；`/coordinate` 队伍与共享任务清单属于当前会话，写手在 Worktree 中修改，仅 Leader 拥有当前分支合并权',
+          conditions: '`/batch` 在 bare mode 或被 Skill/Slash 禁用时不可用；`/coordinate` 完整团队协作需将 `experimental.agentTeam` 设为 `true` 并重启，或以 `QWEN_CODE_ENABLE_AGENT_TEAM=1` 启动；未启用时退回普通前台 Agent 做只读并行调查（仅委派、不协作）；Agent Team 运行时依赖 `team_create`、`send_message`、`task_list`、`task_update` 工具；条件：main 分支，尚未发布',
+          sources: ['qwen-commands', 'qwen-bundled-skills', 'qwen-coordinate-docs', 'qwen-coordinate-skill', 'qwen-coordinate-commit'],
         }),
         kimi: command('kimi', ['/swarm on|off', '/swarm <task>'], '切换 Swarm 模式，或为单轮任务开启 Swarm 并在成功完成后自动关闭。', {
           parameters: '`on|off|<task>`',
