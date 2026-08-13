@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-08-12',
+  updatedAt: '2026-08-13',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -578,6 +578,18 @@ window.matrixData = {
       label: 'Qwen Code v0.21.11-preview.0 release notes',
       url: 'https://github.com/QwenLM/qwen-code/releases/tag/v0.21.11-preview.0',
     },
+    'qwen-coordinate-docs': {
+      label: 'Qwen Code multi-agent coordination documentation',
+      url: 'https://github.com/QwenLM/qwen-code/blob/8858d4340bbbb46f693dd09767aaaadc7ec7cc9b/docs/users/features/multi-agent-coordination.md',
+    },
+    'qwen-coordinate-skill': {
+      label: 'Qwen Code coordinate bundled Skill',
+      url: 'https://github.com/QwenLM/qwen-code/blob/8858d4340bbbb46f693dd09767aaaadc7ec7cc9b/packages/core/src/skills/bundled/coordinate/SKILL.md',
+    },
+    'qwen-coordinate-commit': {
+      label: 'Qwen Code native multi-agent coordination commit',
+      url: 'https://github.com/QwenLM/qwen-code/commit/8858d4340bbbb46f693dd09767aaaadc7ec7cc9b',
+    },
     'qwen-commands-current': {
       label: 'Qwen Code current custom commands',
       url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/commands.md',
@@ -1107,7 +1119,7 @@ window.matrixData = {
       category: 'commands',
       capability: '多模型或多代理模式',
       description: '启动多任务、多 Agent 或多模型协作入口。',
-      values: { claude: '`/advisor` · `/batch`', codex: '`/agent`', qwen: '`/arena` · `/batch`', kimi: '`/swarm`', qoder: '`/quest`' },
+      values: { claude: '`/advisor` · `/batch`', codex: '`/agent`', qwen: '`/arena` · `/batch` · `/coordinate`（条件：main 分支，尚未发布）', kimi: '`/swarm`', qoder: '`/quest`' },
     },
     {
       id: 'cmd-remote',

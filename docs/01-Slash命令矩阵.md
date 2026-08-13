@@ -58,7 +58,7 @@
 | 更新与发行说明 | `/release-notes` | — | `/update` | 内置更新 Skill | `/upgrade`、`/release-notes` |
 | 临时旁路问题 | `/btw` | `/side`、`/btw` | `/btw` | `/btw` | — |
 | 浏览器或 Web | `/chrome`、`/deep-research` | `/apps` | — | `/web` | — |
-| 多模型或多代理协作模式 | `/advisor`、`/batch` | `/agent` | `/arena`、`/batch` | `/swarm` | `/quest` |
+| 多模型或多代理协作模式 | `/advisor`、`/batch` | `/agent` | `/arena`、`/batch`、`/coordinate`（条件：main 分支，尚未发布） | `/swarm` | `/quest` |
 | 远程控制 | `/remote-control`、`/rc`、`/teleport`、`/desktop`、`/app` | `/app` | — | `/web` | 条件项：Cloud Mode |
 | 退出程序 | `/exit`、`/quit` | `/exit`、`/quit` | `/quit`、`/exit` | `/exit`、`/quit`、`/q` | `/quit`、`/exit` |
 | 帮助 | `/help` | 命令选择器 | `/help`、`/?` | `/help`、`/h`、`/?` | `/help` |
@@ -105,11 +105,12 @@ v0.21.8（2026-08-08 发布）起，`/workflows` 增加 `p <runId>` 形式（提
 
 #### 随产品提供的 Skill 命令
 
-源码中共有 9 个随产品提供的 Skill：
+源码中共有 10 个随产品提供的 Skill（其中 `/coordinate` 于 2026-08-12 合入 main 分支，尚未发布）：
 
 | 命令 | 参数 | 行为 |
 | --- | --- | --- |
 | `/batch` | `<operation> <file-pattern>` | 发现文件、分块并交给并行执行 Agent |
+| `/coordinate` | `<goal>` | Leader 协调最多 3 个强制只读队友与可选 1 名 Worktree 写手；完整团队协作需启用 Agent Team（条件：main 分支，尚未发布） |
 | `/dataviz` | 由请求内容决定 | 提供图表、仪表盘、地图和数据可视化指导 |
 | `/extension-creator` | `<extension-path> [template]` | 创建、校验并本地测试 Qwen Code 扩展 |
 | `/loop` | `[interval] [prompt] \| list \| clear` | 创建、查看或清理定时与自驱循环；仅 Cron 开启时出现 |
@@ -119,7 +120,9 @@ v0.21.8（2026-08-08 发布）起，`/workflows` 增加 `p <runId>` 形式（提
 | `/simplify` | `[focus]` | 检查近期改动并直接应用明确的清理 |
 | `/stuck` | `[PID or symptom]` | 诊断卡住、缓慢或资源异常的 Qwen Code 会话 |
 
-这些命令默认同时允许用户和模型调用，并支持交互式、非交互式和 ACP。bare mode 不加载它们；`skills.disabled` 和 `slashCommands.disabled` 可按名称关闭。
+这些命令默认同时允许用户和模型调用，并支持交互式、非交互式和 ACP。bare mode 不加载它们；`skills.disabled` 和 `slashCommands.disabled` 可按名称关闭。其中 `/coordinate` 的 Skill 定义带 `disable-model-invocation: true`，只能由用户显式调用，模型不会自行调用。
+
+`/coordinate` 随 2026-08-12 的 main 分支提交（`8858d4340bbb`，PR #8804）引入 Agent Team 运行时：Leader 把目标拆分为最多 3 个独立工作流，调查队友被强制只读工具集（不能执行 shell 命令、写文件或继续派生 Agent）；需要修改代码时可创建 1 个 Git Worktree 并固定 1 名写手队友，Leader 保持当前分支唯一合并权；队友共享任务清单、经既有团队工具（`send_message`、`task_list`、`task_update`）互发消息，并显示在既有 Agent View 页签。完整团队协作需将 `experimental.agentTeam` 设为 `true` 并重启，或以 `QWEN_CODE_ENABLE_AGENT_TEAM=1` 启动；未启用时 `/coordinate` 退回普通前台 Agent 做只读并行调查，属于委派而非协作。该命令与运行时在 main 分支，尚未进入 Release。
 
 #### 动态命令
 
@@ -176,6 +179,9 @@ Web Shell 还固定提供 4 个不属于 CLI/TUI 硬编码加载器的本地命�
 - [Qwen Code MCP Prompt 加载器](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/McpPromptLoader.ts)
 - [Qwen Code 命令合并与冲突处理](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/CommandService.ts)
 - [Qwen Code `/review` Skill](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/core/src/skills/bundled/review/SKILL.md)
+- [Qwen Code 多代理协作文档](https://github.com/QwenLM/qwen-code/blob/8858d4340bbbb46f693dd09767aaaadc7ec7cc9b/docs/users/features/multi-agent-coordination.md)
+- [Qwen Code `/coordinate` Skill](https://github.com/QwenLM/qwen-code/blob/8858d4340bbbb46f693dd09767aaaadc7ec7cc9b/packages/core/src/skills/bundled/coordinate/SKILL.md)
+- [Qwen Code 原生多代理协作提交](https://github.com/QwenLM/qwen-code/commit/8858d4340bbbb46f693dd09767aaaadc7ec7cc9b)
 - [Qwen Code Web Shell 本地命令](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/web-shell/client/constants/localCommands.ts)
 - [Kimi Code Slash 命令](https://github.com/MoonshotAI/kimi-code/blob/7c919f0376c0331d0d057ef3643c7adcc2c55802/docs/zh/reference/slash-commands.md)
 - [Kimi Code `/bug` 别名提交](https://github.com/MoonshotAI/kimi-code/commit/8db7d42f23472a692eb389a0e0e5a3e18aa1b94d)
