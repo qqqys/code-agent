@@ -118,7 +118,7 @@
 | 适用界面 | 本页以 Qoder CLI TUI 为主；只在 Agent SDK 提供的能力会明确标为 SDK 条件项。 |
 | 条件与边界 | 环境变量未开启时 `/memory` 仍可管理 `AGENTS.md`，但 `/memory manage` 会提示 Auto-memory 不可用。 |
 | 证据状态 | 条件项 |
-| 来源 | [Qoder CLI Memory](https://docs.qoder.com/en/cli/memory)、[Qoder CLI commands](https://docs.qoder.com/en/cli/command) |
+| 来源 | [Qoder CLI Memory](https://docs.qoder.com/en/cli/memory)、[Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference) |
 
 ## 官方来源
 
@@ -130,7 +130,7 @@
 - [Kimi Code current data locations](https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/configuration/data-locations.md)
 - [Kimi Code current slash commands](https://github.com/MoonshotAI/kimi-code/blob/7c919f0376c0331d0d057ef3643c7adcc2c55802/docs/zh/reference/slash-commands.md)
 - [Qoder CLI Memory](https://docs.qoder.com/en/cli/memory)
-- [Qoder CLI commands](https://docs.qoder.com/en/cli/command)
+- [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)
 
 ## 关联能力
 

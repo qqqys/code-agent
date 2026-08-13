@@ -118,7 +118,7 @@
 | 安全与管理 | 公开日志中不要暴露 PAT 或账号细节。 |
 | 条件与边界 | 公共文档未列独立 `qodercli login status`。 |
 | 证据状态 | 官方确认 |
-| 来源 | [Qoder CLI commands](https://docs.qoder.com/en/cli/command)、[Qoder CLI login and quick start](https://docs.qoder.com/en/cli/quick-start) |
+| 来源 | [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)、[Qoder CLI login and quick start](https://docs.qoder.com/en/cli/quick-start) |
 
 ## 官方来源
 
@@ -130,7 +130,7 @@
 - [Qwen Code current authentication](https://github.com/QwenLM/qwen-code/blob/7f8adc659ebe2d2f809ef31c79fea5638f3bf5ab/docs/users/configuration/auth.md)
 - [Kimi Code current slash commands](https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/reference/slash-commands.md)
 - [Kimi Code current CLI reference](https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/reference/kimi-command.md)
-- [Qoder CLI commands](https://docs.qoder.com/en/cli/command)
+- [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)
 - [Qoder CLI login and quick start](https://docs.qoder.com/en/cli/quick-start)
 
 ## 关联能力

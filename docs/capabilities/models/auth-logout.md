@@ -118,7 +118,7 @@
 | 安全与管理 | 退出本地账号不会撤销仍有效的 PAT；需要在账号侧撤销。 |
 | 条件与边界 | Custom Model Key 的删除由模型设置处理。 |
 | 证据状态 | 官方确认 |
-| 来源 | [Qoder CLI commands](https://docs.qoder.com/en/cli/command)、[Qoder CLI login and quick start](https://docs.qoder.com/en/cli/quick-start) |
+| 来源 | [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)、[Qoder CLI login and quick start](https://docs.qoder.com/en/cli/quick-start) |
 
 ## 官方来源
 
@@ -129,7 +129,7 @@
 - [Qwen Code current settings](https://github.com/QwenLM/qwen-code/blob/7f8adc659ebe2d2f809ef31c79fea5638f3bf5ab/docs/users/configuration/settings.md)
 - [Kimi Code current slash commands](https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/reference/slash-commands.md)
 - [Kimi Code current data locations](https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/configuration/data-locations.md)
-- [Qoder CLI commands](https://docs.qoder.com/en/cli/command)
+- [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)
 - [Qoder CLI login and quick start](https://docs.qoder.com/en/cli/quick-start)
 
 ## 关联能力

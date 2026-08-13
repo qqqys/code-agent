@@ -109,7 +109,7 @@
 | 保存范围 | 当前会话工作状态 |
 | 条件与边界 | `general.plan.enabled: false` 可禁用；禁用后 `/plan` 不可用，`--permission-mode plan` 回退 `default` |
 | 证据状态 | 官方确认 |
-| 来源 | [Qoder CLI commands](https://docs.qoder.com/en/cli/command)、[Qoder CLI Permissions](https://docs.qoder.com/en/cli/permissions) |
+| 来源 | [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)、[Qoder CLI Permissions](https://docs.qoder.com/en/cli/permissions) |
 
 ## 官方来源
 
@@ -117,7 +117,7 @@
 - [Codex CLI commands](https://developers.openai.com/codex/cli/slash-commands)
 - [Qwen Code commands documentation](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/commands.md)
 - [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/reference/slash-commands.md)
-- [Qoder CLI commands](https://docs.qoder.com/en/cli/command)
+- [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)
 - [Qoder CLI Permissions](https://docs.qoder.com/en/cli/permissions)
 
 ## 关联能力

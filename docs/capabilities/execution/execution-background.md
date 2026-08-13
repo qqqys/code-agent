@@ -119,7 +119,7 @@
 | 状态与产物 | 输出和文件保留在对应执行环境；任务记录可供会话继续读取。 |
 | 条件与边界 | Task 工具可被权限或 Agent 工具列表禁用；Cloud Mode 需要远端环境和账号权限。 |
 | 证据状态 | 官方确认 |
-| 来源 | [Qoder CLI commands](https://docs.qoder.com/en/cli/command)、[Qoder CLI built-in tools](https://docs.qoder.com/en/cli/sdk/tools)、[Qoder CLI usage and worktrees](https://docs.qoder.com/en/cli/using-cli) |
+| 来源 | [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)、[Qoder CLI built-in tools](https://docs.qoder.com/en/cli/sdk/tools)、[Qoder CLI usage and worktrees](https://docs.qoder.com/en/cli/using-cli) |
 
 ## 官方来源
 
@@ -135,7 +135,7 @@
 - [Kimi Code /tasks live background agent activity commit](https://github.com/MoonshotAI/kimi-code/commit/ad12ad8a140d24051d93ec98a4a6921ab33723ff)
 - [Kimi Code background agent activity changeset](https://github.com/MoonshotAI/kimi-code/blob/ad12ad8a140d24051d93ec98a4a6921ab33723ff/.changeset/background-agent-activity-view.md)
 - [Kimi Code 0.35.0 release notes](https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%400.35.0)
-- [Qoder CLI commands](https://docs.qoder.com/en/cli/command)
+- [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)
 - [Qoder CLI built-in tools](https://docs.qoder.com/en/cli/sdk/tools)
 - [Qoder CLI usage and worktrees](https://docs.qoder.com/en/cli/using-cli)
 

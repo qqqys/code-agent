@@ -118,7 +118,7 @@
 | 状态与产物 | Action 日志、PR Review、评论和可选代码修改。 |
 | 条件与边界 | 需要 App、PAT Secret 和适当 Workflow permissions；版本标签以当前 Qoder Action 文档为准。 |
 | 证据状态 | 官方确认 |
-| 来源 | [Qoder Action](https://docs.qoder.com/en/cli/qoder-action)、[Qoder CLI commands](https://docs.qoder.com/en/cli/command) |
+| 来源 | [Qoder Action](https://docs.qoder.com/en/cli/qoder-action)、[Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference) |
 
 ## 官方来源
 
@@ -132,7 +132,7 @@
 - [Kimi Code current built-in tools](https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/reference/tools.md)
 - [Kimi Code current slash commands](https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/reference/slash-commands.md)
 - [Qoder Action](https://docs.qoder.com/en/cli/qoder-action)
-- [Qoder CLI commands](https://docs.qoder.com/en/cli/command)
+- [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)
 
 ## 关联能力
 

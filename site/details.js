@@ -927,7 +927,8 @@
         'Claude Code `/batch` 会拆分为 5–30 个单元并使用隔离 Worktree。',
         'Qwen Code Arena 让多个模型执行同一任务，之后选择一个结果并合并其 Diff。',
         'Qwen Code `/batch` 是随产品提供的 Skill：发现文件、分块后使用并行执行 Agent 完成批量操作。',
-        'Qwen Code 于 2026-08-12 在 main 分支新增 `/coordinate` Skill 与 Agent Team 运行时（提交 `8858d4340bbb`，尚未发布）：最多 3 个队友共享任务清单并互发消息，调查队友被强制只读，可选 1 名写手固定在 Leader 拥有的 Worktree。',
+        'Qwen Code 的 `/coordinate` Skill 与 Agent Team 运行时（提交 `8858d4340bbb`，PR #8804）随 v0.21.11（2026-08-13 发布）进入正式通道：最多 3 个队友共享任务清单并互发消息，调查队友被强制只读，可选 1 名写手固定在 Leader 拥有的 Worktree。',
+        'Qoder CLI 官方 Slash 命令参考列出内置 Skill `/batch`：在隔离 git worktree 中派出并行工作 Agent 对多个文件应用批量修改，要求当前目录为 Git 仓库。',
       ],
       products: {
         claude: command('claude', ['/advisor [model|off]', '/batch <instruction>'], 'Advisor 在关键时刻咨询第二模型；Batch 将大型改动拆为并行 Worktree 子任务。', {
@@ -944,17 +945,19 @@
           parameters: 'Arena 使用相应子命令；Batch 使用 `<operation> <file-pattern>`；Coordinate 使用目标描述（参数提示 `<goal>`）',
           mode: 'Arena 仅交互式；`/batch` 支持交互式、非交互式和 ACP；`/coordinate` 作为随产品提供的 Skill 加载，`disable-model-invocation: true`，只能由用户显式调用',
           persistence: 'Arena 运行属于当前会话；Arena select 和 Batch 任务可修改工作区；`/coordinate` 队伍与共享任务清单属于当前会话，写手在 Worktree 中修改，仅 Leader 拥有当前分支合并权',
-          conditions: '`/batch` 在 bare mode 或被 Skill/Slash 禁用时不可用；`/coordinate` 完整团队协作需将 `experimental.agentTeam` 设为 `true` 并重启，或以 `QWEN_CODE_ENABLE_AGENT_TEAM=1` 启动；未启用时退回普通前台 Agent 做只读并行调查（仅委派、不协作）；Agent Team 运行时依赖 `team_create`、`send_message`、`task_list`、`task_update` 工具；条件：main 分支，尚未发布',
-          sources: ['qwen-commands', 'qwen-bundled-skills', 'qwen-coordinate-docs', 'qwen-coordinate-skill', 'qwen-coordinate-commit'],
+          conditions: '`/batch` 在 bare mode 或被 Skill/Slash 禁用时不可用；`/coordinate` 完整团队协作需将 `experimental.agentTeam` 设为 `true` 并重启，或以 `QWEN_CODE_ENABLE_AGENT_TEAM=1` 启动；未启用时退回普通前台 Agent 做只读并行调查（仅委派、不协作）；Agent Team 运行时依赖 `team_create`、`send_message`、`task_list`、`task_update` 工具；`/coordinate` 随 v0.21.11（2026-08-13 发布）进入正式通道',
+          sources: ['qwen-commands', 'qwen-bundled-skills', 'qwen-coordinate-docs', 'qwen-coordinate-skill', 'qwen-coordinate-commit', 'qwen-v02111-release'],
         }),
         kimi: command('kimi', ['/swarm on|off', '/swarm <task>'], '切换 Swarm 模式，或为单轮任务开启 Swarm 并在成功完成后自动关闭。', {
           parameters: '`on|off|<task>`',
           persistence: '模式属于当前会话',
           conditions: 'manual 权限模式下启动任务会询问是否切换到 auto 或 yolo',
         }),
-        qoder: command('qoder', ['/quest'], '以 Prompt 工作流使用专用 Subagent 引导功能开发。', {
-          mode: 'TUI 与 Headless',
-          persistence: '运行状态属于当前任务',
+        qoder: command('qoder', ['/quest', '/batch'], '以 Prompt 工作流使用专用 Subagent 引导功能开发；`/batch` 为内置 Skill，在隔离 git worktree 中派出并行工作 Agent 对多个文件应用批量修改。', {
+          parameters: '无公开参数',
+          mode: 'TUI 与 Headless（`/quest`）；`/batch` 的模式范围未在文档中说明',
+          persistence: '运行状态属于当前任务；`/batch` 工作 Agent 在隔离 worktree 中修改文件',
+          conditions: '`/batch` 要求当前目录为 Git 仓库',
           sources: ['qoder-commands', 'qoder-agents'],
         }),
       },
