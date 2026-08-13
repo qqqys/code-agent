@@ -15,7 +15,7 @@
 | Claude Code | `/model [model]` | 官方确认 |
 | Codex | `/model` | 官方确认 |
 | Qwen Code | `/model` | 源码确认 |
-| Kimi Code | `/model`、`/secondary_model` | 官方确认 |
+| Kimi Code | `/model`、`/secondary-model` | 官方确认 |
 | Qoder CLI | `/model` | 官方确认 |
 
 ## 比较边界
@@ -38,6 +38,7 @@
 1. 五家 CLI 都提供 `/model`。
 2. Claude Code 的模型选择默认只作用于当前会话；在选择器按 `d` 才会保存用户默认值。
 3. Qwen Code 的 `/model` 同时覆盖 fast、voice、vision、image 模型，并支持项目级或用户级持久化。
+4. Kimi Code 0.36.0（2026-08-13 发布）起 `/secondary_model` 改名为 `/secondary-model` 并新增别名 `/subagent-model`，用于配置 Subagent 模型池。
 
 ## 逐产品记录
 
@@ -87,15 +88,15 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 主命令 | `/model`、`/secondary_model` |
-| 别名 | 无公开别名 |
-| 参数 | `/secondary_model` 写入 `[secondary_model]` 配置 |
-| 执行行为 | 切换当前会话使用的 LLM 模型；`/secondary_model` 配置 Subagent 使用的次主力模型。 |
+| 主命令 | `/model`、`/secondary-model` |
+| 别名 | `/subagent-model` |
+| 参数 | `/secondary-model` 写入 `[secondary_model] default_model` |
+| 执行行为 | 切换当前会话使用的 LLM 模型；`/secondary-model` 打开模型选择器，选择子 Agent 的默认模型并写入 `[secondary_model] default_model`，已有 `[secondary_model.models]` 表时会把所选别名补入池中（保留别名 `primary` 会被拒绝）。 |
 | 可用模式 | 交互式 CLI |
-| 保存范围 | `/model` 作用于当前会话；`/secondary_model` 写入配置并立即生效 |
-| 条件与边界 | `/secondary_model` 需要启用 `secondary-model` 实验性功能 |
+| 保存范围 | `/model` 作用于当前会话；`/secondary-model` 写入 config.toml，对下一次子 Agent 派生生效，无需重启会话 |
+| 条件与边界 | `/secondary-model` 仅在 `secondary-model` 实验功能启用时可见（`KIMI_CODE_EXPERIMENTAL_SECONDARY_MODEL=1` 或 master flag `KIMI_CODE_EXPERIMENTAL_FLAG=1`）；0.36.0 起由 `/secondary_model` 改名 |
 | 证据状态 | 官方确认 |
-| 来源 | [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/7c919f0376c0331d0d057ef3643c7adcc2c55802/docs/zh/reference/slash-commands.md) |
+| 来源 | [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/reference/slash-commands.md)、[Kimi Code subagent model pool commit](https://github.com/MoonshotAI/kimi-code/commit/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860)、[Kimi Code 0.36.0 release notes](https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%400.36.0) |
 
 ### Qoder CLI
 
@@ -116,7 +117,9 @@
 - [Claude Code Commands](https://code.claude.com/docs/en/commands)
 - [Codex CLI commands](https://developers.openai.com/codex/cli/slash-commands)
 - [Qwen Code commands documentation](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/commands.md)
-- [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/7c919f0376c0331d0d057ef3643c7adcc2c55802/docs/zh/reference/slash-commands.md)
+- [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/reference/slash-commands.md)
+- [Kimi Code subagent model pool commit](https://github.com/MoonshotAI/kimi-code/commit/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860)
+- [Kimi Code 0.36.0 release notes](https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%400.36.0)
 - [Qoder CLI commands](https://docs.qoder.com/en/cli/command)
 
 ## 关联能力

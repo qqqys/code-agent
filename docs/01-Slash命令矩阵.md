@@ -14,7 +14,7 @@
 | --- | --- | --- | --- | --- | --- |
 | 登录 | `/login` | — | `/auth`、`/connect`、`/login` | `/login` | `/login` |
 | 退出登录 | `/logout` | `/logout` | `/auth logout` | `/logout` | `/logout` |
-| 选择模型 | `/model` | `/model` | `/model` | `/model`、`/secondary_model` | `/model` |
+| 选择模型 | `/model` | `/model` | `/model` | `/model`、`/secondary-model`（别名 `/subagent-model`） | `/model` |
 | 推理强度 | `/effort` | `/model`、`/fast` | `/effort` | — | `/effort`、`/fast` |
 | 权限设置 | `/permissions`、`/allowed-tools` | `/permissions` | `/approval-mode`、`/permissions` | `/permission`、`/yolo`、`/auto` | `/config` |
 | 计划模式 | `/plan` | `/plan` | `/plan` | `/plan`、`/plan clear` | `/plan` |
@@ -150,9 +150,9 @@ Web Shell 还固定提供 4 个不属于 CLI/TUI 硬编码加载器的本地命�
 
 ### Kimi Code
 
-`/add-dir`、`/auto`、`/btw`、`/bug`、`/check-kimi-code-docs`、`/compact`、`/copy`、`/custom-theme`、`/editor`、`/exit`、`/experiments`、`/export-debug-zip`、`/export-md`、`/feedback`、`/fork`、`/goal`、`/help`、`/import-from-cc-codex`、`/init`、`/login`、`/logout`、`/mcp`、`/mcp-config`、`/model`、`/new`、`/permission`、`/plan`、`/plugins`、`/provider`、`/secondary_model`、`/sessions`、`/settings`、`/status`、`/sub-skill`、`/swarm`、`/tasks`、`/theme`、`/title`、`/undo`、`/update-config`、`/usage`、`/version`、`/web`、`/yolo`。
+`/add-dir`、`/auto`、`/btw`、`/bug`、`/check-kimi-code-docs`、`/compact`、`/copy`、`/custom-theme`、`/editor`、`/exit`、`/experiments`、`/export-debug-zip`、`/export-md`、`/feedback`、`/fork`、`/goal`、`/help`、`/import-from-cc-codex`、`/init`、`/login`、`/logout`、`/mcp`、`/mcp-config`、`/model`、`/new`、`/permission`、`/plan`、`/plugins`、`/provider`、`/secondary-model`、`/sessions`、`/settings`、`/status`、`/sub-skill`、`/subagent-model`、`/swarm`、`/tasks`、`/theme`、`/title`、`/undo`、`/update-config`、`/usage`、`/version`、`/web`、`/yolo`。
 
-其中 `/bug` 是 `/feedback` 的别名（提交 `8db7d42f2347`），自 0.33.0（2026-08-05 发布）起包含。0.33.0 起 `/fork` 派生副本后不再切换到副本，仍停留在当前会话（提交 `54c04bf03ddb`）。
+其中 `/bug` 是 `/feedback` 的别名（提交 `8db7d42f2347`），自 0.33.0（2026-08-05 发布）起包含。0.33.0 起 `/fork` 派生副本后不再切换到副本，仍停留在当前会话（提交 `54c04bf03ddb`）。0.36.0（2026-08-13 发布）起，原 `/secondary_model` 改名为 `/secondary-model`，`/subagent-model` 是它的别名（提交 `c9bfe8b2c831`）；命令打开模型选择器并写入 `[secondary_model] default_model`，仅在 `secondary-model` 实验功能启用时可见。
 
 ### Qoder CLI
 
@@ -183,7 +183,9 @@ Web Shell 还固定提供 4 个不属于 CLI/TUI 硬编码加载器的本地命�
 - [Qwen Code `/coordinate` Skill](https://github.com/QwenLM/qwen-code/blob/8858d4340bbbb46f693dd09767aaaadc7ec7cc9b/packages/core/src/skills/bundled/coordinate/SKILL.md)
 - [Qwen Code 原生多代理协作提交](https://github.com/QwenLM/qwen-code/commit/8858d4340bbbb46f693dd09767aaaadc7ec7cc9b)
 - [Qwen Code Web Shell 本地命令](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/web-shell/client/constants/localCommands.ts)
-- [Kimi Code Slash 命令](https://github.com/MoonshotAI/kimi-code/blob/7c919f0376c0331d0d057ef3643c7adcc2c55802/docs/zh/reference/slash-commands.md)
+- [Kimi Code Slash 命令](https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/reference/slash-commands.md)
 - [Kimi Code `/bug` 别名提交](https://github.com/MoonshotAI/kimi-code/commit/8db7d42f23472a692eb389a0e0e5a3e18aa1b94d)
 - [Kimi Code `/fork` 不再切换会话提交](https://github.com/MoonshotAI/kimi-code/commit/54c04bf03ddbeb46d02b2edb460ea091ae194509)
+- [Kimi Code Subagent 模型池提交](https://github.com/MoonshotAI/kimi-code/commit/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860)
+- [Kimi Code 0.36.0 发布说明](https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%400.36.0)
 - [Qoder CLI 命令](https://docs.qoder.com/en/cli/command)

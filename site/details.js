@@ -75,6 +75,7 @@
         '五家 CLI 都提供 `/model`。',
         'Claude Code 的模型选择默认只作用于当前会话；在选择器按 `d` 才会保存用户默认值。',
         'Qwen Code 的 `/model` 同时覆盖 fast、voice、vision、image 模型，并支持项目级或用户级持久化。',
+        'Kimi Code 0.36.0（2026-08-13 发布）起 `/secondary_model` 改名为 `/secondary-model` 并新增别名 `/subagent-model`，用于配置 Subagent 模型池。',
       ],
       products: {
         claude: command('claude', ['/model [model]'], '不带参数打开模型选择器；带模型参数直接切换。支持模型可同时调整 effort。', {
@@ -92,10 +93,12 @@
           persistence: '`--project` 写项目设置，`--global` 写用户设置；未指定时为当前会话',
           conditions: '一次性提示中的文本原样发送，不做 `@file` 展开',
         }),
-        kimi: command('kimi', ['/model', '/secondary_model'], '切换当前会话使用的 LLM 模型；`/secondary_model` 配置 Subagent 使用的次主力模型。', {
-          parameters: '`/secondary_model` 写入 `[secondary_model]` 配置',
-          persistence: '`/model` 作用于当前会话；`/secondary_model` 写入配置并立即生效',
-          conditions: '`/secondary_model` 需要启用 `secondary-model` 实验性功能',
+        kimi: command('kimi', ['/model', '/secondary-model'], '切换当前会话使用的 LLM 模型；`/secondary-model` 打开模型选择器，选择子 Agent 的默认模型并写入 `[secondary_model] default_model`，已有 `[secondary_model.models]` 表时会把所选别名补入池中（保留别名 `primary` 会被拒绝）。', {
+          aliases: ['/subagent-model'],
+          parameters: '`/secondary-model` 写入 `[secondary_model] default_model`',
+          persistence: '`/model` 作用于当前会话；`/secondary-model` 写入 config.toml，对下一次子 Agent 派生生效，无需重启会话',
+          conditions: '`/secondary-model` 仅在 `secondary-model` 实验功能启用时可见（`KIMI_CODE_EXPERIMENTAL_SECONDARY_MODEL=1` 或 master flag `KIMI_CODE_EXPERIMENTAL_FLAG=1`）；0.36.0 起由 `/secondary_model` 改名',
+          sources: ['kimi-commands', 'kimi-subagent-model-pool-commit', 'kimi-v036-release'],
         }),
         qoder: command('qoder', ['/model'], '打开模型级别和模型设置管理界面。', {
           mode: 'TUI',

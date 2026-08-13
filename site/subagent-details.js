@@ -62,7 +62,7 @@
         '主 Agent 依据描述自动派发，也可在提示词中点名；`--agent-file` 可在启动时显式加载定义。',
       format: 'Markdown 正文 + YAML frontmatter；正文作为 Agent 系统提示词模板。',
       scope:
-        '显式文件、项目、额外目录、用户、内置五级来源；更具体的作用域优先。',
+        '显式文件、项目、额外目录、用户、Plugin、内置六级来源；更具体的作用域优先。',
       context:
         '子 Agent 只接收任务描述，在独立上下文中工作，最后把完整结果返回主 Agent。',
       isolation:
@@ -70,7 +70,7 @@
       limits:
         '全局 `[subagent] timeout_ms` 限制单个 Agent 或 AgentSwarm 运行时间，默认 7200000 ms（2 小时）；Agent 定义 frontmatter 无独立轮数或超时字段。',
       conditions:
-        '`model_preference` 次主力模型为实验性功能，需 `KIMI_CODE_EXPERIMENTAL_SECONDARY_MODEL=1` 开启；开启后所有启动模式（包括 TUI）生效。',
+        'Subagent 模型池为实验性功能，需 `KIMI_CODE_EXPERIMENTAL_SECONDARY_MODEL=1` 或 master flag `KIMI_CODE_EXPERIMENTAL_FLAG=1` 开启；开启后所有启动模式（包括 TUI）生效。默认 v2 引擎读取 `[secondary_model]` 模型池；`model_preference` 字段仅由旧版 `agent-core` 引擎（`KIMI_CODE_LEGACY_FLAG=1`）读取。',
       status: '官方确认',
       sources: ['kimi-agents', 'kimi-subagent-config'],
     },
@@ -410,6 +410,7 @@
       facts: [
         '五家都提供某种 Agent 级模型选择，但字段取值与生效 Surface 不同。',
         '省略模型字段时，Claude Code、Codex、Qwen Code 与 Qoder CLI 都有继承主会话模型的路径。',
+        'Kimi Code 0.36.0（2026-08-13 发布）起，v2 引擎由单一次主力模型改为声明式 Subagent 模型池；`model_preference` 字段仅由旧版引擎读取。',
       ],
       notes: {
         claude:
@@ -419,11 +420,21 @@
         qwen:
           '`model` 支持 `inherit`、`fast`、模型 ID、`authType:modelId` 和 `modelGrades` 名称。Grade 在 `settings.json` 的 `agents.modelGrades` 中定义，可用 `agents.allowedGrades` 限制；Fork 和命名 Teammate 不接受 grade；Agent 定义中的显式 `model` 优先于 grade。`agents.builtin.exploreModel` 可单独覆盖内置 Explore Agent 的模型。',
         kimi:
-          '`model_preference` 接受 `primary`（调用方主模型）或 `secondary`（`[secondary_model] model` 配置的模型）；优先级：显式 `model` > `model_preference` > 次主力模型 > 继承。实验性，需 `KIMI_CODE_EXPERIMENTAL_SECONDARY_MODEL=1`，开启后所有启动模式生效。',
+          '0.36.0 起 v2 引擎使用声明式模型池：`[secondary_model] default_model` 是派生默认模型（配置 `[secondary_model.models]` 时必填且必须是其中的 key；单独写下它等价于只含它一个条目的池）；`[secondary_model.models]` 是别名 → 描述表，别名为 `[models]` 已配置条目；`force = true` 移除 `model` 参数并把所有子 Agent 固定到 `default_model`。派生时显式传入的 `model` 接受池别名或保留值 `"primary"`，解析顺序为显式 `model` → `default_model`；`"primary"` 连模型带 thinking 档位继承调用方，池别名不带显式档位，按全局 `[thinking]` 配置 → 所绑定模型的默认 effort 解析。遗留配方键 `[secondary_model] model` 仍被 v2 兼容读取，优先级低于 `default_model`。`model_preference` frontmatter 仅由旧版 `agent-core` 引擎（`KIMI_CODE_LEGACY_FLAG=1`）读取，默认 v2 引擎忽略。配置错误不做静默回退：`default_model` 缺失、别名无法解析、保留字 `primary` 用作池 key 或 `force` 误用时，会话创建、恢复与 fork 在启动时直接失败；工具调用传入的 `model` 既不是池别名也不是 `"primary"` 时本次派生报错并列出可选值。实验性，需 `KIMI_CODE_EXPERIMENTAL_SECONDARY_MODEL=1` 或 master flag `KIMI_CODE_EXPERIMENTAL_FLAG=1`；关闭时池配置不生效、`model` 参数不出现，子 Agent 继承调用方模型。',
         qoder:
           '`model` 接受具体模型或 `inherit`、`auto`、`lite`、`efficient`、`performance` 等别名。',
       },
       related: ['agent-effort', 'agent-config', 'model-switch'],
+      overrides: {
+        kimi: {
+          sources: [
+            'kimi-agents',
+            'kimi-subagent-config',
+            'kimi-subagent-model-pool-commit',
+            'kimi-v036-release',
+          ],
+        },
+      },
     }),
 
     'agent-effort': createDetail({
@@ -445,7 +456,7 @@
         qwen:
           '当前 Agent 文档把 `effort` 列为尚未落地的 Claude Code 兼容字段，需模型层参数等前置基础设施后随后续版本引入；模型 grade 和 `model` 选择不等同于推理强度。',
         kimi:
-          '`model_preference` 选择主/备模型，不是独立 reasoning effort；当前字段表未列出 effort，也没有 Subagent 全局默认 effort 设置。',
+          '模型池与 `model_preference` 选择的是模型，不是独立 reasoning effort；v2 中绑定池别名不携带显式 thinking 档位，按全局 `[thinking]` 配置 → 所绑定模型的默认 effort 解析；当前 Agent 字段表仍未列出独立 effort 字段。',
         qoder:
           '`effort` 接受 `low`、`medium`、`high`、`xhigh`、`max` 或正整数预算；文档未说明省略时的继承行为，settings.json 覆盖 schema 不含 effort 键。',
       },
@@ -655,7 +666,7 @@
           behavior:
             '0.35.0 起内置 coder profile（v1 与 v2 引擎）移除 `Agent` 与 `AgentSwarm` 工具，coder 子 Agent 默认不能再派生；主 Agent 保留这两个工具，默认会话仍可委派。自定义 Agent 用 `subagents` 指定允许委派的类型，派发前仍会强制校验；自定义 profile 在 `tools` 显式列出 `Agent`/`AgentSwarm` 可恢复嵌套。',
           conditions:
-            '`model_preference` 次主力模型为实验性功能，需 `KIMI_CODE_EXPERIMENTAL_SECONDARY_MODEL=1` 开启；开启后所有启动模式（包括 TUI）生效。官方 Agents 文档页尚未同步 coder 默认工具变化。',
+            'Subagent 模型池为实验性功能，需 `KIMI_CODE_EXPERIMENTAL_SECONDARY_MODEL=1` 或 master flag `KIMI_CODE_EXPERIMENTAL_FLAG=1` 开启；开启后所有启动模式（包括 TUI）生效。官方 Agents 文档页（2026-08-13 核对的提交）仍写内置 coder 可继续派发嵌套子 Agent，尚未同步 coder 默认工具变化。',
         },
         qoder:
           '允许 Agent 工具继续派生；`Agent(name)` 限定类型，`disallowedTools: [Agent]` 完全关闭。',

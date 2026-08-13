@@ -4,6 +4,7 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-08-13 | [Kimi Code Subagent 模型池（0.36.0，/secondary-model）](./2026-08-13-Kimi-Subagent模型池.md) |
 | 2026-08-13 | [Qwen Code 原生多代理协调（/coordinate 与 Agent Team）](./2026-08-13-Qwen原生多代理协调.md) |
 | 2026-08-12 | [Qwen Code ACP 会话 Goal v3 规范运行时](./2026-08-12-Qwen-ACP会话Goal-v3.md) |
 | 2026-08-12 | [Kimi Code 内置 coder 默认取消嵌套派生](./2026-08-12-Kimi-coder默认取消嵌套派生.md) |
