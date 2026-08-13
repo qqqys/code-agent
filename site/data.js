@@ -578,6 +578,10 @@ window.matrixData = {
       label: 'Qwen Code v0.21.11-preview.0 release notes',
       url: 'https://github.com/QwenLM/qwen-code/releases/tag/v0.21.11-preview.0',
     },
+    'qwen-v02111-release': {
+      label: 'Qwen Code v0.21.11 release notes',
+      url: 'https://github.com/QwenLM/qwen-code/releases/tag/v0.21.11',
+    },
     'qwen-coordinate-docs': {
       label: 'Qwen Code multi-agent coordination documentation',
       url: 'https://github.com/QwenLM/qwen-code/blob/8858d4340bbbb46f693dd09767aaaadc7ec7cc9b/docs/users/features/multi-agent-coordination.md',
@@ -827,8 +831,8 @@ window.matrixData = {
       url: 'https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%400.35.0',
     },
     'qoder-commands': {
-      label: 'Qoder CLI commands',
-      url: 'https://docs.qoder.com/en/cli/command',
+      label: 'Qoder CLI slash commands',
+      url: 'https://docs.qoder.com/cli/slash-reference',
     },
     'qoder-agents': {
       label: 'Qoder CLI Subagent',
@@ -1127,7 +1131,7 @@ window.matrixData = {
       category: 'commands',
       capability: '多模型或多代理模式',
       description: '启动多任务、多 Agent 或多模型协作入口。',
-      values: { claude: '`/advisor` · `/batch`', codex: '`/agent`', qwen: '`/arena` · `/batch` · `/coordinate`（条件：main 分支，尚未发布）', kimi: '`/swarm`', qoder: '`/quest`' },
+      values: { claude: '`/advisor` · `/batch`', codex: '`/agent`', qwen: '`/arena` · `/batch` · `/coordinate`（v0.21.11 起）', kimi: '`/swarm`', qoder: '`/quest` · `/batch`' },
     },
     {
       id: 'cmd-remote',

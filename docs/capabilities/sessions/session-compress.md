@@ -118,7 +118,7 @@
 | 适用界面 | 本页以 Qoder CLI TUI 为主；只在 Agent SDK 提供的能力会明确标为 SDK 条件项。 |
 | 条件与边界 | Qoder 桌面端另有 Smart Context Control 阈值提示；本页不把桌面端阈值直接套用到 CLI。 |
 | 证据状态 | 官方确认 |
-| 来源 | [Qoder CLI commands](https://docs.qoder.com/en/cli/command) |
+| 来源 | [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference) |
 
 ## 官方来源
 
@@ -132,7 +132,7 @@
 - [Kimi Code current sessions](https://github.com/MoonshotAI/kimi-code/blob/7c919f0376c0331d0d057ef3643c7adcc2c55802/docs/zh/guides/sessions.md)
 - [Kimi Code current slash commands](https://github.com/MoonshotAI/kimi-code/blob/7c919f0376c0331d0d057ef3643c7adcc2c55802/docs/zh/reference/slash-commands.md)
 - [Kimi Code current configuration](https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/configuration/config-files.md)
-- [Qoder CLI commands](https://docs.qoder.com/en/cli/command)
+- [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)
 
 ## 关联能力
 

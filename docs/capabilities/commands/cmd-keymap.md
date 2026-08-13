@@ -109,7 +109,7 @@
 | 保存范围 | — |
 | 条件与边界 | 固定快捷键以官方文档内说明为准；不据此推断底层能力不存在 |
 | 证据状态 | 未确认 |
-| 来源 | [Qoder CLI commands](https://docs.qoder.com/en/cli/command)、[Qoder CLI usage and worktrees](https://docs.qoder.com/en/cli/using-cli) |
+| 来源 | [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)、[Qoder CLI usage and worktrees](https://docs.qoder.com/en/cli/using-cli) |
 
 ## 官方来源
 
@@ -122,7 +122,7 @@
 - [Qwen Code current custom commands](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/commands.md)
 - [Kimi Code current slash commands](https://github.com/MoonshotAI/kimi-code/blob/7c919f0376c0331d0d057ef3643c7adcc2c55802/docs/zh/reference/slash-commands.md)
 - [Kimi Code current configuration](https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/configuration/config-files.md)
-- [Qoder CLI commands](https://docs.qoder.com/en/cli/command)
+- [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)
 - [Qoder CLI usage and worktrees](https://docs.qoder.com/en/cli/using-cli)
 
 ## 关联能力

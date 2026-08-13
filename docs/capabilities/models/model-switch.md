@@ -118,7 +118,7 @@
 | 安全与管理 | Custom Model API Key 由模型配置流程接收；组织计划可限制模型来源。 |
 | 条件与边界 | 模型目录随账号计划与服务发布变化；Custom Model 只适用于 Individual 计划。 |
 | 证据状态 | 官方确认 |
-| 来源 | [Qoder CLI model configuration](https://docs.qoder.com/en/cli/model)、[Qoder CLI commands](https://docs.qoder.com/en/cli/command) |
+| 来源 | [Qoder CLI model configuration](https://docs.qoder.com/en/cli/model)、[Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference) |
 
 ## 官方来源
 
@@ -135,7 +135,7 @@
 - [Kimi Code current CLI reference](https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/reference/kimi-command.md)
 - [Kimi Code current configuration](https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/configuration/config-files.md)
 - [Qoder CLI model configuration](https://docs.qoder.com/en/cli/model)
-- [Qoder CLI commands](https://docs.qoder.com/en/cli/command)
+- [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)
 
 ## 关联能力
 

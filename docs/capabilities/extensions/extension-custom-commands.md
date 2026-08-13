@@ -123,7 +123,7 @@
 | 权限与信任 | Headless 或 TUI 中执行命令后，工具仍经过对应权限模式。 |
 | 条件与边界 | Prompt Command 的 Headless 可用性不代表所有内置交互命令都能在 Headless 中运行。 |
 | 证据状态 | 官方确认 |
-| 来源 | [Qoder CLI commands](https://docs.qoder.com/en/cli/command)、[Qoder CLI Plugins](https://docs.qoder.com/en/cli/plugins) |
+| 来源 | [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)、[Qoder CLI Plugins](https://docs.qoder.com/en/cli/plugins) |
 
 ## 官方来源
 
@@ -134,7 +134,7 @@
 - [Qwen Code current Extension runtime](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/core/src/extension/extensionManager.ts)
 - [Kimi Code current Plugins](https://github.com/MoonshotAI/kimi-code/blob/691ec4679ea1/docs/zh/customization/plugins.md)
 - [Kimi Code current Skills](https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/customization/skills.md)
-- [Qoder CLI commands](https://docs.qoder.com/en/cli/command)
+- [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)
 - [Qoder CLI Plugins](https://docs.qoder.com/en/cli/plugins)
 
 ## 关联能力

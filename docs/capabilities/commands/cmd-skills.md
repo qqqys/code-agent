@@ -110,7 +110,7 @@
 | 保存范围 | 项目或用户 Skill 跨会话存在 |
 | 条件与边界 | 无额外条件 |
 | 证据状态 | 官方确认 |
-| 来源 | [Qoder CLI commands](https://docs.qoder.com/en/cli/command) |
+| 来源 | [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference) |
 
 ## 官方来源
 
@@ -121,7 +121,7 @@
 - [Qwen Code user, project and extension Skill loader](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/SkillCommandLoader.ts)
 - [Qwen Code command mode filter](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/commandUtils.ts)
 - [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/reference/slash-commands.md)
-- [Qoder CLI commands](https://docs.qoder.com/en/cli/command)
+- [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)
 
 ## 关联能力
 

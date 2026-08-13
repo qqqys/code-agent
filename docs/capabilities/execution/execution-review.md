@@ -123,7 +123,7 @@
 | 状态与产物 | 本地报告或 GitHub PR 评论；不会自动批准或合并 PR。 |
 | 条件与边界 | GitHub Review 需要安装 App、配置 PAT/Secret 和 Workflow。 |
 | 证据状态 | 官方确认 |
-| 来源 | [Qoder CLI commands](https://docs.qoder.com/en/cli/command)、[Qoder Action](https://docs.qoder.com/en/cli/qoder-action)、[Qoder CLI built-in tools](https://docs.qoder.com/en/cli/sdk/tools) |
+| 来源 | [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)、[Qoder Action](https://docs.qoder.com/en/cli/qoder-action)、[Qoder CLI built-in tools](https://docs.qoder.com/en/cli/sdk/tools) |
 
 ## 官方来源
 
@@ -144,7 +144,7 @@
 - [Kimi Code current slash commands](https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/reference/slash-commands.md)
 - [Kimi Code current built-in tools](https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/reference/tools.md)
 - [Kimi Code current agents](https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/customization/agents.md)
-- [Qoder CLI commands](https://docs.qoder.com/en/cli/command)
+- [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)
 - [Qoder Action](https://docs.qoder.com/en/cli/qoder-action)
 - [Qoder CLI built-in tools](https://docs.qoder.com/en/cli/sdk/tools)
 

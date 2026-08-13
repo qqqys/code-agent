@@ -113,7 +113,7 @@
 | 保存范围 | — |
 | 条件与边界 | 不据此推断底层能力不存在 |
 | 证据状态 | 未确认 |
-| 来源 | [Qoder CLI commands](https://docs.qoder.com/en/cli/command) |
+| 来源 | [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference) |
 
 ## 官方来源
 
@@ -123,7 +123,7 @@
 - [Qwen Code headless Goal workflows](https://github.com/QwenLM/qwen-code/blob/48d37cdf704dbe4c5254cc4b31c2d62f1351bff1/docs/users/features/headless.md)
 - [Qwen Code Goal v3 adoption in ACP sessions commit](https://github.com/QwenLM/qwen-code/commit/05079297d26c9c42013c3699743350d1d272fac2)
 - [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/reference/slash-commands.md)
-- [Qoder CLI commands](https://docs.qoder.com/en/cli/command)
+- [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)
 
 ## 关联能力
 

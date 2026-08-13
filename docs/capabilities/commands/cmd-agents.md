@@ -109,7 +109,7 @@
 | 保存范围 | 定义保存在项目、用户、插件或启动参数 scope |
 | 条件与边界 | 无额外条件 |
 | 证据状态 | 官方确认 |
-| 来源 | [Qoder CLI commands](https://docs.qoder.com/en/cli/command)、[Qoder CLI Subagent](https://docs.qoder.com/en/cli/subagent) |
+| 来源 | [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)、[Qoder CLI Subagent](https://docs.qoder.com/en/cli/subagent) |
 
 ## 官方来源
 
@@ -120,7 +120,7 @@
 - [Qwen Code commands documentation](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/commands.md)
 - [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/412eae24b48ff16f54166c2b17eb4d4a9cdcdd1e/docs/users/features/sub-agents.md)
 - [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/reference/slash-commands.md)
-- [Qoder CLI commands](https://docs.qoder.com/en/cli/command)
+- [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)
 - [Qoder CLI Subagent](https://docs.qoder.com/en/cli/subagent)
 
 ## 关联能力

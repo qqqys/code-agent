@@ -118,7 +118,7 @@
 | 适用界面 | 本页以 Qoder CLI TUI 为主；只在 Agent SDK 提供的能力会明确标为 SDK 条件项。 |
 | 条件与边界 | 保留为未确认，直到官方 CLI 文档明确列出上下文已用/剩余或内容分类视图。 |
 | 证据状态 | 未确认 |
-| 来源 | [Qoder CLI commands](https://docs.qoder.com/en/cli/command) |
+| 来源 | [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference) |
 
 ## 官方来源
 
@@ -130,7 +130,7 @@
 - [Qwen Code current settings](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/configuration/settings.md)
 - [Kimi Code current slash commands](https://github.com/MoonshotAI/kimi-code/blob/7c919f0376c0331d0d057ef3643c7adcc2c55802/docs/zh/reference/slash-commands.md)
 - [Kimi Code current sessions](https://github.com/MoonshotAI/kimi-code/blob/7c919f0376c0331d0d057ef3643c7adcc2c55802/docs/zh/guides/sessions.md)
-- [Qoder CLI commands](https://docs.qoder.com/en/cli/command)
+- [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)
 
 ## 关联能力
 

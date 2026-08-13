@@ -118,7 +118,7 @@
 | 安全与管理 | 不涉及额外凭据；仍受模型与计划权限约束。 |
 | 条件与边界 | 可选档位依模型目录和账号权益。 |
 | 证据状态 | 官方确认 |
-| 来源 | [Qoder CLI model configuration](https://docs.qoder.com/en/cli/model)、[Qoder CLI commands](https://docs.qoder.com/en/cli/command) |
+| 来源 | [Qoder CLI model configuration](https://docs.qoder.com/en/cli/model)、[Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference) |
 
 ## 官方来源
 
@@ -135,7 +135,7 @@
 - [Kimi Code current environment variables](https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/configuration/env-vars.md)
 - [Kimi Code current configuration](https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/configuration/config-files.md)
 - [Qoder CLI model configuration](https://docs.qoder.com/en/cli/model)
-- [Qoder CLI commands](https://docs.qoder.com/en/cli/command)
+- [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)
 
 ## 关联能力
 

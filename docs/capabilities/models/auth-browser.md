@@ -118,7 +118,7 @@
 | 安全与管理 | PAT 适合撤销和最小化自动化凭据暴露。 |
 | 条件与边界 | 本地交互登录优先于环境变量 PAT。 |
 | 证据状态 | 官方确认 |
-| 来源 | [Qoder CLI login and quick start](https://docs.qoder.com/en/cli/quick-start)、[Qoder Agent SDK authentication](https://docs.qoder.com/en/cli/sdk/authentication)、[Qoder CLI commands](https://docs.qoder.com/en/cli/command) |
+| 来源 | [Qoder CLI login and quick start](https://docs.qoder.com/en/cli/quick-start)、[Qoder Agent SDK authentication](https://docs.qoder.com/en/cli/sdk/authentication)、[Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference) |
 
 ## 官方来源
 
@@ -134,7 +134,7 @@
 - [Kimi Code current data locations](https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/configuration/data-locations.md)
 - [Qoder CLI login and quick start](https://docs.qoder.com/en/cli/quick-start)
 - [Qoder Agent SDK authentication](https://docs.qoder.com/en/cli/sdk/authentication)
-- [Qoder CLI commands](https://docs.qoder.com/en/cli/command)
+- [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)
 
 ## 关联能力
 
