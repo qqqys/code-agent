@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-08-13',
+  updatedAt: '2026-08-14',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -177,6 +177,14 @@ window.matrixData = {
     'claude-messaging-v225': {
       label: 'Claude Code v2.1.225 changelog (SendMessage by name)',
       url: 'https://github.com/anthropics/claude-code/blob/53f9910f6ef0/CHANGELOG.md',
+    },
+    'claude-messaging-v229': {
+      label: 'Claude Code v2.1.229 changelog (ListAgents status labels)',
+      url: 'https://github.com/anthropics/claude-code/blob/992381936817/CHANGELOG.md',
+    },
+    'claude-messaging-v232': {
+      label: 'Claude Code v2.1.232 changelog (@ mentions and bare-name delivery)',
+      url: 'https://github.com/anthropics/claude-code/blob/1f6015b5d578/CHANGELOG.md',
     },
     'claude-self-hosted': {
       label: 'Claude Code self-hosted environments',
@@ -1432,7 +1440,7 @@ window.matrixData = {
       category: 'sessions',
       capability: '跨会话消息',
       description: '发现其他会话、后台 Agent 或队友并互相发送消息。',
-      values: { claude: '`/list-agents` · `/peers` · `SendMessage`/`ListAgents` · `crossSessionInbound`', codex: '官方命令与文档未列出会话间消息', qwen: '`send_message` · `list_agents`；限当前会话后台 Agent', kimi: '官方命令表未列出会话间消息', qoder: '条件：`QODER_AGENT_TEAMS=1` Agent Teams `SendMessage`（beta，单会话内）' },
+      values: { claude: '`/list-agents` · `/peers` · `SendMessage`/`ListAgents` · `@` 会话名提及 · `crossSessionInbound`', codex: '官方命令与文档未列出会话间消息', qwen: '`send_message` · `list_agents`；限当前会话后台 Agent', kimi: '官方命令表未列出会话间消息', qoder: '条件：`QODER_AGENT_TEAMS=1` Agent Teams `SendMessage`（beta，单会话内）' },
     },
     {
       id: 'extension-mcp',
