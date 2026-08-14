@@ -334,11 +334,18 @@
       excludes: ['执行后的结果', '持久记忆目录', '工具权限'],
       facts: [
         '命名 Agent 通常以任务描述和自身系统提示词启动，不自动复制完整父会话。',
+        'Claude Code 自 v2.1.232 起在交互会话默认开启 Fork 模式：Fork 继承派生时刻的完整父对话并共享主会话提示词缓存；`-p` 非交互与 Agent SDK 默认关闭。',
         'Qwen Code Fork 可继承全部父历史或最近若干个真实用户轮次。',
       ],
       notes: {
-        claude:
-          '收到 Agent 正文形成的系统提示词、基础环境信息和父 Agent 传入的任务；不复制完整 Claude Code 系统提示词。',
+        claude: {
+          behavior:
+            '命名 Subagent 从 Claude 撰写的委派任务摘要、自身定义的系统提示词和基础环境信息启动，不复制完整 Claude Code 系统提示词。Claude 也可通过 Agent 工具请求 `fork` 类型派生 Fork，用户可用 `/subtask` 加任务直接启动 Fork（不受 Fork 模式开关限制）；Fork 自身的工具调用不进入主会话，只有最终结果作为消息返回主会话。',
+          inheritance:
+            '命名 Subagent 使用独立上下文。Fork 继承派生时刻主会话的全部对话，系统提示词、工具与模型和主会话相同，首个请求复用主会话提示词缓存。',
+          conditions:
+            '插件分发的 Agent 会忽略 `hooks`、`mcpServers`、`permissionMode`。Fork 模式在交互会话默认开启（v2.1.232 起），`-p` 非交互与 Agent SDK 默认关闭；`CLAUDE_CODE_FORK_SUBAGENT=1` 对非交互与 SDK 也开启，`=0` 在所有会话类型关闭。',
+        },
         codex:
           '父线程提供委派描述，并由 Agent 文件的 `developer_instructions` 定义角色行为。',
         qwen:
@@ -349,6 +356,9 @@
           '普通 Subagent 接收任务描述；`initialPrompt` 只在定义通过 `--agent` 作为会话 Agent 时自动提交。',
       },
       related: ['agent-context', 'agent-skills', 'agent-result'],
+      overrides: {
+        claude: { sources: ['claude-agents', 'claude-subagent-fork-v232'] },
+      },
     }),
 
     'agent-result': createDetail({
@@ -384,11 +394,16 @@
       excludes: ['普通 Shell 后台进程', '多会话云任务', 'Swarm 的内部算法'],
       facts: [
         '五家都能并行处理独立子任务，但默认前后台策略和显式开关不同。',
+        'Claude Code 自 v2.1.232 起在交互会话默认开启 Fork 模式：Fork 与命名 Subagent 一律后台运行，Claude 不能请求前台。',
         '后台 Agent 的审批、完成通知和恢复能力必须分别核对，不能只按“支持后台”推断。',
       ],
       notes: {
-        claude:
-          '前台会阻塞主会话；后台与主会话并发。当前版本后台权限提示可回到主会话处理。',
+        claude: {
+          behavior:
+            '前台会阻塞主会话；后台与主会话并发。Fork 模式开启时（交互会话自 v2.1.232 起默认开启），Fork 与命名 Subagent 一律后台运行，Claude 不能请求前台；Fork 模式关闭时默认后台，Claude 在需要先拿到结果时改用前台，frontmatter `background: true` 可把指定 Subagent 固定在后台。',
+          conditions:
+            '`CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` 在所有会话类型与 Fork 模式状态下强制前台；进程内 Agent Team 队友派生的 Subagent 固定前台运行。后台命名 Subagent 的权限提示出现在主会话，Fork 的权限提示出现在终端。插件分发的 Agent 会忽略 `hooks`、`mcpServers`、`permissionMode`。',
+        },
         codex:
           '支持多个并发 Agent 线程；父线程可等待全部结果，也可在 CLI 中切换查看。',
         qwen:
@@ -399,6 +414,9 @@
           '`background` 控制默认后台行为，但需要启用后台 Subagent 会话；独立任务可并行派发。',
       },
       related: ['agent-result', 'agent-limits', 'agent-context'],
+      overrides: {
+        claude: { sources: ['claude-agents', 'claude-subagent-fork-v232'] },
+      },
     }),
 
     'agent-model': createDetail({
