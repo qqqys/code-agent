@@ -186,6 +186,10 @@ window.matrixData = {
       label: 'Claude Code v2.1.232 changelog (@ mentions and bare-name delivery)',
       url: 'https://github.com/anthropics/claude-code/blob/1f6015b5d578/CHANGELOG.md',
     },
+    'claude-subagent-fork-v232': {
+      label: 'Claude Code v2.1.232 changelog (subagent forking by default)',
+      url: 'https://github.com/anthropics/claude-code/blob/1f6015b5d578/CHANGELOG.md',
+    },
     'claude-self-hosted': {
       label: 'Claude Code self-hosted environments',
       url: 'https://code.claude.com/docs/en/self-hosted-environments',
@@ -1229,7 +1233,7 @@ window.matrixData = {
       category: 'subagents',
       capability: '初始上下文',
       description: '创建 Agent 时传入的信息范围。',
-      values: { claude: '任务描述；可预载 Skills', codex: '父任务与委派描述', qwen: '命名 Agent 接收任务提示；Fork 可继承最近若干轮或全部', kimi: '只接收任务提示', qoder: '任务提示；可设 `initialPrompt`' },
+      values: { claude: '任务描述；可预载 Skills；Fork 继承完整对话与提示词缓存（v2.1.232 起交互会话默认开启）', codex: '父任务与委派描述', qwen: '命名 Agent 接收任务提示；Fork 可继承最近若干轮或全部', kimi: '只接收任务提示', qoder: '任务提示；可设 `initialPrompt`' },
     },
     {
       id: 'agent-result',
@@ -1243,7 +1247,7 @@ window.matrixData = {
       category: 'subagents',
       capability: '后台与并行',
       description: 'Agent 是否能在主会话继续交互时并发执行。',
-      values: { claude: '支持后台与并行', codex: '支持并发线程', qwen: '命名 Agent 默认后台；可设前台', kimi: '支持后台与并行', qoder: '`background` 可配置；支持并行' },
+      values: { claude: '支持后台与并行；Fork 模式开启时统一后台（v2.1.232 起交互会话默认开启）', codex: '支持并发线程', qwen: '命名 Agent 默认后台；可设前台', kimi: '支持后台与并行', qoder: '`background` 可配置；支持并行' },
     },
     {
       id: 'agent-model',

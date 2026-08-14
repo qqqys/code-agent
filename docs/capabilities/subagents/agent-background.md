@@ -12,7 +12,7 @@ Subagent 是否能与主会话并发执行，以及前台等待和后台通知�
 
 | 产品 | 结论 | 证据状态 |
 | --- | --- | --- |
-| Claude Code | 支持后台与并行 | 官方确认 |
+| Claude Code | 支持后台与并行；Fork 模式开启时统一后台（v2.1.232 起交互会话默认开启） | 官方确认 |
 | Codex | 支持并发线程 | 官方确认 |
 | Qwen Code | 命名 Agent 默认后台；可设前台 | 源码确认 |
 | Kimi Code | 支持后台与并行 | 官方确认 |
@@ -35,7 +35,8 @@ Subagent 是否能与主会话并发执行，以及前台等待和后台通知�
 ## 跨产品事实
 
 1. 五家都能并行处理独立子任务，但默认前后台策略和显式开关不同。
-2. 后台 Agent 的审批、完成通知和恢复能力必须分别核对，不能只按“支持后台”推断。
+2. Claude Code 自 v2.1.232 起在交互会话默认开启 Fork 模式：Fork 与命名 Subagent 一律后台运行，Claude 不能请求前台。
+3. 后台 Agent 的审批、完成通知和恢复能力必须分别核对，不能只按“支持后台”推断。
 
 ## 逐产品记录
 
@@ -43,17 +44,17 @@ Subagent 是否能与主会话并发执行，以及前台等待和后台通知�
 
 | 字段 | 记录 |
 | --- | --- |
-| 矩阵结论 | 支持后台与并行 |
+| 矩阵结论 | 支持后台与并行；Fork 模式开启时统一后台（v2.1.232 起交互会话默认开启） |
 | 入口与配置 | 自然语言自动委派或点名；定义文件位于 Agent 目录，也可用 `--agents` 临时注入、用 `--agent` 作为会话主 Agent。 |
 | 定义格式 | Markdown 正文 + YAML frontmatter；正文作为 Subagent 系统提示词。 |
-| 具体行为 | 前台会阻塞主会话；后台与主会话并发。当前版本后台权限提示可回到主会话处理。 |
+| 具体行为 | 前台会阻塞主会话；后台与主会话并发。Fork 模式开启时（交互会话自 v2.1.232 起默认开启），Fork 与命名 Subagent 一律后台运行，Claude 不能请求前台；Fork 模式关闭时默认后台，Claude 在需要先拿到结果时改用前台，frontmatter `background: true` 可把指定 Subagent 固定在后台。 |
 | 作用域 | 组织托管、当前进程、项目、用户、插件五级来源；同名定义按官方优先级解析。 |
 | 上下文与继承 | 命名 Subagent 使用独立上下文；接收自身系统提示词、基础环境信息和父 Agent 给出的任务。 |
 | 工作区隔离 | 默认从主会话当前目录工作；`isolation: worktree` 可创建临时 Git Worktree。 |
 | 运行限制 | 可配置 `maxTurns`；官方 Subagent 字段表未列出单 Agent 超时字段。 |
-| 条件与边界 | 插件分发的 Agent 会忽略 `hooks`、`mcpServers`、`permissionMode`。 |
+| 条件与边界 | `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` 在所有会话类型与 Fork 模式状态下强制前台；进程内 Agent Team 队友派生的 Subagent 固定前台运行。后台命名 Subagent 的权限提示出现在主会话，Fork 的权限提示出现在终端。插件分发的 Agent 会忽略 `hooks`、`mcpServers`、`permissionMode`。 |
 | 证据状态 | 官方确认 |
-| 来源 | [Claude Code Subagents](https://code.claude.com/docs/en/sub-agents) |
+| 来源 | [Claude Code Subagents](https://code.claude.com/docs/en/sub-agents)、[Claude Code v2.1.232 changelog (subagent forking by default)](https://github.com/anthropics/claude-code/blob/1f6015b5d578/CHANGELOG.md) |
 
 ### Codex
 
@@ -122,6 +123,7 @@ Subagent 是否能与主会话并发执行，以及前台等待和后台通知�
 ## 官方来源
 
 - [Claude Code Subagents](https://code.claude.com/docs/en/sub-agents)
+- [Claude Code v2.1.232 changelog (subagent forking by default)](https://github.com/anthropics/claude-code/blob/1f6015b5d578/CHANGELOG.md)
 - [Codex Subagents](https://learn.chatgpt.com/docs/agent-configuration/subagents)
 - [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/412eae24b48ff16f54166c2b17eb4d4a9cdcdd1e/docs/users/features/sub-agents.md)
 - [Kimi Code Agents](https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/customization/agents.md)

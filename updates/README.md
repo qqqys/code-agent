@@ -4,6 +4,7 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-08-14 | [Claude Code Subagent Fork 模式默认开启](./2026-08-14-Claude-Subagent-Fork模式默认开启.md) |
 | 2026-08-14 | [Qwen Code Web Shell 工作区文件上传](./2026-08-14-Qwen-Web-Shell工作区文件上传.md) |
 | 2026-08-14 | [Claude Code 跨会话消息 @ 提及与裸名投递](./2026-08-14-Claude跨会话消息@提及与裸名投递.md) |
 | 2026-08-13 | [多模型或多代理模式：Qwen `/coordinate` 随 v0.21.11 发布，Qoder 补录 `/batch`](./2026-08-13-多代理模式-Qwen-coordinate发布与Qoder-batch.md) |

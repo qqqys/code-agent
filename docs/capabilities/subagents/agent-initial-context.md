@@ -12,7 +12,7 @@ Subagent 启动时收到的任务、系统提示词、父会话历史和环境�
 
 | 产品 | 结论 | 证据状态 |
 | --- | --- | --- |
-| Claude Code | 任务描述；可预载 Skills | 官方确认 |
+| Claude Code | 任务描述；可预载 Skills；Fork 继承完整对话与提示词缓存（v2.1.232 起交互会话默认开启） | 官方确认 |
 | Codex | 父任务与委派描述 | 官方确认 |
 | Qwen Code | 命名 Agent 接收任务提示；Fork 可继承最近若干轮或全部 | 源码确认 |
 | Kimi Code | 只接收任务提示 | 官方确认 |
@@ -35,7 +35,8 @@ Subagent 启动时收到的任务、系统提示词、父会话历史和环境�
 ## 跨产品事实
 
 1. 命名 Agent 通常以任务描述和自身系统提示词启动，不自动复制完整父会话。
-2. Qwen Code Fork 可继承全部父历史或最近若干个真实用户轮次。
+2. Claude Code 自 v2.1.232 起在交互会话默认开启 Fork 模式：Fork 继承派生时刻的完整父对话并共享主会话提示词缓存；`-p` 非交互与 Agent SDK 默认关闭。
+3. Qwen Code Fork 可继承全部父历史或最近若干个真实用户轮次。
 
 ## 逐产品记录
 
@@ -43,17 +44,17 @@ Subagent 启动时收到的任务、系统提示词、父会话历史和环境�
 
 | 字段 | 记录 |
 | --- | --- |
-| 矩阵结论 | 任务描述；可预载 Skills |
+| 矩阵结论 | 任务描述；可预载 Skills；Fork 继承完整对话与提示词缓存（v2.1.232 起交互会话默认开启） |
 | 入口与配置 | 自然语言自动委派或点名；定义文件位于 Agent 目录，也可用 `--agents` 临时注入、用 `--agent` 作为会话主 Agent。 |
 | 定义格式 | Markdown 正文 + YAML frontmatter；正文作为 Subagent 系统提示词。 |
-| 具体行为 | 收到 Agent 正文形成的系统提示词、基础环境信息和父 Agent 传入的任务；不复制完整 Claude Code 系统提示词。 |
+| 具体行为 | 命名 Subagent 从 Claude 撰写的委派任务摘要、自身定义的系统提示词和基础环境信息启动，不复制完整 Claude Code 系统提示词。Claude 也可通过 Agent 工具请求 `fork` 类型派生 Fork，用户可用 `/subtask` 加任务直接启动 Fork（不受 Fork 模式开关限制）；Fork 自身的工具调用不进入主会话，只有最终结果作为消息返回主会话。 |
 | 作用域 | 组织托管、当前进程、项目、用户、插件五级来源；同名定义按官方优先级解析。 |
-| 上下文与继承 | 命名 Subagent 使用独立上下文；接收自身系统提示词、基础环境信息和父 Agent 给出的任务。 |
+| 上下文与继承 | 命名 Subagent 使用独立上下文。Fork 继承派生时刻主会话的全部对话，系统提示词、工具与模型和主会话相同，首个请求复用主会话提示词缓存。 |
 | 工作区隔离 | 默认从主会话当前目录工作；`isolation: worktree` 可创建临时 Git Worktree。 |
 | 运行限制 | 可配置 `maxTurns`；官方 Subagent 字段表未列出单 Agent 超时字段。 |
-| 条件与边界 | 插件分发的 Agent 会忽略 `hooks`、`mcpServers`、`permissionMode`。 |
+| 条件与边界 | 插件分发的 Agent 会忽略 `hooks`、`mcpServers`、`permissionMode`。Fork 模式在交互会话默认开启（v2.1.232 起），`-p` 非交互与 Agent SDK 默认关闭；`CLAUDE_CODE_FORK_SUBAGENT=1` 对非交互与 SDK 也开启，`=0` 在所有会话类型关闭。 |
 | 证据状态 | 官方确认 |
-| 来源 | [Claude Code Subagents](https://code.claude.com/docs/en/sub-agents) |
+| 来源 | [Claude Code Subagents](https://code.claude.com/docs/en/sub-agents)、[Claude Code v2.1.232 changelog (subagent forking by default)](https://github.com/anthropics/claude-code/blob/1f6015b5d578/CHANGELOG.md) |
 
 ### Codex
 
@@ -122,6 +123,7 @@ Subagent 启动时收到的任务、系统提示词、父会话历史和环境�
 ## 官方来源
 
 - [Claude Code Subagents](https://code.claude.com/docs/en/sub-agents)
+- [Claude Code v2.1.232 changelog (subagent forking by default)](https://github.com/anthropics/claude-code/blob/1f6015b5d578/CHANGELOG.md)
 - [Codex Subagents](https://learn.chatgpt.com/docs/agent-configuration/subagents)
 - [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/412eae24b48ff16f54166c2b17eb4d4a9cdcdd1e/docs/users/features/sub-agents.md)
 - [Kimi Code Agents](https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/customization/agents.md)

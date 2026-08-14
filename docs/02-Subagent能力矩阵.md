@@ -21,11 +21,11 @@
 | 能力 | Claude Code | Codex | Qwen Code | Kimi Code | Qoder CLI |
 | --- | --- | --- | --- | --- | --- |
 | 独立上下文 | 是 | 是 | 命名 Agent 是 | 是 | 是 |
-| 初始上下文 | 父任务传入的任务描述；可预载 Skills | 父任务与委派描述 | 命名 Agent 使用任务提示；Fork 可继承全部或最近若干轮 | 只接收任务提示 | 任务提示，可配置 `initialPrompt` |
+| 初始上下文 | 父任务传入的任务描述；可预载 Skills；Fork 继承完整对话与提示词缓存（v2.1.232 起交互会话默认开启） | 父任务与委派描述 | 命名 Agent 使用任务提示；Fork 可继承全部或最近若干轮 | 只接收任务提示 | 任务提示，可配置 `initialPrompt` |
 | Fork 会话 | `/fork` 创建独立后台会话 | `/fork` 创建会话副本 | Fork Agent 继承父上下文 | `/fork` 创建副本；fork 后停留原会话 | 未确认 Slash Fork |
 | 结果回传 | 返回父会话 | 返回主线程汇总 | 命名 Agent 返回；Fork 不自动回传给父模型 | 返回父会话 | 返回父会话 |
-| 后台运行 | 支持 | 支持并发线程 | 命名 Agent 默认后台；可设前台 | 支持后台 | `background` 可配置 |
-| 前台运行 | 支持 | 支持 | `run_in_background: false` | 支持 | `background: false` |
+| 后台运行 | 支持；Fork 模式开启时 Fork 与命名 Subagent 统一后台（v2.1.232 起交互会话默认开启） | 支持并发线程 | 命名 Agent 默认后台；可设前台 | 支持后台 | `background` 可配置 |
+| 前台运行 | 支持；`CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` 强制前台 | 支持 | `run_in_background: false` | 支持 | `background: false` |
 | 恢复 Agent | 支持恢复 | `/agent` 检查和切换线程 | 任务列表与 UI 状态；Fork 独立 | Agent 实例可恢复 | 支持任务与 Agent 管理 |
 | 并行执行 | 支持 | `max_concurrent_threads_per_session` | 支持多个命名 Agent | 支持；另有 `/swarm` | 支持 |
 
@@ -61,6 +61,7 @@
 ## 来源
 
 - [Claude Code Subagents](https://code.claude.com/docs/en/sub-agents)
+- [Claude Code v2.1.232 更新日志（Subagent Fork 默认开启）](https://github.com/anthropics/claude-code/blob/1f6015b5d578/CHANGELOG.md)
 - [Codex Subagents](https://learn.chatgpt.com/docs/agent-configuration/subagents)
 - [Codex configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference)
 - [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/412eae24b48ff16f54166c2b17eb4d4a9cdcdd1e/docs/users/features/sub-agents.md)
