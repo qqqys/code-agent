@@ -14,7 +14,7 @@
 | --- | --- | --- |
 | Claude Code | claude.ai/code · Remote Control | 官方确认 |
 | Codex | ChatGPT Web · Codex Cloud | 官方确认 |
-| Qwen Code | `qwen serve` 内置 Web Shell；条件：图片拖拽/粘贴输入（main 分支，尚未发布） | 条件项 |
+| Qwen Code | `qwen serve` 内置 Web Shell；条件：图片拖拽/粘贴输入（v0.21.9 起）· 工作区文件上传（v0.21.12-preview.3 预览通道） | 条件项 |
 | Kimi Code | `kimi web` 本地 Web UI | 条件项 |
 | Qoder CLI | Qoder Web · Cloud Agents Console | 官方确认 |
 
@@ -37,7 +37,7 @@
 1. Claude、Codex 与 Qoder 提供账号托管的 Web Surface；Qwen 和 Kimi 当前提供由本地服务进程托管的 Web UI。
 2. 本地 Web UI 能否从其他设备访问取决于网络、绑定地址、TLS 与 token；它不自动成为厂商托管云服务。
 3. Web Surface 的工具、命令和文件位置取决于会话实际运行在本机还是云端。
-4. Qwen Web Shell 的 main 分支源码支持向输入区拖拽或粘贴图片并发送只含图片的 prompt；Claude、Codex、Kimi、Qoder 的官方 Web 文档未列图片拖拽、粘贴或附件上传。
+4. Qwen Web Shell 自 v0.21.9 支持图片拖拽/粘贴输入与图片-only prompt，自 v0.21.12-preview.3 预览通道支持把本地文件直传进工作区；Claude、Codex、Kimi、Qoder 的官方 Web 文档未列浏览器侧图片拖拽、粘贴或本地文件上传（Claude 可由 CLI `claude --cloud` 把整个本地仓库打包上传到云会话，不属于浏览器侧文件上传）。
 
 ## 逐产品记录
 
@@ -77,17 +77,17 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 矩阵结论 | `qwen serve` 内置 Web Shell；条件：图片拖拽/粘贴输入（main 分支，尚未发布） |
-| 入口与调用 | `qwen serve` 根路径自带 Web Shell；`--open` 自动打开浏览器，`--no-web` 可禁用；条件：图片输入经输入区拖拽或粘贴进入（main 分支）。 |
-| 协议与输出 | 同源静态 Web App 通过 HTTP REST 与 SSE 连接本地 daemon；图片以 base64 附件随 prompt 载荷提交，daemon、ACP 与公开 Web Shell API 协议不变。 |
-| 具体行为 | 提供聊天、Diff、提交历史、工具调用、权限请求、会话与工作区管理；条件：main 分支可向输入区拖拽或粘贴图片（`image/png`、`image/jpeg`、`image/gif`、`image/webp`、`image/bmp`；SVG、TIFF、HEIC、PDF、目录与远程 URL 拒绝），`image/x-bmp`/`image/x-ms-bmp` 归一为 BMP，并支持只含图片、不带文字的 prompt；BMP 在 Anthropic Provider 路径降级为文本说明。 |
-| 会话与状态 | 会话由本地 daemon 和磁盘 transcript 管理；多浏览器客户端可共享同一会话；条件：排队 prompt 的图片附件在重试/编辑流程中恢复；admission 结果未知时输入区进入只读锁定，需手动丢弃或恢复，恢复不自动发送；页面重载后恢复的排队项仅含摘要、不含图片数据。 |
+| 矩阵结论 | `qwen serve` 内置 Web Shell；条件：图片拖拽/粘贴输入（v0.21.9 起）· 工作区文件上传（v0.21.12-preview.3 预览通道） |
+| 入口与调用 | `qwen serve` 根路径自带 Web Shell；`--open` 自动打开浏览器，`--no-web` 可禁用；条件：图片输入经输入区拖拽或粘贴进入（v0.21.9 起）；工作区文件上传经输入区拖入普通文件或 `@` 文件面板的“上传文件”进入（v0.21.12-preview.3 预览通道）。 |
+| 协议与输出 | 同源静态 Web App 通过 HTTP REST 与 SSE 连接本地 daemon；图片以 base64 附件随 prompt 载荷提交；文件上传走独立的二进制路由 `POST /file/upload`（主工作区）与 `POST /workspaces/:workspace/file/upload`（qualified 工作区），要求 `Content-Type: application/octet-stream`（否则 415），不复用文本写入路由；v1 无 ACP-HTTP 对等上传方法。 |
+| 具体行为 | 提供聊天、Diff、提交历史、工具调用、权限请求、会话与工作区管理；条件：可向输入区拖拽或粘贴图片（`image/png`、`image/jpeg`、`image/gif`、`image/webp`、`image/bmp`；SVG、TIFF、HEIC、PDF、目录与远程 URL 拒绝），`image/x-bmp`/`image/x-ms-bmp` 归一为 BMP，并支持只含图片、不带文字的 prompt；BMP 在 Anthropic Provider 路径降级为文本说明。输入区拖入普通文件或混合批次走工作区上传：拖放上传到目标工作区根目录，`@` 面板“上传文件”上传到当前浏览目录；多文件按顺序上传，支持进度与取消；重名时在扩展名前自动插入 ` (N)` 编号（`report.pdf → report (1).pdf`、`README → README (1)`、`.env → .env (1)`，最多 1000 次尝试），上传从不覆盖已有文件；仅包含受支持图片的批次仍走图片附件流程。 |
+| 会话与状态 | 会话由本地 daemon 和磁盘 transcript 管理；多浏览器客户端可共享同一会话；条件：排队 prompt 的图片附件在重试/编辑流程中恢复；admission 结果未知时输入区进入只读锁定，需手动丢弃或恢复，恢复不自动发送；页面重载后恢复的排队项仅含摘要、不含图片数据。上传进度显示在输入区上方，成功条目三秒后消失，结果成为可移除的行内文件标签（使用服务端确认的路径）；TypeScript SDK 的 `uploadWorkspaceFile`（`DaemonClient` 与 `WorkspaceDaemonClient`）提供同一上传操作，支持进度回调、取消与超时。 |
 | 工具与能力 | Web Shell 使用 qwen serve 背后的 ACP 运行时和本地工具。 |
 | 认证与权限 | loopback 可无 token；共享或非 loopback 访问必须使用 bearer token。 |
 | 运行位置 | Web UI 与 API 由用户机器上的 qwen serve 提供，不是 Qwen 托管 Web 产品。 |
-| 条件与边界 | 当前 Daemon 为实验性本地部署；远程暴露需要自行处理网络和安全边界。图片输入于 2026-08-10 合入 main，尚未进入 Release；官方用户文档未描述该输入方式，仍把 prompt 路径图片/文件附件列为已知缺口（`MessageEmitter` 只渲染文本）。客户端单批 base64 预算 8 MiB、并发读取上限 4，超预算按 `too-large` 拒绝；daemon 请求体上限 10 MB（超出返回 413）；Core 内联媒体默认上限 10 MiB（解码后字节，可经 daemon 环境变量配置）。 |
+| 条件与边界 | 当前 Daemon 为实验性本地部署；远程暴露需要自行处理网络和安全边界。图片输入于 2026-08-10 合入 main 并随 v0.21.9（2026-08-10）发布；工作区文件上传于 2026-08-13 合入 main（提交 `a8bcaefea72d`），随 v0.21.12-preview.3（2026-08-14）预览通道发布，稳定通道尚未发布。文件上传需 daemon 声明 `workspace_file_upload` 能力（qualified 工作区另需 `workspace_qualified_rest_core`），上限经 `limits.maxWorkspaceFileUploadBytes` 通告；不声明该能力的旧 daemon 会隐藏两个上传入口。单文件上限 50 MiB（`MAX_UPLOAD_BYTES`，与 5 MiB 的 `MAX_WRITE_BYTES` 文本写入上限相互独立，当前不可配置）；单批最多 100 个文件，文件名上限 255 字节，最多 4 个并发上传，饱和时返回 429 `upload_busy`；超出上限返回 413 `file_too_large`；不受信任、未知或 draining 的工作区返回 403 且不回退主工作区；新文件以 `0o600` 权限经临时文件原子发布，中断或取消不暴露部分文件，取消为尽力而为（服务端已开始发布时仍可能写完整文件）；不支持断点续传、分块上传、文件夹上传与原地覆盖。官方用户文档尚未描述图片输入与文件上传，仍把 prompt 路径图片/文件附件列为已知缺口（`MessageEmitter` 只渲染文本）。客户端单批 base64 预算 8 MiB、并发读取上限 4，超预算按 `too-large` 拒绝；daemon 请求体上限 10 MB（超出返回 413）；Core 内联媒体默认上限 10 MiB（解码后字节，可经 daemon 环境变量配置）。 |
 | 证据状态 | 条件项 |
-| 来源 | [Qwen Code current daemon and Web Shell](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/qwen-serve.md)、[Qwen Code Web Shell image drag and drop commit](https://github.com/QwenLM/qwen-code/commit/e46586782cf8fc85d535051830bcc743bcd6b47a)、[Qwen Code Web Shell image drag and drop design document](https://github.com/QwenLM/qwen-code/blob/e46586782cf8fc85d535051830bcc743bcd6b47a/docs/design/web-shell/web-shell-image-drag-and-drop.md)、[Qwen Code Web Shell image ingestion source](https://github.com/QwenLM/qwen-code/blob/e46586782cf8fc85d535051830bcc743bcd6b47a/packages/web-shell/client/utils/imageIngestion.ts) |
+| 来源 | [Qwen Code current daemon and Web Shell](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/qwen-serve.md)、[Qwen Code Web Shell image drag and drop commit](https://github.com/QwenLM/qwen-code/commit/e46586782cf8fc85d535051830bcc743bcd6b47a)、[Qwen Code Web Shell image drag and drop design document](https://github.com/QwenLM/qwen-code/blob/e46586782cf8fc85d535051830bcc743bcd6b47a/docs/design/web-shell/web-shell-image-drag-and-drop.md)、[Qwen Code Web Shell image ingestion source](https://github.com/QwenLM/qwen-code/blob/e46586782cf8fc85d535051830bcc743bcd6b47a/packages/web-shell/client/utils/imageIngestion.ts)、[Qwen Code v0.21.9 release notes](https://github.com/QwenLM/qwen-code/releases/tag/v0.21.9)、[Qwen Code Web Shell workspace file upload commit](https://github.com/QwenLM/qwen-code/commit/a8bcaefea72daa528faba0b7aa1189e4a695cf01)、[Qwen Code Web Shell workspace file upload design document](https://github.com/QwenLM/qwen-code/blob/a8bcaefea72daa528faba0b7aa1189e4a695cf01/docs/design/web-shell-file-upload.md)、[Qwen Code Web Shell upload policy source](https://github.com/QwenLM/qwen-code/blob/a8bcaefea72daa528faba0b7aa1189e4a695cf01/packages/cli/src/serve/fs/policy.ts)、[Qwen Code daemon workspace file upload capability source](https://github.com/QwenLM/qwen-code/blob/a8bcaefea72daa528faba0b7aa1189e4a695cf01/packages/cli/src/serve/capabilities.ts)、[Qwen Code v0.21.12-preview.3 release notes](https://github.com/QwenLM/qwen-code/releases/tag/v0.21.12-preview.3) |
 
 ### Kimi Code
 
@@ -131,6 +131,12 @@
 - [Qwen Code Web Shell image drag and drop commit](https://github.com/QwenLM/qwen-code/commit/e46586782cf8fc85d535051830bcc743bcd6b47a)
 - [Qwen Code Web Shell image drag and drop design document](https://github.com/QwenLM/qwen-code/blob/e46586782cf8fc85d535051830bcc743bcd6b47a/docs/design/web-shell/web-shell-image-drag-and-drop.md)
 - [Qwen Code Web Shell image ingestion source](https://github.com/QwenLM/qwen-code/blob/e46586782cf8fc85d535051830bcc743bcd6b47a/packages/web-shell/client/utils/imageIngestion.ts)
+- [Qwen Code v0.21.9 release notes](https://github.com/QwenLM/qwen-code/releases/tag/v0.21.9)
+- [Qwen Code Web Shell workspace file upload commit](https://github.com/QwenLM/qwen-code/commit/a8bcaefea72daa528faba0b7aa1189e4a695cf01)
+- [Qwen Code Web Shell workspace file upload design document](https://github.com/QwenLM/qwen-code/blob/a8bcaefea72daa528faba0b7aa1189e4a695cf01/docs/design/web-shell-file-upload.md)
+- [Qwen Code Web Shell upload policy source](https://github.com/QwenLM/qwen-code/blob/a8bcaefea72daa528faba0b7aa1189e4a695cf01/packages/cli/src/serve/fs/policy.ts)
+- [Qwen Code daemon workspace file upload capability source](https://github.com/QwenLM/qwen-code/blob/a8bcaefea72daa528faba0b7aa1189e4a695cf01/packages/cli/src/serve/capabilities.ts)
+- [Qwen Code v0.21.12-preview.3 release notes](https://github.com/QwenLM/qwen-code/releases/tag/v0.21.12-preview.3)
 - [Kimi Code current CLI, Headless and Web reference](https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/reference/kimi-command.md)
 - [Qoder Web remote and cloud tasks](https://docs.qoder.com/mobile/web/remote-control)
 - [Qoder CLI Remote Control](https://docs.qoder.com/en/cli/remote-control)
