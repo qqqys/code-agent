@@ -4,6 +4,7 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-08-14 | [Claude Code 跨会话消息 @ 提及与裸名投递](./2026-08-14-Claude跨会话消息@提及与裸名投递.md) |
 | 2026-08-13 | [多模型或多代理模式：Qwen `/coordinate` 随 v0.21.11 发布，Qoder 补录 `/batch`](./2026-08-13-多代理模式-Qwen-coordinate发布与Qoder-batch.md) |
 | 2026-08-13 | [Kimi Code Subagent 模型池（0.36.0，/secondary-model）](./2026-08-13-Kimi-Subagent模型池.md) |
 | 2026-08-13 | [Qwen Code 原生多代理协调（/coordinate 与 Agent Team）](./2026-08-13-Qwen原生多代理协调.md) |
