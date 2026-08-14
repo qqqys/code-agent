@@ -522,6 +522,26 @@ window.matrixData = {
       label: 'Qwen Code Web Shell image ingestion source',
       url: 'https://github.com/QwenLM/qwen-code/blob/e46586782cf8fc85d535051830bcc743bcd6b47a/packages/web-shell/client/utils/imageIngestion.ts',
     },
+    'qwen-web-shell-file-upload-commit': {
+      label: 'Qwen Code Web Shell workspace file upload commit',
+      url: 'https://github.com/QwenLM/qwen-code/commit/a8bcaefea72daa528faba0b7aa1189e4a695cf01',
+    },
+    'qwen-web-shell-file-upload-design': {
+      label: 'Qwen Code Web Shell workspace file upload design document',
+      url: 'https://github.com/QwenLM/qwen-code/blob/a8bcaefea72daa528faba0b7aa1189e4a695cf01/docs/design/web-shell-file-upload.md',
+    },
+    'qwen-web-shell-file-upload-policy': {
+      label: 'Qwen Code Web Shell upload policy source',
+      url: 'https://github.com/QwenLM/qwen-code/blob/a8bcaefea72daa528faba0b7aa1189e4a695cf01/packages/cli/src/serve/fs/policy.ts',
+    },
+    'qwen-web-shell-file-upload-capabilities': {
+      label: 'Qwen Code daemon workspace file upload capability source',
+      url: 'https://github.com/QwenLM/qwen-code/blob/a8bcaefea72daa528faba0b7aa1189e4a695cf01/packages/cli/src/serve/capabilities.ts',
+    },
+    'qwen-v02112-preview3-release': {
+      label: 'Qwen Code v0.21.12-preview.3 release notes',
+      url: 'https://github.com/QwenLM/qwen-code/releases/tag/v0.21.12-preview.3',
+    },
     'qwen-desktop-current': {
       label: 'Qwen Code current Desktop',
       url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/desktop/README.md',
@@ -1615,7 +1635,7 @@ window.matrixData = {
       category: 'surfaces',
       capability: 'Web 界面',
       description: '通过浏览器创建、查看或继续 Agent 会话。',
-      values: { claude: 'claude.ai/code · Remote Control', codex: 'ChatGPT Web · Codex Cloud', qwen: '`qwen serve` 内置 Web Shell；条件：图片拖拽/粘贴输入（main 分支，尚未发布）', kimi: '`kimi web` 本地 Web UI', qoder: 'Qoder Web · Cloud Agents Console' },
+      values: { claude: 'claude.ai/code · Remote Control', codex: 'ChatGPT Web · Codex Cloud', qwen: '`qwen serve` 内置 Web Shell；条件：图片拖拽/粘贴输入（v0.21.9 起）· 工作区文件上传（v0.21.12-preview.3 预览通道）', kimi: '`kimi web` 本地 Web UI', qoder: 'Qoder Web · Cloud Agents Console' },
     },
     {
       id: 'surface-desktop',
