@@ -2,12 +2,12 @@
 
 [返回文档目录](./README.md) · [网页矩阵](https://qqqys.github.io/code-agent/#execution) · [详情目录](./capabilities/execution/)
 
-> 核对日期：2026-08-14
+> 核对日期：2026-08-15
 
 | 能力 | Claude Code | Codex | Qwen Code | Kimi Code | Qoder CLI |
 | --- | --- | --- | --- | --- | --- |
 | [文件读写](./capabilities/execution/execution-files.md) | `Read` · `Edit` · `Write` | 内置读取 · 补丁编辑 · `apply_patch_preserve_line_endings` 换行保留（条件：main 分支，尚未发布） | `read_file` · `edit` · `write_file` | `Read` · `Edit` · `Write` | `Read` · `Edit` · `Write` |
-| [Shell 执行](./capabilities/execution/execution-shell.md) | `Bash` | 统一 PTY Shell | `run_shell_command` | `Bash` | `Bash` · `!` 模式 |
+| [Shell 执行](./capabilities/execution/execution-shell.md) | `Bash` · 条件：Linux Bash 命令内存 cgroup 限制（`CLAUDE_CODE_TOOL_MEMORY_LIMIT`，v2.1.233 引入） | 统一 PTY Shell | `run_shell_command` | `Bash` | `Bash` · `!` 模式 |
 | [代码搜索](./capabilities/execution/execution-search.md) | `Glob` · `Grep` · `LSP` | 内置搜索 · Shell/`rg` | `glob` · `grep_search` · `LSP` | `Glob` · `Grep` | `Glob` · `Grep` |
 | [后台任务](./capabilities/execution/execution-background.md) | `/background` · `/tasks` · `Monitor` | `/ps` · `/stop` | `is_background` · `Ctrl+B` · `/tasks` | `run_in_background` · `/tasks`；条件：`/tasks` 后台 Agent 实时活动（0.35.0 起） | `/tasks` · `TaskOutput` · `TaskStop` |
 | [代码 Review](./capabilities/execution/execution-review.md) | `/review` 为 `/code-review` 别名 · `ultra` 云审查 · GitHub Review | `/review` · GitHub Review | `/review` 内置 Skill · `publish-assets` 证据图 · Web Shell 结构化结果 · `cost-ledger` 成本台账 · `repo-context` 仓库上下文清单 | 自然语言；无内置 `/review` | `/review [instruction]` |
