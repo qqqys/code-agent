@@ -394,6 +394,7 @@
         'Claude Code `/branch` 会切换到新分支，`/fork` 则保留当前会话继续工作。',
         'Qwen Code `/branch` 创建会话分支；`/fork` 创建继承完整对话的后台 Agent。',
         'Kimi Code 0.33.0 起 `/fork` 后停留在原会话；此前版本 fork 后立即切换到派生会话并关闭原会话。',
+        'Kimi Code `/fork` 完成后还会打印可在新终端进程进入 fork 的 `kimi --resume` 命令并复制到剪贴板（条件：main 分支，尚未发布）。',
       ],
       products: {
         claude: command('claude', ['/branch [name]', '/fork [prompt]'], '`/branch` 创建并切换会话分支；`/fork` 复制到独立后台会话而当前会话继续运行。', {
@@ -409,10 +410,11 @@
           mode: '`/fork` 仅交互式',
           persistence: '会话分支和 Fork Agent 独立保存',
         }),
-        kimi: command('kimi', ['/fork'], '基于当前会话派生保留完整对话历史的独立副本；fork 后停留在原会话，原会话后台任务继续运行，副本可随时通过 `/sessions` 打开。', {
-          conditions: '仅空闲时使用；0.33.0 起不再切换到派生会话，此前版本 fork 后立即切换并关闭原会话',
+        kimi: command('kimi', ['/fork'], '基于当前会话派生保留完整对话历史的独立副本；fork 后停留在原会话，原会话后台任务继续运行，副本可随时通过 `/sessions` 打开。fork 完成后打印可在新终端进程进入派生会话的 `kimi --resume` 命令（Windows 用 `pushd` 代替 `cd`），并复制到剪贴板（条件：main 分支，尚未发布）。', {
+          conditions: '仅空闲时使用；0.33.0 起不再切换到派生会话，此前版本 fork 后立即切换并关闭原会话；0.36.1 起在回合运行中 fork 会报错',
           persistence: '派生副本独立保存；副本在打开前不占用运行时会话',
-          sources: ['kimi-commands', 'kimi-fork-stay'],
+          status: '条件项',
+          sources: ['kimi-commands', 'kimi-fork-stay', 'kimi-fork-resume-command', 'kimi-v0361-release'],
         }),
         qoder: unconfirmed('qoder'),
       },

@@ -686,6 +686,14 @@ window.matrixData = {
       label: 'Kimi Code /fork stay-in-session commit',
       url: 'https://github.com/MoonshotAI/kimi-code/commit/54c04bf03ddbeb46d02b2edb460ea091ae194509',
     },
+    'kimi-fork-resume-command': {
+      label: 'Kimi Code /fork resume command print commit',
+      url: 'https://github.com/MoonshotAI/kimi-code/commit/6b72345f8bb03487e3bcc05b541e65484818428c',
+    },
+    'kimi-v0361-release': {
+      label: 'Kimi Code 0.36.1 release notes',
+      url: 'https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%400.36.1',
+    },
     'kimi-agents': {
       label: 'Kimi Code Agents',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/customization/agents.md',
@@ -708,7 +716,7 @@ window.matrixData = {
     },
     'kimi-sessions-current': {
       label: 'Kimi Code current sessions',
-      url: 'https://github.com/MoonshotAI/kimi-code/blob/7c919f0376c0331d0d057ef3643c7adcc2c55802/docs/zh/guides/sessions.md',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/6b72345f8bb03487e3bcc05b541e65484818428c/docs/zh/guides/sessions.md',
     },
     'kimi-commands-current': {
       label: 'Kimi Code current slash commands',
@@ -1423,7 +1431,7 @@ window.matrixData = {
       category: 'sessions',
       capability: '会话分支',
       description: '从当前上下文复制出独立会话。',
-      values: { claude: '`/branch` · `--fork-session`', codex: '`/fork` · `codex exec fork`（条件：main 分支，尚未发布）', qwen: '`/branch`', kimi: '`/fork`', qoder: 'SDK：`resume` + `forkSession`' },
+      values: { claude: '`/branch` · `--fork-session`', codex: '`/fork` · `codex exec fork`（条件：main 分支，尚未发布）', qwen: '`/branch`', kimi: '`/fork` · 条件：fork 后打印 `kimi --resume` 命令并复制到剪贴板（main 分支，尚未发布）', qoder: 'SDK：`resume` + `forkSession`' },
     },
     {
       id: 'session-naming',

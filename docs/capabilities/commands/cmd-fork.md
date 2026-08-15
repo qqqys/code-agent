@@ -15,7 +15,7 @@
 | Claude Code | `/branch [name]`、`/fork [prompt]` | 官方确认 |
 | Codex | `/fork` | 官方确认 |
 | Qwen Code | `/branch`、`/fork <directive>` | 源码确认 |
-| Kimi Code | `/fork` | 官方确认 |
+| Kimi Code | `/fork` | 条件项 |
 | Qoder CLI | 无对应命令 | 未确认 |
 
 ## 比较边界
@@ -39,6 +39,7 @@
 2. Claude Code `/branch` 会切换到新分支，`/fork` 则保留当前会话继续工作。
 3. Qwen Code `/branch` 创建会话分支；`/fork` 创建继承完整对话的后台 Agent。
 4. Kimi Code 0.33.0 起 `/fork` 后停留在原会话；此前版本 fork 后立即切换到派生会话并关闭原会话。
+5. Kimi Code `/fork` 完成后还会打印可在新终端进程进入 fork 的 `kimi --resume` 命令并复制到剪贴板（条件：main 分支，尚未发布）。
 
 ## 逐产品记录
 
@@ -91,12 +92,12 @@
 | 主命令 | `/fork` |
 | 别名 | 无公开别名 |
 | 参数 | 无公开参数 |
-| 执行行为 | 基于当前会话派生保留完整对话历史的独立副本；fork 后停留在原会话，原会话后台任务继续运行，副本可随时通过 `/sessions` 打开。 |
+| 执行行为 | 基于当前会话派生保留完整对话历史的独立副本；fork 后停留在原会话，原会话后台任务继续运行，副本可随时通过 `/sessions` 打开。fork 完成后打印可在新终端进程进入派生会话的 `kimi --resume` 命令（Windows 用 `pushd` 代替 `cd`），并复制到剪贴板（条件：main 分支，尚未发布）。 |
 | 可用模式 | 交互式 CLI |
 | 保存范围 | 派生副本独立保存；副本在打开前不占用运行时会话 |
-| 条件与边界 | 仅空闲时使用；0.33.0 起不再切换到派生会话，此前版本 fork 后立即切换并关闭原会话 |
-| 证据状态 | 官方确认 |
-| 来源 | [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/reference/slash-commands.md)、[Kimi Code /fork stay-in-session commit](https://github.com/MoonshotAI/kimi-code/commit/54c04bf03ddbeb46d02b2edb460ea091ae194509) |
+| 条件与边界 | 仅空闲时使用；0.33.0 起不再切换到派生会话，此前版本 fork 后立即切换并关闭原会话；0.36.1 起在回合运行中 fork 会报错 |
+| 证据状态 | 条件项 |
+| 来源 | [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/reference/slash-commands.md)、[Kimi Code /fork stay-in-session commit](https://github.com/MoonshotAI/kimi-code/commit/54c04bf03ddbeb46d02b2edb460ea091ae194509)、[Kimi Code /fork resume command print commit](https://github.com/MoonshotAI/kimi-code/commit/6b72345f8bb03487e3bcc05b541e65484818428c)、[Kimi Code 0.36.1 release notes](https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%400.36.1) |
 
 ### Qoder CLI
 
@@ -119,6 +120,8 @@
 - [Qwen Code commands documentation](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/commands.md)
 - [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/reference/slash-commands.md)
 - [Kimi Code /fork stay-in-session commit](https://github.com/MoonshotAI/kimi-code/commit/54c04bf03ddbeb46d02b2edb460ea091ae194509)
+- [Kimi Code /fork resume command print commit](https://github.com/MoonshotAI/kimi-code/commit/6b72345f8bb03487e3bcc05b541e65484818428c)
+- [Kimi Code 0.36.1 release notes](https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%400.36.1)
 - [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)
 
 ## 关联能力
