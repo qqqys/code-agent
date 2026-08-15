@@ -488,7 +488,7 @@
         '只提供说明文字而不绑定生命周期的项目指令',
       ],
       facts: [
-        '五家都公开了生命周期 Hook，但并不是同一实现：Kimi Code 当前独立 Hook 只执行 command，Codex 当前运行时也只执行 command。',
+        '五家都公开了生命周期 Hook，但并不是同一实现：Kimi Code 当前独立 Hook 只执行 command，Codex 当前运行时也只执行 command；Codex main 分支已新增 `mcp_tool` Handler 的配置与列出路径，但 CLI 运行时未接入 MCP 执行器前会跳过（尚未发布）。',
         'Claude Code、Qwen Code 和 Qoder CLI 支持多种 Handler；可用事件与返回 JSON 结构仍需按各自文档配置，不能直接复制。',
         '项目 Hook 可以运行本地命令或访问网络，因此可信工作区、超时、退出码和失败时是否放行是比较中的核心边界。',
       ],
@@ -518,18 +518,18 @@
           location:
             '用户 `~/.codex/hooks.json` 或 `~/.codex/config.toml`；项目 `.codex/hooks.json` 或 `.codex/config.toml`；Plugin 可携带 Hook。',
           behavior:
-            '覆盖工具、权限、压缩、提示、Subagent、停止和 Session 生命周期事件。',
+            '覆盖 PreToolUse、PermissionRequest、PostToolUse、PreCompact、PostCompact、SessionStart、SessionEnd、UserPromptSubmit、SubagentStart、SubagentStop、Stop 共 11 个事件。',
           scope:
             '用户、可信项目、Managed 与 Plugin 来源。',
           components:
-            '当前执行的 Handler 类型是 command；prompt 与 agent 配置可解析但运行时跳过。',
+            '当前执行的 Handler 类型是 command；prompt 与 agent 配置可解析但运行时跳过；main 分支新增 `mcp_tool` Handler（`type = "mcp_tool"`，字段 `server`/`tool`/`input`/`timeout`/`statusMessage`），调用已配置 MCP Server 的工具，`input` 必须是可表示为 TOML 的对象，输出沿用 command Hook 的输出约定，且始终同步执行（提交 `85fc4def358b`，尚未发布）。',
           loading:
-            '项目 Hook 需要工作区信任；`/hooks` 展示来源并提供相应控制。',
+            '项目 Hook 需要工作区信任；`/hooks` 展示来源并提供相应控制；main 分支 `hooks/list` 以 `handlerType: "mcpTool"` 及 server/tool 字段返回 MCP Tool Hook，TUI `/hooks` 浏览器展示 MCP Server 与 MCP Tool 条目（尚未发布）。',
           permissions:
             'PreToolUse 或 PermissionRequest 等事件可影响是否继续；Managed Hook 不由普通用户关闭。',
           conditions:
-            '当前运行时不执行 prompt/agent Handler，async 也尚未支持；配置文件能解析不等于能力已经运行。',
-          sources: ['codex-hooks'],
+            'prompt/agent Handler 可解析但运行时跳过；command Handler 可用 `async: true` 后台执行，`SessionEnd` 始终同步；main 分支的 `mcp_tool` Handler 在 CLI 运行时接入 MCP 执行器之前，启动时以 "MCP invocation is not available yet" 告警跳过，SessionEnd 事件与 Managed 必选 Hook 不支持 `mcp_tool`，`timeout` 缺省 600 秒，`input` 中 `${field.nested}` 占位符从事件 JSON 解析、字段缺失时该 Hook 失败（尚未发布）；配置文件能解析不等于能力已经运行。',
+          sources: ['codex-hooks', 'codex-hooks-mcp-tool', 'codex-hooks-mcp-runner'],
         },
         qwen: {
           entry:
