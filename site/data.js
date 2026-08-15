@@ -366,6 +366,14 @@ window.matrixData = {
       label: 'Codex --approve-for-me commit',
       url: 'https://github.com/openai/codex/commit/b7a61066081644e0d8b2c0b4dbfd7408ac1514df',
     },
+    'codex-hooks-mcp-tool': {
+      label: 'Codex hooks MCP tool handler commit',
+      url: 'https://github.com/openai/codex/commit/85fc4def358b7df21883e72ae8dda43a0f572f32',
+    },
+    'codex-hooks-mcp-runner': {
+      label: 'Codex hooks MCP tool runner source',
+      url: 'https://github.com/openai/codex/blob/85fc4def358b7df21883e72ae8dda43a0f572f32/codex-rs/hooks/src/engine/mcp_runner.rs',
+    },
     'qwen-commands': {
       label: 'Qwen Code commands documentation',
       url: 'https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/commands.md',
@@ -1508,7 +1516,7 @@ window.matrixData = {
       category: 'extensions',
       capability: '生命周期 Hooks',
       description: '在工具调用、会话或 Agent 生命周期节点运行自定义逻辑。',
-      values: { claude: '`/hooks` · 多类 Handler', codex: '`/hooks` · 当前仅 command 执行', qwen: '`/hooks` · command/HTTP/prompt', kimi: '`config.toml` · command', qoder: '`settings.json` · command/HTTP/prompt/agent' },
+      values: { claude: '`/hooks` · 多类 Handler', codex: '`/hooks` · 当前仅 command 执行 · 条件：`mcp_tool` Handler 可配置并在 `/hooks` 列出，运行时未接入 MCP 执行器（main 分支，尚未发布）', qwen: '`/hooks` · command/HTTP/prompt', kimi: '`config.toml` · command', qoder: '`settings.json` · command/HTTP/prompt/agent' },
     },
     {
       id: 'extension-plugins',
