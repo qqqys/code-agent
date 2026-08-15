@@ -230,6 +230,7 @@
         '五家都把 Shell 作为通用执行底座，因此“支持 Git/测试”通常首先意味着能运行相应 CLI，而不是提供独立语义 API。',
         'Kimi Code 和 Qwen Code 对后台 Shell 暴露了明确参数；Codex 使用统一 PTY 执行并通过 `/ps`、`/stop` 管理后台进程。',
         'Shell 的宿主权限、审批与沙箱是三个不同层次：自动批准不等于容器隔离，沙箱也不等于命令必然成功。',
+        '资源约束方面，Claude Code 自 v2.1.233 起在 Linux 上提供 Bash 命令内存 cgroup 限制（`CLAUDE_CODE_TOOL_MEMORY_LIMIT`）；其余四家的官方 Shell 或沙箱文档当前只列超时、审批与文件/网络边界，未提供同类内置内存限制配置。',
       ],
       products: {
         claude: {
@@ -248,8 +249,13 @@
           artifacts:
             'stdout/stderr 回到会话；文件、进程和 Git 修改保留在宿主环境。',
           conditions:
-            '默认需要审批；Sandbox、Managed settings 和 deny 规则可能限制文件、网络或命令。',
-          sources: ['claude-tools', 'claude-commands', 'claude-sandboxing'],
+            '默认需要审批；Sandbox、Managed settings 和 deny 规则可能限制文件、网络或命令。Linux 上可对 Bash 命令启用可选的内存 cgroup 限制（`CLAUDE_CODE_TOOL_MEMORY_LIMIT`，v2.1.233 引入），官方更新日志给出的用途是防止失控构建占满内存拖住会话；官方环境变量文档尚未列出该变量。',
+          sources: [
+            'claude-tools',
+            'claude-commands',
+            'claude-sandboxing',
+            'claude-bash-memory-limit',
+          ],
         },
         codex: {
           entry:
@@ -267,8 +273,13 @@
           artifacts:
             '输出进入当前线程；进程、文件和 Git 状态保留在相应本地或云环境。',
           conditions:
-            'Read Only 等预设会阻止写入型命令；网络和目录访问由沙箱配置决定。',
-          sources: ['codex-docs', 'codex-commands', 'codex-approvals'],
+            'Read Only 等预设会阻止写入型命令；网络和目录访问由沙箱配置决定。官方配置参考未提供 Shell 内存或 CPU 资源限制项，只有超时类设置（如后台终端轮询窗口 `background_terminal_max_timeout`，默认 300000 毫秒）。',
+          sources: [
+            'codex-docs',
+            'codex-commands',
+            'codex-approvals',
+            'codex-config-reference',
+          ],
         },
         qwen: {
           entry:
@@ -286,11 +297,12 @@
           artifacts:
             '前台输出直接回到模型；后台输出保存在任务日志并可从任务面板读取。',
           conditions:
-            '裸 `&` 不作为受管后台机制；交互命令可能需要 TTY；后台 Git commit 被明确拒绝。',
+            '裸 `&` 不作为受管后台机制；交互命令可能需要 TTY；后台 Git commit 被明确拒绝。官方 Sandbox 文档未列 Shell 内存或 CPU 限制项；容器型沙箱可用 `SANDBOX_FLAGS` 向 `docker`/`podman` 命令注入自定义参数（如资源类 flag），属于用户自配而非内置限额。',
           sources: [
             'qwen-shell-current',
             'qwen-session-commands',
             'qwen-worktree-current',
+            'qwen-sandbox',
           ],
         },
         kimi: {
@@ -309,7 +321,7 @@
           artifacts:
             '完整后台日志保存在磁盘，TaskOutput 内联最近 32 KB 并返回输出路径。',
           conditions:
-            'stdin 始终关闭，交互式命令会收到 EOF；Bash 默认需要审批。',
+            'stdin 始终关闭，交互式命令会收到 EOF；Bash 默认需要审批。官方配置文档未列 Shell 内存或资源限制项，长命令只由超时控制（前台超时后可经 `bash_auto_background_on_timeout` 转后台，后台默认超时 `bash_task_timeout_s`）。',
           sources: ['kimi-tools-current', 'kimi-config-current'],
         },
         qoder: {
@@ -328,8 +340,13 @@
           artifacts:
             '输出进入任务记录；文件与进程留在本地、Worktree、容器或 Cloud VM。',
           conditions:
-            '工具可能被权限规则、Subagent 配置或 SDK `tools` 过滤；非交互运行需要合适认证。',
-          sources: ['qoder-using-cli', 'qoder-tools', 'qoder-permissions'],
+            '工具可能被权限规则、Subagent 配置或 SDK `tools` 过滤；非交互运行需要合适认证。官方权限与 Sandbox 文档未列 Shell 内存或资源限制项，Sandbox 隔离能力只覆盖文件系统、网络和命令执行安全检查。',
+          sources: [
+            'qoder-using-cli',
+            'qoder-tools',
+            'qoder-permissions',
+            'qoder-sandbox',
+          ],
         },
       },
       related: ['execution-background', 'execution-git', 'security-approval'],

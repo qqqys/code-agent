@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-08-14',
+  updatedAt: '2026-08-15',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -205,6 +205,10 @@ window.matrixData = {
     'claude-self-hosted-v224': {
       label: 'Claude Code v2.1.224 changelog (self-hosted environments)',
       url: 'https://github.com/anthropics/claude-code/blob/66edf5358349/CHANGELOG.md',
+    },
+    'claude-bash-memory-limit': {
+      label: 'Claude Code v2.1.233 changelog (Bash memory cgroup)',
+      url: 'https://github.com/anthropics/claude-code/blob/0fa8c19d50f7/CHANGELOG.md',
     },
     'codex-commands': {
       label: 'Codex CLI commands',
@@ -874,6 +878,10 @@ window.matrixData = {
       label: 'Qoder CLI Permissions',
       url: 'https://docs.qoder.com/en/cli/permissions',
     },
+    'qoder-sandbox': {
+      label: 'Qoder CLI Sandbox',
+      url: 'https://docs.qoder.com/en/cli/sandbox',
+    },
     'qoder-sdk-reference': {
       label: 'Qoder CLI SDK Reference',
       url: 'https://docs.qoder.com/en/cli/sdk/references',
@@ -1534,7 +1542,7 @@ window.matrixData = {
       category: 'execution',
       capability: 'Shell 执行',
       description: '运行构建、测试、Git 和系统命令。',
-      values: { claude: '`Bash`', codex: '统一 PTY Shell', qwen: '`run_shell_command`', kimi: '`Bash`', qoder: '`Bash` · `!` 模式' },
+      values: { claude: '`Bash` · 条件：Linux Bash 命令内存 cgroup 限制（`CLAUDE_CODE_TOOL_MEMORY_LIMIT`，v2.1.233 引入）', codex: '统一 PTY Shell', qwen: '`run_shell_command`', kimi: '`Bash`', qoder: '`Bash` · `!` 模式' },
     },
     {
       id: 'execution-search',
