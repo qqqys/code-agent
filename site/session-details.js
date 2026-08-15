@@ -279,9 +279,9 @@
         },
         kimi: {
           entry:
-            '`/fork` 在 TUI 派生当前会话；fork 后停留在原会话，派生副本之后用 `/sessions` 打开。',
+            '`/fork` 在 TUI 派生当前会话；fork 后停留在原会话，派生副本之后用 `/sessions` 打开。条件：fork 后 CLI 打印可在新终端进程进入派生会话的恢复命令，并复制到剪贴板（main 分支，尚未发布）。',
           behavior:
-            '复制完整对话历史创建独立会话，新旧会话互不影响；原会话保持活跃，后台任务继续运行，可随时用 `/sessions` 切换到副本。',
+            '复制完整对话历史创建独立会话，新旧会话互不影响；原会话保持活跃，后台任务继续运行，可随时用 `/sessions` 切换到副本。fork 完成后状态消息附加一条可直接运行的命令：非 Windows 为 `cd <工作目录> && kimi --resume <会话 ID>`，Windows 用 `pushd` 代替 `cd` 以同时切换盘符与目录；路径和会话 ID 均带 Shell 引号，`--resume` 是 `--session` 的隐藏别名。命令自动复制到剪贴板：原生复制成功提示 `Command copied to clipboard`，回退 OSC 52 终端转义序列时提示 `Command copied via terminal escape sequence (unverified)`，复制失败提示 `Failed to copy command to clipboard`。',
           scope:
             '复制对话，但不复制已保存的 `/goal`；需要在新会话重新启动 Goal。',
           automation:
@@ -289,8 +289,15 @@
           persistence:
             '新会话目录的 `state.json` 记录 `forkedFrom`，并拥有独立 Agent 事件流。',
           conditions:
-            '这是会话级派生，不会自动创建 Git 分支或隔离工作目录；0.33.0 起 fork 不再自动切换到派生会话。',
-          sources: ['kimi-sessions-current', 'kimi-data-current', 'kimi-fork-stay'],
+            '这是会话级派生，不会自动创建 Git 分支或隔离工作目录；0.33.0 起 fork 不再自动切换到派生会话；0.36.1 起在回合运行中 fork 会报错，不再复制未写完的回合。条件：恢复命令打印与剪贴板复制于 2026-08-15 合入 main（提交 `6b72345f8bb0`，PR #2940），尚未发布。',
+          sources: [
+            'kimi-sessions-current',
+            'kimi-data-current',
+            'kimi-fork-stay',
+            'kimi-cli-current',
+            'kimi-fork-resume-command',
+            'kimi-v0361-release',
+          ],
         },
         qoder: {
           entry:
