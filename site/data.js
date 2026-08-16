@@ -898,6 +898,22 @@ window.matrixData = {
       label: 'Kimi Code 0.35.0 release notes',
       url: 'https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%400.35.0',
     },
+    'kimi-tower-commit': {
+      label: 'Kimi Code /tower multi-agent orchestration commit',
+      url: 'https://github.com/MoonshotAI/kimi-code/commit/f492cd7c9e03666ecfd10dc47ca9b48c35de2318',
+    },
+    'kimi-tower-changeset': {
+      label: 'Kimi Code /tower changeset',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/f492cd7c9e03666ecfd10dc47ca9b48c35de2318/.changeset/tower-slash-command.md',
+    },
+    'kimi-tower-skill': {
+      label: 'Kimi Code /tower builtin skill body',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/f492cd7c9e03666ecfd10dc47ca9b48c35de2318/packages/agent-core-v2/src/features/tower/skill/tower.md',
+    },
+    'kimi-tower-spawn': {
+      label: 'Kimi Code TowerSpawn tool source',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/f492cd7c9e03666ecfd10dc47ca9b48c35de2318/packages/agent-core-v2/src/features/tower/tools/spawn/spawnTool.ts',
+    },
     'qoder-commands': {
       label: 'Qoder CLI slash commands',
       url: 'https://docs.qoder.com/cli/slash-reference',
@@ -1203,7 +1219,7 @@ window.matrixData = {
       category: 'commands',
       capability: '多模型或多代理模式',
       description: '启动多任务、多 Agent 或多模型协作入口。',
-      values: { claude: '`/advisor` · `/batch`', codex: '`/agent`', qwen: '`/arena` · `/batch` · `/coordinate`（v0.21.11 起）', kimi: '`/swarm`', qoder: '`/quest` · `/batch`' },
+      values: { claude: '`/advisor` · `/batch`', codex: '`/agent`', qwen: '`/arena` · `/batch` · `/coordinate`（v0.21.11 起）', kimi: '`/swarm` · `/tower`（条件：合入 main 尚未发布）', qoder: '`/quest` · `/batch`' },
     },
     {
       id: 'cmd-remote',

@@ -931,6 +931,7 @@
         'Qwen Code `/batch` 是随产品提供的 Skill：发现文件、分块后使用并行执行 Agent 完成批量操作。',
         'Qwen Code 的 `/coordinate` Skill 与 Agent Team 运行时（提交 `8858d4340bbb`，PR #8804）随 v0.21.11（2026-08-13 发布）进入正式通道：最多 3 个队友共享任务清单并互发消息，调查队友被强制只读，可选 1 名写手固定在 Leader 拥有的 Worktree。',
         'Qoder CLI 官方 Slash 命令参考列出内置 Skill `/batch`：在隔离 git worktree 中派出并行工作 Agent 对多个文件应用批量修改，要求当前目录为 Git 仓库。',
+        'Kimi Code 于 2026-08-16 合入 `/tower`（提交 `f492cd7c9e03`，PR #2633，合入 main 尚未发布）：主 Agent 作为唯一控制塔规划任务并合并分支，worker 在各自 git worktree 中执行任务，reviewer 审查分支，合并由代码级门禁强制（需针对当前分支 tip 的 clean review）。',
       ],
       products: {
         claude: command('claude', ['/advisor [model|off]', '/batch <instruction>'], 'Advisor 在关键时刻咨询第二模型；Batch 将大型改动拆为并行 Worktree 子任务。', {
@@ -950,10 +951,13 @@
           conditions: '`/batch` 在 bare mode 或被 Skill/Slash 禁用时不可用；`/coordinate` 完整团队协作需将 `experimental.agentTeam` 设为 `true` 并重启，或以 `QWEN_CODE_ENABLE_AGENT_TEAM=1` 启动；未启用时退回普通前台 Agent 做只读并行调查（仅委派、不协作）；Agent Team 运行时依赖 `team_create`、`send_message`、`task_list`、`task_update` 工具；`/coordinate` 随 v0.21.11（2026-08-13 发布）进入正式通道',
           sources: ['qwen-commands', 'qwen-bundled-skills', 'qwen-coordinate-docs', 'qwen-coordinate-skill', 'qwen-coordinate-commit', 'qwen-v02111-release'],
         }),
-        kimi: command('kimi', ['/swarm on|off', '/swarm <task>'], '切换 Swarm 模式，或为单轮任务开启 Swarm 并在成功完成后自动关闭。', {
-          parameters: '`on|off|<task>`',
-          persistence: '模式属于当前会话',
-          conditions: 'manual 权限模式下启动任务会询问是否切换到 auto 或 yolo',
+        kimi: command('kimi', ['/swarm on|off', '/swarm <task>', '/tower'], '切换 Swarm 模式，或为单轮任务开启 Swarm 并在成功完成后自动关闭。`/tower`（合入 main 尚未发布）在 v2 引擎进入 Tower 模式：主 Agent 作为唯一控制塔，只做任务规划（`TowerPlan`）、派生 worker/reviewer（`TowerSpawn`）、路由信息与合并分支，不写产品代码；每个 worker 在 `.tower/worktrees/` 下的独立 git worktree 中执行一个 mission，reviewer 审查分支并经 `TowerReview` 提交结论；inbox、findings、reviews、mission 文件与 activity.log 全部由十一个 `Tower*` 工具写入 `.tower/comms/`，禁止手工编辑 `.tower/` 文件。', {
+          parameters: '`/swarm` 使用 `on|off|<task>`；`/tower` 不带参数或带 `status` 查看状态，带 `teardown` 拆除工作区，其余输入作为目标',
+          mode: '交互式 TUI；`/tower` 为 v2 引擎内置 Skill（`disable-model-invocation: true`），只能由用户显式调用；同一提交起 Skill 命令在回合运行时输入会排队而不是被拒绝，Ctrl-S 可作为 activation 注入运行中的回合',
+          persistence: 'Swarm 模式属于当前会话；`/tower` 在当前仓库目录创建 `.tower/` 工作区：`state.json` 记录基线分支与 Agent 名册，worktree 位于 `.tower/worktrees/`，teardown 后 `.tower/comms/`（含活动日志）保留作为审计记录；`tower_mode.enter`/`tower_mode.exit` 写入会话 wire 历史，恢复会话可继续；合并后分支保留',
+          conditions: '`/tower` 于 2026-08-16 合入 main（提交 `f492cd7c9e03`，PR #2633），尚未发布，官方 Slash 命令文档尚未列出；仅 v2 引擎实现（agent-core-v2）；`TowerInit` 要求至少有一个提交的 git 仓库；worker/reviewer 派生时固定 `auto` 权限模式，会话整体切换模式不影响它们；worker 在 secondary-model 实验开启时绑定 `[secondary_model]` 模型池，否则继承塔模型，reviewer 始终绑定主力模型；`TowerMerge` 门禁在最新 review 非 clean、分支在 review 后移动、依赖 mission 未合并、改动文件超出 mission 作用域 glob 或主检出不在记录的基线分支时拒绝合并；Tower 模式下 `TodoList` 工具被代码禁用，worker 无 `AskUserQuestion`；派生并发受预算限制（上限 16，遇 429 暂停 60 秒）；manual 权限模式下启动 `/swarm` 任务会询问是否切换到 auto 或 yolo',
+          status: '源码确认',
+          sources: ['kimi-commands', 'kimi-tower-commit', 'kimi-tower-changeset', 'kimi-tower-skill', 'kimi-tower-spawn'],
         }),
         qoder: command('qoder', ['/quest', '/batch'], '以 Prompt 工作流使用专用 Subagent 引导功能开发；`/batch` 为内置 Skill，在隔离 git worktree 中派出并行工作 Agent 对多个文件应用批量修改。', {
           parameters: '无公开参数',
