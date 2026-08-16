@@ -247,6 +247,7 @@
         'Codex 使用通用 `.agents/skills` 目录和 `$skill` 显式引用；Kimi Code 的明确命名空间是 `/skill:<name>`；其余三家支持 `/<skill-name>`。',
         'Skill 可被模型自动选择不代表一定执行；描述匹配、可用路径、禁用配置和同名优先级都会改变最终加载结果。',
         '禁用粒度不对齐：Qwen Code 用 `skills.disabledLevels` 整体关闭某个发现层级（`project`/`user`/`extension`/`bundled`），Claude Code 用 `disableBundledSkills` 只关内置层并以 `skillOverrides` 逐个控制，Codex 按 `SKILL.md` 路径在 `[[skills.config]]` 逐个禁用，Kimi Code 只在 frontmatter 逐个关闭模型自动调用，Qoder CLI 无独立技能软禁用、只能停用承载插件或删除目录。',
+        'Kimi Code 在 main 分支支持一条提示词引用多个 Skill 并同时激活：空白字符后输入 `/` 插入 Skill token，全部引用与提示词作为同一轮次运行、一次 `/undo` 整体撤销（尚未发布）；其余四家已固定的一手文档没有描述等价的单条提示词多 Skill 显式激活行为。',
       ],
       products: {
         claude: {
@@ -309,11 +310,11 @@
         },
         kimi: {
           entry:
-            '明确调用为 `/skill:<name>`；没有命令冲突时也可使用 `/<name>`，模型还能自动选择。',
+            '明确调用为 `/skill:<name>`；没有命令冲突时也可使用 `/<name>`，模型还能自动选择。条件：在空白字符后（含后续行行首）输入 `/` 打开仅含 Skill 的补全菜单，可在一条提示词中插入多个 Skill 引用（main 分支，尚未发布）。',
           location:
             '项目 `.kimi-code/skills`、`.agents/skills`；用户 `$KIMI_CODE_HOME/skills`、`~/.agents/skills`；另有额外目录和内置 Skills。',
           behavior:
-            'Skill 被选中后读取 SKILL.md 和支持文件，可接收参数；支持有限层级的嵌套引用。',
+            'Skill 被选中后读取 SKILL.md 和支持文件，可接收参数；支持有限层级的嵌套引用。条件：单条提示词的多个 Skill 引用经 `promptWithSkills` 打包进同一条用户消息一起激活，渲染的 Skill 块排在用户内容之前并与提示词作为同一轮次运行，一次 `/undo` 整体撤销，提示词原文保持不变；会话标题与 fork 的提示词摘录只取用户原文、不含 Skill 块。',
           scope:
             '优先级是 Project、User、Extra、Built-in；同名时高优先级来源覆盖低优先级来源。',
           components:
@@ -323,8 +324,15 @@
           permissions:
             'Skill 内容不绕过 Kimi 的工具权限和交互模式。',
           conditions:
-            '无前缀 `/<name>` 只有在不与已有命令冲突时才作为回退；稳定写法是 `/skill:<name>`。逐个禁用只走 frontmatter：`disableModelInvocation: true`（别名 `disable-model-invocation`）禁止模型自动调用但仍可 `/skill:<name>` 手动调用，`type: flow` 仅手动调用；当前无按名称或按层级的禁用配置键。',
-          sources: ['kimi-skills-current', 'kimi-plugins-current'],
+            '无前缀 `/<name>` 只有在不与已有命令冲突时才作为回退；稳定写法是 `/skill:<name>`。逐个禁用只走 frontmatter：`disableModelInvocation: true`（别名 `disable-model-invocation`）禁止模型自动调用但仍可 `/skill:<name>` 手动调用，`type: flow` 仅手动调用；当前无按名称或按层级的禁用配置键。提示词中的 Skill 引用只按名称激活、不携带参数，参数仍是单独以 `/skill:<name> args` 调用时的概念；空白字符后的 `/` 只补全 Skill，内置命令和 plugin 命令仍须放在输入开头。单条提示词多 Skill 激活于 2026-08-16 合入 main（引擎提交 `61591bce09f4`、TUI 提交 `44a6c70e6676`），最新 Release 0.36.1 未包含；引擎侧 `promptWithSkills` 只在 v2 引擎实现，空提示词、空 Skill 列表或未知 Skill 在提交前整体拒绝，node-sdk `session.promptWithSkills` 在 v1 引擎报错。',
+          sources: [
+            'kimi-skills-current',
+            'kimi-plugins-current',
+            'kimi-multi-skill-docs',
+            'kimi-multi-skill-engine-commit',
+            'kimi-multi-skill-tui-commit',
+            'kimi-multi-skill-changeset',
+          ],
         },
         qoder: {
           entry:

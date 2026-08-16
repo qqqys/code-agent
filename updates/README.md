@@ -4,6 +4,7 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-08-16 | [Kimi Code 单条提示词多 Skill 激活](./2026-08-16-Kimi-单条提示词多Skill激活.md) |
 | 2026-08-16 | [Kimi Code `/tower` 多代理 Tower 编排](./2026-08-16-Kimi-tower多代理编排.md) |
 | 2026-08-16 | [Qwen Code Web Shell 文本文件附件](./2026-08-16-Qwen-Web-Shell文本文件附件.md) |
 | 2026-08-15 | [Codex Hooks `mcp_tool` Handler](./2026-08-15-Codex-Hooks-MCP工具Handler.md) |

@@ -914,6 +914,22 @@ window.matrixData = {
       label: 'Kimi Code TowerSpawn tool source',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/f492cd7c9e03666ecfd10dc47ca9b48c35de2318/packages/agent-core-v2/src/features/tower/tools/spawn/spawnTool.ts',
     },
+    'kimi-multi-skill-engine-commit': {
+      label: 'Kimi Code multi-skill prompt bundling commit',
+      url: 'https://github.com/MoonshotAI/kimi-code/commit/61591bce09f4467aa1664cb8ecb6aa6904b7accd',
+    },
+    'kimi-multi-skill-tui-commit': {
+      label: 'Kimi Code inline multi-skill activation commit',
+      url: 'https://github.com/MoonshotAI/kimi-code/commit/44a6c70e66762ea9e122f8dceae16dc759086a7c',
+    },
+    'kimi-multi-skill-docs': {
+      label: 'Kimi Code interaction guide (multi-skill activation)',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/44a6c70e66762ea9e122f8dceae16dc759086a7c/docs/zh/guides/interaction.md',
+    },
+    'kimi-multi-skill-changeset': {
+      label: 'Kimi Code multi-skill activation changeset',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/44a6c70e66762ea9e122f8dceae16dc759086a7c/.changeset/inline-multi-skill-tui.md',
+    },
     'qoder-commands': {
       label: 'Qoder CLI slash commands',
       url: 'https://docs.qoder.com/cli/slash-reference',
@@ -1534,7 +1550,7 @@ window.matrixData = {
       category: 'extensions',
       capability: 'Agent Skills',
       description: '从项目或用户目录加载可复用指令与资源。',
-      values: { claude: '`/<skill-name>` · `.claude/skills/`', codex: '`$skill` · `.agents/skills/`', qwen: '`/<skill-name>` · `.qwen/skills/` · `skills.disabledLevels`', kimi: '`/skill:<name>` · `.kimi-code/skills/`', qoder: '`/<skill-name>` · `.qoder/skills/`' },
+      values: { claude: '`/<skill-name>` · `.claude/skills/`', codex: '`$skill` · `.agents/skills/`', qwen: '`/<skill-name>` · `.qwen/skills/` · `skills.disabledLevels`', kimi: '`/skill:<name>` · `.kimi-code/skills/` · 条件：单条提示词多 Skill 激活（main 分支，尚未发布）', qoder: '`/<skill-name>` · `.qoder/skills/`' },
     },
     {
       id: 'extension-skill-generation',
