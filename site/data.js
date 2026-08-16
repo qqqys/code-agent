@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-08-15',
+  updatedAt: '2026-08-16',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -557,6 +557,22 @@ window.matrixData = {
     'qwen-v02112-preview3-release': {
       label: 'Qwen Code v0.21.12-preview.3 release notes',
       url: 'https://github.com/QwenLM/qwen-code/releases/tag/v0.21.12-preview.3',
+    },
+    'qwen-web-shell-text-attachments-commit': {
+      label: 'Qwen Code Web Shell text file attachments commit',
+      url: 'https://github.com/QwenLM/qwen-code/commit/34cc1c3ede6949ec81a456615f7b8e64090f4d40',
+    },
+    'qwen-web-shell-text-ingestion': {
+      label: 'Qwen Code Web Shell text attachment ingestion source',
+      url: 'https://github.com/QwenLM/qwen-code/blob/34cc1c3ede6949ec81a456615f7b8e64090f4d40/packages/web-shell/client/utils/imageIngestion.ts',
+    },
+    'qwen-web-shell-text-editor': {
+      label: 'Qwen Code Web Shell composer drop routing source',
+      url: 'https://github.com/QwenLM/qwen-code/blob/34cc1c3ede6949ec81a456615f7b8e64090f4d40/packages/web-shell/client/components/ChatEditor.tsx',
+    },
+    'qwen-v02112-preview5-release': {
+      label: 'Qwen Code v0.21.12-preview.5 release notes',
+      url: 'https://github.com/QwenLM/qwen-code/releases/tag/v0.21.12-preview.5',
     },
     'qwen-desktop-current': {
       label: 'Qwen Code current Desktop',
@@ -1663,7 +1679,7 @@ window.matrixData = {
       category: 'surfaces',
       capability: 'Web 界面',
       description: '通过浏览器创建、查看或继续 Agent 会话。',
-      values: { claude: 'claude.ai/code · Remote Control', codex: 'ChatGPT Web · Codex Cloud', qwen: '`qwen serve` 内置 Web Shell；条件：图片拖拽/粘贴输入（v0.21.9 起）· 工作区文件上传（v0.21.12-preview.3 预览通道）', kimi: '`kimi web` 本地 Web UI', qoder: 'Qoder Web · Cloud Agents Console' },
+      values: { claude: 'claude.ai/code · Remote Control', codex: 'ChatGPT Web · Codex Cloud', qwen: '`qwen serve` 内置 Web Shell；条件：图片拖拽/粘贴输入（v0.21.9 起）· 工作区文件上传（v0.21.12-preview.3 预览通道）· 文本文件附件（main 分支，尚未发布）', kimi: '`kimi web` 本地 Web UI', qoder: 'Qoder Web · Cloud Agents Console' },
     },
     {
       id: 'surface-desktop',

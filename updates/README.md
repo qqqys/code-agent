@@ -4,6 +4,8 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-08-16 | [Qwen Code Web Shell 文本文件附件](./2026-08-16-Qwen-Web-Shell文本文件附件.md) |
+| 2026-08-15 | [Codex Hooks `mcp_tool` Handler](./2026-08-15-Codex-Hooks-MCP工具Handler.md) |
 | 2026-08-15 | [Claude Code Bash 命令内存 cgroup 限制](./2026-08-15-Claude-Bash命令内存cgroup限制.md) |
 | 2026-08-15 | [Kimi Code `/fork` 打印恢复命令并复制到剪贴板](./2026-08-15-Kimi-fork打印恢复命令.md) |
 | 2026-08-14 | [Claude Code Subagent Fork 模式默认开启](./2026-08-14-Claude-Subagent-Fork模式默认开启.md) |
