@@ -4,6 +4,7 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-08-17 | [Qwen Code Web Shell 历史回复分支](./2026-08-17-Qwen-Web-Shell历史回复分支.md) |
 | 2026-08-17 | [Qwen Code `/advisor` 会话二次意见命令](./2026-08-17-Qwen-advisor二次意见命令.md) |
 | 2026-08-17 | [Kimi Code 上下文占用实测值随 resume 恢复](./2026-08-17-Kimi-上下文占用台账持久化.md) |
 | 2026-08-16 | [Kimi Code 单条提示词多 Skill 激活](./2026-08-16-Kimi-单条提示词多Skill激活.md) |

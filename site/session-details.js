@@ -223,12 +223,13 @@
       id: 'session-branch',
       definition:
         '复制当前会话截至某一时点的上下文，生成独立会话 ID，使新旧对话可以分别继续。',
-      includes: ['复制历史到新会话', '新旧会话独立保存', '分支时继承的状态边界'],
+      includes: ['复制历史到新会话', '新旧会话独立保存', '分支时继承的状态边界', '从历史回复选择分支点'],
       excludes: ['Git 分支或 Worktree', '后台 Subagent 委派', '在同一会话中回退到检查点'],
       facts: [
         'Claude Code、Codex、Qwen Code 和 Kimi Code 都有直接会话分支入口；Qoder CLI 当前只在 SDK 公开了同类选项。',
         'Claude Code 和 Codex 还在 Headless 流程提供会话分支：Claude Code 用 `--fork-session`，Codex 用 `codex exec fork`（条件：main 分支，尚未发布）。',
         'Qwen Code 的 `/fork` 是继承完整对话的后台 Agent，不是会话分支；会话分支入口是 `/branch`。',
+        'Qwen Code v0.21.13 起 Web Shell 可以从任意符合条件的已完成 Assistant 回复创建历史分支，以持久化 `branch_checkpoint` 记录为分支点；其余四家已核对的分支入口均从当前会话状态复制，未列出从历史消息选择分支点的入口。',
         '会话分支复制的是对话状态，不代表复制所有进程内授权、Goal、后台任务或工作区状态。',
       ],
       products: {
@@ -264,18 +265,28 @@
           sources: ['codex-commands', 'codex-exec-fork'],
         },
         qwen: {
-          entry: '`/branch` 从当前对话派生新会话。',
+          entry:
+            '`/branch [name]` 从当前对话派生新会话，可选参数作为分支名称（换行替换为空格）。条件：`qwen serve` Web Shell 的 transcript 中，符合条件的已完成 Assistant 回复块带 Branch 操作，点击后从该回复创建历史分支（v0.21.13 起）。',
           behavior:
-            '复制当前会话的对话历史到新会话 ID，随后在新会话继续；原会话保持可恢复。',
+            '复制当前会话的对话历史到新会话 ID，随后在新会话继续；原会话保持可恢复。历史分支经 daemon `POST /session/:sessionId/branch` 提交 `{ name?, atRecordId }`，`atRecordId` 必须是一个持久化 `branch_checkpoint` 记录的 UUID；Web Shell 客户端经 `branchSession(name?, atRecordId?)` 发起，成功后自动切换到新会话，分支失败时会话选择器中仍可发现完整分支。历史分支只截断对话历史到所选回复，不回退当前工作目录、Git 状态或工作文件。',
           scope:
-            '会话分支仍处于当前项目会话存储范围。`/fork <directive>` 是后台 Agent，会继承完整对话但不创建可切换的会话分支。',
+            'CLI `/branch` 只从会话最新状态分支；选择历史分支点的入口只在 Web Shell transcript，CLI 没有对应 Slash 命令。会话分支仍处于当前项目会话存储范围；branch/fork 创建的会话计入 `qwen serve` 的 `--max-total-sessions` 会话上限。`/fork <directive>` 是后台 Agent，会继承完整对话但不创建可切换的会话分支。',
           automation:
-            '无自动分支；用户显式执行 `/branch`。',
+            '无自动分支；用户显式执行 `/branch` 或点选 Branch。每个符合条件的完成回合会向会话 JSONL 追加一条 `subtype: \'branch_checkpoint\'` 系统记录（payload 含 `startExclusiveRecordUuid` 与 `assistantRecordUuid`），作为录制、回放、界面展示和 Core 校验共用的分支点事实来源；daemon `turn_complete` 事件对符合条件的回合附带 `branchPoint: { assistantRecordUuid, checkpointUuid }`。',
           persistence:
-            '新会话作为新的聊天 JSONL 保存，与原会话分别出现在恢复历史中。',
+            '新会话作为新的聊天 JSONL 保存，与原会话分别出现在恢复历史中；`branch_checkpoint` 记录保存在源会话 transcript 内。历史分支发布要求原子暴露完整 transcript：优先硬链接，不支持或跨设备时退化为同目录原子 rename，刻意不提供非原子复制回退；文件历史备份不使用硬链接。',
           conditions:
-            '不要把 `/branch` 与 Git 分支或 `/fork` 后台 Agent 混为同一能力。',
-          sources: ['qwen-session-commands'],
+            '历史分支点只对发布后录制的回合生效：回合须来自交互式提示、`stopReason` 为 `end_turn`、是回合内唯一最终可见的非 thinking Assistant 记录、该记录不含 `functionCall`、位于回合最终 `tool_result` 之后且工具调用全部关闭、checkpoint 已写入且执行时仍在源会话活动链上；已取消、出错、未完成、`max_tokens` 结束以及无 checkpoint 的旧版 transcript 不显示 Branch，回合进行中也不显示。`atRecordId` 无效、已失效（如被 rewind 移出活动链）或非字符串时分别返回 `409`/`400 branch_point_invalid`，不回退到最新状态分支并触发 transcript 刷新；回合活跃时返回 `session_busy`；并发请求经 `branchInFlight` 去重，客户端等待上限 120 秒。CLI `/branch` 在流式输出、工具确认进行中或当前会话没有记录时不执行。不要把 `/branch` 与 Git 分支或 `/fork` 后台 Agent 混为同一能力。官方用户文档尚未描述历史分支。',
+          status: '条件项',
+          sources: [
+            'qwen-session-commands',
+            'qwen-branch-history-commit',
+            'qwen-branch-history-design',
+            'qwen-branch-history-event-schema',
+            'qwen-branch-history-actions',
+            'qwen-branch-history-serve-docs',
+            'qwen-v02113-release',
+          ],
         },
         kimi: {
           entry:

@@ -1,0 +1,30 @@
+# Qwen Code Web Shell 历史回复分支
+
+Qwen Code 官方仓库在 2026-08-15 合入提交 `9f8f65dde043`（PR #8817，Refs #8271），并随 v0.21.13（2026-08-17T02:11:15Z 发布）上线：`qwen serve` 自带 Web Shell 的 transcript 中，符合条件的已完成 Assistant 回复块带 Branch 操作，可从该历史回复创建新会话。历史分支以追加进会话 JSONL 的持久化 `branch_checkpoint` 系统记录为唯一分支点事实来源，只截断对话历史，不回退工作目录、Git 状态或工作文件；CLI `/branch` 不变，仍只从会话最新状态分支。并入现有 `session-branch` 能力字段，不新增能力字段。
+
+## 修正
+
+- `session-branch`（会话分支）矩阵 Qwen Code 列由 "`/branch`" 更新为 "`/branch` · 条件：Web Shell 从任意已完成 Assistant 回复分支（v0.21.13 起）"；Qwen Code 证据状态由"源码确认"改为"条件项"（历史分支只在 Web Shell Surface 提供）。
+- 详情的 Qwen Code 记录：入口补充 `/branch [name]` 可选分支名称（换行替换为空格）与 Web Shell transcript Branch 操作；执行行为补充 daemon `POST /session/:sessionId/branch` 的 `{ name?, atRecordId }` 请求、`branchSession(name?, atRecordId?)` 客户端调用、成功后自动切换与分支失败仍可在会话选择器发现完整分支、只截断对话历史不回退工作目录/Git/工作文件；状态范围补充历史分支点入口只在 Web Shell、CLI 无对应 Slash 命令、branch/fork 创建的会话计入 `--max-total-sessions`；自动行为补充每个符合条件的完成回合写入 `branch_checkpoint` 记录（payload 含 `startExclusiveRecordUuid` 与 `assistantRecordUuid`）与 `turn_complete` 事件的 `branchPoint: { assistantRecordUuid, checkpointUuid }`；保存与保留补充 checkpoint 存于源会话 transcript、历史分支发布的原子暴露要求（优先硬链接、退化为同目录原子 rename、无非原子复制回退、文件历史备份不用硬链接）；条件补充历史分支点的回合资格条件（交互式提示、`stopReason` 为 `end_turn`、唯一最终可见非 thinking Assistant 记录、不含 `functionCall`、位于最终 `tool_result` 之后且工具调用全部关闭、checkpoint 已写入且仍在活动链上）、不显示 Branch 的情形（已取消/出错/未完成/`max_tokens`/旧版无 checkpoint transcript、回合进行中）、`409`/`400 branch_point_invalid` 与 transcript 刷新、`session_busy`、`branchInFlight` 并发去重、120 秒客户端等待上限、CLI `/branch` 守卫（流式输出/工具确认进行中/无记录时不执行）、官方用户文档尚未描述历史分支。本页包含新增"从历史回复选择分支点"；跨产品事实新增一条。
+- 其余四家维持原记录：Claude Code、Codex、Kimi Code、Qoder CLI 已核对的分支入口均从当前会话状态复制，官方材料未列出从历史消息选择分支点的入口。
+- 来源坐标：新增 `qwen-branch-history-commit`（合并提交 `9f8f65dde043c10cb6a13ea1d4a03928d83d98dc`）、`qwen-branch-history-design`（该提交时点的 `docs/design/web-shell/assistant-response-session-branching.md`）、`qwen-branch-history-event-schema`（该提交时点的 `docs/developers/daemon/09-event-schema.md`）、`qwen-branch-history-actions`（该提交时点的 `packages/webui/src/daemon/session/actions.ts`）、`qwen-branch-history-serve-docs`（该提交时点的 `docs/users/qwen-serve.md`）、`qwen-v02113-release`（v0.21.13 发布说明）。
+- `docs/09-版本与证据.md`：Qwen Code 核对日期维持 2026-08-17，主要材料新增 Web Shell 历史回复分支条目；官方来源表会话与上下文列新增合并提交、设计文档、事件 schema、客户端源码、qwen-serve 用户文档与 v0.21.13 发布说明六个链接。
+- 能力字段总数不变（110 个），`README.md` 计数无需调整；`npm run generate` 重新生成 `docs/04-会话与上下文矩阵.md` 与 `docs/capabilities/sessions/`（`session-branch.md` 内容更新）。
+
+## 影响页面
+
+- [会话与上下文矩阵](../docs/04-会话与上下文矩阵.md)
+- [会话分支详情](../docs/capabilities/sessions/session-branch.md)
+- [版本与证据](../docs/09-版本与证据.md)
+
+## 证据版本
+
+- Qwen Code 提交 `9f8f65dde043c10cb6a13ea1d4a03928d83d98dc`（PR #8817 `feat: support fork from any conversation`，2026-08-15T10:02:06Z 合入 main）：PR 说明写明此前会话分支只能使用源会话最新活动状态，持久化 checkpoint 为录制、回放、界面展示和 Core 校验提供统一事实来源；新增 `docs/design/web-shell/assistant-response-session-branching.md`，修改 `docs/developers/daemon/09-event-schema.md`、`packages/acp-bridge/src/bridge.test.ts` 与 `integration-tests/cli/qwen-serve-streaming.test.ts` 等。
+- Qwen Code v0.21.13 发布说明（2026-08-17T02:11:15Z）：Conversations 小节列出 "Users can fork conversations from any specific Assistant response using durable checkpoints (#8817)"。
+- 该提交处的 `docs/design/web-shell/assistant-response-session-branching.md`（标题 "Branching a Web Shell Session from a Completed Assistant Response"）：Branch 操作渲染在 Web Shell transcript 中符合条件的最终 Assistant 回复块上，块须带 `branchRecordId` 元数据且当前无活跃回合；分支资格为交互式用户提示（非 cron/notification）、`stopReason === 'end_turn'`、回合内唯一最终可见非 thinking Assistant 记录、该记录不含 `functionCall`、位于回合最终 `tool_result` 之后且工具调用全部关闭、持久化 `branch_checkpoint` 写入成功且执行时仍在源会话活动链上；已取消、出错、未完成、`max_tokens` 结束与无 checkpoint 的旧版回复不显示。HTTP 端点 `POST /session/:sessionId/branch`，请求体 `{ name?, atRecordId }`；SDK `branchSession(name?: string)` 返回 `RestoredBranchResult`（最新状态分支，附 live 会话），`branchSession(name, atRecordId)` 返回 `PersistedBranchResult`（历史分支，仅身份不附 live 恢复）。`branch_checkpoint` 记录 `subtype: 'branch_checkpoint'`，payload `BranchCheckpointRecordPayloadV1 { v: 1; startExclusiveRecordUuid: string | null; assistantRecordUuid: string }`，经排他拓扑事务追加进会话 JSONL；`resolveBranchPoints(activeChain)` 在回放与分支构建时校验。`atRecordId` 无效、失效或格式错误返回 `409 branch_point_invalid`（不回退会话尾部），非字符串返回 `400`，回合活跃时 `session_busy`；客户端导航超时 120 秒，分支仍保留在会话选择器。分支只截断对话历史，不回退当前工作目录、Git 状态/Worktree 或工作文件，源会话不变。transcript 发布优先硬链接，跨设备或不支持时退化为同目录原子 rename，刻意不提供非原子复制回退；文件历史备份刻意不用硬链接，改用校验打开句柄的复制。Agent `_meta` 的 `qwen.branchPoint` 与 `turn_complete.data.branchPoint` 承载分支点元数据。
+- 该提交处的 `docs/developers/daemon/09-event-schema.md`：`turn_complete`（S->C）payload 为 `sessionId, stopReason, promptId?, branchPoint?`，符合条件的完成回合附带 `branchPoint: { assistantRecordUuid, checkpointUuid }`；`session_branched` 标注为旧版兼容事件，当前 branch 端点直接返回结果不再发布该事件。
+- 该提交处的 `packages/webui/src/daemon/session/actions.ts`：`async branchSession(name?: string, atRecordId?: string)`；不带 `atRecordId` 时请求体不含该字段（最新状态分支），带时以 `{ name, atRecordId }` 发起历史分支；`branchInFlight` 为真时抛 `DOMException('A branch request is already in progress', 'InvalidStateError')`；`isStaleBranchPointError` 命中时标记通知已分发并重新抛出，其余错误经 `dispatchActionError` 以操作码 `branch_session`、消息 `Branch session failed` 通知；分支后自动切换失败时尝试 detach 新分支会话。`packages/webui/src/daemon/session/types.ts` 同版定义 `branchSession(name?: string, atRecordId?: string): Promise<{ sessionId; displayName; switchStarted }>`，`DaemonNoticeOperation` 含 `branch_session`。
+- 该提交处的 `packages/cli/src/ui/commands/branchCommand.ts`：`/branch` 描述 "Fork the current conversation into a new session"，可选参数作为分支名称（`args.trim().replace(/[\r\n]+/g, ' ')`），返回 `dialog: 'branch'` 动作；不接受记录 ID 或消息位置参数；`context.ui.isIdleRef?.current === false`（流式输出或工具确认进行中）或当前会话无记录时不执行。
+- 该提交处的 `docs/users/qwen-serve.md`：未描述历史回复分支、Branch 操作或 `atRecordId`；仅说明 `branchSession` 在 prompt FIFO 上串行化但不计入 pending prompt 上限，且 `--max-total-sessions` 适用于新子会话、会话恢复与 branch/fork 创建的会话。
+- v0.21.13 标签处的 `docs/users/features/commands.md`：`/branch` 行仍为 "Fork the current conversation into a new session"，无历史分支点参数。
+- 其余四家：Claude Code `/branch`/`--fork-session`、Codex `/fork`/`codex exec fork`、Kimi Code `/fork`、Qoder SDK `resume` + `forkSession` 均按既有核对记录从当前会话状态复制，本次未发现官方新增历史分支点入口。
