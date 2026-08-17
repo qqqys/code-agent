@@ -58,7 +58,7 @@
 | 更新与发行说明 | `/release-notes` | — | `/update` | 内置更新 Skill | `/upgrade`、`/release-notes` |
 | 临时旁路问题 | `/btw` | `/side`、`/btw` | `/btw` | `/btw` | — |
 | 浏览器或 Web | `/chrome`、`/deep-research` | `/apps` | — | `/web` | — |
-| 多模型或多代理协作模式 | `/advisor`、`/batch` | `/agent` | `/arena`、`/batch`、`/coordinate`（v0.21.11 起） | `/swarm`、`/tower`（条件：合入 main 尚未发布） | `/quest`、`/batch` |
+| 多模型或多代理协作模式 | `/advisor`、`/batch` | `/agent` | `/advisor`（条件：合入 main 尚未发布）、`/arena`、`/batch`、`/coordinate`（v0.21.11 起） | `/swarm`、`/tower`（条件：合入 main 尚未发布） | `/quest`、`/batch` |
 | 远程控制 | `/remote-control`、`/rc`、`/teleport`、`/desktop`、`/app` | `/app` | — | `/web` | 条件项：Cloud Mode |
 | 退出程序 | `/exit`、`/quit` | `/exit`、`/quit` | `/quit`、`/exit` | `/exit`、`/quit`、`/q` | `/quit`、`/exit` |
 | 帮助 | `/help` | 命令选择器 | `/help`、`/?` | `/help`、`/h`、`/?` | `/help` |
@@ -83,9 +83,9 @@ Qwen Code 的固定命令面由两套加载器共同组成。只扫描硬编码�
 
 #### 硬编码命令
 
-源码中共有 66 个主命令定义：
+源码中共有 68 个主命令定义：
 
-`/agents`、`/approval-mode`、`/arena`、`/auth`、`/branch`、`/btw`、`/bug`、`/cd`、`/clear`、`/compress`、`/compress-fast`、`/config`、`/context`、`/copy`、`/delete`、`/diff`、`/directory`、`/docs`、`/doctor`、`/dream`、`/editor`、`/effort`、`/export`、`/extensions`、`/forget`、`/fork`、`/goal`、`/help`、`/history`、`/hooks`、`/ide`、`/import-config`、`/init`、`/insight`、`/language`、`/learn`、`/lsp`、`/mcp`、`/memory`、`/model`、`/permissions`、`/plan`、`/quit`、`/recap`、`/reload-plugins`、`/remember`、`/rename`、`/restore`、`/resume`、`/rewind`、`/settings`、`/setup-github`、`/skills`、`/stats`、`/status`、`/statusline`、`/summary`、`/tasks`、`/terminal-setup`、`/theme`、`/tools`、`/trust`、`/update`、`/vim`、`/voice`、`/workflows`。
+`/advisor`、`/agents`、`/approval-mode`、`/arena`、`/auth`、`/branch`、`/btw`、`/bug`、`/cd`、`/clear`、`/compress`、`/compress-fast`、`/config`、`/context`、`/copy`、`/curator`、`/delete`、`/diff`、`/directory`、`/docs`、`/doctor`、`/dream`、`/editor`、`/effort`、`/export`、`/extensions`、`/forget`、`/fork`、`/goal`、`/help`、`/history`、`/hooks`、`/ide`、`/import-config`、`/init`、`/insight`、`/language`、`/learn`、`/lsp`、`/mcp`、`/memory`、`/model`、`/permissions`、`/plan`、`/quit`、`/recap`、`/reload-plugins`、`/remember`、`/rename`、`/restore`、`/resume`、`/rewind`、`/settings`、`/setup-github`、`/skills`、`/stats`、`/status`、`/statusline`、`/summary`、`/tasks`、`/terminal-setup`、`/theme`、`/tools`、`/trust`、`/update`、`/vim`、`/voice`、`/workflows`。
 
 其中 6 个受条件控制：
 
@@ -102,6 +102,8 @@ v0.21.8（2026-08-08 发布）起，`/workflows` 增加 `p <runId>` 形式（提
 硬编码命令还提供 13 个别名：
 
 `/about`、`/connect`、`/login`、`/reset`、`/new`、`/summarize`、`/dir`、`/?`、`/exit`、`/tag`、`/continue`、`/rollback`、`/usage`。
+
+`/advisor`（会话二次意见审查）于 2026-08-17 合入 main 分支（提交 `18c9763f46ce`，PR #7567），尚未进入 Release：`/advisor [focus]` 以工具全部移除的只读旁路单轮查询（官方文档：至多最近 40 条消息上下文）请审查模型对当前对话给出二次意见，固定输出 Verdict、Risks、Missing evidence、Recommendation 四节，执行期间阻塞输入直到审查返回；`advisorModel` 设置可指定审查模型（可跨 Provider），未设置时用主模型；命令只在交互式与 ACP 模式可用，内置 `/advisor` 不写入 ACP 会话记录。`/curator`（Auto Skill 维护，提供 status、`run [--dry-run]`、`pin`/`unpin`、`restore` 子命令）由 2026-08-01 提交 `e569734a1e12`（PR #7846）注册为硬编码命令，本目录此前漏记。
 
 #### 随产品提供的 Skill 命令
 
@@ -187,6 +189,11 @@ Web Shell 还固定提供 4 个不属于 CLI/TUI 硬编码加载器的本地命�
 - [Qwen Code `/coordinate` Skill](https://github.com/QwenLM/qwen-code/blob/8858d4340bbbb46f693dd09767aaaadc7ec7cc9b/packages/core/src/skills/bundled/coordinate/SKILL.md)
 - [Qwen Code 原生多代理协作提交](https://github.com/QwenLM/qwen-code/commit/8858d4340bbbb46f693dd09767aaaadc7ec7cc9b)
 - [Qwen Code v0.21.11 发布说明](https://github.com/QwenLM/qwen-code/releases/tag/v0.21.11)
+- [Qwen Code `/advisor` 命令提交](https://github.com/QwenLM/qwen-code/commit/18c9763f46ce95eb64f46038941618c4ea50dcce)
+- [Qwen Code `/advisor` 命令文档](https://github.com/QwenLM/qwen-code/blob/18c9763f46ce95eb64f46038941618c4ea50dcce/docs/users/features/commands.md)
+- [Qwen Code `/advisor` 命令源码](https://github.com/QwenLM/qwen-code/blob/18c9763f46ce95eb64f46038941618c4ea50dcce/packages/cli/src/ui/commands/advisor-command.ts)
+- [Qwen Code `advisorModel` 设置文档](https://github.com/QwenLM/qwen-code/blob/18c9763f46ce95eb64f46038941618c4ea50dcce/docs/users/configuration/settings.md)
+- [Qwen Code Auto Skill curator 提交](https://github.com/QwenLM/qwen-code/commit/e569734a1e127d253433409c91926373afda6b47)
 - [Qwen Code Web Shell 本地命令](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/web-shell/client/constants/localCommands.ts)
 - [Kimi Code Slash 命令](https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/reference/slash-commands.md)
 - [Kimi Code `/bug` 别名提交](https://github.com/MoonshotAI/kimi-code/commit/8db7d42f23472a692eb389a0e0e5a3e18aa1b94d)

@@ -654,6 +654,22 @@ window.matrixData = {
       label: 'Qwen Code native multi-agent coordination commit',
       url: 'https://github.com/QwenLM/qwen-code/commit/8858d4340bbbb46f693dd09767aaaadc7ec7cc9b',
     },
+    'qwen-advisor-commit': {
+      label: 'Qwen Code /advisor command commit',
+      url: 'https://github.com/QwenLM/qwen-code/commit/18c9763f46ce95eb64f46038941618c4ea50dcce',
+    },
+    'qwen-advisor-docs': {
+      label: 'Qwen Code /advisor command documentation',
+      url: 'https://github.com/QwenLM/qwen-code/blob/18c9763f46ce95eb64f46038941618c4ea50dcce/docs/users/features/commands.md',
+    },
+    'qwen-advisor-source': {
+      label: 'Qwen Code advisor command source',
+      url: 'https://github.com/QwenLM/qwen-code/blob/18c9763f46ce95eb64f46038941618c4ea50dcce/packages/cli/src/ui/commands/advisor-command.ts',
+    },
+    'qwen-advisor-settings': {
+      label: 'Qwen Code advisorModel setting documentation',
+      url: 'https://github.com/QwenLM/qwen-code/blob/18c9763f46ce95eb64f46038941618c4ea50dcce/docs/users/configuration/settings.md',
+    },
     'qwen-commands-current': {
       label: 'Qwen Code current custom commands',
       url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/commands.md',
@@ -1247,7 +1263,7 @@ window.matrixData = {
       category: 'commands',
       capability: '多模型或多代理模式',
       description: '启动多任务、多 Agent 或多模型协作入口。',
-      values: { claude: '`/advisor` · `/batch`', codex: '`/agent`', qwen: '`/arena` · `/batch` · `/coordinate`（v0.21.11 起）', kimi: '`/swarm` · `/tower`（条件：合入 main 尚未发布）', qoder: '`/quest` · `/batch`' },
+      values: { claude: '`/advisor` · `/batch`', codex: '`/agent`', qwen: '`/advisor`（条件：合入 main 尚未发布） · `/arena` · `/batch` · `/coordinate`（v0.21.11 起）', kimi: '`/swarm` · `/tower`（条件：合入 main 尚未发布）', qoder: '`/quest` · `/batch`' },
     },
     {
       id: 'cmd-remote',
