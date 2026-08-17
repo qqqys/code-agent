@@ -2,7 +2,7 @@
 
 [返回 Headless、SDK 与多端详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=surface-cli)
 
-> 核对日期：2026-08-16
+> 核对日期：2026-08-17
 
 ## 定义
 
