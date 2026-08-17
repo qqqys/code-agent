@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-08-16',
+  updatedAt: '2026-08-17',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -930,6 +930,18 @@ window.matrixData = {
       label: 'Kimi Code multi-skill activation changeset',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/44a6c70e66762ea9e122f8dceae16dc759086a7c/.changeset/inline-multi-skill-tui.md',
     },
+    'kimi-token-ledger-commit': {
+      label: 'Kimi Code token counting ledger persistence commit',
+      url: 'https://github.com/MoonshotAI/kimi-code/commit/ee564e5ec90afd068123b8052928c53f1fd5a27d',
+    },
+    'kimi-token-ledger-changeset': {
+      label: 'Kimi Code token counting ledger changeset',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/ee564e5ec90afd068123b8052928c53f1fd5a27d/.changeset/persist-token-counting-ledger.md',
+    },
+    'kimi-token-ledger-ops': {
+      label: 'Kimi Code token counting ledger source',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/ee564e5ec90afd068123b8052928c53f1fd5a27d/packages/agent-core-v2/src/agent/tokenCounting/tokenCountingOps.ts',
+    },
     'qoder-commands': {
       label: 'Qoder CLI slash commands',
       url: 'https://docs.qoder.com/cli/slash-reference',
@@ -1508,7 +1520,7 @@ window.matrixData = {
       category: 'sessions',
       capability: '上下文占用',
       description: '查看当前会话上下文窗口或 token 使用情况。',
-      values: { claude: '`/context`', codex: '`/status`', qwen: '`/context` · `/context detail`', kimi: '`/usage`', qoder: '未确认独立占用视图' },
+      values: { claude: '`/context`', codex: '`/status`', qwen: '`/context` · `/context detail`', kimi: '`/usage` · 条件：resume 后恢复实测上下文占用（main 分支，尚未发布）', qoder: '未确认独立占用视图' },
     },
     {
       id: 'session-export',
