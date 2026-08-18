@@ -2,7 +2,7 @@
 
 [返回任务执行与 Git 详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=execution-review)
 
-> 核对日期：2026-08-17
+> 核对日期：2026-08-18
 
 ## 定义
 
