@@ -210,6 +210,10 @@ window.matrixData = {
       label: 'Claude Code v2.1.233 changelog (Bash memory cgroup)',
       url: 'https://github.com/anthropics/claude-code/blob/0fa8c19d50f7/CHANGELOG.md',
     },
+    'claude-goal-v234': {
+      label: 'Claude Code v2.1.234 changelog (/goal self-clear and background check-in)',
+      url: 'https://github.com/anthropics/claude-code/blob/354757e5b2d9/CHANGELOG.md',
+    },
     'codex-commands': {
       label: 'Codex CLI commands',
       url: 'https://developers.openai.com/codex/cli/slash-commands',
@@ -754,6 +758,14 @@ window.matrixData = {
       label: 'Kimi Code 0.36.1 release notes',
       url: 'https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%400.36.1',
     },
+    'kimi-goal-limit-commit': {
+      label: 'Kimi Code /goal objective length limit commit',
+      url: 'https://github.com/MoonshotAI/kimi-code/commit/d96cd037702637305422222e985139e51ff83c8c',
+    },
+    'kimi-v037-release': {
+      label: 'Kimi Code 0.37.0 release notes',
+      url: 'https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%400.37.0',
+    },
     'kimi-agents': {
       label: 'Kimi Code Agents',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/customization/agents.md',
@@ -1156,7 +1168,7 @@ window.matrixData = {
       category: 'commands',
       capability: '目标管理',
       description: '创建或查看跨多轮持续执行的目标。',
-      values: { claude: '`/goal`', codex: '`/goal`', qwen: '`/goal`', kimi: '`/goal`', qoder: '—' },
+      values: { claude: '`/goal`', codex: '`/goal`', qwen: '`/goal`', kimi: '`/goal` · 条件：0.37.0 起单条目标不超过 4000 字符', qoder: '—' },
     },
     {
       id: 'cmd-agents',

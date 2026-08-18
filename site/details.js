@@ -221,6 +221,8 @@
       facts: [
         'Claude Code、Codex、Qwen Code 和 Kimi Code 都提供 `/goal`。',
         'Kimi Code 公开了 status、pause、resume、cancel、replace、next 等子命令及非交互退出码。',
+        'Kimi Code 0.37.0 起单条目标不超过 4000 字符，TUI 输入提示与 v1/v2 引擎双层校验，超限拒绝并保留已输入内容。',
+        'Claude Code v2.1.234 起 `/goal` 在回合因不可恢复错误终止时自动清除并提示；后台任务让目标等待超过 30 分钟时主动检查这些任务。',
         'Qwen Code Headless 把 `/goal` 作为完整提示词，Goal 状态随会话保存，`--continue` 或 `--resume <sessionId>` 可跨进程查看或控制；stream-json 以 `goal_state` 为权威状态事件。',
         'Qwen Code ACP 会话自提交 `05079297d26c`（2026-08-12 合入 main，尚未发布）起采用 Goal v3 规范运行时，Goal 状态变化经 `_meta.goalState` 下发。',
         'Qoder CLI 当前命令目录没有 `/goal`。',
@@ -229,6 +231,8 @@
         claude: command('claude', ['/goal [condition|clear]'], '设置持续目标；不带参数显示当前或最近完成的目标。', {
           parameters: '`condition`；`clear|stop|off|reset|none|cancel` 可提前移除',
           persistence: '当前会话的持续目标状态',
+          conditions: 'v2.1.234 起：回合因不可恢复错误（如撤销认证、余额用尽、上下文溢出）终止时，`/goal` 自动清除并提示，不再保持生效；后台任务让目标等待超过 30 分钟时主动检查这些任务而不是无限等待，`CLAUDE_CODE_GOAL_CHECKIN_MINUTES=0` 可关闭该检查',
+          sources: ['claude-commands', 'claude-goal-v234'],
         }),
         codex: command('codex', ['/goal'], '设置、编辑、暂停、恢复、查看或清除任务目标。', {
           persistence: '当前会话的持久目标状态',
@@ -244,7 +248,8 @@
           parameters: '`status|pause|resume|cancel|replace <objective>|next <objective>|next manage`',
           mode: 'TUI；`kimi -p "/goal ..."` 只支持创建形式',
           persistence: '目标和后续目标队列保存在当前会话',
-          conditions: 'Prompt 模式完成、阻塞、暂停分别使用退出码 0、3、6',
+          conditions: '0.37.0 起单条目标不超过 4000 字符：输入超长时 TUI 页脚实时提示当前长度/上限，提交时报 `Goal objective is too long (max 4000 characters)` 并建议把长内容写入文件后引用文件路径；编辑框为空且无替换面板时把已输入内容回填编辑框；v1 与 v2 引擎创建目标时同样校验并抛 `GOAL_OBJECTIVE_TOO_LONG`；官方 Slash 命令文档尚未同步该限制。Prompt 模式完成、阻塞、暂停分别使用退出码 0、3、6',
+          sources: ['kimi-commands', 'kimi-goal-limit-commit', 'kimi-v037-release'],
         }),
         qoder: unconfirmed('qoder'),
       },
