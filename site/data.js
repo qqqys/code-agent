@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-08-17',
+  updatedAt: '2026-08-18',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -669,6 +669,26 @@ window.matrixData = {
     'qwen-advisor-settings': {
       label: 'Qwen Code advisorModel setting documentation',
       url: 'https://github.com/QwenLM/qwen-code/blob/18c9763f46ce95eb64f46038941618c4ea50dcce/docs/users/configuration/settings.md',
+    },
+    'qwen-branch-any-commit': {
+      label: 'Qwen Code session branching from any response commit',
+      url: 'https://github.com/QwenLM/qwen-code/commit/9f8f65dde043c10cb6a13ea1d4a03928d83d98dc',
+    },
+    'qwen-branch-any-design': {
+      label: 'Qwen Code assistant response session branching design document',
+      url: 'https://github.com/QwenLM/qwen-code/blob/9f8f65dde043c10cb6a13ea1d4a03928d83d98dc/docs/design/web-shell/assistant-response-session-branching.md',
+    },
+    'qwen-branch-any-route': {
+      label: 'Qwen Code daemon session branch route source',
+      url: 'https://github.com/QwenLM/qwen-code/blob/9f8f65dde043c10cb6a13ea1d4a03928d83d98dc/packages/cli/src/serve/routes/session.ts',
+    },
+    'qwen-branch-any-sdk': {
+      label: 'Qwen Code TypeScript SDK DaemonClient branchSession source',
+      url: 'https://github.com/QwenLM/qwen-code/blob/9f8f65dde043c10cb6a13ea1d4a03928d83d98dc/packages/sdk-typescript/src/daemon/DaemonClient.ts',
+    },
+    'qwen-v02113-release': {
+      label: 'Qwen Code v0.21.13 release notes',
+      url: 'https://github.com/QwenLM/qwen-code/releases/tag/v0.21.13',
     },
     'qwen-commands-current': {
       label: 'Qwen Code current custom commands',
@@ -1515,7 +1535,7 @@ window.matrixData = {
       category: 'sessions',
       capability: '会话分支',
       description: '从当前上下文复制出独立会话。',
-      values: { claude: '`/branch` · `--fork-session`', codex: '`/fork` · `codex exec fork`（条件：main 分支，尚未发布）', qwen: '`/branch`', kimi: '`/fork` · 条件：fork 后打印 `kimi --resume` 命令并复制到剪贴板（main 分支，尚未发布）', qoder: 'SDK：`resume` + `forkSession`' },
+      values: { claude: '`/branch` · `--fork-session`', codex: '`/fork` · `codex exec fork`（条件：main 分支，尚未发布）', qwen: '`/branch` · 条件：Web Shell 可从任意已完成 Assistant 响应分支（v0.21.13 起）', kimi: '`/fork` · 条件：fork 后打印 `kimi --resume` 命令并复制到剪贴板（main 分支，尚未发布）', qoder: 'SDK：`resume` + `forkSession`' },
     },
     {
       id: 'session-naming',
