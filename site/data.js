@@ -950,6 +950,26 @@ window.matrixData = {
       label: 'Kimi Code TowerSpawn tool source',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/f492cd7c9e03666ecfd10dc47ca9b48c35de2318/packages/agent-core-v2/src/features/tower/tools/spawn/spawnTool.ts',
     },
+    'kimi-tower-disable-commit': {
+      label: 'Kimi Code tower feature disable commit',
+      url: 'https://github.com/MoonshotAI/kimi-code/commit/5ae82cd5bcb92395baf96feea68e12f8c96b51ed',
+    },
+    'kimi-tower-skill-gate': {
+      label: 'Kimi Code tower skill experimental flag gate',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/5ae82cd5bcb92395baf96feea68e12f8c96b51ed/packages/agent-core-v2/src/features/tower/skill/skill.ts',
+    },
+    'kimi-tower-feature-source': {
+      label: 'Kimi Code TowerFeature flag guard source',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/5ae82cd5bcb92395baf96feea68e12f8c96b51ed/packages/agent-core-v2/src/features/tower/towerFeature.ts',
+    },
+    'kimi-tower-flag-test': {
+      label: 'Kimi Code tower flag gating tests',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/5ae82cd5bcb92395baf96feea68e12f8c96b51ed/packages/agent-core-v2/test/features/tower/towerFeature.test.ts',
+    },
+    'kimi-builtin-skill-filter': {
+      label: 'Kimi Code builtin skill flag filter',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/5ae82cd5bcb92395baf96feea68e12f8c96b51ed/packages/agent-core-v2/src/app/skillCatalog/builtin/builtin.ts',
+    },
     'kimi-multi-skill-engine-commit': {
       label: 'Kimi Code multi-skill prompt bundling commit',
       url: 'https://github.com/MoonshotAI/kimi-code/commit/61591bce09f4467aa1664cb8ecb6aa6904b7accd',
@@ -1283,7 +1303,7 @@ window.matrixData = {
       category: 'commands',
       capability: '多模型或多代理模式',
       description: '启动多任务、多 Agent 或多模型协作入口。',
-      values: { claude: '`/advisor` · `/batch`', codex: '`/agent`', qwen: '`/advisor`（条件：合入 main 尚未发布） · `/arena` · `/batch` · `/coordinate`（v0.21.11 起）', kimi: '`/swarm` · `/tower`（条件：合入 main 尚未发布）', qoder: '`/quest` · `/batch`' },
+      values: { claude: '`/advisor` · `/batch`', codex: '`/agent`', qwen: '`/advisor`（条件：合入 main 尚未发布） · `/arena` · `/batch` · `/coordinate`（v0.21.11 起）', kimi: '`/swarm` · `/tower`（条件：合入 main 后于 2026-08-18 禁用，当前无法开启）', qoder: '`/quest` · `/batch`' },
     },
     {
       id: 'cmd-remote',
