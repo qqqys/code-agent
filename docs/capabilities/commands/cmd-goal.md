@@ -39,9 +39,11 @@
 
 1. Claude Code、Codex、Qwen Code 和 Kimi Code 都提供 `/goal`。
 2. Kimi Code 公开了 status、pause、resume、cancel、replace、next 等子命令及非交互退出码。
-3. Qwen Code Headless 把 `/goal` 作为完整提示词，Goal 状态随会话保存，`--continue` 或 `--resume <sessionId>` 可跨进程查看或控制；stream-json 以 `goal_state` 为权威状态事件。
-4. Qwen Code ACP 会话自提交 `05079297d26c`（2026-08-12 合入 main，尚未发布）起采用 Goal v3 规范运行时，Goal 状态变化经 `_meta.goalState` 下发。
-5. Qoder CLI 当前命令目录没有 `/goal`。
+3. Kimi Code 0.37.0 起单条目标不超过 4000 字符，TUI 输入提示与 v1/v2 引擎双层校验，超限拒绝并保留已输入内容。
+4. Claude Code v2.1.234 起 `/goal` 在回合因不可恢复错误终止时自动清除并提示；后台任务让目标等待超过 30 分钟时主动检查这些任务。
+5. Qwen Code Headless 把 `/goal` 作为完整提示词，Goal 状态随会话保存，`--continue` 或 `--resume <sessionId>` 可跨进程查看或控制；stream-json 以 `goal_state` 为权威状态事件。
+6. Qwen Code ACP 会话自提交 `05079297d26c`（2026-08-12 合入 main，尚未发布）起采用 Goal v3 规范运行时，Goal 状态变化经 `_meta.goalState` 下发。
+7. Qoder CLI 当前命令目录没有 `/goal`。
 
 ## 逐产品记录
 
@@ -55,9 +57,9 @@
 | 执行行为 | 设置持续目标；不带参数显示当前或最近完成的目标。 |
 | 可用模式 | 交互式 CLI |
 | 保存范围 | 当前会话的持续目标状态 |
-| 条件与边界 | 无额外条件 |
+| 条件与边界 | v2.1.234 起：回合因不可恢复错误（如撤销认证、余额用尽、上下文溢出）终止时，`/goal` 自动清除并提示，不再保持生效；后台任务让目标等待超过 30 分钟时主动检查这些任务而不是无限等待，`CLAUDE_CODE_GOAL_CHECKIN_MINUTES=0` 可关闭该检查 |
 | 证据状态 | 官方确认 |
-| 来源 | [Claude Code Commands](https://code.claude.com/docs/en/commands) |
+| 来源 | [Claude Code Commands](https://code.claude.com/docs/en/commands)、[Claude Code v2.1.234 changelog (/goal self-clear and background check-in)](https://github.com/anthropics/claude-code/blob/354757e5b2d9/CHANGELOG.md) |
 
 ### Codex
 
@@ -97,9 +99,9 @@
 | 执行行为 | 创建并管理目标模式，支持暂停、恢复、替换、取消和后续目标队列。 |
 | 可用模式 | TUI；`kimi -p "/goal ..."` 只支持创建形式 |
 | 保存范围 | 目标和后续目标队列保存在当前会话 |
-| 条件与边界 | Prompt 模式完成、阻塞、暂停分别使用退出码 0、3、6 |
+| 条件与边界 | 0.37.0 起单条目标不超过 4000 字符：输入超长时 TUI 页脚实时提示当前长度/上限，提交时报 `Goal objective is too long (max 4000 characters)` 并建议把长内容写入文件后引用文件路径；编辑框为空且无替换面板时把已输入内容回填编辑框；v1 与 v2 引擎创建目标时同样校验并抛 `GOAL_OBJECTIVE_TOO_LONG`；官方 Slash 命令文档尚未同步该限制。Prompt 模式完成、阻塞、暂停分别使用退出码 0、3、6 |
 | 证据状态 | 官方确认 |
-| 来源 | [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/reference/slash-commands.md) |
+| 来源 | [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/reference/slash-commands.md)、[Kimi Code /goal objective length limit commit](https://github.com/MoonshotAI/kimi-code/commit/d96cd037702637305422222e985139e51ff83c8c)、[Kimi Code 0.37.0 release notes](https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%400.37.0) |
 
 ### Qoder CLI
 
@@ -118,11 +120,14 @@
 ## 官方来源
 
 - [Claude Code Commands](https://code.claude.com/docs/en/commands)
+- [Claude Code v2.1.234 changelog (/goal self-clear and background check-in)](https://github.com/anthropics/claude-code/blob/354757e5b2d9/CHANGELOG.md)
 - [Codex CLI commands](https://developers.openai.com/codex/cli/slash-commands)
 - [Qwen Code commands documentation](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/commands.md)
 - [Qwen Code headless Goal workflows](https://github.com/QwenLM/qwen-code/blob/48d37cdf704dbe4c5254cc4b31c2d62f1351bff1/docs/users/features/headless.md)
 - [Qwen Code Goal v3 adoption in ACP sessions commit](https://github.com/QwenLM/qwen-code/commit/05079297d26c9c42013c3699743350d1d272fac2)
 - [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/reference/slash-commands.md)
+- [Kimi Code /goal objective length limit commit](https://github.com/MoonshotAI/kimi-code/commit/d96cd037702637305422222e985139e51ff83c8c)
+- [Kimi Code 0.37.0 release notes](https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%400.37.0)
 - [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)
 
 ## 关联能力

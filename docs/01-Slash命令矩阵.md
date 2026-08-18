@@ -18,7 +18,7 @@
 | 推理强度 | `/effort` | `/model`、`/fast` | `/effort` | — | `/effort`、`/fast` |
 | 权限设置 | `/permissions`、`/allowed-tools` | `/permissions` | `/approval-mode`、`/permissions` | `/permission`、`/yolo`、`/auto` | `/config` |
 | 计划模式 | `/plan` | `/plan` | `/plan` | `/plan`、`/plan clear` | `/plan` |
-| 目标 | `/goal` | `/goal` | `/goal` | `/goal` | — |
+| 目标 | `/goal` | `/goal` | `/goal` | `/goal`（条件：0.37.0 起单条目标不超过 4000 字符） | — |
 | Subagent 管理 | `/agents`、`/subtask` | `/agent`、`/subagents` | `/agents manage`、`/agents create` | `/swarm`；Agent 通过配置与工具调用 | `/agents`、`/agents reload` |
 | 任务列表 | `/tasks` | `/ps` | `/tasks`；Background Tasks `p` 或 `/workflows p <runId>` 协作暂停/恢复后台 Workflow（条件：Workflows 开关、仅后台运行） | `/tasks`、`/task` | `/tasks` |
 | 新会话 | `/clear`、`/reset`、`/new` | `/new`、`/clear` | `/clear` | `/new`、`/clear` | `/clear` |
