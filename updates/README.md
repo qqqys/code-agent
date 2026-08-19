@@ -4,6 +4,7 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-08-19 | [文件读写：Kimi Code Edit/Write 写前读与过期写入保护（staleGuard，main 分支）](./2026-08-19-文件读写-Kimi-Edit与Write写前读与过期写入保护.md) |
 | 2026-08-19 | [运行中会话列表能力字段与 Qwen `qwen sessions ps`（v0.21.14）](./2026-08-19-运行中会话列表能力字段.md) |
 | 2026-08-19 | [Codex Hooks 异步 command 执行与 `mcp_tool` 引擎随 rust-v0.148.0 发布](./2026-08-19-Codex-Hooks异步执行与MCP工具引擎发布.md) |
 | 2026-08-18 | [目标管理：Claude Code `/goal` 自动清除与后台检查（v2.1.234），Kimi Code 目标 4000 字符上限（0.37.0）](./2026-08-18-目标管理-Claude-goal自动清除与Kimi目标长度上限.md) |
