@@ -58,7 +58,7 @@
 | 更新与发行说明 | `/release-notes` | — | `/update` | 内置更新 Skill | `/upgrade`、`/release-notes` |
 | 临时旁路问题 | `/btw` | `/side`、`/btw` | `/btw` | `/btw` | — |
 | 浏览器或 Web | `/chrome`、`/deep-research` | `/apps` | — | `/web` | — |
-| 多模型或多代理协作模式 | `/advisor`、`/batch` | `/agent` | `/advisor`（条件：合入 main 尚未发布）、`/arena`、`/batch`、`/coordinate`（v0.21.11 起） | `/swarm`、`/tower`（条件：合入 main 后于 2026-08-18 禁用，当前无法开启） | `/quest`、`/batch` |
+| 多模型或多代理协作模式 | `/advisor`、`/batch` | `/agent` | `/advisor`（v0.21.14 起）、`/arena`、`/batch`、`/coordinate`（v0.21.11 起） | `/swarm`、`/tower`（条件：合入 main 后于 2026-08-18 禁用，当前无法开启） | `/quest`、`/batch` |
 | 远程控制 | `/remote-control`、`/rc`、`/teleport`、`/desktop`、`/app` | `/app` | — | `/web` | 条件项：Cloud Mode |
 | 退出程序 | `/exit`、`/quit` | `/exit`、`/quit` | `/quit`、`/exit` | `/exit`、`/quit`、`/q` | `/quit`、`/exit` |
 | 帮助 | `/help` | 命令选择器 | `/help`、`/?` | `/help`、`/h`、`/?` | `/help` |
@@ -103,7 +103,7 @@ v0.21.8（2026-08-08 发布）起，`/workflows` 增加 `p <runId>` 形式（提
 
 `/about`、`/connect`、`/login`、`/reset`、`/new`、`/summarize`、`/dir`、`/?`、`/exit`、`/tag`、`/continue`、`/rollback`、`/usage`。
 
-`/advisor`（会话二次意见审查）于 2026-08-17 合入 main 分支（提交 `18c9763f46ce`，PR #7567），尚未进入 Release：`/advisor [focus]` 以工具全部移除的只读旁路单轮查询（官方文档：至多最近 40 条消息上下文）请审查模型对当前对话给出二次意见，固定输出 Verdict、Risks、Missing evidence、Recommendation 四节，执行期间阻塞输入直到审查返回；`advisorModel` 设置可指定审查模型（可跨 Provider），未设置时用主模型；命令只在交互式与 ACP 模式可用，内置 `/advisor` 不写入 ACP 会话记录。`/curator`（Auto Skill 维护，提供 status、`run [--dry-run]`、`pin`/`unpin`、`restore` 子命令）由 2026-08-01 提交 `e569734a1e12`（PR #7846）注册为硬编码命令，本目录此前漏记。
+`/advisor`（会话二次意见审查）于 2026-08-17 合入 main 分支（提交 `18c9763f46ce`，PR #7567），随 v0.21.14（2026-08-19 发布）发布：`/advisor [focus]` 以工具全部移除的只读旁路单轮查询（官方文档：至多最近 40 条消息上下文）请审查模型对当前对话给出二次意见，固定输出 Verdict、Risks、Missing evidence、Recommendation 四节，执行期间阻塞输入直到审查返回；`advisorModel` 设置可指定审查模型（可跨 Provider），未设置时用主模型；命令只在交互式与 ACP 模式可用，内置 `/advisor` 不写入 ACP 会话记录。`/curator`（Auto Skill 维护，提供 status、`run [--dry-run]`、`pin`/`unpin`、`restore` 子命令）由 2026-08-01 提交 `e569734a1e12`（PR #7846）注册为硬编码命令，本目录此前漏记。
 
 #### 随产品提供的 Skill 命令
 

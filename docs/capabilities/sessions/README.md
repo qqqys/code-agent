@@ -9,6 +9,7 @@
 | 能力 | 网页 | Markdown |
 | --- | --- | --- |
 | 恢复会话 | [打开](https://qqqys.github.io/code-agent/capability.html?id=session-resume) | [查看](./session-resume.md) |
+| 运行中会话列表 | [打开](https://qqqys.github.io/code-agent/capability.html?id=session-live-list) | [查看](./session-live-list.md) |
 | 会话分支 | [打开](https://qqqys.github.io/code-agent/capability.html?id=session-branch) | [查看](./session-branch.md) |
 | 会话命名 | [打开](https://qqqys.github.io/code-agent/capability.html?id=session-naming) | [查看](./session-naming.md) |
 | 手动压缩 | [打开](https://qqqys.github.io/code-agent/capability.html?id=session-compress) | [查看](./session-compress.md) |

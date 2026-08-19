@@ -706,6 +706,26 @@ window.matrixData = {
       label: 'Qwen Code v0.21.13 release notes',
       url: 'https://github.com/QwenLM/qwen-code/releases/tag/v0.21.13',
     },
+    'qwen-sessions-ps-commit': {
+      label: 'Qwen Code live-session registry commit',
+      url: 'https://github.com/QwenLM/qwen-code/commit/a1e046eb6c5546e6aab2a004367e67c2af1673fd',
+    },
+    'qwen-sessions-ps-docs': {
+      label: 'Qwen Code sessions command documentation (sessions ps)',
+      url: 'https://github.com/QwenLM/qwen-code/blob/a1e046eb6c5546e6aab2a004367e67c2af1673fd/docs/users/features/commands.md',
+    },
+    'qwen-sessions-ps-source': {
+      label: 'Qwen Code sessions ps command source',
+      url: 'https://github.com/QwenLM/qwen-code/blob/a1e046eb6c5546e6aab2a004367e67c2af1673fd/packages/cli/src/commands/sessions/ps.ts',
+    },
+    'qwen-session-registry-source': {
+      label: 'Qwen Code session registry source',
+      url: 'https://github.com/QwenLM/qwen-code/blob/a1e046eb6c5546e6aab2a004367e67c2af1673fd/packages/core/src/services/session-registry.ts',
+    },
+    'qwen-v02114-release': {
+      label: 'Qwen Code v0.21.14 release notes',
+      url: 'https://github.com/QwenLM/qwen-code/releases/tag/v0.21.14',
+    },
     'qwen-commands-current': {
       label: 'Qwen Code current custom commands',
       url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/commands.md',
@@ -1327,7 +1347,7 @@ window.matrixData = {
       category: 'commands',
       capability: '多模型或多代理模式',
       description: '启动多任务、多 Agent 或多模型协作入口。',
-      values: { claude: '`/advisor` · `/batch`', codex: '`/agent`', qwen: '`/advisor`（条件：合入 main 尚未发布） · `/arena` · `/batch` · `/coordinate`（v0.21.11 起）', kimi: '`/swarm` · `/tower`（条件：合入 main 后于 2026-08-18 禁用，当前无法开启）', qoder: '`/quest` · `/batch`' },
+      values: { claude: '`/advisor` · `/batch`', codex: '`/agent`', qwen: '`/advisor`（v0.21.14 起） · `/arena` · `/batch` · `/coordinate`（v0.21.11 起）', kimi: '`/swarm` · `/tower`（条件：合入 main 后于 2026-08-18 禁用，当前无法开启）', qoder: '`/quest` · `/batch`' },
     },
     {
       id: 'cmd-remote',
@@ -1573,6 +1593,13 @@ window.matrixData = {
       capability: '恢复会话',
       description: '从已有会话继续对话和任务状态。',
       values: { claude: '`/resume` · `--continue`', codex: '`/resume` · `codex exec resume`', qwen: '`/resume` · `/continue`', kimi: '`/sessions` · `/resume`', qoder: '`/resume`' },
+    },
+    {
+      id: 'session-live-list',
+      category: 'sessions',
+      capability: '运行中会话列表',
+      description: '列出本机当前正在运行的交互式会话，区别于已保存的历史会话。',
+      values: { claude: 'Agent view 与 `claude agents --json` 列出运行中会话；会话选择器以 `bg` 标记后台会话', codex: '官方命令表未列出运行中会话列表；`codex resume` 选择已保存会话', qwen: '`qwen sessions ps` · `--json` JSON Lines（v0.21.14 起）', kimi: '`/sessions` 仅列出已保存历史会话；官方文档未列出运行中会话入口', qoder: '`/resume` 恢复历史会话；官方命令表未列出运行中会话列表' },
     },
     {
       id: 'session-branch',

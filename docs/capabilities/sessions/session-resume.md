@@ -138,6 +138,7 @@
 
 ## 关联能力
 
+- [运行中会话列表](./session-live-list.md)
 - [会话分支](./session-branch.md)
 - [会话命名](./session-naming.md)
 - [检查点与回退](./session-checkpoint.md)
