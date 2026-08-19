@@ -99,6 +99,7 @@
         'Claude Code、Qwen Code 和 Qoder CLI 单独提供 Notebook 编辑工具；Kimi Code 的当前工具表把媒体读取与文本读取分开。',
         '工具名称相近不代表审批相同：只读工具通常可直接运行，写入和编辑仍受各自权限模式、工作区边界与沙箱约束。',
         '换行处理不同：Codex `apply_patch` 默认把更新文件归一为 LF，`apply_patch_preserve_line_endings` 开关（已合入 main，尚未发布）启用后才保留原换行；Qwen Code `edit` 默认检测并保留原换行风格。Claude Code、Kimi Code 与 Qoder CLI 的官方工具文档未列同类换行保留或规范化配置。',
+        '写前读与过期写入保护不同：Claude Code 官方工具参考记录读后再改要求——当前会话先读取才能编辑，Claude Opus 4.6、Haiku 4.5 及更早模型始终要求先读，较新模型在读取无需权限提示且 Read 工具可用时可编辑未读文件；Kimi Code main 分支新增 staleGuard（尚未发布），Edit/Write 拒绝修改未经本 Agent 读取或读取后磁盘 mtime 已变的已有文件；Qwen Code `edit` 以 `checkPriorRead` 强制读后再改并在写入前复核过期；Codex 与 Qoder CLI 的官方工具文档未列同类写前读强制要求。',
       ],
       products: {
         claude: {
@@ -107,7 +108,7 @@
           primitives:
             '`Read` 支持文本、图片、PDF 与 Notebook；`Edit` 做精确替换；`Write` 创建或覆盖；`NotebookEdit` 修改单元。',
           behavior:
-            '`Edit` 与 `Write` 会触发文件修改权限检查；读取和搜索工具默认不要求权限。编辑后 LSP 可自动回报类型错误。',
+            '`Edit` 与 `Write` 会触发文件修改权限检查；读取和搜索工具默认不要求权限。编辑后 LSP 可自动回报类型错误。官方工具参考记录读后再改要求：当前会话需先读取目标文件，`PARTIAL view` 截断的读取不算；Claude Opus 4.6、Haiku 4.5 及更早模型始终要求先读，较新模型在读取无需权限提示且 Read 工具可用时可编辑未读文件；Bash 用 `cat`、`nl`、`bat`、`batcat`、`head`、`tail`、`sed -n \'X,Yp\'`、`grep`、`egrep`、`fgrep`、`rg` 查看单文件且无管道或重定向也满足要求。`Write` 覆盖已有文件是否必须先读取决于模型与文件；Jupyter Notebook 与部分读取的文件对所有模型都要求先读；新建文件不受限。文件在上次读取后变化时，仅当 `old_string` 与当前内容精确且唯一匹配、读取无需提示才允许直接编辑，其余情况要先重读。',
           scope:
             '以当前项目目录和已加入的工作目录为主要范围；目录外访问由文件权限规则决定。',
           background:
@@ -126,7 +127,7 @@
           primitives:
             '核心路径是读取文件后提交结构化补丁；`apply_patch` 默认 `NormalizeToLf`（把更新文件归一为 LF），main 分支新增 `PreserveLineEndings` 模式：未改动行保留原换行，插入行采用文件首个已有换行风格，文件无换行时用 LF。当前公开文档不要求用户记住内部工具名。',
           behavior:
-            '补丁在应用前后仍受当前审批预设和文件系统沙箱控制；只读模式不会允许持久修改。',
+            '补丁在应用前后仍受当前审批预设和文件系统沙箱控制；只读模式不会允许持久修改。官方 Apply Patch 指南（Responses API harness 说明）列出 `create_file`/`update_file`/`delete_file` 三种 V4A diff 操作并由 harness 应用，未设写前读强制要求；`update_file` 上下文与文件内容不匹配时应用失败并返回如 `Error: Invalid Context` 的错误，模型据此重读文件或简化改动后重试。',
           scope:
             '默认受当前工作区、额外可写目录和所选沙箱边界约束；桌面 App Worktree 会把落盘位置切到隔离目录。',
           background:
@@ -144,6 +145,7 @@
             'codex-review',
             'codex-apply-patch-mode',
             'codex-apply-patch-preserve-flag',
+            'codex-apply-patch-guide',
           ],
         },
         qwen: {
@@ -152,7 +154,7 @@
           primitives:
             '`read_file` 分页读取；`edit` 做受控替换；`write_file` 写入完整内容；`notebook_edit` 修改 Notebook 单元。',
           behavior:
-            '读取与编辑分别经过路径权限、工作区信任和 approval mode；读后再改规则可阻止模型基于过期内容直接覆盖。`edit` 匹配前把 CRLF 归一为 LF，写回已有文件时按检测到的原换行风格恢复。',
+            '读取与编辑分别经过路径权限、工作区信任和 approval mode。`edit` 以 `checkPriorRead` 强制读后再改：未经合法读取的已有文件拒绝编辑，按 mtime/文件大小检测过期，并在读取后、写入前各复核一次以收紧 TOCTOU 窗口；工具描述也要求先查看文件当前内容再尝试替换。`edit` 匹配前把 CRLF 归一为 LF，写回已有文件时按检测到的原换行风格恢复。',
           scope:
             '默认工作区是启动目录；`--include-directories`、Worktree 或 Daemon workspace 可改变有效路径范围。',
           background:
@@ -176,7 +178,7 @@
           primitives:
             '`Read` 最多返回 1000 行或 100 KB；`Write` 支持 overwrite/append；`Edit` 支持唯一匹配或 `replace_all`。',
           behavior:
-            'Read 默认放行，Write/Edit 默认需审批；Grep/Glob 会过滤敏感文件，写入缺失父目录时会自动创建。',
+            'Read 默认放行，Write/Edit 默认需审批；Grep/Glob 会过滤敏感文件，写入缺失父目录时会自动创建。v2 引擎的 staleGuard 在工具执行前拦截 Edit/Write：修改已有文件要求本 Agent 此前成功执行过 `Read`（`Read`/`Edit`/`Write` 成功后记录文件 mtimeMs，失败不记录），当前磁盘 mtime 与记录不一致即拒绝；同一批工具调用中已有对同一路径的 `Read` 时放行；新建文件不受影响。拒绝时分别提示 "has not been read by this agent yet" 或 "has been modified on disk since this agent last read it"，要求先（重新）读取；Agent 运行时变化会清空记录。',
           scope:
             '相对路径基于当前工作目录；权限模式和工具策略继续限制路径与写入。',
           background:
@@ -186,8 +188,15 @@
           artifacts:
             '写入直接落盘；会话日志记录工具事件，但不会自动把修改变成 Git 提交。',
           conditions:
-            'Plan 模式下 Write/Edit 只允许写计划文件；YOLO 跳过普通审批但不改变文件系统权限。官方工具文档未列换行保留或规范化配置；`Write` 的 append 模式不自动补换行。',
-          sources: ['kimi-tools-current', 'kimi-config-current'],
+            'Plan 模式下 Write/Edit 只允许写计划文件；YOLO 跳过普通审批但不改变文件系统权限。官方工具文档未列换行保留或规范化配置；`Write` 的 append 模式不自动补换行。staleGuard 于 2026-08-19 合入 main（提交 `67fbcdf1ba7d`，PR #3096），changeset 为 patch 级、尚未发布；无配置开关，仅 agent-core-v2 引擎实现（该提交时点的官方配置文档称 agent-core-v2 为默认引擎，`kimi web` 始终使用 v2），`KIMI_CODE_LEGACY_FLAG=1` 选择的旧版引擎未实现；官方工具文档尚未同步。',
+          sources: [
+            'kimi-tools-current',
+            'kimi-config-current',
+            'kimi-stale-guard-commit',
+            'kimi-stale-guard-service',
+            'kimi-stale-guard-changeset',
+            'kimi-stale-guard-config',
+          ],
         },
         qoder: {
           entry:
@@ -205,7 +214,7 @@
           artifacts:
             '修改写入当前 workspace 或所选 Worktree；是否进入提交由后续 Git 操作决定。',
           conditions:
-            '权限规则、Subagent `tools`/`disallowedTools` 和 SDK query options 都可能缩小可用集合。官方内置工具文档未列换行保留或规范化配置。',
+            '权限规则、Subagent `tools`/`disallowedTools` 和 SDK query options 都可能缩小可用集合。官方内置工具文档未列换行保留、规范化配置或写前读/过期写入保护。',
           sources: ['qoder-tools', 'qoder-permissions', 'qoder-sdk-reference'],
         },
       },

@@ -358,6 +358,10 @@ window.matrixData = {
       label: 'Codex apply_patch_preserve_line_endings feature flag',
       url: 'https://github.com/openai/codex/commit/c9c6c0daa994109cec50fddcb57d076fdf9e738c',
     },
+    'codex-apply-patch-guide': {
+      label: 'Codex Apply Patch tool guide',
+      url: 'https://developers.openai.com/api/docs/guides/tools-apply-patch',
+    },
     'codex-auto-review': {
       label: 'Codex automatic approval reviews',
       url: 'https://learn.chatgpt.com/docs/sandboxing/auto-review',
@@ -1042,6 +1046,22 @@ window.matrixData = {
       label: 'Kimi Code token counting ledger source',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/ee564e5ec90afd068123b8052928c53f1fd5a27d/packages/agent-core-v2/src/agent/tokenCounting/tokenCountingOps.ts',
     },
+    'kimi-stale-guard-commit': {
+      label: 'Kimi Code Edit/Write staleness guard commit',
+      url: 'https://github.com/MoonshotAI/kimi-code/commit/67fbcdf1ba7dceeebb58875b3b7c81b4b30cf0de',
+    },
+    'kimi-stale-guard-service': {
+      label: 'Kimi Code staleGuard service source',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/67fbcdf1ba7dceeebb58875b3b7c81b4b30cf0de/packages/agent-core-v2/src/features/staleGuard/staleGuardService.ts',
+    },
+    'kimi-stale-guard-changeset': {
+      label: 'Kimi Code Edit/Write staleness guard changeset',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/67fbcdf1ba7dceeebb58875b3b7c81b4b30cf0de/.changeset/file-write-staleness-guard.md',
+    },
+    'kimi-stale-guard-config': {
+      label: 'Kimi Code configuration documentation (default agent-core-v2 engine)',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/67fbcdf1ba7dceeebb58875b3b7c81b4b30cf0de/docs/zh/configuration/config-files.md',
+    },
     'qoder-commands': {
       label: 'Qoder CLI slash commands',
       url: 'https://docs.qoder.com/cli/slash-reference',
@@ -1718,7 +1738,7 @@ window.matrixData = {
       category: 'execution',
       capability: '文件读写',
       description: '读取、创建和修改工作区文件。',
-      values: { claude: '`Read` · `Edit` · `Write`', codex: '内置读取 · 补丁编辑 · `apply_patch_preserve_line_endings` 换行保留（条件：main 分支，尚未发布）', qwen: '`read_file` · `edit` · `write_file`', kimi: '`Read` · `Edit` · `Write`', qoder: '`Read` · `Edit` · `Write`' },
+      values: { claude: '`Read` · `Edit` · `Write` · 官方工具参考记录读后再改要求与模型差异', codex: '内置读取 · 补丁编辑 · `apply_patch_preserve_line_endings` 换行保留（条件：main 分支，尚未发布）', qwen: '`read_file` · `edit` · `write_file`', kimi: '`Read` · `Edit` · `Write` · 条件：Edit/Write 拒绝未读取或读取后磁盘已变的已有文件（main 分支，尚未发布）', qoder: '`Read` · `Edit` · `Write`' },
     },
     {
       id: 'execution-shell',
