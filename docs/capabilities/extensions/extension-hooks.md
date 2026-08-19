@@ -2,7 +2,7 @@
 
 [返回扩展系统详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=extension-hooks)
 
-> 核对日期：2026-08-18
+> 核对日期：2026-08-19
 
 ## 定义
 
@@ -13,7 +13,7 @@
 | 产品 | 结论 | 证据状态 |
 | --- | --- | --- |
 | Claude Code | `/hooks` · 多类 Handler | 官方确认 |
-| Codex | `/hooks` · 当前仅 command 执行 · 条件：`mcp_tool` Handler 可配置并在 `/hooks` 列出，运行时未接入 MCP 执行器（main 分支，尚未发布） | 条件项 |
+| Codex | `/hooks` · command 同步或 `async: true` 后台执行 · 条件：`mcp_tool` Handler 引擎执行随 rust-v0.148.0 发布，会话运行时接入仍在 main 分支（提交 `87070a77925c`，尚未发布） | 条件项 |
 | Qwen Code | `/hooks` · command/HTTP/prompt | 源码确认 |
 | Kimi Code | `config.toml` · command | 官方确认 |
 | Qoder CLI | `settings.json` · command/HTTP/prompt/agent | 官方确认 |
@@ -34,7 +34,7 @@
 
 ## 跨产品事实
 
-1. 五家都公开了生命周期 Hook，但并不是同一实现：Kimi Code 当前独立 Hook 只执行 command，Codex 当前运行时也只执行 command；Codex main 分支已新增 `mcp_tool` Handler 的配置与列出路径，但 CLI 运行时未接入 MCP 执行器前会跳过（尚未发布）。
+1. 五家都公开了生命周期 Hook，但并不是同一实现：Kimi Code 当前独立 Hook 只执行 command；Codex 自 rust-v0.148.0 起 command Handler 支持 `async: true` 后台执行，`mcp_tool` Handler 的引擎执行也随该版发布，但 CLI 会话接入 MCP 执行器仍在 main 分支（提交 `87070a77925c`），rust-v0.148.0 运行时启动告警跳过。
 2. Claude Code、Qwen Code 和 Qoder CLI 支持多种 Handler；可用事件与返回 JSON 结构仍需按各自文档配置，不能直接复制。
 3. 项目 Hook 可以运行本地命令或访问网络，因此可信工作区、超时、退出码和失败时是否放行是比较中的核心边界。
 
@@ -61,18 +61,18 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 矩阵结论 | `/hooks` · 当前仅 command 执行 · 条件：`mcp_tool` Handler 可配置并在 `/hooks` 列出，运行时未接入 MCP 执行器（main 分支，尚未发布） |
+| 矩阵结论 | `/hooks` · command 同步或 `async: true` 后台执行 · 条件：`mcp_tool` Handler 引擎执行随 rust-v0.148.0 发布，会话运行时接入仍在 main 分支（提交 `87070a77925c`，尚未发布） |
 | 入口与配置 | `/hooks` 检查、信任或禁用非托管 Hook；也可直接编辑 JSON/TOML 配置。 |
 | 文件与目录 | 用户 `~/.codex/hooks.json` 或 `~/.codex/config.toml`；项目 `.codex/hooks.json` 或 `.codex/config.toml`；Plugin 可携带 Hook。 |
 | 具体行为 | 覆盖 PreToolUse、PermissionRequest、PostToolUse、PreCompact、PostCompact、SessionStart、SessionEnd、UserPromptSubmit、SubagentStart、SubagentStop、Stop 共 11 个事件。 |
 | 作用域与优先级 | 用户、可信项目、Managed 与 Plugin 来源。 |
-| 扩展构成 | 当前执行的 Handler 类型是 command；prompt 与 agent 配置可解析但运行时跳过；main 分支新增 `mcp_tool` Handler（`type = "mcp_tool"`，字段 `server`/`tool`/`input`/`timeout`/`statusMessage`），调用已配置 MCP Server 的工具，`input` 必须是可表示为 TOML 的对象，输出沿用 command Hook 的输出约定，且始终同步执行（提交 `85fc4def358b`，尚未发布）。 |
-| 加载与刷新 | 项目 Hook 需要工作区信任；`/hooks` 展示来源并提供相应控制；main 分支 `hooks/list` 以 `handlerType: "mcpTool"` 及 server/tool 字段返回 MCP Tool Hook，TUI `/hooks` 浏览器展示 MCP Server 与 MCP Tool 条目（尚未发布）。 |
+| 扩展构成 | 执行的 Handler 类型是 command，可同步执行或 `async: true` 后台执行（rust-v0.148.0 发布）；prompt 与 agent 配置可解析但运行时跳过；`mcp_tool` Handler（`type = "mcp_tool"`，字段 `server`/`tool`/`input`/`timeout`/`statusMessage`）调用已配置 MCP Server 的工具，`input` 必须是可表示为 TOML 的对象，引擎执行随 rust-v0.148.0 发布（PR #38705）：`${field.nested}` 占位符展开保留 JSON 类型，输出沿用 command Hook 的输出约定，且始终同步执行；SessionEnd 事件与 Managed 必选 Hook 不支持 `mcp_tool`，`timeout` 缺省 600 秒（配置识别提交 `85fc4def358b`）。 |
+| 加载与刷新 | 项目 Hook 需要工作区信任；`/hooks` 展示来源并提供相应控制；`hooks/list` 以 handler 专属元数据返回 Hook，MCP Tool Hook 带 `handlerType: "mcpTool"` 及 server/tool 字段，TUI `/hooks` 浏览器展示 MCP Server 与 MCP Tool 条目（rust-v0.148.0 发布）。 |
 | 适用界面 | 以 Codex CLI 为准；桌面端、IDE 扩展、Cloud 和 `codex exec` 不自动继承全部交互命令。 |
 | 权限与信任 | PreToolUse 或 PermissionRequest 等事件可影响是否继续；Managed Hook 不由普通用户关闭。 |
-| 条件与边界 | prompt/agent Handler 可解析但运行时跳过；command Handler 可用 `async: true` 后台执行，`SessionEnd` 始终同步；main 分支的 `mcp_tool` Handler 在 CLI 运行时接入 MCP 执行器之前，启动时以 "MCP invocation is not available yet" 告警跳过，SessionEnd 事件与 Managed 必选 Hook 不支持 `mcp_tool`，`timeout` 缺省 600 秒，`input` 中 `${field.nested}` 占位符从事件 JSON 解析、字段缺失时该 Hook 失败（尚未发布）；配置文件能解析不等于能力已经运行。 |
+| 条件与边界 | prompt/agent Handler 可解析但运行时跳过；async command Hook 在后台运行，不能阻断、批准或改写触发它的操作，输出在下一个安全点交付，每会话最多 8 个并发后台 Hook，未完成的随会话结束取消，SessionEnd 始终同步（rust-v0.148.0 发布，官方 Hooks 文档已列 `async` 字段）；rust-v0.148.0 的 CLI 会话运行时未提供 MCP 执行器（`codex-rs/core/src/session/mod.rs` 传 `mcp_executor: None`），`mcp_tool` Hook 启动时以 "MCP invocation is not available yet" 告警跳过；`input` 中 `${field.nested}` 占位符从事件 JSON 解析、字段缺失时该 Hook 失败；会话内实际执行在 main 分支提交 `87070a77925c`（PR #39296，尚未发布）：经会话共享 MCP 运行时执行、含 Managed Hook 配置，只允许已连接、已列入目录且策略允许的工具，不可用 Server 立即失败且不启动或重连，不经模型工具审批、不触发递归 Hook，超时受 Server 侧上限约束；main 分支提交 `d35e5495f991`（PR #39331，尚未发布）把 Hook MCP 调用改经当前连接集执行、不等待 Server 启动或重连，生效超时取 Hook 请求与 Server 工具超时的较短者；官方 Hooks 文档页仍写只有 command Handler 运行；配置文件能解析不等于能力已经运行。 |
 | 证据状态 | 条件项 |
-| 来源 | [Codex Hooks](https://learn.chatgpt.com/docs/hooks)、[Codex hooks MCP tool handler commit](https://github.com/openai/codex/commit/85fc4def358b7df21883e72ae8dda43a0f572f32)、[Codex hooks MCP tool runner source](https://github.com/openai/codex/blob/85fc4def358b7df21883e72ae8dda43a0f572f32/codex-rs/hooks/src/engine/mcp_runner.rs) |
+| 来源 | [Codex Hooks](https://learn.chatgpt.com/docs/hooks)、[Codex hooks MCP tool handler commit](https://github.com/openai/codex/commit/85fc4def358b7df21883e72ae8dda43a0f572f32)、[Codex hooks MCP tool runner source](https://github.com/openai/codex/blob/85fc4def358b7df21883e72ae8dda43a0f572f32/codex-rs/hooks/src/engine/mcp_runner.rs)、[Codex rust-v0.148.0 release notes (async hooks and MCP tool handler engine)](https://github.com/openai/codex/releases/tag/rust-v0.148.0)、[Codex session MCP tool hook enablement commit](https://github.com/openai/codex/commit/87070a77925cbffed8b34ddc99afaf40d56863aa)、[Codex hook MCP current-connection routing commit](https://github.com/openai/codex/commit/d35e5495f991508409ff30e38db8dbe49d565570) |
 
 ### Qwen Code
 
@@ -131,6 +131,9 @@
 - [Codex Hooks](https://learn.chatgpt.com/docs/hooks)
 - [Codex hooks MCP tool handler commit](https://github.com/openai/codex/commit/85fc4def358b7df21883e72ae8dda43a0f572f32)
 - [Codex hooks MCP tool runner source](https://github.com/openai/codex/blob/85fc4def358b7df21883e72ae8dda43a0f572f32/codex-rs/hooks/src/engine/mcp_runner.rs)
+- [Codex rust-v0.148.0 release notes (async hooks and MCP tool handler engine)](https://github.com/openai/codex/releases/tag/rust-v0.148.0)
+- [Codex session MCP tool hook enablement commit](https://github.com/openai/codex/commit/87070a77925cbffed8b34ddc99afaf40d56863aa)
+- [Codex hook MCP current-connection routing commit](https://github.com/openai/codex/commit/d35e5495f991508409ff30e38db8dbe49d565570)
 - [Qwen Code current Hooks](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/hooks.md)
 - [Qwen Code current Extension runtime](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/core/src/extension/extensionManager.ts)
 - [Kimi Code current Hooks](https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/customization/hooks.md)
