@@ -2,7 +2,7 @@
 
 [返回 Subagent 详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=agent-initial-context)
 
-> 核对日期：2026-08-18
+> 核对日期：2026-08-19
 
 ## 定义
 

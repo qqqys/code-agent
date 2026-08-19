@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-08-18',
+  updatedAt: '2026-08-19',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -377,6 +377,18 @@ window.matrixData = {
     'codex-hooks-mcp-runner': {
       label: 'Codex hooks MCP tool runner source',
       url: 'https://github.com/openai/codex/blob/85fc4def358b7df21883e72ae8dda43a0f572f32/codex-rs/hooks/src/engine/mcp_runner.rs',
+    },
+    'codex-v0148-release': {
+      label: 'Codex rust-v0.148.0 release notes (async hooks and MCP tool handler engine)',
+      url: 'https://github.com/openai/codex/releases/tag/rust-v0.148.0',
+    },
+    'codex-hooks-session-mcp': {
+      label: 'Codex session MCP tool hook enablement commit',
+      url: 'https://github.com/openai/codex/commit/87070a77925cbffed8b34ddc99afaf40d56863aa',
+    },
+    'codex-hooks-mcp-route': {
+      label: 'Codex hook MCP current-connection routing commit',
+      url: 'https://github.com/openai/codex/commit/d35e5495f991508409ff30e38db8dbe49d565570',
     },
     'qwen-commands': {
       label: 'Qwen Code commands documentation',
@@ -1644,7 +1656,7 @@ window.matrixData = {
       category: 'extensions',
       capability: '生命周期 Hooks',
       description: '在工具调用、会话或 Agent 生命周期节点运行自定义逻辑。',
-      values: { claude: '`/hooks` · 多类 Handler', codex: '`/hooks` · 当前仅 command 执行 · 条件：`mcp_tool` Handler 可配置并在 `/hooks` 列出，运行时未接入 MCP 执行器（main 分支，尚未发布）', qwen: '`/hooks` · command/HTTP/prompt', kimi: '`config.toml` · command', qoder: '`settings.json` · command/HTTP/prompt/agent' },
+      values: { claude: '`/hooks` · 多类 Handler', codex: '`/hooks` · command 同步或 `async: true` 后台执行 · 条件：`mcp_tool` Handler 引擎执行随 rust-v0.148.0 发布，会话运行时接入仍在 main 分支（提交 `87070a77925c`，尚未发布）', qwen: '`/hooks` · command/HTTP/prompt', kimi: '`config.toml` · command', qoder: '`settings.json` · command/HTTP/prompt/agent' },
     },
     {
       id: 'extension-plugins',
