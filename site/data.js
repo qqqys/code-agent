@@ -874,6 +874,18 @@ window.matrixData = {
       label: 'Kimi Code subagent model pool commit',
       url: 'https://github.com/MoonshotAI/kimi-code/commit/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860',
     },
+    'kimi-subagent-fork-commit': {
+      label: 'Kimi Code subagent fork parameter commit',
+      url: 'https://github.com/MoonshotAI/kimi-code/commit/f6736d7c0de609d44ed1cb761cfe9f195c4d94fb',
+    },
+    'kimi-subagent-fork-env': {
+      label: 'Kimi Code subagent fork environment variable',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/f6736d7c0de609d44ed1cb761cfe9f195c4d94fb/docs/zh/configuration/env-vars.md',
+    },
+    'kimi-subagent-fork-changeset': {
+      label: 'Kimi Code subagent fork changeset',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/f6736d7c0de609d44ed1cb761cfe9f195c4d94fb/.changeset/subagent-fork-context.md',
+    },
     'kimi-v036-release': {
       label: 'Kimi Code 0.36.0 release notes',
       url: 'https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%400.36.0',
@@ -1469,7 +1481,7 @@ window.matrixData = {
       category: 'subagents',
       capability: '初始上下文',
       description: '创建 Agent 时传入的信息范围。',
-      values: { claude: '任务描述；可预载 Skills；Fork 继承完整对话与提示词缓存（v2.1.232 起交互会话默认开启）', codex: '父任务与委派描述', qwen: '命名 Agent 接收任务提示；Fork 可继承最近若干轮或全部', kimi: '只接收任务提示', qoder: '任务提示；可设 `initialPrompt`' },
+      values: { claude: '任务描述；可预载 Skills；Fork 继承完整对话与提示词缓存（v2.1.232 起交互会话默认开启）', codex: '父任务与委派描述', qwen: '命名 Agent 接收任务提示；Fork 可继承最近若干轮或全部', kimi: '只接收任务提示；条件：实验开关开启后 `fork` 参数以调用方对话快照启动（`KIMI_CODE_EXPERIMENTAL_SUBAGENT_FORK`，v2 引擎，合入 main 尚未发布）', qoder: '任务提示；可设 `initialPrompt`' },
     },
     {
       id: 'agent-result',
