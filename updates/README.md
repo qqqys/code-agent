@@ -4,6 +4,7 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-08-20 | [Subagent 初始上下文：Kimi Code Agent 工具实验性 `fork` 参数（对话快照继承，main 分支）](./2026-08-20-Subagent初始上下文-Kimi-fork参数.md) |
 | 2026-08-20 | [扩展系统：输出风格能力字段（Claude Code v2.1.237 内置 Concise、Qoder CLI `outputStyle`、Codex `personality`）](./2026-08-20-扩展系统-输出风格能力字段.md) |
 | 2026-08-20 | [模型选择：Claude Code `ANTHROPIC_DEFAULT_MODEL` 新会话默认模型（v2.1.236）](./2026-08-20-模型选择-Claude新会话默认模型环境变量.md) |
 | 2026-08-19 | [文件读写：Kimi Code Edit/Write 写前读与过期写入保护（staleGuard，main 分支）](./2026-08-19-文件读写-Kimi-Edit与Write写前读与过期写入保护.md) |

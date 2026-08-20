@@ -21,7 +21,7 @@
 | 能力 | Claude Code | Codex | Qwen Code | Kimi Code | Qoder CLI |
 | --- | --- | --- | --- | --- | --- |
 | 独立上下文 | 是 | 是 | 命名 Agent 是 | 是 | 是 |
-| 初始上下文 | 父任务传入的任务描述；可预载 Skills；Fork 继承完整对话与提示词缓存（v2.1.232 起交互会话默认开启） | 父任务与委派描述 | 命名 Agent 使用任务提示；Fork 可继承全部或最近若干轮 | 只接收任务提示 | 任务提示，可配置 `initialPrompt` |
+| 初始上下文 | 父任务传入的任务描述；可预载 Skills；Fork 继承完整对话与提示词缓存（v2.1.232 起交互会话默认开启） | 父任务与委派描述 | 命名 Agent 使用任务提示；Fork 可继承全部或最近若干轮 | 只接收任务提示；实验开关开启后 `fork` 参数可以调用方对话快照启动（v2 引擎，合入 main 尚未发布） | 任务提示，可配置 `initialPrompt` |
 | Fork 会话 | `/fork` 创建独立后台会话 | `/fork` 创建会话副本 | Fork Agent 继承父上下文 | `/fork` 创建副本；fork 后停留原会话 | 未确认 Slash Fork |
 | 结果回传 | 返回父会话 | 返回主线程汇总 | 命名 Agent 返回；Fork 不自动回传给父模型 | 返回父会话 | 返回父会话 |
 | 后台运行 | 支持；Fork 模式开启时 Fork 与命名 Subagent 统一后台（v2.1.232 起交互会话默认开启） | 支持并发线程 | 命名 Agent 默认后台；可设前台 | 支持后台 | `background` 可配置 |
@@ -68,6 +68,8 @@
 - [Qwen Code Worktree](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/worktree.md)
 - [Kimi Code Agents](https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/customization/agents.md)
 - [Kimi Code subagent and secondary model configuration](https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/configuration/config-files.md)
+- [Kimi Code Subagent fork 参数提交](https://github.com/MoonshotAI/kimi-code/commit/f6736d7c0de609d44ed1cb761cfe9f195c4d94fb)
+- [Kimi Code Subagent fork 环境变量文档](https://github.com/MoonshotAI/kimi-code/blob/f6736d7c0de609d44ed1cb761cfe9f195c4d94fb/docs/zh/configuration/env-vars.md)
 - [Kimi Code Subagent 模型池提交](https://github.com/MoonshotAI/kimi-code/commit/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860)
 - [Kimi Code 0.36.0 发布说明](https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%400.36.0)
 - [Kimi Code coder profile Agent tool removal commit](https://github.com/MoonshotAI/kimi-code/commit/101c4d199746bf2ed4f26375b65a6fcb6cba2a60)

@@ -336,6 +336,7 @@
         '命名 Agent 通常以任务描述和自身系统提示词启动，不自动复制完整父会话。',
         'Claude Code 自 v2.1.232 起在交互会话默认开启 Fork 模式：Fork 继承派生时刻的完整父对话并共享主会话提示词缓存；`-p` 非交互与 Agent SDK 默认关闭。',
         'Qwen Code Fork 可继承全部父历史或最近若干个真实用户轮次。',
+        'Kimi Code 在 v2 引擎合入实验性 `fork` 参数（合入 main 尚未发布）：`Agent`/`AgentSwarm` 传 `fork: true` 时以调用方对话历史快照启动子 Agent，需 `KIMI_CODE_EXPERIMENTAL_SUBAGENT_FORK` 等实验开关。',
       ],
       notes: {
         claude: {
@@ -350,14 +351,29 @@
           '父线程提供委派描述，并由 Agent 文件的 `developer_instructions` 定义角色行为。',
         qwen:
           '命名 Agent 从任务提示和自身系统提示词开始；Fork 用 `fork_turns` 选择全部或最近若干轮。',
-        kimi:
-          '子 Agent 只接收主 Agent 给出的任务描述和自身 profile，不继承完整主历史。',
+        kimi: {
+          behavior:
+            '默认子 Agent 只接收主 Agent 给出的任务描述和自身 profile，不继承完整主历史。v2 引擎合入实验性 `fork` 参数：`Agent` 与 `AgentSwarm` 传 `fork: true` 时，子 Agent 以调用方已完成对话的一次性快照启动，继承调用方的 Agent 类型、工具集与模型，提示词只需任务本身；快照中仍在执行的工具调用会补一条合成结果，注明结果未知、不要假设成败也不要等待。',
+          inheritance:
+            '默认只接收任务描述。`fork: true` 继承调用方对话历史快照，快照是一次性参考资料，新 Agent 独立运行而不是调用方的续写；`resume` 不能与 `fork` 同时使用，`subagent_type` 必须与调用方自身类型一致，`model` 只接受调用方自身模型或 `primary`，其余取值会被拒绝。',
+          conditions:
+            '`fork` 为实验功能，默认关闭：需 `KIMI_CODE_EXPERIMENTAL_SUBAGENT_FORK=true` 或 config.toml `[experimental]` 下 `subagent_fork = true`，master flag `KIMI_CODE_EXPERIMENTAL_FLAG=1` 也会启用；开关关闭时传 `fork` 报 `fork is disabled: the subagent_fork experimental flag is off.`。仅 v2 引擎（agent-core-v2）实现，合入 main 尚未发布；官方 Agents 文档页尚未同步。',
+        },
         qoder:
           '普通 Subagent 接收任务描述；`initialPrompt` 只在定义通过 `--agent` 作为会话 Agent 时自动提交。',
       },
       related: ['agent-context', 'agent-skills', 'agent-result'],
       overrides: {
         claude: { sources: ['claude-agents', 'claude-subagent-fork-v232'] },
+        kimi: {
+          sources: [
+            'kimi-agents',
+            'kimi-subagent-config',
+            'kimi-subagent-fork-commit',
+            'kimi-subagent-fork-changeset',
+            'kimi-subagent-fork-env',
+          ],
+        },
       },
     }),
 
