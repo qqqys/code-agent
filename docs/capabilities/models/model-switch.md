@@ -2,7 +2,7 @@
 
 [返回模型与认证详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=model-switch)
 
-> 核对日期：2026-08-19
+> 核对日期：2026-08-20
 
 ## 定义
 
@@ -12,7 +12,7 @@
 
 | 产品 | 结论 | 证据状态 |
 | --- | --- | --- |
-| Claude Code | `/model` · `--model` | 官方确认 |
+| Claude Code | `/model` · `--model` · `ANTHROPIC_DEFAULT_MODEL` 新会话默认模型（v2.1.236 起） | 官方确认 |
 | Codex | `/model` · `-m` | 官方确认 |
 | Qwen Code | `/model` · `--model` | 源码确认 |
 | Kimi Code | `/model` · `-m` | 源码确认 |
@@ -36,7 +36,7 @@
 
 1. 五家都提供 `/model`，但是否把选择保存为新会话默认值并不一致。
 2. Qwen Code 的模型入口还管理 fast、voice、vision、image 等专用模型，并可显式写入项目或用户设置。
-3. Claude Code 当前 `/model` 默认只改当前会话；在选择器按 `d` 才会保存用户默认值。
+3. Claude Code 自 v2.1.153 起 `/model` 选择默认写入用户设置作为新会话默认值；v2.1.236 新增的 `ANTHROPIC_DEFAULT_MODEL` 只在没有更高优先级选择时决定新会话启动模型。
 
 ## 逐产品记录
 
@@ -44,17 +44,17 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 矩阵结论 | `/model` · `--model` |
-| 入口与配置 | `/model [alias\|name]`、`claude --model`、`ANTHROPIC_MODEL`、Settings `model`。 |
-| 支持范围 | 支持模型别名、完整模型名和模型选择器；模型可同时暴露 effort 选项。 |
-| 具体行为 | 立即切换当前会话后续请求使用的模型；切换已有对话时可能提示重新读取历史。 |
-| 会话与作用域 | `/model` 选择作用于当前会话；CLI 参数与环境变量作用于本次进程。 |
-| 持久化位置 | 在选择器按 `d` 保存到用户 Settings；否则不改新会话默认值。 |
-| 自动化用法 | Headless/CI 使用 `--model` 或 `ANTHROPIC_MODEL`，避免依赖交互选择器。 |
-| 安全与管理 | 组织可通过 `availableModels` 和 Managed settings 限制可选模型。 |
-| 条件与边界 | 模型可见性取决于账号计划、Provider 和组织策略。 |
+| 矩阵结论 | `/model` · `--model` · `ANTHROPIC_DEFAULT_MODEL` 新会话默认模型（v2.1.236 起） |
+| 入口与配置 | `/model [alias\|name]`、`claude --model`、`ANTHROPIC_MODEL`、`ANTHROPIC_DEFAULT_MODEL`、Settings `model`。 |
+| 支持范围 | 支持模型别名、完整模型名和模型选择器；模型可同时暴露 effort 选项。`ANTHROPIC_DEFAULT_MODEL` 指定新会话的默认启动模型；当选择器 Default 行解析到该模型时显示标签 `Set by ANTHROPIC_DEFAULT_MODEL`。 |
+| 具体行为 | 立即切换当前会话后续请求使用的模型；切换已有对话时可能提示重新读取历史。新会话只在 `--model`、`ANTHROPIC_MODEL`、任何设置文件的 `model`（含 `/model` 保存的选择）和组织默认模型都未指定时，才采用 `ANTHROPIC_DEFAULT_MODEL` 的模型；此时经 `--resume`、`--continue` 或 `/resume` 恢复的会话也改用该模型，不恢复记录中保存的模型。 |
+| 会话与作用域 | `/model` 选择作用于当前会话；`--model` 与 `ANTHROPIC_MODEL` 作用于本次进程；`ANTHROPIC_DEFAULT_MODEL` 作用于新会话的启动模型。 |
+| 持久化位置 | 自 v2.1.153 起 `/model` 选择器按 `Enter` 或直接输入 `/model <name>` 会把选择写入用户 Settings 的 `model` 字段作为新会话默认值，按 `s` 只切换当前会话；`-p` 非交互模式下 `/model` 不保存默认值。`ANTHROPIC_DEFAULT_MODEL` 不落盘，优先级低于 `/model` 保存的选择；设置 `ANTHROPIC_MODEL` 时每次启动都回到该变量的模型。 |
+| 自动化用法 | Headless/CI 使用 `--model` 或 `ANTHROPIC_MODEL` 固定模型；`ANTHROPIC_DEFAULT_MODEL` 用于在没有更高优先级选择时统一新会话启动模型。 |
+| 安全与管理 | 组织可通过 `availableModels` 和 Managed settings 限制可选模型；`enforceAvailableModels` 开启、`availableModels` 或组织模型限制排除该模型、或账号不可用时，`ANTHROPIC_DEFAULT_MODEL` 被忽略。 |
+| 条件与边界 | `ANTHROPIC_DEFAULT_MODEL` 需 v2.1.236 及以上；取值为 `default`、`inherit`、`opusplan` 或 `haiku` 时被忽略。模型可见性取决于账号计划、Provider 和组织策略。 |
 | 证据状态 | 官方确认 |
-| 来源 | [Claude Code model configuration](https://code.claude.com/docs/en/model-config)、[Claude Code Commands](https://code.claude.com/docs/en/commands)、[Claude Code settings](https://code.claude.com/docs/en/settings) |
+| 来源 | [Claude Code model configuration](https://code.claude.com/docs/en/model-config)、[Claude Code environment variables](https://code.claude.com/docs/en/env-vars)、[Claude Code Commands](https://code.claude.com/docs/en/commands)、[Claude Code settings](https://code.claude.com/docs/en/settings)、[Claude Code v2.1.236 changelog (ANTHROPIC_DEFAULT_MODEL)](https://github.com/anthropics/claude-code/blob/084ca20bcf90/CHANGELOG.md) |
 
 ### Codex
 
@@ -123,8 +123,10 @@
 ## 官方来源
 
 - [Claude Code model configuration](https://code.claude.com/docs/en/model-config)
+- [Claude Code environment variables](https://code.claude.com/docs/en/env-vars)
 - [Claude Code Commands](https://code.claude.com/docs/en/commands)
 - [Claude Code settings](https://code.claude.com/docs/en/settings)
+- [Claude Code v2.1.236 changelog (ANTHROPIC_DEFAULT_MODEL)](https://github.com/anthropics/claude-code/blob/084ca20bcf90/CHANGELOG.md)
 - [Codex models](https://learn.chatgpt.com/docs/models)
 - [Codex configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference)
 - [Codex CLI commands](https://developers.openai.com/codex/cli/slash-commands)
