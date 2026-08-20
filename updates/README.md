@@ -4,6 +4,7 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-08-20 | [模型选择：Claude Code `ANTHROPIC_DEFAULT_MODEL` 新会话默认模型（v2.1.236）](./2026-08-20-模型选择-Claude新会话默认模型环境变量.md) |
 | 2026-08-19 | [文件读写：Kimi Code Edit/Write 写前读与过期写入保护（staleGuard，main 分支）](./2026-08-19-文件读写-Kimi-Edit与Write写前读与过期写入保护.md) |
 | 2026-08-19 | [运行中会话列表能力字段与 Qwen `qwen sessions ps`（v0.21.14）](./2026-08-19-运行中会话列表能力字段.md) |
 | 2026-08-19 | [Codex Hooks 异步 command 执行与 `mcp_tool` 引擎随 rust-v0.148.0 发布](./2026-08-19-Codex-Hooks异步执行与MCP工具引擎发布.md) |

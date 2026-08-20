@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-08-19',
+  updatedAt: '2026-08-20',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -213,6 +213,10 @@ window.matrixData = {
     'claude-goal-v234': {
       label: 'Claude Code v2.1.234 changelog (/goal self-clear and background check-in)',
       url: 'https://github.com/anthropics/claude-code/blob/354757e5b2d9/CHANGELOG.md',
+    },
+    'claude-default-model-v236': {
+      label: 'Claude Code v2.1.236 changelog (ANTHROPIC_DEFAULT_MODEL)',
+      url: 'https://github.com/anthropics/claude-code/blob/084ca20bcf90/CHANGELOG.md',
     },
     'codex-commands': {
       label: 'Codex CLI commands',
@@ -1878,7 +1882,7 @@ window.matrixData = {
       category: 'models',
       capability: '模型选择与切换',
       description: '选择当前模型，并区分会话级、项目级和用户级默认值。',
-      values: { claude: '`/model` · `--model`', codex: '`/model` · `-m`', qwen: '`/model` · `--model`', kimi: '`/model` · `-m`', qoder: '`/model` · `--model`' },
+      values: { claude: '`/model` · `--model` · `ANTHROPIC_DEFAULT_MODEL` 新会话默认模型（v2.1.236 起）', codex: '`/model` · `-m`', qwen: '`/model` · `--model`', kimi: '`/model` · `-m`', qoder: '`/model` · `--model`' },
     },
     {
       id: 'model-effort',
