@@ -218,6 +218,14 @@ window.matrixData = {
       label: 'Claude Code v2.1.236 changelog (ANTHROPIC_DEFAULT_MODEL)',
       url: 'https://github.com/anthropics/claude-code/blob/084ca20bcf90/CHANGELOG.md',
     },
+    'claude-output-styles': {
+      label: 'Claude Code output styles',
+      url: 'https://code.claude.com/docs/en/output-styles',
+    },
+    'claude-concise-v237': {
+      label: 'Claude Code v2.1.237 changelog (Concise output style)',
+      url: 'https://github.com/anthropics/claude-code/blob/770933ea1ad2/CHANGELOG.md',
+    },
     'codex-commands': {
       label: 'Codex CLI commands',
       url: 'https://developers.openai.com/codex/cli/slash-commands',
@@ -782,6 +790,14 @@ window.matrixData = {
       label: 'Qwen Code current commands',
       url: 'https://github.com/QwenLM/qwen-code/blob/7f8adc659ebe2d2f809ef31c79fea5638f3bf5ab/docs/users/features/commands.md',
     },
+    'qwen-settings-current': {
+      label: 'Qwen Code current Settings',
+      url: 'https://github.com/QwenLM/qwen-code/blob/081a96d86459b618fdba2d153f784d9226f37d06/docs/users/configuration/settings.md',
+    },
+    'qwen-extension-intro-current': {
+      label: 'Qwen Code current Extensions introduction',
+      url: 'https://github.com/QwenLM/qwen-code/blob/a64d1291d2f6298f67763d0953b1653cf7b34060/docs/users/extension/introduction.md',
+    },
     'kimi-commands': {
       label: 'Kimi Code Slash commands',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/reference/slash-commands.md',
@@ -1066,6 +1082,10 @@ window.matrixData = {
       label: 'Kimi Code configuration documentation (default agent-core-v2 engine)',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/67fbcdf1ba7dceeebb58875b3b7c81b4b30cf0de/docs/zh/configuration/config-files.md',
     },
+    'kimi-config-files-current': {
+      label: 'Kimi Code current config files',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/157c84f5d1b0454c57aa6a54da42d87c32550ae1/docs/zh/configuration/config-files.md',
+    },
     'qoder-commands': {
       label: 'Qoder CLI slash commands',
       url: 'https://docs.qoder.com/cli/slash-reference',
@@ -1181,6 +1201,14 @@ window.matrixData = {
     'qoder-docs': {
       label: 'Qoder CLI Documentation',
       url: 'https://docs.qoder.com/en/cli',
+    },
+    'qoder-output-styles': {
+      label: 'Qoder CLI Output Style',
+      url: 'https://docs.qoder.com/cli/output-styles',
+    },
+    'qoder-settings': {
+      label: 'Qoder CLI Configuration Files and Application Order',
+      url: 'https://docs.qoder.com/cli/settings',
     },
   },
   rows: [
@@ -1722,6 +1750,13 @@ window.matrixData = {
       capability: '自定义 Slash 命令',
       description: '从文件加载自定义命令提示模板。',
       values: { claude: '`.claude/commands/*.md` · Skills', codex: 'Skills；`/prompts:*` 已弃用', qwen: '`.qwen/commands/*.md` · Skills', kimi: 'Plugin `commands/*.md` · Skills', qoder: '`.qoder/commands/*.md`' },
+    },
+    {
+      id: 'extension-output-styles',
+      category: 'extensions',
+      capability: '输出风格',
+      description: '以预设或自定义 Markdown 修改系统提示词，改变回复的角色、语气、冗长度或结构。',
+      values: { claude: '`/config` Output style · `outputStyle` · `.claude/output-styles/` 自定义 · v2.1.237 新增内置 Concise', codex: '条件：`personality`（`none`/`friendly`/`pragmatic`）· `/personality`；仅适用宣告 `supportsPersonality` 的模型', qwen: '官方设置与扩展文档未列出输出风格', kimi: '官方配置文档未列出输出风格；`[identity]` 仅改自称与协议标识', qoder: '`outputStyle` · `--output-style` · `~/.qoder/output-styles/` 自定义 · 插件风格' },
     },
     {
       id: 'extension-project-instructions',

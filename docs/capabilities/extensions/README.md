@@ -14,5 +14,6 @@
 | 生命周期 Hooks | [打开](https://qqqys.github.io/code-agent/capability.html?id=extension-hooks) | [查看](./extension-hooks.md) |
 | 插件分发 | [打开](https://qqqys.github.io/code-agent/capability.html?id=extension-plugins) | [查看](./extension-plugins.md) |
 | 自定义 Slash 命令 | [打开](https://qqqys.github.io/code-agent/capability.html?id=extension-custom-commands) | [查看](./extension-custom-commands.md) |
+| 输出风格 | [打开](https://qqqys.github.io/code-agent/capability.html?id=extension-output-styles) | [查看](./extension-output-styles.md) |
 | 项目指令文件 | [打开](https://qqqys.github.io/code-agent/capability.html?id=extension-project-instructions) | [查看](./extension-project-instructions.md) |
 | IDE 连接 | [打开](https://qqqys.github.io/code-agent/capability.html?id=extension-ide) | [查看](./extension-ide.md) |
