@@ -150,3 +150,4 @@
 - [生命周期 Hooks](./extension-hooks.md)
 - [MCP 客户端](./extension-mcp.md)
 - [自定义 Slash 命令](./extension-custom-commands.md)
+- [输出风格](./extension-output-styles.md)

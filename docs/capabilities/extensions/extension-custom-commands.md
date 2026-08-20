@@ -141,4 +141,5 @@
 
 - [Agent Skills](./extension-skills.md)
 - [插件分发](./extension-plugins.md)
+- [输出风格](./extension-output-styles.md)
 - [代码审查](../commands/cmd-review.md)
