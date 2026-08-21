@@ -2,7 +2,7 @@
 
 [返回会话与上下文详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=session-live-list)
 
-> 核对日期：2026-08-20
+> 核对日期：2026-08-21
 
 ## 定义
 
@@ -13,7 +13,7 @@
 | 产品 | 结论 | 证据状态 |
 | --- | --- | --- |
 | Claude Code | Agent view 与 `claude agents --json` 列出运行中会话；会话选择器以 `bg` 标记后台会话 | 官方确认 |
-| Codex | 官方命令表未列出运行中会话列表；`codex resume` 选择已保存会话 | 未确认 |
+| Codex | `codex agents` · `/agents` · `Alt+A` 列出共享 Daemon 加载的运行中会话（rust-v0.149.0 起） | 官方确认 |
 | Qwen Code | `qwen sessions ps` · `--json` JSON Lines（v0.21.14 起） | 官方确认 |
 | Kimi Code | `/sessions` 仅列出已保存历史会话；官方文档未列出运行中会话入口 | 未确认 |
 | Qoder CLI | `/resume` 恢复历史会话；官方命令表未列出运行中会话列表 | 未确认 |
@@ -36,7 +36,8 @@
 
 1. Qwen Code 提供专用 CLI 命令 `qwen sessions ps` 列出本机运行中的交互式会话，基于 `~/.qwen/sessions/` 实时进程登记表（v0.21.14 起）。
 2. Claude Code 官方 Sessions 文档把 agent view 与 `claude agents --json` 输出描述为运行中会话的列表；会话选择器以 `bg` 标记后台会话。
-3. Codex、Kimi Code 与 Qoder CLI 的官方命令表只列出面向已保存会话的恢复入口，未列出查看运行中会话的命令。
+3. Codex rust-v0.149.0 起提供 `codex agents` 子命令、`/agents` 与 `Alt+A` Agent 会话仪表盘，列出共享本地 app-server Daemon 加载的运行中会话，并可搜索、打开、重命名、停止会话和新建任务；官方 Slash 命令文档尚未同步。
+4. Kimi Code 与 Qoder CLI 的官方命令表只列出面向已保存会话的恢复入口，未列出查看运行中会话的命令。
 
 ## 逐产品记录
 
@@ -60,17 +61,17 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 矩阵结论 | 官方命令表未列出运行中会话列表；`codex resume` 选择已保存会话 |
-| 入口与切换 | `codex resume` 按 ID 继续此前的交互式会话或恢复最近聊天；`codex exec resume [SESSION_ID]`（`--last` 当前目录最近、`--all` 任意目录）恢复非交互会话。 |
+| 矩阵结论 | `codex agents` · `/agents` · `Alt+A` 列出共享 Daemon 加载的运行中会话（rust-v0.149.0 起） |
+| 入口与切换 | `codex agents` 子命令打开共享本地 app-server Daemon 的 Agent 会话仪表盘（clap 帮助文本为 "Browse all agent sessions on the shared local app-server daemon"）；TUI 内 `/agents`（描述为 "view and switch between all active agent sessions"）或全局快捷键 `Alt+A` 打开同一仪表盘。当前会话使用内嵌 app server、未连接共享 Daemon 时，`/agents` 显示 "Shared agents unavailable"，Unix 下可选 "Start background server" 先启动后台 Daemon。 |
 | 保存位置 | 本地会话记录位于 `$CODEX_HOME/sessions`，默认是 `~/.codex/sessions`；归档会话单独位于 `$CODEX_HOME/archived_sessions`。 |
-| 具体行为 | 命令表中的会话入口面向已保存会话记录；`/archive` 把当前会话从活动会话列表移除并退出，但不删除转录；`codex cloud list` 列出最近云端聊天。 |
-| 状态范围 | 列表对象是已保存会话与云端聊天，不是本机正在运行的 CLI 进程。 |
-| 自动行为 | 官方文档未列出运行中会话的自动登记机制。 |
-| 保存与保留 | 会话记录保存在 Codex Home；`/archive` 只改列表归属，不删除转录。 |
-| 适用界面 | CLI 与 `codex exec`；云端聊天由 `codex cloud list` 单独列出。 |
-| 条件与边界 | 官方命令表未列出查看运行中会话的命令；不据此推断底层能力不存在。 |
-| 证据状态 | 未确认 |
-| 来源 | [Codex CLI commands](https://developers.openai.com/codex/cli/slash-commands) |
+| 具体行为 | 仪表盘列出 Daemon 已加载的根会话（`ThreadLoadedList` 分页获取，上限 1000 条），排除 ephemeral 与未加载（NotLoaded）会话；每行显示会话名、首条用户消息预览与 Subagent 状态，按更新时间排序；支持搜索（`Ctrl+F`）、打开/切换会话、新建任务（`Ctrl+N`，新建线程并提交提示词）、重命名（`Ctrl+R`）、停止（`Ctrl+X`，中断进行中的回合）；列表随相关线程通知刷新。 |
+| 状态范围 | 列表对象是共享 Daemon 加载中的会话，状态分组为 Needs input（Active 且等待审批或用户输入，或 SystemError）、Working（Active）、Ready（Idle）；默认按项目分组，`Ctrl+S` 切换为按状态分组。未加载的历史会话不列出；`codex resume` 仍面向已保存会话，云端聊天仍由 `codex cloud list` 单独列出。 |
+| 自动行为 | 会话状态经 app-server 的 `ThreadStatus`（`NotLoaded`/`Idle`/`SystemError`/`Active`，Active 携带 `WaitingOnApproval`/`WaitingOnUserInput` 标志）自动登记并推送给仪表盘。 |
+| 保存与保留 | 仪表盘反映 Daemon 内存中加载的会话运行状态，不是对话历史；会话记录仍保存在 `$CODEX_HOME/sessions`。 |
+| 适用界面 | CLI 子命令 `codex agents` 与交互式 TUI（`/agents`、`Alt+A`）。Unix 下 `codex agents` 在需要时自动启动本地 Daemon（要求终端）；非 Unix 平台必须用 `--remote` 连接远端服务器，`--cd` 为远端服务器上的新任务指定目录。 |
+| 条件与边界 | `codex agents` 不能与调用级配置覆盖（`-c` 原始覆盖、提示词、`--model`、`--sandbox-mode`、审批策略等）组合，workload identity 激活时不可用；仪表盘快捷键经 `tui.keymap` 配置（`global.open_agents` 与 `agents` 组的 `search`/`new_task`/`rename`/`stop`/`toggle_grouping`）；官方 Slash 命令文档尚未列出 `/agents`。PR #39094（`4617d4d21d27`）、#39112（`319b2f72b1d4`）、#39114（`fd5018e0445b`）、#39142（`f47f77ada669`）于 2026-08-17/18 合入 main，随 rust-v0.149.0 发布。 |
+| 证据状态 | 官方确认 |
+| 来源 | [Codex rust-v0.149.0 release notes (agents dashboard)](https://github.com/openai/codex/releases/tag/rust-v0.149.0)、[Codex agents overview dashboard commit](https://github.com/openai/codex/commit/4617d4d21d278592002249773faaaf47d4c52e63)、[Codex `codex agents` dashboard command commit](https://github.com/openai/codex/commit/fd5018e0445ba7d879c5dbda66ecdab4b6da1886)、[Codex agents dashboard configurable shortcuts commit](https://github.com/openai/codex/commit/f47f77ada6699460bf13b0b7278e710692e0ea34)、[Codex agents overview dashboard source](https://github.com/openai/codex/blob/758ef40f50c1a458425c7cfbf1eb12cbc07af0b0/codex-rs/tui/src/app/agents_overview.rs) |
 
 ### Qwen Code
 
@@ -123,7 +124,11 @@
 ## 官方来源
 
 - [Claude Code Manage sessions](https://code.claude.com/docs/en/sessions)
-- [Codex CLI commands](https://developers.openai.com/codex/cli/slash-commands)
+- [Codex rust-v0.149.0 release notes (agents dashboard)](https://github.com/openai/codex/releases/tag/rust-v0.149.0)
+- [Codex agents overview dashboard commit](https://github.com/openai/codex/commit/4617d4d21d278592002249773faaaf47d4c52e63)
+- [Codex `codex agents` dashboard command commit](https://github.com/openai/codex/commit/fd5018e0445ba7d879c5dbda66ecdab4b6da1886)
+- [Codex agents dashboard configurable shortcuts commit](https://github.com/openai/codex/commit/f47f77ada6699460bf13b0b7278e710692e0ea34)
+- [Codex agents overview dashboard source](https://github.com/openai/codex/blob/758ef40f50c1a458425c7cfbf1eb12cbc07af0b0/codex-rs/tui/src/app/agents_overview.rs)
 - [Qwen Code sessions command documentation (sessions ps)](https://github.com/QwenLM/qwen-code/blob/a1e046eb6c5546e6aab2a004367e67c2af1673fd/docs/users/features/commands.md)
 - [Qwen Code live-session registry commit](https://github.com/QwenLM/qwen-code/commit/a1e046eb6c5546e6aab2a004367e67c2af1673fd)
 - [Qwen Code sessions ps command source](https://github.com/QwenLM/qwen-code/blob/a1e046eb6c5546e6aab2a004367e67c2af1673fd/packages/cli/src/commands/sessions/ps.ts)

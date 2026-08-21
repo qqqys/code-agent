@@ -2,7 +2,7 @@
 
 [返回文档目录](./README.md) · [网页矩阵](https://qqqys.github.io/code-agent/#execution) · [详情目录](./capabilities/execution/)
 
-> 核对日期：2026-08-20
+> 核对日期：2026-08-21
 
 | 能力 | Claude Code | Codex | Qwen Code | Kimi Code | Qoder CLI |
 | --- | --- | --- | --- | --- | --- |

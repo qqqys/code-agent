@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-08-20',
+  updatedAt: '2026-08-21',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -405,6 +405,26 @@ window.matrixData = {
     'codex-hooks-mcp-route': {
       label: 'Codex hook MCP current-connection routing commit',
       url: 'https://github.com/openai/codex/commit/d35e5495f991508409ff30e38db8dbe49d565570',
+    },
+    'codex-v0149-release': {
+      label: 'Codex rust-v0.149.0 release notes (agents dashboard)',
+      url: 'https://github.com/openai/codex/releases/tag/rust-v0.149.0',
+    },
+    'codex-agents-dashboard-commit': {
+      label: 'Codex agents overview dashboard commit',
+      url: 'https://github.com/openai/codex/commit/4617d4d21d278592002249773faaaf47d4c52e63',
+    },
+    'codex-agents-command-commit': {
+      label: 'Codex `codex agents` dashboard command commit',
+      url: 'https://github.com/openai/codex/commit/fd5018e0445ba7d879c5dbda66ecdab4b6da1886',
+    },
+    'codex-agents-shortcuts-commit': {
+      label: 'Codex agents dashboard configurable shortcuts commit',
+      url: 'https://github.com/openai/codex/commit/f47f77ada6699460bf13b0b7278e710692e0ea34',
+    },
+    'codex-agents-overview-source': {
+      label: 'Codex agents overview dashboard source',
+      url: 'https://github.com/openai/codex/blob/758ef40f50c1a458425c7cfbf1eb12cbc07af0b0/codex-rs/tui/src/app/agents_overview.rs',
     },
     'qwen-commands': {
       label: 'Qwen Code commands documentation',
@@ -1663,7 +1683,7 @@ window.matrixData = {
       category: 'sessions',
       capability: '运行中会话列表',
       description: '列出本机当前正在运行的交互式会话，区别于已保存的历史会话。',
-      values: { claude: 'Agent view 与 `claude agents --json` 列出运行中会话；会话选择器以 `bg` 标记后台会话', codex: '官方命令表未列出运行中会话列表；`codex resume` 选择已保存会话', qwen: '`qwen sessions ps` · `--json` JSON Lines（v0.21.14 起）', kimi: '`/sessions` 仅列出已保存历史会话；官方文档未列出运行中会话入口', qoder: '`/resume` 恢复历史会话；官方命令表未列出运行中会话列表' },
+      values: { claude: 'Agent view 与 `claude agents --json` 列出运行中会话；会话选择器以 `bg` 标记后台会话', codex: '`codex agents` · `/agents` · `Alt+A` 列出共享 Daemon 加载的运行中会话（rust-v0.149.0 起）', qwen: '`qwen sessions ps` · `--json` JSON Lines（v0.21.14 起）', kimi: '`/sessions` 仅列出已保存历史会话；官方文档未列出运行中会话入口', qoder: '`/resume` 恢复历史会话；官方命令表未列出运行中会话列表' },
     },
     {
       id: 'session-branch',
