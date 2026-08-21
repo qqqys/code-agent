@@ -4,6 +4,7 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-08-21 | [多模型或多代理模式：Kimi Code `/tower` 重建为与 plan 并列的模式重新开启（PR #3099，main 分支）](./2026-08-21-Kimi-tower模式重建重新开启.md) |
 | 2026-08-21 | [后台任务：Kimi Code `WaitFor` 回合内等待后台任务工具（0.38.0）](./2026-08-21-执行与Git-Kimi-WaitFor回合内等待后台任务.md) |
 | 2026-08-21 | [运行中会话列表：Codex `codex agents` / `/agents` Agent 会话仪表盘（rust-v0.149.0）](./2026-08-21-运行中会话列表-Codex-agents会话仪表盘.md) |
 | 2026-08-20 | [Subagent 初始上下文：Kimi Code Agent 工具实验性 `fork` 参数（对话快照继承，main 分支）](./2026-08-20-Subagent初始上下文-Kimi-fork参数.md) |
