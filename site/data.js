@@ -1066,6 +1066,26 @@ window.matrixData = {
       label: 'Kimi Code tower flag gating tests',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/5ae82cd5bcb92395baf96feea68e12f8c96b51ed/packages/agent-core-v2/test/features/tower/towerFeature.test.ts',
     },
+    'kimi-tower-mode-commit': {
+      label: 'Kimi Code tower mode commit',
+      url: 'https://github.com/MoonshotAI/kimi-code/commit/0f44537c13e7c32b9189e20af7c894c34704be5b',
+    },
+    'kimi-tower-mode-changeset': {
+      label: 'Kimi Code tower mode changeset',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/0f44537c13e7c32b9189e20af7c894c34704be5b/.changeset/tower-mode-command.md',
+    },
+    'kimi-tower-mode-flag': {
+      label: 'Kimi Code tower mode flag source',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/0f44537c13e7c32b9189e20af7c894c34704be5b/packages/agent-core-v2/src/features/tower/flag.ts',
+    },
+    'kimi-tower-mode-command': {
+      label: 'Kimi Code /tower mode command source',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/0f44537c13e7c32b9189e20af7c894c34704be5b/apps/kimi-code/src/tui/commands/tower.ts',
+    },
+    'kimi-tower-mode-constants': {
+      label: 'Kimi Code tower mode constants source',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/0f44537c13e7c32b9189e20af7c894c34704be5b/packages/agent-core-v2/src/features/tower/tower.ts',
+    },
     'kimi-builtin-skill-filter': {
       label: 'Kimi Code builtin skill flag filter',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/5ae82cd5bcb92395baf96feea68e12f8c96b51ed/packages/agent-core-v2/src/app/skillCatalog/builtin/builtin.ts',
@@ -1451,7 +1471,7 @@ window.matrixData = {
       category: 'commands',
       capability: '多模型或多代理模式',
       description: '启动多任务、多 Agent 或多模型协作入口。',
-      values: { claude: '`/advisor` · `/batch`', codex: '`/agent`', qwen: '`/advisor`（v0.21.14 起） · `/arena` · `/batch` · `/coordinate`（v0.21.11 起）', kimi: '`/swarm` · `/tower`（条件：合入 main 后于 2026-08-18 禁用，当前无法开启）', qoder: '`/quest` · `/batch`' },
+      values: { claude: '`/advisor` · `/batch`', codex: '`/agent`', qwen: '`/advisor`（v0.21.14 起） · `/arena` · `/batch` · `/coordinate`（v0.21.11 起）', kimi: '`/swarm` · `/tower`（条件：2026-08-21 起重建为与 plan 并列的模式重新开启，实验标志 `KIMI_CODE_EXPERIMENTAL_TOWER` 默认关闭，合入 main 尚未发布）', qoder: '`/quest` · `/batch`' },
     },
     {
       id: 'cmd-remote',
