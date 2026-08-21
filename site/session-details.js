@@ -228,7 +228,8 @@
       facts: [
         'Qwen Code 提供专用 CLI 命令 `qwen sessions ps` 列出本机运行中的交互式会话，基于 `~/.qwen/sessions/` 实时进程登记表（v0.21.14 起）。',
         'Claude Code 官方 Sessions 文档把 agent view 与 `claude agents --json` 输出描述为运行中会话的列表；会话选择器以 `bg` 标记后台会话。',
-        'Codex、Kimi Code 与 Qoder CLI 的官方命令表只列出面向已保存会话的恢复入口，未列出查看运行中会话的命令。',
+        'Codex rust-v0.149.0 起提供 `codex agents` 子命令、`/agents` 与 `Alt+A` Agent 会话仪表盘，列出共享本地 app-server Daemon 加载的运行中会话，并可搜索、打开、重命名、停止会话和新建任务；官方 Slash 命令文档尚未同步。',
+        'Kimi Code 与 Qoder CLI 的官方命令表只列出面向已保存会话的恢复入口，未列出查看运行中会话的命令。',
       ],
       products: {
         claude: {
@@ -250,20 +251,27 @@
         },
         codex: {
           entry:
-            '`codex resume` 按 ID 继续此前的交互式会话或恢复最近聊天；`codex exec resume [SESSION_ID]`（`--last` 当前目录最近、`--all` 任意目录）恢复非交互会话。',
+            '`codex agents` 子命令打开共享本地 app-server Daemon 的 Agent 会话仪表盘（clap 帮助文本为 "Browse all agent sessions on the shared local app-server daemon"）；TUI 内 `/agents`（描述为 "view and switch between all active agent sessions"）或全局快捷键 `Alt+A` 打开同一仪表盘。当前会话使用内嵌 app server、未连接共享 Daemon 时，`/agents` 显示 "Shared agents unavailable"，Unix 下可选 "Start background server" 先启动后台 Daemon。',
           behavior:
-            '命令表中的会话入口面向已保存会话记录；`/archive` 把当前会话从活动会话列表移除并退出，但不删除转录；`codex cloud list` 列出最近云端聊天。',
+            '仪表盘列出 Daemon 已加载的根会话（`ThreadLoadedList` 分页获取，上限 1000 条），排除 ephemeral 与未加载（NotLoaded）会话；每行显示会话名、首条用户消息预览与 Subagent 状态，按更新时间排序；支持搜索（`Ctrl+F`）、打开/切换会话、新建任务（`Ctrl+N`，新建线程并提交提示词）、重命名（`Ctrl+R`）、停止（`Ctrl+X`，中断进行中的回合）；列表随相关线程通知刷新。',
           scope:
-            '列表对象是已保存会话与云端聊天，不是本机正在运行的 CLI 进程。',
+            '列表对象是共享 Daemon 加载中的会话，状态分组为 Needs input（Active 且等待审批或用户输入，或 SystemError）、Working（Active）、Ready（Idle）；默认按项目分组，`Ctrl+S` 切换为按状态分组。未加载的历史会话不列出；`codex resume` 仍面向已保存会话，云端聊天仍由 `codex cloud list` 单独列出。',
           automation:
-            '官方文档未列出运行中会话的自动登记机制。',
+            '会话状态经 app-server 的 `ThreadStatus`（`NotLoaded`/`Idle`/`SystemError`/`Active`，Active 携带 `WaitingOnApproval`/`WaitingOnUserInput` 标志）自动登记并推送给仪表盘。',
           persistence:
-            '会话记录保存在 Codex Home；`/archive` 只改列表归属，不删除转录。',
+            '仪表盘反映 Daemon 内存中加载的会话运行状态，不是对话历史；会话记录仍保存在 `$CODEX_HOME/sessions`。',
           surfaces:
-            'CLI 与 `codex exec`；云端聊天由 `codex cloud list` 单独列出。',
+            'CLI 子命令 `codex agents` 与交互式 TUI（`/agents`、`Alt+A`）。Unix 下 `codex agents` 在需要时自动启动本地 Daemon（要求终端）；非 Unix 平台必须用 `--remote` 连接远端服务器，`--cd` 为远端服务器上的新任务指定目录。',
           conditions:
-            '官方命令表未列出查看运行中会话的命令；不据此推断底层能力不存在。',
-          sources: ['codex-commands'],
+            '`codex agents` 不能与调用级配置覆盖（`-c` 原始覆盖、提示词、`--model`、`--sandbox-mode`、审批策略等）组合，workload identity 激活时不可用；仪表盘快捷键经 `tui.keymap` 配置（`global.open_agents` 与 `agents` 组的 `search`/`new_task`/`rename`/`stop`/`toggle_grouping`）；官方 Slash 命令文档尚未列出 `/agents`。PR #39094（`4617d4d21d27`）、#39112（`319b2f72b1d4`）、#39114（`fd5018e0445b`）、#39142（`f47f77ada669`）于 2026-08-17/18 合入 main，随 rust-v0.149.0 发布。',
+          status: '官方确认',
+          sources: [
+            'codex-v0149-release',
+            'codex-agents-dashboard-commit',
+            'codex-agents-command-commit',
+            'codex-agents-shortcuts-commit',
+            'codex-agents-overview-source',
+          ],
         },
         qwen: {
           entry:
