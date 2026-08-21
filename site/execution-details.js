@@ -499,6 +499,7 @@
         'Qwen Code 支持 `Ctrl+B` 把已经运行的前台 Shell 提升为后台任务；Kimi Code 的前台 Bash 超时默认也会转后台继续。',
         '后台不等于无人监管：TaskOutput、任务日志、完成通知、超时和精确停止共同决定任务是否可控。',
         'Kimi Code 的后台 Agent 输出原在任务终态时一次性捕获，完成前输出视图显示 `[no output captured]`；0.35.0 起 `/tasks` 预览窗格改为实时显示步骤级活动，活动记录只保存在内存、上限最近 20 步，不落盘。',
+        'Kimi Code 0.38.0 起提供 `WaitFor` 工具：模型在当前回合内挂起等待后台任务（子 Agent、后台 Bash、后台提问）结束，而不是结束回合等待重新调用；其余四家当前一手资料未列出同类专门的回合内等待工具。',
       ],
       products: {
         claude: {
@@ -560,13 +561,13 @@
         },
         kimi: {
           entry:
-            '`Bash.run_in_background`、`Agent.run_in_background` 或后台 AskUserQuestion；`/tasks` 打开任务浏览器。条件：0.35.0 起 `/tasks` 预览窗格实时显示后台 Agent（`run_in_background` 或 `Ctrl+B` 启动）的活动，Enter/O 打开全屏活动详情，Ctrl+O 展开或收起。',
+            '`Bash.run_in_background`、`Agent.run_in_background` 或后台 AskUserQuestion；`/tasks` 打开任务浏览器。0.38.0 起新增 `WaitFor` 工具，模型可在当前回合内等待后台任务结束。条件：0.35.0 起 `/tasks` 预览窗格实时显示后台 Agent（`run_in_background` 或 `Ctrl+B` 启动）的活动，Enter/O 打开全屏活动详情，Ctrl+O 展开或收起。',
           primitives:
-            '`TaskList`、`TaskOutput`、`TaskStop`；Bash/Agent/问题任务共用任务服务。条件：0.35.0 起新增按 Agent 的内存活动流（subagent activity store），子 Agent 事件分流进该存储，按引擎 `turn.step.started` 事件分段，上限 `MAX_SUBAGENT_ACTIVITY_STEPS = 20` 步、步骤文本尾段 4000 字符、单条工具输出 8000 字符、工具参数字符串 16 KiB。',
+            '`TaskList`、`TaskOutput`、`TaskStop`、`WaitFor`；Bash/Agent/问题任务共用任务服务。`TaskOutput` 始终非阻塞，立即返回当前快照，任务完成经自动通知送达。`WaitFor` 参数：`timeout`（必填，单位秒，上限 600）与可选 `task_id`；不传 `task_id` 时调用时刻运行中的任意一个后台任务结束即返回，无运行中任务时立即返回，等待更久可再次调用。`WaitFor` 与 `TaskList`/`TaskOutput` 一样自动放行。条件：0.35.0 起新增按 Agent 的内存活动流（subagent activity store），子 Agent 事件分流进该存储，按引擎 `turn.step.started` 事件分段，上限 `MAX_SUBAGENT_ACTIVITY_STEPS = 20` 步、步骤文本尾段 4000 字符、单条工具输出 8000 字符、工具参数字符串 16 KiB。',
           behavior:
-            '立即返回 task id，终态自动通知主 Agent；TaskOutput 可阻塞等待最多 3600 秒。条件：0.35.0 起后台 Agent 事件实时写入活动流，预览窗格展示步骤级进展，不再等待任务结束；全屏详情按步骤分组渲染 Markdown 文本和各工具结果。',
+            '立即返回 task id，终态自动通知主 Agent；回合内等待由 `WaitFor` 承担：调用在当前回合内挂起，等待期间不发起 LLM 请求，超时不是错误、结果列出仍在运行的任务，等待结束时一并列出等待窗口内完成的其他任务，已通过 `WaitFor` 汇报结果的任务不再推送自动完成通知。Goal 模式可用 `WaitFor` 时，注入的指引文本要求模型优先在回合内调用 `WaitFor` 等待而不是结束回合。等待对被等待任务无副作用：`WaitFor` 不停止任务，用户打断等待时任务继续运行。条件：0.35.0 起后台 Agent 事件实时写入活动流，预览窗格展示步骤级进展，不再等待任务结束；全屏详情按步骤分组渲染 Markdown 文本和各工具结果。',
           scope:
-            '任务状态与输出保存在当前会话目录；后台 Agent 有独立上下文。',
+            '任务状态与输出保存在当前会话目录；后台 Agent 有独立上下文。`WaitFor` 只能等待本 Agent 启动的后台任务，其他 Agent 的任务 ID 不可见。',
           background:
             'Bash 默认 10 分钟、Agent 默认 2 小时；print 模式两者默认无超时，可在配置中调整。',
           integration:
@@ -574,7 +575,7 @@
           artifacts:
             'TaskOutput 内联最近 32 KB，完整日志落盘；任务修改留在工作目录。活动流仅存内存，会话切换时释放（`clear`），不落盘。',
           conditions:
-            '停止后台任务需要审批；Plan 模式会拦截 TaskStop。条件：实时活动随 PR #2816（提交 `ad12ad8a140d`）于 2026-08-11 合入 main 分支，随 0.35.0（2026-08-12 发布）交付；会话恢复后没有内存活动记录的任务（如 lost 任务）回退到原捕获输出视图，Agent 任务输出仍在终态时一次性捕获。',
+            '停止后台任务需要审批；Plan 模式会拦截 TaskStop。条件：`WaitFor` 仅 v2 引擎（agent-core-v2）提供，实验标志 `wait_for` 默认开启，`KIMI_CODE_EXPERIMENTAL_WAIT_FOR=false` 可关闭，随 PR #3060（提交 `8440801de47d`）合入 main 并于 0.38.0 发布；实时活动随 PR #2816（提交 `ad12ad8a140d`）于 2026-08-11 合入 main 分支，随 0.35.0（2026-08-12 发布）交付；会话恢复后没有内存活动记录的任务（如 lost 任务）回退到原捕获输出视图，Agent 任务输出仍在终态时一次性捕获。',
           sources: [
             'kimi-tools-current',
             'kimi-commands-execution-current',
@@ -582,6 +583,11 @@
             'kimi-background-activity-commit',
             'kimi-background-activity-changeset',
             'kimi-v035-release',
+            'kimi-wait-for-release',
+            'kimi-wait-for-commit',
+            'kimi-wait-for-docs',
+            'kimi-wait-for-flag',
+            'kimi-wait-for-changeset',
           ],
         },
         qoder: {
