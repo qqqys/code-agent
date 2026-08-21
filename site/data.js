@@ -940,7 +940,7 @@ window.matrixData = {
     },
     'kimi-tools-current': {
       label: 'Kimi Code current built-in tools',
-      url: 'https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/reference/tools.md',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/%40moonshot-ai/kimi-code%400.38.0/docs/zh/reference/tools.md',
     },
     'kimi-agents-execution-current': {
       label: 'Kimi Code current agents',
@@ -1117,6 +1117,26 @@ window.matrixData = {
     'kimi-config-files-current': {
       label: 'Kimi Code current config files',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/157c84f5d1b0454c57aa6a54da42d87c32550ae1/docs/zh/configuration/config-files.md',
+    },
+    'kimi-wait-for-release': {
+      label: 'Kimi Code 0.38.0 release notes (WaitFor tool)',
+      url: 'https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%400.38.0',
+    },
+    'kimi-wait-for-commit': {
+      label: 'Kimi Code WaitFor tool commit',
+      url: 'https://github.com/MoonshotAI/kimi-code/commit/8440801de47ddae29224430048e1228b80cde370',
+    },
+    'kimi-wait-for-docs': {
+      label: 'Kimi Code built-in tools documentation (WaitFor, 0.38.0)',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/%40moonshot-ai/kimi-code%400.38.0/docs/zh/reference/tools.md',
+    },
+    'kimi-wait-for-flag': {
+      label: 'Kimi Code WaitFor experimental flag source',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/%40moonshot-ai/kimi-code%400.38.0/packages/agent-core-v2/src/agent/tools/task/task-wait/flag.ts',
+    },
+    'kimi-wait-for-changeset': {
+      label: 'Kimi Code WaitFor changeset',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/8440801de47ddae29224430048e1228b80cde370/.changeset/wait-for-tool.md',
     },
     'qoder-commands': {
       label: 'Qoder CLI slash commands',
@@ -1830,7 +1850,7 @@ window.matrixData = {
       category: 'execution',
       capability: '后台任务',
       description: '在不阻塞主交互的情况下执行命令或 Agent。',
-      values: { claude: '`/background` · `/tasks` · `Monitor`', codex: '`/ps` · `/stop`', qwen: '`is_background` · `Ctrl+B` · `/tasks`', kimi: '`run_in_background` · `/tasks`；条件：`/tasks` 后台 Agent 实时活动（0.35.0 起）', qoder: '`/tasks` · `TaskOutput` · `TaskStop`' },
+      values: { claude: '`/background` · `/tasks` · `Monitor`', codex: '`/ps` · `/stop`', qwen: '`is_background` · `Ctrl+B` · `/tasks`', kimi: '`run_in_background` · `/tasks` · `WaitFor` 回合内等待（0.38.0 起）；条件：`/tasks` 后台 Agent 实时活动（0.35.0 起）', qoder: '`/tasks` · `TaskOutput` · `TaskStop`' },
     },
     {
       id: 'execution-review',
