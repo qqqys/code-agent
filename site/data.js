@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-08-21',
+  updatedAt: '2026-08-22',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -185,6 +185,18 @@ window.matrixData = {
     'claude-messaging-v232': {
       label: 'Claude Code v2.1.232 changelog (@ mentions and bare-name delivery)',
       url: 'https://github.com/anthropics/claude-code/blob/1f6015b5d578/CHANGELOG.md',
+    },
+    'claude-messaging-v236': {
+      label: 'Claude Code v2.1.236 changelog (SendMessage notify_when_idle)',
+      url: 'https://github.com/anthropics/claude-code/blob/084ca20bcf90/CHANGELOG.md',
+    },
+    'claude-messaging-v238': {
+      label: 'Claude Code v2.1.238 changelog (inbound refusal and drop reporting)',
+      url: 'https://github.com/anthropics/claude-code/blob/8a8e81d098cb/CHANGELOG.md',
+    },
+    'claude-messaging-v239': {
+      label: 'Claude Code v2.1.239 changelog (Windows cross-session messaging)',
+      url: 'https://github.com/anthropics/claude-code/blob/16440d0f6ee8/CHANGELOG.md',
     },
     'claude-subagent-fork-v232': {
       label: 'Claude Code v2.1.232 changelog (subagent forking by default)',
@@ -1779,7 +1791,7 @@ window.matrixData = {
       category: 'sessions',
       capability: '跨会话消息',
       description: '发现其他会话、后台 Agent 或队友并互相发送消息。',
-      values: { claude: '`/list-agents` · `/peers` · `SendMessage`/`ListAgents` · `@` 会话名提及 · `crossSessionInbound`', codex: '官方命令与文档未列出会话间消息', qwen: '`send_message` · `list_agents`；限当前会话后台 Agent', kimi: '官方命令表未列出会话间消息', qoder: '条件：`QODER_AGENT_TEAMS=1` Agent Teams `SendMessage`（beta，单会话内）' },
+      values: { claude: '`/list-agents` · `/peers` · `SendMessage`/`ListAgents` · `@` 会话名提及 · `crossSessionInbound` · 原生 Windows（v2.1.239 宣布可用）', codex: '官方命令与文档未列出会话间消息', qwen: '`send_message` · `list_agents`；限当前会话后台 Agent', kimi: '官方命令表未列出会话间消息', qoder: '条件：`QODER_AGENT_TEAMS=1` Agent Teams `SendMessage`（beta，单会话内）' },
     },
     {
       id: 'extension-mcp',
