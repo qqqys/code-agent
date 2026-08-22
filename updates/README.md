@@ -4,6 +4,7 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-08-22 | [跨会话消息：Claude Code 原生 Windows 支持与发送方回报（v2.1.236–v2.1.239）](./2026-08-22-跨会话消息-Claude原生Windows支持与发送方回报.md) |
 | 2026-08-21 | [多模型或多代理模式：Kimi Code `/tower` 重建为与 plan 并列的模式重新开启（PR #3099，main 分支）](./2026-08-21-Kimi-tower模式重建重新开启.md) |
 | 2026-08-21 | [后台任务：Kimi Code `WaitFor` 回合内等待后台任务工具（0.38.0）](./2026-08-21-执行与Git-Kimi-WaitFor回合内等待后台任务.md) |
 | 2026-08-21 | [运行中会话列表：Codex `codex agents` / `/agents` Agent 会话仪表盘（rust-v0.149.0）](./2026-08-21-运行中会话列表-Codex-agents会话仪表盘.md) |
