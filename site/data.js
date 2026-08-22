@@ -530,6 +530,30 @@ window.matrixData = {
       label: 'Qwen Code v0.21.15 release notes',
       url: 'https://github.com/QwenLM/qwen-code/releases/tag/v0.21.15',
     },
+    'qwen-v022-release': {
+      label: 'Qwen Code v0.22.0 release notes',
+      url: 'https://github.com/QwenLM/qwen-code/releases/tag/v0.22.0',
+    },
+    'qwen-pr-binding-commit': {
+      label: 'Qwen Code Web Shell PR session binding commit',
+      url: 'https://github.com/QwenLM/qwen-code/commit/e2de7d288427faae072008f3aab60ada8fec612e',
+    },
+    'qwen-pr-binding-design': {
+      label: 'Qwen Code Web Shell PR session binding design document',
+      url: 'https://github.com/QwenLM/qwen-code/blob/e2de7d288427faae072008f3aab60ada8fec612e/docs/design/2026-08-20-webshell-session-pr-binding.md',
+    },
+    'qwen-pr-binding-service': {
+      label: 'Qwen Code session PR sidecar service source',
+      url: 'https://github.com/QwenLM/qwen-code/blob/1c3a385d9bc83e0b2a1ce5a24454ce1d090595fb/packages/core/src/services/session-pr-service.ts',
+    },
+    'qwen-pr-binding-badge': {
+      label: 'Qwen Code session PR badge source',
+      url: 'https://github.com/QwenLM/qwen-code/blob/1c3a385d9bc83e0b2a1ce5a24454ce1d090595fb/packages/web-shell/client/components/SessionPrBadge.tsx',
+    },
+    'qwen-pr-binding-search': {
+      label: 'Qwen Code sidebar git context search source',
+      url: 'https://github.com/QwenLM/qwen-code/blob/1c3a385d9bc83e0b2a1ce5a24454ce1d090595fb/packages/web-shell/client/components/sidebar/sessionSearch.ts',
+    },
     'qwen-computer-use': {
       label: 'Qwen Code Computer Use',
       url: 'https://github.com/QwenLM/qwen-code/blob/0907edb909706cf7589f94723b26572eb1dd9512/docs/users/features/computer-use.md',
@@ -1919,7 +1943,7 @@ window.matrixData = {
       category: 'execution',
       capability: 'Pull Request',
       description: '创建、读取或修复 GitHub Pull Request。',
-      values: { claude: '`/review` · `/autofix-pr` · GitHub App', codex: 'Codex Cloud · GitHub Review · `gh`', qwen: '`/review --comment` · Actions · `gh`', kimi: '`Bash`/`gh`；无专用入口', qoder: 'Qoder Action · `@qoder` · `gh`' },
+      values: { claude: '`/review` · `/autofix-pr` · GitHub App', codex: 'Codex Cloud · GitHub Review · `gh`', qwen: '`/review --comment` · Actions · `gh` · 条件：Web Shell Git 对话框创建的 PR 绑定源会话（v0.22.0 起）', kimi: '`Bash`/`gh`；无专用入口', qoder: 'Qoder Action · `@qoder` · `gh`' },
     },
     {
       id: 'execution-ci',

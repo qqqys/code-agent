@@ -900,6 +900,7 @@
         '五家都可通过 Shell 中的 `gh` 工作，但原生远端能力差异很大：Claude、Codex、Qwen、Qoder 都有 GitHub 专用工作流，Kimi 当前以通用 Shell 为主。',
         'Qwen `/review --comment` 提交的是 GitHub Review，不是创建功能分支或 PR；创建 PR 仍主要通过 `gh` 或 Action 工作流。',
         'Claude `/autofix-pr`、Codex GitHub/Cloud、Qoder `@qoder` 都能围绕现有 PR 继续处理评论或失败检查，但权限和运行位置不同。',
+        'Qwen Code 自 v0.22.0 起把 Web Shell Git 对话框创建的 PR 绑定到源会话：侧栏与选择器显示 `#N` 徽标、可按 PR 号/分支名/worktree slug 反查会话，绑定持久化为 `<chatsDir>/<sessionId>.pr.json`，每会话上限 10 条。',
       ],
       products: {
         claude: {
@@ -947,25 +948,31 @@
         },
         qwen: {
           entry:
-            '`/review <pr> --comment` 发布 Review；`gh` 读取/创建 PR；Qwen Code Action 响应 PR 和评论事件。',
+            '`/review <pr> --comment` 发布 Review；`gh` 读取/创建 PR；Qwen Code Action 响应 PR 和评论事件；Web Shell Git 对话框（Commit 视图 Create Pull Request）创建 PR 成功后，经 `updateSessionMetadata` 把单条 `{number, url}` 绑定到源会话。',
           primitives:
-            '内置 Review Skill、GitHub CLI、Qwen Code Action 和安装的工作流。',
+            '内置 Review Skill、GitHub CLI、Qwen Code Action、安装的工作流，以及 Daemon 会话元数据路由与 `<chatsDir>/<sessionId>.pr.json` 绑定 sidecar。',
           behavior:
-            '同仓 PR Review 在临时 Worktree 中运行并一次性提交评论；Action 可自动审查或由评论触发 Assistant。',
+            '同仓 PR Review 在临时 Worktree 中运行并一次性提交评论；Action 可自动审查或由评论触发 Assistant。PR 绑定按绑定时间排序、按 PR 号去重，重复绑定刷新 URL 并移到最新位，每会话上限 10 条、超出丢弃最旧；绑定写入 sidecar，Daemon 重启后由列表回填，归档/取消归档随会话移动、删除会话时清理。侧栏会话行、任务总览面板与恢复/删除/释放选择器显示 `#N` 徽标（多条为 `#N +M`），点击经桌面适配外链打开最新 PR，详情悬浮列出全部绑定（最新在前）；侧栏与恢复对话框搜索可匹配任意绑定 PR 号（`9517` 或 `#9517`）、分支名与 worktree slug。',
           scope:
-            '当前 GitHub 仓库、PR number/URL 或工作流事件。',
+            '当前 GitHub 仓库、PR number/URL 或工作流事件；PR 绑定限有会话上下文的 Web Shell Git 对话框创建路径。',
           background:
-            'Review Agent 可并行；Action 在 GitHub Runner 异步运行。',
+            'Review Agent 可并行；Action 在 GitHub Runner 异步运行；绑定经 `session_metadata_updated` SSE 事件与目录轮询在约 2 秒内反映到侧栏。',
           integration:
-            '`/setup-github` 安装 dispatch、assistant、issue triage、scheduled triage、PR review 五类 Workflow。',
+            '`/setup-github` 安装 dispatch、assistant、issue triage、scheduled triage、PR review 五类 Workflow；REST 与 workspace 作用域的 `PATCH /session/:id/metadata` 以及 ACP `session/update_metadata` 都可写入绑定。',
           artifacts:
-            'GitHub Review、Action run、评论、分支修改和通过 gh 创建的 PR。',
+            'GitHub Review、Action run、评论、分支修改、通过 gh 创建的 PR，以及会话 PR 绑定 sidecar 与侧栏 `#N` 徽标。',
           conditions:
-            '创建 PR 没有独立 Slash 命令；需要 gh 或工作流权限，`--comment` 会产生外部写入。',
+            '创建 PR 没有独立 Slash 命令；需要 gh 或工作流权限，`--comment` 会产生外部写入。PR 绑定随 v0.22.0 发布，仅覆盖 Web Shell Git 对话框创建的 PR：Agent 在 Shell 内自行 `gh pr create` 不会被绑定，无会话上下文的 workspace 级对话框不回写，也没有清除绑定的入口；`url` 仅限 http(s) 且不超过 2048 字符，在路由、bridge、SDK 与 sidecar 四层校验。',
           sources: [
             'qwen-review-current',
             'qwen-github-current',
             'qwen-setup-github-current',
+            'qwen-v022-release',
+            'qwen-pr-binding-commit',
+            'qwen-pr-binding-design',
+            'qwen-pr-binding-service',
+            'qwen-pr-binding-badge',
+            'qwen-pr-binding-search',
           ],
         },
         kimi: {
