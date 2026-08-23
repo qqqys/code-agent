@@ -4,6 +4,7 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-08-23 | [跨会话消息：Codex `codex queue` 会话消息投递（rust-v0.149.0）](./2026-08-23-跨会话消息-Codex-queue会话消息投递.md) |
 | 2026-08-22 | [代码 Review 与 Pull Request：Qwen Code Web Shell 会话 PR 绑定（v0.22.0）](./2026-08-22-执行与Git-Qwen-Web-Shell会话PR绑定.md) |
 | 2026-08-22 | [代码 Review：Qwen Code `/review --resume` 继续中断的 PR 审查（v0.21.15）](./2026-08-22-执行与Git-Qwen-review-resume继续中断审查.md) |
 | 2026-08-22 | [跨会话消息：Claude Code 原生 Windows 支持与发送方回报（v2.1.236–v2.1.239）](./2026-08-22-跨会话消息-Claude原生Windows支持与发送方回报.md) |

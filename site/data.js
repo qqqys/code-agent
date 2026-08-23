@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-08-22',
+  updatedAt: '2026-08-23',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -419,8 +419,12 @@ window.matrixData = {
       url: 'https://github.com/openai/codex/commit/d35e5495f991508409ff30e38db8dbe49d565570',
     },
     'codex-v0149-release': {
-      label: 'Codex rust-v0.149.0 release notes (agents dashboard)',
+      label: 'Codex rust-v0.149.0 release notes (agents dashboard and codex queue)',
       url: 'https://github.com/openai/codex/releases/tag/rust-v0.149.0',
+    },
+    'codex-queue-commit': {
+      label: 'Codex `codex queue` session messaging commit',
+      url: 'https://github.com/openai/codex/commit/83d015375e578e369c115b06aea631f266226a4f',
     },
     'codex-agents-dashboard-commit': {
       label: 'Codex agents overview dashboard commit',
@@ -1831,7 +1835,7 @@ window.matrixData = {
       category: 'sessions',
       capability: '跨会话消息',
       description: '发现其他会话、后台 Agent 或队友并互相发送消息。',
-      values: { claude: '`/list-agents` · `/peers` · `SendMessage`/`ListAgents` · `@` 会话名提及 · `crossSessionInbound` · 原生 Windows（v2.1.239 宣布可用）', codex: '官方命令与文档未列出会话间消息', qwen: '`send_message` · `list_agents`；限当前会话后台 Agent', kimi: '官方命令表未列出会话间消息', qoder: '条件：`QODER_AGENT_TEAMS=1` Agent Teams `SendMessage`（beta，单会话内）' },
+      values: { claude: '`/list-agents` · `/peers` · `SendMessage`/`ListAgents` · `@` 会话名提及 · `crossSessionInbound` · 原生 Windows（v2.1.239 宣布可用）', codex: '`codex queue --thread <UUID|精确会话名> --message <文本>` · 经 app-server `thread/queue/add` 投递 · `--remote` 指向远程 app server（rust-v0.149.0 引入）；用户到会话单向', qwen: '`send_message` · `list_agents`；限当前会话后台 Agent', kimi: '官方命令表未列出会话间消息', qoder: '条件：`QODER_AGENT_TEAMS=1` Agent Teams `SendMessage`（beta，单会话内）' },
     },
     {
       id: 'extension-mcp',

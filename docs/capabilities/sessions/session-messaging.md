@@ -2,7 +2,7 @@
 
 [返回会话与上下文详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=session-messaging)
 
-> 核对日期：2026-08-22
+> 核对日期：2026-08-23
 
 ## 定义
 
@@ -13,7 +13,7 @@
 | 产品 | 结论 | 证据状态 |
 | --- | --- | --- |
 | Claude Code | `/list-agents` · `/peers` · `SendMessage`/`ListAgents` · `@` 会话名提及 · `crossSessionInbound` · 原生 Windows（v2.1.239 宣布可用） | 官方确认 |
-| Codex | 官方命令与文档未列出会话间消息 | 未确认 |
+| Codex | `codex queue --thread <UUID\|精确会话名> --message <文本>` · 经 app-server `thread/queue/add` 投递 · `--remote` 指向远程 app server（rust-v0.149.0 引入）；用户到会话单向 | 官方确认 |
 | Qwen Code | `send_message` · `list_agents`；限当前会话后台 Agent | 官方确认 |
 | Kimi Code | 官方命令表未列出会话间消息 | 未确认 |
 | Qoder CLI | 条件：`QODER_AGENT_TEAMS=1` Agent Teams `SendMessage`（beta，单会话内） | 条件项 |
@@ -34,12 +34,13 @@
 
 ## 跨产品事实
 
-1. 只有 Claude Code 提供独立会话之间的消息：`ListAgents`/`/list-agents` 发现本地会话、Subagent 与 Remote Control 会话，`SendMessage` 按名称投递；v2.1.224 引入，v2.1.225 支持按名称主动发起对其他机器 Remote Control 会话的对话，v2.1.229 为列表增加 `offline`/`cloud` 状态标签，v2.1.232 增加提示词 `@` 会话名提及、`SendMessage` 裸名投递与同机唯一会话名，v2.1.239 宣布原生 Windows 可用、`ListAgents` 告知会话自身名称并列出在世队友。
+1. Claude Code 用 `ListAgents`/`/list-agents` 发现本地会话、Subagent 与 Remote Control 会话，`SendMessage` 按名称投递；v2.1.224 引入，v2.1.225 支持按名称主动发起对其他机器 Remote Control 会话的对话，v2.1.229 为列表增加 `offline`/`cloud` 状态标签，v2.1.232 增加提示词 `@` 会话名提及、`SendMessage` 裸名投递与同机唯一会话名，v2.1.239 宣布原生 Windows 可用、`ListAgents` 告知会话自身名称并列出在世队友。
 2. Claude Code 的收件箱在 macOS、Linux（含 WSL 2）是每会话 Unix socket，在原生 Windows 是命名管道；同一台机器上 WSL 2 会话与原生 Windows 会话互不可达。
 3. Qwen Code 的 `send_message`/`list_agents` 面向当前会话内的后台 Agent（含随会话恢复还原的 Agent），官方文档未列出独立并行会话之间的消息。
 4. Qoder CLI 的 Agent Teams 用 `SendMessage` 在主 Agent 与队友、队友与队友之间通信，但团队只存在于单个 TUI 会话内，且当前需要 `QODER_AGENT_TEAMS=1` beta 开关。
-5. Codex 与 Kimi Code 的官方命令与文档未列出会话间消息；Kimi 的 `/swarm` 是多 Agent 任务模式，`/btw` 是与派生子 Agent 的旁路对话，都不等于会话间消息。
-6. Claude Code 的消息是纯文本：不携带历史或文件，文本中的命令不会被执行，接收会话自身的权限审批仍然适用。
+5. Codex 自 rust-v0.149.0（2026-08-20 发布）提供启动级命令 `codex queue --thread <UUID|精确会话名> --message <文本>`，经 app-server `thread/queue/add` 把文本作为用户输入排队投递给本地或远程的现有活跃会话；这是用户到会话的单向投递，官方未列出模型主动向其他会话发消息的工具。
+6. Kimi Code 的官方命令与文档仍未列出会话间消息；`/swarm` 是多 Agent 任务模式，`/btw` 是与派生子 Agent 的旁路对话，都不等于会话间消息。
+7. Claude Code 的消息是纯文本：不携带历史或文件，文本中的命令不会被执行，接收会话自身的权限审批仍然适用。
 
 ## 逐产品记录
 
@@ -63,17 +64,17 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 矩阵结论 | 官方命令与文档未列出会话间消息 |
-| 入口与切换 | 官方 CLI 命令表与文档目录未列出会话间消息命令或工具。 |
-| 保存位置 | 无对应消息存储；会话记录本身位于 `$CODEX_HOME/sessions`。 |
-| 具体行为 | Codex 会话是相互独立的本地线程；本页不把 Subagent 委派、`codex exec` 会话分支或把 Codex 作为 MCP server 调用的多 Agent 工作流计作会话间消息。 |
-| 状态范围 | 无对应能力可确认。 |
-| 自动行为 | 无对应能力可确认。 |
-| 保存与保留 | 无对应能力可确认。 |
-| 适用界面 | 本页核对 CLI 命令表与官方文档目录；如后续版本提供会话间消息，应以官方命令或会话文档为准。 |
-| 条件与边界 | 保留为未确认；不从 Subagents、Cloud 或 Remote 能力推断。 |
-| 证据状态 | 未确认 |
-| 来源 | [Codex CLI commands](https://developers.openai.com/codex/cli/slash-commands)、[Codex Documentation](https://developers.openai.com/codex) |
+| 矩阵结论 | `codex queue --thread <UUID\|精确会话名> --message <文本>` · 经 app-server `thread/queue/add` 投递 · `--remote` 指向远程 app server（rust-v0.149.0 引入）；用户到会话单向 |
+| 入口与切换 | 启动级命令 `codex queue --thread <THREAD> --message <TEXT>`（rust-v0.149.0 引入）：`--thread` 填会话 UUID 或精确会话名，`--message` 为非空文本；`--remote`/`--remote-auth-token-env` 指向远程 app server，`-c` 传入配置覆盖。 |
+| 保存位置 | 未列出独立消息存储；消息经 app-server `thread/queue/add`（JSON-RPC）注入目标会话，会话记录本身位于 `$CODEX_HOME/sessions`。 |
+| 具体行为 | 命令把文本作为用户输入排队到目标活跃会话，官方更新日志修复条目记录排队消息可可靠唤醒空闲会话；空消息与图片附件被拒绝。目标按 UUID 或精确名称解析，来源覆盖 interactive、exec 与 custom 活跃会话；找不到匹配会话报 `No active session found matching`，多个活跃会话同名报 `More than one active session is named` 并要求改用 UUID。 |
+| 状态范围 | 默认经本地 app-server daemon 投递，`--remote` 指向显式远程 app server；目标服务端不支持 `thread/queue/add` 时报错提示更新或重启服务端，不静默更换投递目标。投递后由目标会话自身的权限审批处理后续操作。 |
+| 自动行为 | 排队消息在目标会话空闲时唤醒会话并按用户输入处理；官方未列出模型主动向其他会话发消息的工具或自动转发。 |
+| 保存与保留 | 公开资料未记录独立的磁盘消息队列或保留时长；本地投递依赖运行中的 app-server daemon，`-c` 配置覆盖与运行中的本地 daemon 互斥，命令报错而不是绕过。 |
+| 适用界面 | 启动级 CLI 命令；官方 Slash 命令表与文档站目录在核对日期仍未列出 `codex queue`，桌面端或 IDE Surface 未记录等价入口。 |
+| 条件与边界 | rust-v0.149.0（2026-08-20 发布）引入，提交 `83d015375e57`（PR #39092）。用户到会话单向投递；本页不把 Subagent 委派、`codex exec` 会话分支、TUI 内 Tab 排队下一轮输入或把 Codex 作为 MCP server 调用的多 Agent 工作流计作会话间消息。 |
+| 证据状态 | 官方确认 |
+| 来源 | [Codex rust-v0.149.0 release notes (agents dashboard and codex queue)](https://github.com/openai/codex/releases/tag/rust-v0.149.0)、[Codex `codex queue` session messaging commit](https://github.com/openai/codex/commit/83d015375e578e369c115b06aea631f266226a4f) |
 
 ### Qwen Code
 
@@ -133,8 +134,8 @@
 - [Claude Code v2.1.236 changelog (SendMessage notify_when_idle)](https://github.com/anthropics/claude-code/blob/084ca20bcf90/CHANGELOG.md)
 - [Claude Code v2.1.238 changelog (inbound refusal and drop reporting)](https://github.com/anthropics/claude-code/blob/8a8e81d098cb/CHANGELOG.md)
 - [Claude Code v2.1.239 changelog (Windows cross-session messaging)](https://github.com/anthropics/claude-code/blob/16440d0f6ee8/CHANGELOG.md)
-- [Codex CLI commands](https://developers.openai.com/codex/cli/slash-commands)
-- [Codex Documentation](https://developers.openai.com/codex)
+- [Codex rust-v0.149.0 release notes (agents dashboard and codex queue)](https://github.com/openai/codex/releases/tag/rust-v0.149.0)
+- [Codex `codex queue` session messaging commit](https://github.com/openai/codex/commit/83d015375e578e369c115b06aea631f266226a4f)
 - [Qwen Code background agent messaging](https://github.com/QwenLM/qwen-code/blob/412eae24b48ff16f54166c2b17eb4d4a9cdcdd1e/docs/users/features/sub-agents.md)
 - [Kimi Code current slash commands (no messaging command)](https://github.com/MoonshotAI/kimi-code/blob/8db7d42f23472a692eb389a0e0e5a3e18aa1b94d/docs/zh/reference/slash-commands.md)
 - [Qoder CLI Agent Teams](https://docs.qoder.com/cli/agent-teams)
