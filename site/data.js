@@ -226,6 +226,10 @@ window.matrixData = {
       label: 'Claude Code v2.1.234 changelog (/goal self-clear and background check-in)',
       url: 'https://github.com/anthropics/claude-code/blob/354757e5b2d9/CHANGELOG.md',
     },
+    'claude-goal-v239': {
+      label: 'Claude Code v2.1.239 changelog (/goal resume restore and check-in backoff)',
+      url: 'https://github.com/anthropics/claude-code/blob/16440d0f6ee8/CHANGELOG.md',
+    },
     'claude-default-model-v236': {
       label: 'Claude Code v2.1.236 changelog (ANTHROPIC_DEFAULT_MODEL)',
       url: 'https://github.com/anthropics/claude-code/blob/084ca20bcf90/CHANGELOG.md',
@@ -1218,6 +1222,10 @@ window.matrixData = {
       label: 'Qoder CLI slash commands',
       url: 'https://docs.qoder.com/cli/slash-reference',
     },
+    'qoder-goal-reference': {
+      label: 'Qoder CLI Goal Command Reference',
+      url: 'https://docs.qoder.com/cli/goal-reference',
+    },
     'qoder-agents': {
       label: 'Qoder CLI Subagent',
       url: 'https://docs.qoder.com/en/cli/subagent',
@@ -1380,7 +1388,7 @@ window.matrixData = {
       category: 'commands',
       capability: '目标管理',
       description: '创建或查看跨多轮持续执行的目标。',
-      values: { claude: '`/goal`', codex: '`/goal`', qwen: '`/goal`', kimi: '`/goal` · 条件：0.37.0 起单条目标不超过 4000 字符', qoder: '—' },
+      values: { claude: '`/goal`', codex: '`/goal`', qwen: '`/goal`', kimi: '`/goal` · 条件：0.37.0 起单条目标不超过 4000 字符', qoder: '`/goal [description] [--turns <N>]` · `/goal status|pause|resume|take|clear`' },
     },
     {
       id: 'cmd-agents',

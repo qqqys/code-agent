@@ -16,7 +16,7 @@
 | Codex | `/goal` | 官方确认 |
 | Qwen Code | `/goal [condition\|clear]` | 源码确认 |
 | Kimi Code | `/goal [...]` | 官方确认 |
-| Qoder CLI | 无对应命令 | 未确认 |
+| Qoder CLI | `/goal [description] [--turns <N>]`、`/goal status`、`/goal pause`、`/goal resume`、`/goal take`、`/goal clear` | 官方确认 |
 
 ## 比较边界
 
@@ -37,13 +37,14 @@
 
 ## 跨产品事实
 
-1. Claude Code、Codex、Qwen Code 和 Kimi Code 都提供 `/goal`。
+1. 五家 CLI 都提供 `/goal`；Qoder CLI 的 `/goal` 于 2026-08-23 在官方命令参考确认。
 2. Kimi Code 公开了 status、pause、resume、cancel、replace、next 等子命令及非交互退出码。
 3. Kimi Code 0.37.0 起单条目标不超过 4000 字符，TUI 输入提示与 v1/v2 引擎双层校验，超限拒绝并保留已输入内容。
 4. Claude Code v2.1.234 起 `/goal` 在回合因不可恢复错误终止时自动清除并提示；后台任务让目标等待超过 30 分钟时主动检查这些任务。
-5. Qwen Code Headless 把 `/goal` 作为完整提示词，Goal 状态随会话保存，`--continue` 或 `--resume <sessionId>` 可跨进程查看或控制；stream-json 以 `goal_state` 为权威状态事件。
-6. Qwen Code ACP 会话自提交 `05079297d26c`（2026-08-12 合入 main，尚未发布）起采用 Goal v3 规范运行时，Goal 状态变化经 `_meta.goalState` 下发。
-7. Qoder CLI 当前命令目录没有 `/goal`。
+5. Claude Code v2.1.239 起经 `claude --resume` 选择列表恢复会话时恢复其活动目标；对长时后台工作的重复检查放宽为 30 分钟、1 小时、之后每 2 小时一次。
+6. Qwen Code Headless 把 `/goal` 作为完整提示词，Goal 状态随会话保存，`--continue` 或 `--resume <sessionId>` 可跨进程查看或控制；stream-json 以 `goal_state` 为权威状态事件。
+7. Qwen Code ACP 会话自提交 `05079297d26c`（2026-08-12 合入 main，尚未发布）起采用 Goal v3 规范运行时，Goal 状态变化经 `_meta.goalState` 下发。
+8. Qoder CLI 官方命令参考列出 `/goal` 并提供独立 Goal Command Reference：`--turns <N>` 限制交互轮数，`status`、`pause`、`resume`、`take`、`clear` 子命令管理目标，目标随会话保存并记录持有会话。
 
 ## 逐产品记录
 
@@ -56,10 +57,10 @@
 | 参数 | `condition`；`clear\|stop\|off\|reset\|none\|cancel` 可提前移除 |
 | 执行行为 | 设置持续目标；不带参数显示当前或最近完成的目标。 |
 | 可用模式 | 交互式 CLI |
-| 保存范围 | 当前会话的持续目标状态 |
-| 条件与边界 | v2.1.234 起：回合因不可恢复错误（如撤销认证、余额用尽、上下文溢出）终止时，`/goal` 自动清除并提示，不再保持生效；后台任务让目标等待超过 30 分钟时主动检查这些任务而不是无限等待，`CLAUDE_CODE_GOAL_CHECKIN_MINUTES=0` 可关闭该检查 |
+| 保存范围 | 当前会话的持续目标状态；v2.1.239 起经 `claude --resume` 选择列表恢复会话时恢复其活动目标 |
+| 条件与边界 | v2.1.234 起：回合因不可恢复错误（如撤销认证、余额用尽、上下文溢出）终止时，`/goal` 自动清除并提示，不再保持生效；后台任务让目标等待超过 30 分钟时主动检查这些任务而不是无限等待，`CLAUDE_CODE_GOAL_CHECKIN_MINUTES=0` 可关闭该检查。v2.1.239 起：对长时后台工作的重复检查逐步放宽间隔（先等待 30 分钟，然后 1 小时，之后每 2 小时一次），不再每 30 分钟重复 |
 | 证据状态 | 官方确认 |
-| 来源 | [Claude Code Commands](https://code.claude.com/docs/en/commands)、[Claude Code v2.1.234 changelog (/goal self-clear and background check-in)](https://github.com/anthropics/claude-code/blob/354757e5b2d9/CHANGELOG.md) |
+| 来源 | [Claude Code Commands](https://code.claude.com/docs/en/commands)、[Claude Code v2.1.234 changelog (/goal self-clear and background check-in)](https://github.com/anthropics/claude-code/blob/354757e5b2d9/CHANGELOG.md)、[Claude Code v2.1.239 changelog (/goal resume restore and check-in backoff)](https://github.com/anthropics/claude-code/blob/16440d0f6ee8/CHANGELOG.md) |
 
 ### Codex
 
@@ -107,20 +108,21 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 主命令 | 无对应命令 |
+| 主命令 | `/goal [description] [--turns <N>]`、`/goal status`、`/goal pause`、`/goal resume`、`/goal take`、`/goal clear` |
 | 别名 | 无公开别名 |
-| 参数 | — |
-| 执行行为 | 当前官方命令目录未列出对应 Slash 命令。 |
+| 参数 | `<description>` 自然语言目标描述，省略时显示状态；`--turns <N>` 交互轮数上限，`N` 须为正整数，非法取值被忽略 |
+| 执行行为 | 创建或更新目标并持续工作直到完成；不带子命令等价于 `/goal status`，显示目标描述、状态、已用轮数（Elapsed Turns）与已用时间。`pause` 暂停、`resume` 恢复、`clear` 移除当前目标，`take` 认领其他会话持有的目标并把所有权转移到当前会话。 |
 | 可用模式 | 交互式 CLI |
-| 保存范围 | — |
-| 条件与边界 | 不据此推断底层能力不存在 |
-| 证据状态 | 未确认 |
-| 来源 | [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference) |
+| 保存范围 | 目标随会话保存（Goals are persisted with the session），状态字段含 `objective`、`status`、`maxTurns`、`turnsUsed`、`timeUsedSeconds`、`ownerSessionId`、`planWasActive`；进程在 active 状态意外退出后，下次启动自动降级为 paused |
+| 条件与边界 | 目标状态为 `active`/`paused`/`complete`；`/goal` 从不改变权限模式（Goal never changes the Permission Mode），工具审批沿用当前权限模式，无人值守需事先切换到 `auto` 或 `yolo`；未设 `--turns` 时适用内置默认上限，`turnsUsed` 达到 `maxTurns` 时目标自动暂停，`/goal resume` 授予全新轮数预算继续；更新其他会话持有的目标必须先 `/goal take`，防止新窗口悄悄继承另一会话未完成的目标；目标激活前若处于 Plan 模式，`/goal resume` 在进程重启后同时恢复 Plan 模式；官方文档未列出非交互退出码 |
+| 证据状态 | 官方确认 |
+| 来源 | [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)、[Qoder CLI Goal Command Reference](https://docs.qoder.com/cli/goal-reference) |
 
 ## 官方来源
 
 - [Claude Code Commands](https://code.claude.com/docs/en/commands)
 - [Claude Code v2.1.234 changelog (/goal self-clear and background check-in)](https://github.com/anthropics/claude-code/blob/354757e5b2d9/CHANGELOG.md)
+- [Claude Code v2.1.239 changelog (/goal resume restore and check-in backoff)](https://github.com/anthropics/claude-code/blob/16440d0f6ee8/CHANGELOG.md)
 - [Codex CLI commands](https://developers.openai.com/codex/cli/slash-commands)
 - [Qwen Code commands documentation](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/commands.md)
 - [Qwen Code headless Goal workflows](https://github.com/QwenLM/qwen-code/blob/48d37cdf704dbe4c5254cc4b31c2d62f1351bff1/docs/users/features/headless.md)
@@ -129,6 +131,7 @@
 - [Kimi Code /goal objective length limit commit](https://github.com/MoonshotAI/kimi-code/commit/d96cd037702637305422222e985139e51ff83c8c)
 - [Kimi Code 0.37.0 release notes](https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%400.37.0)
 - [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)
+- [Qoder CLI Goal Command Reference](https://docs.qoder.com/cli/goal-reference)
 
 ## 关联能力
 
