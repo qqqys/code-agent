@@ -150,7 +150,7 @@
         },
         qwen: {
           entry:
-            '模型调用 `read_file`、`edit`、`write_file` 和 `notebook_edit`；目录浏览使用 `list_directory`。',
+            '模型调用 `read_file`、`edit`、`write_file` 和 `notebook_edit`。目录浏览工具 `list_directory` 自 v0.22.0 起默认关闭，启用后可用（`tools.listDirectory.enabled`），目录列表通常由 `glob` 完成。',
           primitives:
             '`read_file` 分页读取；`edit` 做受控替换；`write_file` 写入完整内容；`notebook_edit` 修改 Notebook 单元。',
           behavior:
@@ -170,6 +170,7 @@
             'qwen-settings',
             'qwen-worktree-current',
             'qwen-edit-tool',
+            'qwen-list-directory-settings',
           ],
         },
         kimi: {
@@ -379,6 +380,7 @@
         'Claude Code、Qwen Code 提供 Glob、Grep 与 LSP 三层搜索；Kimi Code、Qoder CLI 的公开内置表确认 Glob 与 Grep。',
         'Codex 可以通过内置搜索和 Shell 中的 `rg`/`find` 完成仓库检索，但当前公开文档没有同样的固定工具名清单。',
         '搜索结果都需要分页或截断；“命中 0 条”不能自动证明代码不存在，还要考虑忽略规则、范围与工具上限。',
+        'Qwen Code 自 v0.22.0 起 `list_directory` 默认不注册，官方理由是 `glob` 已覆盖大多数目录列表场景；启用需 `tools.listDirectory.enabled` 或在 `coreTools` 白名单中显式列出，目录列表改用 `glob` 完成。',
       ],
       products: {
         claude: {
@@ -421,22 +423,30 @@
         },
         qwen: {
           entry:
-            '`glob` 找文件，`grep_search` 搜文本，`list_directory` 浏览目录；实验 LSP 提供符号导航。',
+            '`glob` 找文件，`grep_search` 搜文本，实验 LSP 提供符号导航；`list_directory` 自 v0.22.0 起默认不注册，启用后可浏览目录。',
           primitives:
-            'Grep 基于 ripgrep；工具注册表还提供 LSP、Read 等组合探索能力。',
+            'Grep 基于 ripgrep；工具注册表还提供 LSP、Read 等组合探索能力。`list_directory`（显示名 `ListFiles`）的注册由 `isLsToolEnabled` 门控，只在启用时注册工厂。',
           behavior:
-            '只读搜索通常自动允许；结果有数量和上下文限制，模型再按需 read_file。',
+            '只读搜索通常自动允许；结果有数量和上下文限制，模型再按需 read_file。`list_directory` 关闭时不进入模型可见的工具清单；模型仍调用该名称时返回“内置工具默认关闭、用 `tools.listDirectory.enabled` 启用、改用 `glob`”的错误文本，别名调用解析到同一说明。',
           scope:
             '搜索当前 workspace 和已加入目录；Worktree 激活后搜索隔离目录。',
           background:
             '单次工具同步返回；Explore/自定义 Agent 可并行搜索不同区域。',
           integration:
-            'LSP 通过实验开关注册；Tool Search 可延迟发现扩展工具。',
+            'LSP 通过实验开关注册；Tool Search 可延迟发现扩展工具。内置 Agent 与计划模式提示在 `list_directory` 默认关闭后改用 `glob`/`read_file` 探索。',
           artifacts:
             '结果进入上下文，不写文件。',
           conditions:
-            'LSP 只有启用 `--experimental-lsp` 时注册；Git ignore 与工具参数会影响命中。',
-          sources: ['qwen-tools-current', 'qwen-session-commands'],
+            'LSP 只有启用 `--experimental-lsp` 时注册；Git ignore 与工具参数会影响命中。`list_directory` 自 v0.22.0（PR #9424，2026-08-21 合并）起默认关闭：设置 `tools.listDirectory.enabled` 为 `true`（需重启）启用，或在 `coreTools` 白名单（`--core-tools` / `tools.core`）显式列出 `list_directory` 也会自动启用，白名单按权限规则解析，别名 `ListFiles` 与 `list_directory(/src)` 等带路径限定形式同样匹配；已存在且不含该条目的 `coreTools` 白名单在注册表层面继续禁用它。`tools.core` 在设置文档中标记弃用并在首次加载时迁移为 `permissions` 规则。',
+          sources: [
+            'qwen-tools-current',
+            'qwen-session-commands',
+            'qwen-v022-release',
+            'qwen-list-directory-commit',
+            'qwen-list-directory-settings',
+            'qwen-list-directory-tools-doc',
+            'qwen-list-directory-registration',
+          ],
         },
         kimi: {
           entry:

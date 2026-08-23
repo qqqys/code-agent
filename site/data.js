@@ -562,6 +562,22 @@ window.matrixData = {
       label: 'Qwen Code sidebar git context search source',
       url: 'https://github.com/QwenLM/qwen-code/blob/1c3a385d9bc83e0b2a1ce5a24454ce1d090595fb/packages/web-shell/client/components/sidebar/sessionSearch.ts',
     },
+    'qwen-list-directory-commit': {
+      label: 'Qwen Code list_directory opt-in commit',
+      url: 'https://github.com/QwenLM/qwen-code/commit/e09399e0fbcf48d04a9f96a23db690b969ad8d35',
+    },
+    'qwen-list-directory-settings': {
+      label: 'Qwen Code v0.22.0 settings (tools.listDirectory.enabled)',
+      url: 'https://github.com/QwenLM/qwen-code/blob/1c3a385d9bc83e0b2a1ce5a24454ce1d090595fb/docs/users/configuration/settings.md',
+    },
+    'qwen-list-directory-tools-doc': {
+      label: 'Qwen Code v0.22.0 file system tools document',
+      url: 'https://github.com/QwenLM/qwen-code/blob/1c3a385d9bc83e0b2a1ce5a24454ce1d090595fb/docs/developers/tools/file-system.md',
+    },
+    'qwen-list-directory-registration': {
+      label: 'Qwen Code v0.22.0 tool registration source',
+      url: 'https://github.com/QwenLM/qwen-code/blob/1c3a385d9bc83e0b2a1ce5a24454ce1d090595fb/packages/core/src/config/config.ts',
+    },
     'qwen-computer-use': {
       label: 'Qwen Code Computer Use',
       url: 'https://github.com/QwenLM/qwen-code/blob/0907edb909706cf7589f94723b26572eb1dd9512/docs/users/features/computer-use.md',
@@ -1927,7 +1943,7 @@ window.matrixData = {
       category: 'execution',
       capability: '代码搜索',
       description: '按文件名、文本或符号搜索代码库。',
-      values: { claude: '`Glob` · `Grep` · `LSP`', codex: '内置搜索 · Shell/`rg`', qwen: '`glob` · `grep_search` · `LSP`', kimi: '`Glob` · `Grep`', qoder: '`Glob` · `Grep`' },
+      values: { claude: '`Glob` · `Grep` · `LSP`', codex: '内置搜索 · Shell/`rg`', qwen: '`glob` · `grep_search` · `LSP`；条件：`list_directory` 默认关闭，`tools.listDirectory.enabled` 启用（v0.22.0 起）', kimi: '`Glob` · `Grep`', qoder: '`Glob` · `Grep`' },
     },
     {
       id: 'execution-background',
