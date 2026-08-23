@@ -2,7 +2,7 @@
 
 [返回 Slash 命令详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=cmd-new)
 
-> 核对日期：2026-08-22
+> 核对日期：2026-08-23
 
 ## 定义
 

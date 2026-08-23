@@ -2,7 +2,7 @@
 
 [返回会话与上下文详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=session-live-list)
 
-> 核对日期：2026-08-22
+> 核对日期：2026-08-23
 
 ## 定义
 
@@ -71,7 +71,7 @@
 | 适用界面 | CLI 子命令 `codex agents` 与交互式 TUI（`/agents`、`Alt+A`）。Unix 下 `codex agents` 在需要时自动启动本地 Daemon（要求终端）；非 Unix 平台必须用 `--remote` 连接远端服务器，`--cd` 为远端服务器上的新任务指定目录。 |
 | 条件与边界 | `codex agents` 不能与调用级配置覆盖（`-c` 原始覆盖、提示词、`--model`、`--sandbox-mode`、审批策略等）组合，workload identity 激活时不可用；仪表盘快捷键经 `tui.keymap` 配置（`global.open_agents` 与 `agents` 组的 `search`/`new_task`/`rename`/`stop`/`toggle_grouping`）；官方 Slash 命令文档尚未列出 `/agents`。PR #39094（`4617d4d21d27`）、#39112（`319b2f72b1d4`）、#39114（`fd5018e0445b`）、#39142（`f47f77ada669`）于 2026-08-17/18 合入 main，随 rust-v0.149.0 发布。 |
 | 证据状态 | 官方确认 |
-| 来源 | [Codex rust-v0.149.0 release notes (agents dashboard)](https://github.com/openai/codex/releases/tag/rust-v0.149.0)、[Codex agents overview dashboard commit](https://github.com/openai/codex/commit/4617d4d21d278592002249773faaaf47d4c52e63)、[Codex `codex agents` dashboard command commit](https://github.com/openai/codex/commit/fd5018e0445ba7d879c5dbda66ecdab4b6da1886)、[Codex agents dashboard configurable shortcuts commit](https://github.com/openai/codex/commit/f47f77ada6699460bf13b0b7278e710692e0ea34)、[Codex agents overview dashboard source](https://github.com/openai/codex/blob/758ef40f50c1a458425c7cfbf1eb12cbc07af0b0/codex-rs/tui/src/app/agents_overview.rs) |
+| 来源 | [Codex rust-v0.149.0 release notes (agents dashboard and codex queue)](https://github.com/openai/codex/releases/tag/rust-v0.149.0)、[Codex agents overview dashboard commit](https://github.com/openai/codex/commit/4617d4d21d278592002249773faaaf47d4c52e63)、[Codex `codex agents` dashboard command commit](https://github.com/openai/codex/commit/fd5018e0445ba7d879c5dbda66ecdab4b6da1886)、[Codex agents dashboard configurable shortcuts commit](https://github.com/openai/codex/commit/f47f77ada6699460bf13b0b7278e710692e0ea34)、[Codex agents overview dashboard source](https://github.com/openai/codex/blob/758ef40f50c1a458425c7cfbf1eb12cbc07af0b0/codex-rs/tui/src/app/agents_overview.rs) |
 
 ### Qwen Code
 
@@ -124,7 +124,7 @@
 ## 官方来源
 
 - [Claude Code Manage sessions](https://code.claude.com/docs/en/sessions)
-- [Codex rust-v0.149.0 release notes (agents dashboard)](https://github.com/openai/codex/releases/tag/rust-v0.149.0)
+- [Codex rust-v0.149.0 release notes (agents dashboard and codex queue)](https://github.com/openai/codex/releases/tag/rust-v0.149.0)
 - [Codex agents overview dashboard commit](https://github.com/openai/codex/commit/4617d4d21d278592002249773faaaf47d4c52e63)
 - [Codex `codex agents` dashboard command commit](https://github.com/openai/codex/commit/fd5018e0445ba7d879c5dbda66ecdab4b6da1886)
 - [Codex agents dashboard configurable shortcuts commit](https://github.com/openai/codex/commit/f47f77ada6699460bf13b0b7278e710692e0ea34)
