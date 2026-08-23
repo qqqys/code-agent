@@ -14,7 +14,7 @@
 | --- | --- | --- |
 | Claude Code | `Glob` · `Grep` · `LSP` | 官方确认 |
 | Codex | 内置搜索 · Shell/`rg` | 官方确认 |
-| Qwen Code | `glob` · `grep_search` · `LSP` | 源码确认 |
+| Qwen Code | `glob` · `grep_search` · `LSP`；条件：`list_directory` 默认关闭，`tools.listDirectory.enabled` 启用（v0.22.0 起） | 源码确认 |
 | Kimi Code | `Glob` · `Grep` | 源码确认 |
 | Qoder CLI | `Glob` · `Grep` | 官方确认 |
 
@@ -37,6 +37,7 @@
 1. Claude Code、Qwen Code 提供 Glob、Grep 与 LSP 三层搜索；Kimi Code、Qoder CLI 的公开内置表确认 Glob 与 Grep。
 2. Codex 可以通过内置搜索和 Shell 中的 `rg`/`find` 完成仓库检索，但当前公开文档没有同样的固定工具名清单。
 3. 搜索结果都需要分页或截断；“命中 0 条”不能自动证明代码不存在，还要考虑忽略规则、范围与工具上限。
+4. Qwen Code 自 v0.22.0 起 `list_directory` 默认不注册，官方理由是 `glob` 已覆盖大多数目录列表场景；启用需 `tools.listDirectory.enabled` 或在 `coreTools` 白名单中显式列出，目录列表改用 `glob` 完成。
 
 ## 逐产品记录
 
@@ -76,17 +77,17 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 矩阵结论 | `glob` · `grep_search` · `LSP` |
-| 入口与工具 | `glob` 找文件，`grep_search` 搜文本，`list_directory` 浏览目录；实验 LSP 提供符号导航。 |
-| 核心机制 | Grep 基于 ripgrep；工具注册表还提供 LSP、Read 等组合探索能力。 |
-| 执行行为 | 只读搜索通常自动允许；结果有数量和上下文限制，模型再按需 read_file。 |
+| 矩阵结论 | `glob` · `grep_search` · `LSP`；条件：`list_directory` 默认关闭，`tools.listDirectory.enabled` 启用（v0.22.0 起） |
+| 入口与工具 | `glob` 找文件，`grep_search` 搜文本，实验 LSP 提供符号导航；`list_directory` 自 v0.22.0 起默认不注册，启用后可浏览目录。 |
+| 核心机制 | Grep 基于 ripgrep；工具注册表还提供 LSP、Read 等组合探索能力。`list_directory`（显示名 `ListFiles`）的注册由 `isLsToolEnabled` 门控，只在启用时注册工厂。 |
+| 执行行为 | 只读搜索通常自动允许；结果有数量和上下文限制，模型再按需 read_file。`list_directory` 关闭时不进入模型可见的工具清单；模型仍调用该名称时返回“内置工具默认关闭、用 `tools.listDirectory.enabled` 启用、改用 `glob`”的错误文本，别名调用解析到同一说明。 |
 | 运行范围 | 搜索当前 workspace 和已加入目录；Worktree 激活后搜索隔离目录。 |
 | 后台与并发 | 单次工具同步返回；Explore/自定义 Agent 可并行搜索不同区域。 |
-| Git 与平台联动 | LSP 通过实验开关注册；Tool Search 可延迟发现扩展工具。 |
+| Git 与平台联动 | LSP 通过实验开关注册；Tool Search 可延迟发现扩展工具。内置 Agent 与计划模式提示在 `list_directory` 默认关闭后改用 `glob`/`read_file` 探索。 |
 | 状态与产物 | 结果进入上下文，不写文件。 |
-| 条件与边界 | LSP 只有启用 `--experimental-lsp` 时注册；Git ignore 与工具参数会影响命中。 |
+| 条件与边界 | LSP 只有启用 `--experimental-lsp` 时注册；Git ignore 与工具参数会影响命中。`list_directory` 自 v0.22.0（PR #9424，2026-08-21 合并）起默认关闭：设置 `tools.listDirectory.enabled` 为 `true`（需重启）启用，或在 `coreTools` 白名单（`--core-tools` / `tools.core`）显式列出 `list_directory` 也会自动启用，白名单按权限规则解析，别名 `ListFiles` 与 `list_directory(/src)` 等带路径限定形式同样匹配；已存在且不含该条目的 `coreTools` 白名单在注册表层面继续禁用它。`tools.core` 在设置文档中标记弃用并在首次加载时迁移为 `permissions` 规则。 |
 | 证据状态 | 源码确认 |
-| 来源 | [Qwen Code current built-in tools](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/core/src/tools/tool-names.ts)、[Qwen Code current commands](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/commands.md) |
+| 来源 | [Qwen Code current built-in tools](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/core/src/tools/tool-names.ts)、[Qwen Code current commands](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/commands.md)、[Qwen Code v0.22.0 release notes](https://github.com/QwenLM/qwen-code/releases/tag/v0.22.0)、[Qwen Code list_directory opt-in commit](https://github.com/QwenLM/qwen-code/commit/e09399e0fbcf48d04a9f96a23db690b969ad8d35)、[Qwen Code v0.22.0 settings (tools.listDirectory.enabled)](https://github.com/QwenLM/qwen-code/blob/1c3a385d9bc83e0b2a1ce5a24454ce1d090595fb/docs/users/configuration/settings.md)、[Qwen Code v0.22.0 file system tools document](https://github.com/QwenLM/qwen-code/blob/1c3a385d9bc83e0b2a1ce5a24454ce1d090595fb/docs/developers/tools/file-system.md)、[Qwen Code v0.22.0 tool registration source](https://github.com/QwenLM/qwen-code/blob/1c3a385d9bc83e0b2a1ce5a24454ce1d090595fb/packages/core/src/config/config.ts) |
 
 ### Kimi Code
 
@@ -127,6 +128,11 @@
 - [Codex Agent approvals and security](https://learn.chatgpt.com/docs/agent-approvals-security)
 - [Qwen Code current built-in tools](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/core/src/tools/tool-names.ts)
 - [Qwen Code current commands](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/commands.md)
+- [Qwen Code v0.22.0 release notes](https://github.com/QwenLM/qwen-code/releases/tag/v0.22.0)
+- [Qwen Code list_directory opt-in commit](https://github.com/QwenLM/qwen-code/commit/e09399e0fbcf48d04a9f96a23db690b969ad8d35)
+- [Qwen Code v0.22.0 settings (tools.listDirectory.enabled)](https://github.com/QwenLM/qwen-code/blob/1c3a385d9bc83e0b2a1ce5a24454ce1d090595fb/docs/users/configuration/settings.md)
+- [Qwen Code v0.22.0 file system tools document](https://github.com/QwenLM/qwen-code/blob/1c3a385d9bc83e0b2a1ce5a24454ce1d090595fb/docs/developers/tools/file-system.md)
+- [Qwen Code v0.22.0 tool registration source](https://github.com/QwenLM/qwen-code/blob/1c3a385d9bc83e0b2a1ce5a24454ce1d090595fb/packages/core/src/config/config.ts)
 - [Kimi Code current built-in tools](https://github.com/MoonshotAI/kimi-code/blob/%40moonshot-ai/kimi-code%400.38.0/docs/zh/reference/tools.md)
 - [Kimi Code current agents](https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/customization/agents.md)
 - [Qoder CLI built-in tools](https://docs.qoder.com/en/cli/sdk/tools)

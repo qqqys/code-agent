@@ -79,7 +79,7 @@
 | 字段 | 记录 |
 | --- | --- |
 | 矩阵结论 | `read_file` · `edit` · `write_file` |
-| 入口与工具 | 模型调用 `read_file`、`edit`、`write_file` 和 `notebook_edit`；目录浏览使用 `list_directory`。 |
+| 入口与工具 | 模型调用 `read_file`、`edit`、`write_file` 和 `notebook_edit`。目录浏览工具 `list_directory` 自 v0.22.0 起默认关闭，启用后可用（`tools.listDirectory.enabled`），目录列表通常由 `glob` 完成。 |
 | 核心机制 | `read_file` 分页读取；`edit` 做受控替换；`write_file` 写入完整内容；`notebook_edit` 修改 Notebook 单元。 |
 | 执行行为 | 读取与编辑分别经过路径权限、工作区信任和 approval mode。`edit` 以 `checkPriorRead` 强制读后再改：未经合法读取的已有文件拒绝编辑，按 mtime/文件大小检测过期，并在读取后、写入前各复核一次以收紧 TOCTOU 窗口；工具描述也要求先查看文件当前内容再尝试替换。`edit` 匹配前把 CRLF 归一为 LF，写回已有文件时按检测到的原换行风格恢复。 |
 | 运行范围 | 默认工作区是启动目录；`--include-directories`、Worktree 或 Daemon workspace 可改变有效路径范围。 |
@@ -88,7 +88,7 @@
 | 状态与产物 | 修改写入当前工作区、当前 Worktree 或显式 Agent 工作目录；不会自动暂存或提交。 |
 | 条件与边界 | Plan mode 禁止普通写入；auto-edit、auto、yolo 对审批的处理不同，沙箱仍是独立边界。 |
 | 证据状态 | 源码确认 |
-| 来源 | [Qwen Code current built-in tools](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/core/src/tools/tool-names.ts)、[Qwen Code Settings](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/configuration/settings.md)、[Qwen Code current worktree](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/worktree.md)、[Qwen Code current edit tool source](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/core/src/tools/edit.ts) |
+| 来源 | [Qwen Code current built-in tools](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/core/src/tools/tool-names.ts)、[Qwen Code Settings](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/configuration/settings.md)、[Qwen Code current worktree](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/worktree.md)、[Qwen Code current edit tool source](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/core/src/tools/edit.ts)、[Qwen Code v0.22.0 settings (tools.listDirectory.enabled)](https://github.com/QwenLM/qwen-code/blob/1c3a385d9bc83e0b2a1ce5a24454ce1d090595fb/docs/users/configuration/settings.md) |
 
 ### Kimi Code
 
@@ -136,6 +136,7 @@
 - [Qwen Code Settings](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/configuration/settings.md)
 - [Qwen Code current worktree](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/worktree.md)
 - [Qwen Code current edit tool source](https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/core/src/tools/edit.ts)
+- [Qwen Code v0.22.0 settings (tools.listDirectory.enabled)](https://github.com/QwenLM/qwen-code/blob/1c3a385d9bc83e0b2a1ce5a24454ce1d090595fb/docs/users/configuration/settings.md)
 - [Kimi Code current built-in tools](https://github.com/MoonshotAI/kimi-code/blob/%40moonshot-ai/kimi-code%400.38.0/docs/zh/reference/tools.md)
 - [Kimi Code current configuration](https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/configuration/config-files.md)
 - [Kimi Code Edit/Write staleness guard commit](https://github.com/MoonshotAI/kimi-code/commit/67fbcdf1ba7dceeebb58875b3b7c81b4b30cf0de)
