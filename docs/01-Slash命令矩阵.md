@@ -18,7 +18,7 @@
 | 推理强度 | `/effort` | `/model`、`/fast` | `/effort` | — | `/effort`、`/fast` |
 | 权限设置 | `/permissions`、`/allowed-tools` | `/permissions` | `/approval-mode`、`/permissions` | `/permission`、`/yolo`、`/auto` | `/config` |
 | 计划模式 | `/plan` | `/plan` | `/plan` | `/plan`、`/plan clear` | `/plan` |
-| 目标 | `/goal` | `/goal` | `/goal` | `/goal`（条件：0.37.0 起单条目标不超过 4000 字符） | — |
+| 目标 | `/goal` | `/goal` | `/goal` | `/goal`（条件：0.37.0 起单条目标不超过 4000 字符） | `/goal [description] [--turns <N>]`、`/goal status|pause|resume|take|clear` |
 | Subagent 管理 | `/agents`、`/subtask` | `/agent`、`/subagents` | `/agents manage`、`/agents create` | `/swarm`；Agent 通过配置与工具调用 | `/agents`、`/agents reload` |
 | 任务列表 | `/tasks` | `/ps` | `/tasks`；Background Tasks `p` 或 `/workflows p <runId>` 协作暂停/恢复后台 Workflow（条件：Workflows 开关、仅后台运行） | `/tasks`、`/task` | `/tasks` |
 | 新会话 | `/clear`、`/reset`、`/new` | `/new`、`/clear` | `/clear` | `/new`、`/clear` | `/clear` |
@@ -160,9 +160,9 @@ Web Shell 还固定提供 4 个不属于 CLI/TUI 硬编码加载器的本地命�
 
 ### Qoder CLI
 
-`/agents`、`/batch`、`/clear`、`/commands`、`/compact`、`/config`、`/context-window`、`/effort`、`/export`、`/fast`、`/feedback`、`/help`、`/init`、`/login`、`/logout`、`/mcp`、`/memory`、`/model`、`/plan`、`/quest`、`/quit`、`/release-notes`、`/resume`、`/review`、`/setup-github`、`/skills`、`/status`、`/tasks`、`/upgrade`、`/usage`、`/vim`、`/workflows`。
+`/agents`、`/batch`、`/clear`、`/commands`、`/compact`、`/config`、`/context-window`、`/effort`、`/export`、`/fast`、`/feedback`、`/goal`、`/help`、`/init`、`/login`、`/logout`、`/mcp`、`/memory`、`/model`、`/plan`、`/quest`、`/quit`、`/release-notes`、`/resume`、`/review`、`/setup-github`、`/skills`、`/status`、`/tasks`、`/upgrade`、`/usage`、`/vim`、`/workflows`。
 
-官方文档站于 2026-08-13 核对时已改版，原 `en/cli/command` 页面迁移为 `cli/slash-reference`（旧地址返回 404）。`/batch` 为改版后命令参考“Built-in Skills”一节列出的内置 Skill：在隔离 git worktree 中派出并行工作 Agent 对多个文件应用批量修改，要求当前目录为 Git 仓库；官方发行说明（最近至 1.1.20，2026-08-12）未写明该命令的引入版本。改版后的命令参考还列出更多未在本目录中的命令，属于其他能力字段，另行核对。
+官方文档站于 2026-08-13 核对时已改版，原 `en/cli/command` 页面迁移为 `cli/slash-reference`（旧地址返回 404）。`/batch` 为改版后命令参考“Built-in Skills”一节列出的内置 Skill：在隔离 git worktree 中派出并行工作 Agent 对多个文件应用批量修改，要求当前目录为 Git 仓库；官方发行说明（最近至 1.1.20，2026-08-12）未写明该命令的引入版本。`/goal`（目标管理）于 2026-08-23 核对时补入本目录：命令参考“Work Modes”一节列出 `/goal`，并有独立 Goal Command Reference 页，详见对照表目标行。改版后的命令参考还列出更多未在本目录中的命令，属于其他能力字段，另行核对。
 
 ## 来源
 
@@ -214,3 +214,4 @@ Web Shell 还固定提供 4 个不属于 CLI/TUI 硬编码加载器的本地命�
 - [Kimi Code 0.36.0 发布说明](https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%400.36.0)
 - [Kimi Code 0.36.1 发布说明](https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%400.36.1)
 - [Qoder CLI Slash 命令参考](https://docs.qoder.com/cli/slash-reference)
+- [Qoder CLI Goal Command Reference](https://docs.qoder.com/cli/goal-reference)

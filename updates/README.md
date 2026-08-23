@@ -4,6 +4,7 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-08-23 | [目标管理：Claude Code v2.1.239 `/goal` 恢复与检查放宽，Qoder CLI `/goal` 确认](./2026-08-23-目标管理-Claude-goal恢复与检查放宽与Qoder-goal确认.md) |
 | 2026-08-23 | [跨会话消息：Codex `codex queue` 会话消息投递（rust-v0.149.0）](./2026-08-23-跨会话消息-Codex-queue会话消息投递.md) |
 | 2026-08-22 | [代码 Review 与 Pull Request：Qwen Code Web Shell 会话 PR 绑定（v0.22.0）](./2026-08-22-执行与Git-Qwen-Web-Shell会话PR绑定.md) |
 | 2026-08-22 | [代码 Review：Qwen Code `/review --resume` 继续中断的 PR 审查（v0.21.15）](./2026-08-22-执行与Git-Qwen-review-resume继续中断审查.md) |
