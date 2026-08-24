@@ -15,7 +15,7 @@
 | Claude Code | `maxTurns`；全局并发与嵌套上限；超时字段未确认 | 未确认 |
 | Codex | `agents.max_concurrent_threads_per_session`；轮数和超时字段未确认 | 未确认 |
 | Qwen Code | `maxTurns`；超时字段未确认 | 未确认 |
-| Kimi Code | 全局 `[subagent] timeout_ms`（默认 2 h）；Agent 定义无独立字段 | 官方确认 |
+| Kimi Code | 全局 `[subagent] timeout_ms`（默认 2 h）；AgentSwarm 改用独立 `[swarm] timeout_ms`（main 分支，尚未发布）；Agent 定义无独立字段 | 官方确认 |
 | Qoder CLI | `maxTurns` · `timeoutMins` | 官方确认 |
 
 ## 比较边界
@@ -37,7 +37,7 @@
 ## 跨产品事实
 
 1. Qoder CLI 同时提供单 Agent 最大轮数和超时；Claude Code 与 Qwen Code 提供最大轮数。
-2. Kimi Code 通过全局 `[subagent] timeout_ms` 限制单个 Agent 运行时间（默认 2 小时），但 Agent 定义无独立轮数或超时字段。
+2. Kimi Code 通过全局 `[subagent] timeout_ms` 限制单个 Agent 或 AgentSwarm 运行时间（默认 2 小时），main 分支起 AgentSwarm 改用独立 `[swarm] timeout_ms`（尚未发布），但 Agent 定义无独立轮数或超时字段。
 3. Claude Code 另有全局 `CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS`（默认 20）、`CLAUDE_CODE_MAX_SUBAGENTS_PER_SESSION`（默认 200）和 `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH`（默认 3）。
 4. Codex 通过 `agents.max_concurrent_threads_per_session` 控制每会话并发线程数。
 
@@ -95,17 +95,17 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 矩阵结论 | 全局 `[subagent] timeout_ms`（默认 2 h）；Agent 定义无独立字段 |
+| 矩阵结论 | 全局 `[subagent] timeout_ms`（默认 2 h）；AgentSwarm 改用独立 `[swarm] timeout_ms`（main 分支，尚未发布）；Agent 定义无独立字段 |
 | 入口与配置 | 主 Agent 依据描述自动派发，也可在提示词中点名；`--agent-file` 可在启动时显式加载定义。 |
 | 定义格式 | Markdown 正文 + YAML frontmatter；正文作为 Agent 系统提示词模板。 |
-| 具体行为 | 全局 `[subagent] timeout_ms` 限制单个 Agent 或 AgentSwarm 运行时间，默认 7200000 ms（2 小时），print 模式未设置时默认 0（无限制）；环境变量 `KIMI_SUBAGENT_TIMEOUT_MS` 可覆盖；Agent 定义 frontmatter 无独立轮数或超时字段。 |
+| 具体行为 | 全局 `[subagent] timeout_ms` 限制单个 Agent 或 AgentSwarm 运行时间，默认 7200000 ms（2 小时），print 模式未设置时默认 0（无限制）；环境变量 `KIMI_SUBAGENT_TIMEOUT_MS` 可覆盖；该值同时是后台任务管理器的单任务超时，覆盖前台与后台 Subagent。PR #3198（提交 `496bb6ce4e55`，合入 main 尚未发布）为 AgentSwarm 新增独立 `[swarm] timeout_ms`：默认同为 7200000 ms，`0` 表示无超时（运行到完成或手动停止），print 模式未显式设置时同样默认 0，环境变量 `KIMI_CODE_SWARM_TIMEOUT_MS` 优先于配置文件；超时的 swarm 子 Agent 被中止并在聚合报告中标记失败（`Subagent timed out.`），其他子 Agent 不受影响；取值超过 2147483647（约 24.8 天）时运行时收敛为约 24.8 天。该提交是有意的行为变更且无回退：原为覆盖 swarm 设置的 `[subagent] timeout_ms` 不再作用于 AgentSwarm，需迁移到 `[swarm] timeout_ms`。Agent 定义 frontmatter 无独立轮数或超时字段。 |
 | 作用域 | 显式文件、项目、额外目录、用户、Plugin、内置六级来源；更具体的作用域优先。 |
 | 上下文与继承 | 子 Agent 只接收任务描述，在独立上下文中工作，最后把完整结果返回主 Agent。 |
 | 工作区隔离 | 当前 Agent 文档未列出每 Agent Worktree 隔离字段。 |
-| 运行限制 | 全局 `[subagent] timeout_ms` 限制单个 Agent 或 AgentSwarm 运行时间，默认 7200000 ms（2 小时）；Agent 定义 frontmatter 无独立轮数或超时字段。 |
+| 运行限制 | 全局 `[subagent] timeout_ms` 限制单个 Agent 或 AgentSwarm 运行时间，默认 7200000 ms（2 小时）；main 分支起 AgentSwarm 改用独立 `[swarm] timeout_ms`（默认同为 7200000 ms、`0` 无超时，`KIMI_CODE_SWARM_TIMEOUT_MS` 覆盖），尚未发布；Agent 定义 frontmatter 无独立轮数或超时字段。 |
 | 条件与边界 | Subagent 模型池为实验性功能，需 `KIMI_CODE_EXPERIMENTAL_SECONDARY_MODEL=1` 或 master flag `KIMI_CODE_EXPERIMENTAL_FLAG=1` 开启；开启后所有启动模式（包括 TUI）生效。默认 v2 引擎读取 `[secondary_model]` 模型池；`model_preference` 字段仅由旧版 `agent-core` 引擎（`KIMI_CODE_LEGACY_FLAG=1`）读取。 |
 | 证据状态 | 官方确认 |
-| 来源 | [Kimi Code Agents](https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/customization/agents.md)、[Kimi Code subagent and secondary model configuration](https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/configuration/config-files.md) |
+| 来源 | [Kimi Code Agents](https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/customization/agents.md)、[Kimi Code subagent and secondary model configuration](https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/configuration/config-files.md)、[Kimi Code swarm timeout commit](https://github.com/MoonshotAI/kimi-code/commit/496bb6ce4e555c11304074c31312c01edf4d773a)、[Kimi Code swarm timeout configuration](https://github.com/MoonshotAI/kimi-code/blob/496bb6ce4e555c11304074c31312c01edf4d773a/docs/zh/configuration/config-files.md)、[Kimi Code swarm timeout changeset](https://github.com/MoonshotAI/kimi-code/blob/496bb6ce4e555c11304074c31312c01edf4d773a/.changeset/swarm-timeout-config.md) |
 
 ### Qoder CLI
 
@@ -130,6 +130,9 @@
 - [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/412eae24b48ff16f54166c2b17eb4d4a9cdcdd1e/docs/users/features/sub-agents.md)
 - [Kimi Code Agents](https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/customization/agents.md)
 - [Kimi Code subagent and secondary model configuration](https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/configuration/config-files.md)
+- [Kimi Code swarm timeout commit](https://github.com/MoonshotAI/kimi-code/commit/496bb6ce4e555c11304074c31312c01edf4d773a)
+- [Kimi Code swarm timeout configuration](https://github.com/MoonshotAI/kimi-code/blob/496bb6ce4e555c11304074c31312c01edf4d773a/docs/zh/configuration/config-files.md)
+- [Kimi Code swarm timeout changeset](https://github.com/MoonshotAI/kimi-code/blob/496bb6ce4e555c11304074c31312c01edf4d773a/.changeset/swarm-timeout-config.md)
 - [Qoder CLI Subagent](https://docs.qoder.com/en/cli/subagent)
 
 ## 关联能力

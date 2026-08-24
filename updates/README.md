@@ -4,6 +4,7 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-08-24 | [Subagent 轮数与超时限制：Kimi Code AgentSwarm 独立 `[swarm] timeout_ms`（PR #3198，main 分支）](./2026-08-24-Subagent轮数与超时限制-Kimi-AgentSwarm独立超时.md) |
 | 2026-08-24 | [跨会话消息：Codex TUI 输入框 `@` 任务提及（PR #40315，main 分支）](./2026-08-24-跨会话消息-Codex-TUI输入框任务提及.md) |
 | 2026-08-24 | [跨会话消息：Codex `codex_tui` TUI 任务工具（PR #40308，main 分支）](./2026-08-24-跨会话消息-Codex-TUI任务工具.md) |
 | 2026-08-23 | [代码搜索：Qwen Code v0.22.0 `list_directory` 默认关闭（opt-in）](./2026-08-23-执行与Git-Qwen-list_directory默认关闭.md) |
