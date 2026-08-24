@@ -4,6 +4,7 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-08-24 | [跨会话消息：Codex `codex_tui` TUI 任务工具（PR #40308，main 分支）](./2026-08-24-跨会话消息-Codex-TUI任务工具.md) |
 | 2026-08-23 | [代码搜索：Qwen Code v0.22.0 `list_directory` 默认关闭（opt-in）](./2026-08-23-执行与Git-Qwen-list_directory默认关闭.md) |
 | 2026-08-23 | [目标管理：Claude Code v2.1.239 `/goal` 恢复与检查放宽，Qoder CLI `/goal` 确认](./2026-08-23-目标管理-Claude-goal恢复与检查放宽与Qoder-goal确认.md) |
 | 2026-08-23 | [跨会话消息：Codex `codex queue` 会话消息投递（rust-v0.149.0）](./2026-08-23-跨会话消息-Codex-queue会话消息投递.md) |
