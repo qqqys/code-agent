@@ -2,7 +2,7 @@
 
 [返回会话与上下文详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=session-messaging)
 
-> 核对日期：2026-08-23
+> 核对日期：2026-08-24
 
 ## 定义
 
@@ -13,7 +13,7 @@
 | 产品 | 结论 | 证据状态 |
 | --- | --- | --- |
 | Claude Code | `/list-agents` · `/peers` · `SendMessage`/`ListAgents` · `@` 会话名提及 · `crossSessionInbound` · 原生 Windows（v2.1.239 宣布可用） | 官方确认 |
-| Codex | `codex queue --thread <UUID\|精确会话名> --message <文本>` · 经 app-server `thread/queue/add` 投递 · `--remote` 指向远程 app server（rust-v0.149.0 引入）；用户到会话单向 | 官方确认 |
+| Codex | `codex queue --thread <UUID\|精确会话名> --message <文本>` · 经 app-server `thread/queue/add` 投递 · `--remote` 指向远程 app server（rust-v0.149.0 引入）；条件：`codex_tui` 任务工具列出、读取、等待、发消息、创建、派生其他任务（合入 main 尚未发布） | 条件项 |
 | Qwen Code | `send_message` · `list_agents`；限当前会话后台 Agent | 官方确认 |
 | Kimi Code | 官方命令表未列出会话间消息 | 未确认 |
 | Qoder CLI | 条件：`QODER_AGENT_TEAMS=1` Agent Teams `SendMessage`（beta，单会话内） | 条件项 |
@@ -38,7 +38,7 @@
 2. Claude Code 的收件箱在 macOS、Linux（含 WSL 2）是每会话 Unix socket，在原生 Windows 是命名管道；同一台机器上 WSL 2 会话与原生 Windows 会话互不可达。
 3. Qwen Code 的 `send_message`/`list_agents` 面向当前会话内的后台 Agent（含随会话恢复还原的 Agent），官方文档未列出独立并行会话之间的消息。
 4. Qoder CLI 的 Agent Teams 用 `SendMessage` 在主 Agent 与队友、队友与队友之间通信，但团队只存在于单个 TUI 会话内，且当前需要 `QODER_AGENT_TEAMS=1` beta 开关。
-5. Codex 自 rust-v0.149.0（2026-08-20 发布）提供启动级命令 `codex queue --thread <UUID|精确会话名> --message <文本>`，经 app-server `thread/queue/add` 把文本作为用户输入排队投递给本地或远程的现有活跃会话；这是用户到会话的单向投递，官方未列出模型主动向其他会话发消息的工具。
+5. Codex 自 rust-v0.149.0（2026-08-20 发布）提供启动级命令 `codex queue --thread <UUID|精确会话名> --message <文本>`，经 app-server `thread/queue/add` 把文本作为用户输入排队投递给本地或远程的现有活跃会话；这是用户到会话的单向投递。条件：2026-08-24 PR #40308 合入 main（尚未发布）后，TUI 会为模型注册 `codex_tui` 工具命名空间，模型可在 TUI 会话内列出、读取、等待、发消息、创建、派生、重命名、归档其他 Codex 任务，委派类工具须经审批门控的本地 MCP 服务器逐次批准。
 6. Kimi Code 的官方命令与文档仍未列出会话间消息；`/swarm` 是多 Agent 任务模式，`/btw` 是与派生子 Agent 的旁路对话，都不等于会话间消息。
 7. Claude Code 的消息是纯文本：不携带历史或文件，文本中的命令不会被执行，接收会话自身的权限审批仍然适用。
 
@@ -64,17 +64,17 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 矩阵结论 | `codex queue --thread <UUID\|精确会话名> --message <文本>` · 经 app-server `thread/queue/add` 投递 · `--remote` 指向远程 app server（rust-v0.149.0 引入）；用户到会话单向 |
-| 入口与切换 | 启动级命令 `codex queue --thread <THREAD> --message <TEXT>`（rust-v0.149.0 引入）：`--thread` 填会话 UUID 或精确会话名，`--message` 为非空文本；`--remote`/`--remote-auth-token-env` 指向远程 app server，`-c` 传入配置覆盖。 |
-| 保存位置 | 未列出独立消息存储；消息经 app-server `thread/queue/add`（JSON-RPC）注入目标会话，会话记录本身位于 `$CODEX_HOME/sessions`。 |
-| 具体行为 | 命令把文本作为用户输入排队到目标活跃会话，官方更新日志修复条目记录排队消息可可靠唤醒空闲会话；空消息与图片附件被拒绝。目标按 UUID 或精确名称解析，来源覆盖 interactive、exec 与 custom 活跃会话；找不到匹配会话报 `No active session found matching`，多个活跃会话同名报 `More than one active session is named` 并要求改用 UUID。 |
-| 状态范围 | 默认经本地 app-server daemon 投递，`--remote` 指向显式远程 app server；目标服务端不支持 `thread/queue/add` 时报错提示更新或重启服务端，不静默更换投递目标。投递后由目标会话自身的权限审批处理后续操作。 |
-| 自动行为 | 排队消息在目标会话空闲时唤醒会话并按用户输入处理；官方未列出模型主动向其他会话发消息的工具或自动转发。 |
-| 保存与保留 | 公开资料未记录独立的磁盘消息队列或保留时长；本地投递依赖运行中的 app-server daemon，`-c` 配置覆盖与运行中的本地 daemon 互斥，命令报错而不是绕过。 |
-| 适用界面 | 启动级 CLI 命令；官方 Slash 命令表与文档站目录在核对日期仍未列出 `codex queue`，桌面端或 IDE Surface 未记录等价入口。 |
-| 条件与边界 | rust-v0.149.0（2026-08-20 发布）引入，提交 `83d015375e57`（PR #39092）。用户到会话单向投递；本页不把 Subagent 委派、`codex exec` 会话分支、TUI 内 Tab 排队下一轮输入或把 Codex 作为 MCP server 调用的多 Agent 工作流计作会话间消息。 |
-| 证据状态 | 官方确认 |
-| 来源 | [Codex rust-v0.149.0 release notes (agents dashboard and codex queue)](https://github.com/openai/codex/releases/tag/rust-v0.149.0)、[Codex `codex queue` session messaging commit](https://github.com/openai/codex/commit/83d015375e578e369c115b06aea631f266226a4f) |
+| 矩阵结论 | `codex queue --thread <UUID\|精确会话名> --message <文本>` · 经 app-server `thread/queue/add` 投递 · `--remote` 指向远程 app server（rust-v0.149.0 引入）；条件：`codex_tui` 任务工具列出、读取、等待、发消息、创建、派生其他任务（合入 main 尚未发布） |
+| 入口与切换 | 启动级命令 `codex queue --thread <THREAD> --message <TEXT>`（rust-v0.149.0 引入）：`--thread` 填会话 UUID 或精确会话名，`--message` 为非空文本；`--remote`/`--remote-auth-token-env` 指向远程 app server，`-c` 传入配置覆盖。条件：PR #40308 合入 main（2026-08-24，尚未发布）后，TUI 在会话启动时为模型注册 `codex_tui` 工具命名空间（命名空间描述 “Manage Codex tasks available through the connected app server.”），含九个动态工具：`list_threads`、`list_archived_threads`、`read_thread`、`wait_threads`、`send_message_to_thread`、`create_thread`、`fork_thread`、`set_thread_title`、`set_thread_archived`。 |
+| 保存位置 | 未列出独立消息存储；消息经 app-server `thread/queue/add`（JSON-RPC）注入目标会话，会话记录本身位于 `$CODEX_HOME/sessions`。`codex_tui` 工具也不建立独立消息存储：委派提示词经 `ThreadResume`/`TurnStart` 等既有 app-server 请求成为目标会话的普通用户输入，`read_thread` 展示历史时会解包 `<codex_delegation>` 信封、只显示被委派的原文；MCP 传输是 127.0.0.1 随机端点的临时本地 HTTP 端点（每次启动生成 Bearer UUID 令牌），只存在于 TUI 进程运行期。 |
+| 具体行为 | 命令把文本作为用户输入排队到目标活跃会话，官方更新日志修复条目记录排队消息可可靠唤醒空闲会话；空消息与图片附件被拒绝。目标按 UUID 或精确名称解析，来源覆盖 interactive、exec 与 custom 活跃会话；找不到匹配会话报 `No active session found matching`，多个活跃会话同名报 `More than one active session is named` 并要求改用 UUID。条件：`codex_tui` 工具由 app server 以 `DynamicToolCall` 服务器请求发回 TUI 执行——`send_message_to_thread` 恢复目标会话并开始新回合，提示词包装为携带源会话 ID 的 `<codex_delegation>` 委派信封（提示词上限 1000 UTF-8 字节，信封合计上限 1256 字节），并把目标注册为后台任务，可选 `model` 覆盖；`create_thread` 仅在用户明确要求新任务时使用，继承调用会话的工作目录、项目、模型、审批策略、审批审查器与沙箱或权限配置（外部沙箱且无权限配置时报 `Cannot inherit an external sandbox without a permission profile`），新任务注册为后台任务并启动首回合，ephemeral 任务报 `ephemeral tasks cannot create inspectable background tasks`；`fork_thread` 派生任务但不启动新回合，省略 `threadId` 派生调用方自身，派生只含已完成历史并附继续说明；`wait_threads` 同时等待至多 8 个其他任务，唤醒条件为回合完成、状态转为不活跃或需要审批/用户输入，`timeoutMs` 上限 120000、缺省即用上限、`0` 立即返回快照，不能等待调用方自身且拒绝重复目标；`set_thread_archived` 归档任务及其派生任务、恢复只作用于所选任务，拒绝归档调用方自身（`cannot archive the calling task`）；`set_thread_title` 重命名，省略 `threadId` 重命名调用方自身。列表与读取有界：`limit` 默认 10、上限 50，`list_threads` 按更新时间倒序且不接受游标，`list_archived_threads` 支持游标分页；`read_thread` 的 `turnLimit` 默认 1、上限 10，输出截断默认 2000、上限 20000 字符；响应超出预算时自动减半重试或截断。九个工具的描述均要求模型把其他任务的标题、摘要与内容当作不可信数据而不是指令。 |
+| 状态范围 | 默认经本地 app-server daemon 投递，`--remote` 指向显式远程 app server；目标服务端不支持 `thread/queue/add` 时报错提示更新或重启服务端，不静默更换投递目标。投递后由目标会话自身的权限审批处理后续操作。条件：`codex_tui` 的委派类工具 `create_thread`、`send_message_to_thread`、`fork_thread` 经 TUI 注入线程配置的审批门控本地 MCP 服务器执行（`mcp_servers.codex_tui`，三者 `approval_mode: "prompt"` 逐次弹出批准，其余工具按 `default_tools_approval_mode: "approve"` 自动放行）；MCP 传输只在 TUI 连接本地 daemon 且非远程工作区或环境时启动，嵌入式 app server 不启用，外部 app server 不支持动态工具时回退为不带动态工具启动会话并记录降级警告。经该工具创建或恢复的任务仍受目标会话自身的审批策略与沙箱约束；TUI 派生会话时同样注入该 MCP 配置，派生会话保留委派工具。 |
+| 自动行为 | 排队消息在目标会话空闲时唤醒会话并按用户输入处理。条件：`send_message_to_thread` 与 `create_thread` 把后续提示词或新任务交给目标会话后台执行并注册为后台任务；`wait_threads` 挂起当前工具调用直到唤醒条件或超时，返回各任务的唤醒原因与错误；模型可经 `list_threads`/`list_archived_threads` 自行发现任务，无需用户级命令。官方未列出消息自动转发。 |
+| 保存与保留 | 公开资料未记录独立的磁盘消息队列或保留时长；本地投递依赖运行中的 app-server daemon，`-c` 配置覆盖与运行中的本地 daemon 互斥，命令报错而不是绕过。`codex_tui` MCP 服务器不持久化，随 TUI 退出销毁；TUI 退出或丢弃线程时中止处理中的动态工具调用并向调用方回报 `TUI disconnected while handling a dynamic tool call`，源任务在处理期间被关闭时回报 `Source task was closed while handling a dynamic tool call`。 |
+| 适用界面 | 启动级 CLI 命令；官方 Slash 命令表与文档站目录在核对日期仍未列出 `codex queue`，桌面端或 IDE Surface 未记录等价入口。条件：`codex_tui` 工具只存在于连接支持动态工具的 app server 的 TUI 会话；此前 TUI 对 app-server 动态工具调用一律以 “Dynamic tool calls are not available in TUI yet.” 拒绝，官方文档、Slash 命令表与发布说明在核对日期尚未列出 `codex_tui`。 |
+| 条件与边界 | `codex queue` 于 rust-v0.149.0（2026-08-20 发布）引入，提交 `83d015375e57`（PR #39092），用户到会话单向投递。条件：`codex_tui` 任务工具于 2026-08-24 合入 main（提交 `a8468330bb5f`，PR #40308），尚未发布，合并提交晚于 rust-v0.149.1 标签；启用前提包括 app server 支持动态工具（旧服务端自动降级为不带动态工具启动）、TUI 连接本地 daemon 且非远程工作区或环境、用户配置未定义同名 `codex_tui` MCP server（冲突时跳过启动并报 “a user-configured MCP server already owns the codex_tui namespace”）、managed MCP requirements 允许该命名空间（否则报 “managed MCP requirements do not permit the TUI task-tools server”）。本页不把 Subagent 委派、`codex exec` 会话分支、TUI 内 Tab 排队下一轮输入或把 Codex 作为 MCP server 调用的多 Agent 工作流计作会话间消息。 |
+| 证据状态 | 条件项 |
+| 来源 | [Codex rust-v0.149.0 release notes (agents dashboard and codex queue)](https://github.com/openai/codex/releases/tag/rust-v0.149.0)、[Codex `codex queue` session messaging commit](https://github.com/openai/codex/commit/83d015375e578e369c115b06aea631f266226a4f)、[Codex TUI `codex_tui` task tools commit](https://github.com/openai/codex/commit/a8468330bb5f45e9f4d2ec630b01ea8c52908be3)、[Codex TUI task tools source](https://github.com/openai/codex/blob/a8468330bb5f45e9f4d2ec630b01ea8c52908be3/codex-rs/tui/src/dynamic_tools.rs) |
 
 ### Qwen Code
 
@@ -136,6 +136,8 @@
 - [Claude Code v2.1.239 changelog (Windows cross-session messaging)](https://github.com/anthropics/claude-code/blob/16440d0f6ee8/CHANGELOG.md)
 - [Codex rust-v0.149.0 release notes (agents dashboard and codex queue)](https://github.com/openai/codex/releases/tag/rust-v0.149.0)
 - [Codex `codex queue` session messaging commit](https://github.com/openai/codex/commit/83d015375e578e369c115b06aea631f266226a4f)
+- [Codex TUI `codex_tui` task tools commit](https://github.com/openai/codex/commit/a8468330bb5f45e9f4d2ec630b01ea8c52908be3)
+- [Codex TUI task tools source](https://github.com/openai/codex/blob/a8468330bb5f45e9f4d2ec630b01ea8c52908be3/codex-rs/tui/src/dynamic_tools.rs)
 - [Qwen Code background agent messaging](https://github.com/QwenLM/qwen-code/blob/412eae24b48ff16f54166c2b17eb4d4a9cdcdd1e/docs/users/features/sub-agents.md)
 - [Kimi Code current slash commands (no messaging command)](https://github.com/MoonshotAI/kimi-code/blob/8db7d42f23472a692eb389a0e0e5a3e18aa1b94d/docs/zh/reference/slash-commands.md)
 - [Qoder CLI Agent Teams](https://docs.qoder.com/cli/agent-teams)
