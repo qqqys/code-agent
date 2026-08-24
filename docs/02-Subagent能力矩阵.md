@@ -42,7 +42,7 @@
 | Agent Hooks | `hooks` | 未确认独立字段；Hooks 为全局 `/hooks` | `hooks`；v1 在 Agent 运行期按会话注册 | 无独立字段；Hooks 在全局 `config.toml` | `hooks` |
 | Agent 持久记忆 | `memory` | 主产品 Memories；Agent 独立记忆字段未确认 | 未确认独立字段 | 未确认独立字段 | `memory` |
 | 最大轮数 | `maxTurns` | 未确认独立字段 | `maxTurns` | Agent 定义无独立字段 | `maxTurns` |
-| 超时 | 未确认独立字段 | 未确认独立字段 | 未确认独立字段 | 全局 `[subagent] timeout_ms`（默认 2 h） | `timeoutMins` |
+| 超时 | 未确认独立字段 | 未确认独立字段 | 未确认独立字段 | 全局 `[subagent] timeout_ms`（默认 2 h）；AgentSwarm 改用独立 `[swarm] timeout_ms`（main 分支，尚未发布） | `timeoutMins` |
 | 全局并发与嵌套 | 并发 20 · 会话 200 · 嵌套 3 层 | `max_concurrent_threads_per_session` | 未确认独立全局并发字段 | 未确认独立全局并发字段 | 未确认独立全局并发字段 |
 
 ## 权限、嵌套与工作区
@@ -68,6 +68,9 @@
 - [Qwen Code Worktree](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/worktree.md)
 - [Kimi Code Agents](https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/customization/agents.md)
 - [Kimi Code subagent and secondary model configuration](https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/configuration/config-files.md)
+- [Kimi Code swarm 超时提交](https://github.com/MoonshotAI/kimi-code/commit/496bb6ce4e555c11304074c31312c01edf4d773a)
+- [Kimi Code swarm 超时配置文档](https://github.com/MoonshotAI/kimi-code/blob/496bb6ce4e555c11304074c31312c01edf4d773a/docs/zh/configuration/config-files.md)
+- [Kimi Code swarm 超时 changeset](https://github.com/MoonshotAI/kimi-code/blob/496bb6ce4e555c11304074c31312c01edf4d773a/.changeset/swarm-timeout-config.md)
 - [Kimi Code Subagent fork 参数提交](https://github.com/MoonshotAI/kimi-code/commit/f6736d7c0de609d44ed1cb761cfe9f195c4d94fb)
 - [Kimi Code Subagent fork 环境变量文档](https://github.com/MoonshotAI/kimi-code/blob/f6736d7c0de609d44ed1cb761cfe9f195c4d94fb/docs/zh/configuration/env-vars.md)
 - [Kimi Code Subagent 模型池提交](https://github.com/MoonshotAI/kimi-code/commit/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860)

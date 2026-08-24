@@ -982,6 +982,18 @@ window.matrixData = {
       label: 'Kimi Code subagent and secondary model configuration',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/configuration/config-files.md',
     },
+    'kimi-swarm-timeout-commit': {
+      label: 'Kimi Code swarm timeout commit',
+      url: 'https://github.com/MoonshotAI/kimi-code/commit/496bb6ce4e555c11304074c31312c01edf4d773a',
+    },
+    'kimi-swarm-timeout-config': {
+      label: 'Kimi Code swarm timeout configuration',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/496bb6ce4e555c11304074c31312c01edf4d773a/docs/zh/configuration/config-files.md',
+    },
+    'kimi-swarm-timeout-changeset': {
+      label: 'Kimi Code swarm timeout changeset',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/496bb6ce4e555c11304074c31312c01edf4d773a/.changeset/swarm-timeout-config.md',
+    },
     'kimi-subagent-model-pool-commit': {
       label: 'Kimi Code subagent model pool commit',
       url: 'https://github.com/MoonshotAI/kimi-code/commit/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860',
@@ -1735,7 +1747,7 @@ window.matrixData = {
       category: 'subagents',
       capability: '轮数与超时限制',
       description: 'Agent 定义能否直接指定最大轮数和超时。',
-      values: { claude: '`maxTurns`；全局并发与嵌套上限；超时字段未确认', codex: '`agents.max_concurrent_threads_per_session`；轮数和超时字段未确认', qwen: '`maxTurns`；超时字段未确认', kimi: '全局 `[subagent] timeout_ms`（默认 2 h）；Agent 定义无独立字段', qoder: '`maxTurns` · `timeoutMins`' },
+      values: { claude: '`maxTurns`；全局并发与嵌套上限；超时字段未确认', codex: '`agents.max_concurrent_threads_per_session`；轮数和超时字段未确认', qwen: '`maxTurns`；超时字段未确认', kimi: '全局 `[subagent] timeout_ms`（默认 2 h）；AgentSwarm 改用独立 `[swarm] timeout_ms`（main 分支，尚未发布）；Agent 定义无独立字段', qoder: '`maxTurns` · `timeoutMins`' },
     },
     {
       id: 'security-approval',

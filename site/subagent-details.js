@@ -68,7 +68,7 @@
       isolation:
         '当前 Agent 文档未列出每 Agent Worktree 隔离字段。',
       limits:
-        '全局 `[subagent] timeout_ms` 限制单个 Agent 或 AgentSwarm 运行时间，默认 7200000 ms（2 小时）；Agent 定义 frontmatter 无独立轮数或超时字段。',
+        '全局 `[subagent] timeout_ms` 限制单个 Agent 或 AgentSwarm 运行时间，默认 7200000 ms（2 小时）；main 分支起 AgentSwarm 改用独立 `[swarm] timeout_ms`（默认同为 7200000 ms、`0` 无超时，`KIMI_CODE_SWARM_TIMEOUT_MS` 覆盖），尚未发布；Agent 定义 frontmatter 无独立轮数或超时字段。',
       conditions:
         'Subagent 模型池为实验性功能，需 `KIMI_CODE_EXPERIMENTAL_SECONDARY_MODEL=1` 或 master flag `KIMI_CODE_EXPERIMENTAL_FLAG=1` 开启；开启后所有启动模式（包括 TUI）生效。默认 v2 引擎读取 `[secondary_model]` 模型池；`model_preference` 字段仅由旧版 `agent-core` 引擎（`KIMI_CODE_LEGACY_FLAG=1`）读取。',
       status: '官方确认',
@@ -759,7 +759,7 @@
       excludes: ['模型 Token 上限', '全局 CLI 超时', '费用预算'],
       facts: [
         'Qoder CLI 同时提供单 Agent 最大轮数和超时；Claude Code 与 Qwen Code 提供最大轮数。',
-        'Kimi Code 通过全局 `[subagent] timeout_ms` 限制单个 Agent 运行时间（默认 2 小时），但 Agent 定义无独立轮数或超时字段。',
+        'Kimi Code 通过全局 `[subagent] timeout_ms` 限制单个 Agent 或 AgentSwarm 运行时间（默认 2 小时），main 分支起 AgentSwarm 改用独立 `[swarm] timeout_ms`（尚未发布），但 Agent 定义无独立轮数或超时字段。',
         'Claude Code 另有全局 `CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS`（默认 20）、`CLAUDE_CODE_MAX_SUBAGENTS_PER_SESSION`（默认 200）和 `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH`（默认 3）。',
         'Codex 通过 `agents.max_concurrent_threads_per_session` 控制每会话并发线程数。',
       ],
@@ -771,13 +771,21 @@
         qwen:
           '`maxTurns` 写入 Agent 运行配置并限制轮数；当前 frontmatter 未列出单 Agent 超时。',
         kimi:
-          '全局 `[subagent] timeout_ms` 限制单个 Agent 或 AgentSwarm 运行时间，默认 7200000 ms（2 小时），print 模式未设置时默认 0（无限制）；环境变量 `KIMI_SUBAGENT_TIMEOUT_MS` 可覆盖；Agent 定义 frontmatter 无独立轮数或超时字段。',
+          '全局 `[subagent] timeout_ms` 限制单个 Agent 或 AgentSwarm 运行时间，默认 7200000 ms（2 小时），print 模式未设置时默认 0（无限制）；环境变量 `KIMI_SUBAGENT_TIMEOUT_MS` 可覆盖；该值同时是后台任务管理器的单任务超时，覆盖前台与后台 Subagent。PR #3198（提交 `496bb6ce4e55`，合入 main 尚未发布）为 AgentSwarm 新增独立 `[swarm] timeout_ms`：默认同为 7200000 ms，`0` 表示无超时（运行到完成或手动停止），print 模式未显式设置时同样默认 0，环境变量 `KIMI_CODE_SWARM_TIMEOUT_MS` 优先于配置文件；超时的 swarm 子 Agent 被中止并在聚合报告中标记失败（`Subagent timed out.`），其他子 Agent 不受影响；取值超过 2147483647（约 24.8 天）时运行时收敛为约 24.8 天。该提交是有意的行为变更且无回退：原为覆盖 swarm 设置的 `[subagent] timeout_ms` 不再作用于 AgentSwarm，需迁移到 `[swarm] timeout_ms`。Agent 定义 frontmatter 无独立轮数或超时字段。',
         qoder:
           '`maxTurns` 限制单次会话轮数，`timeoutMins` 限制分钟数；设置覆盖也可修改两者。',
       },
       related: ['agent-background', 'agent-config', 'agent-effort'],
       overrides: {
-        kimi: { sources: ['kimi-agents', 'kimi-subagent-config'] },
+        kimi: {
+          sources: [
+            'kimi-agents',
+            'kimi-subagent-config',
+            'kimi-swarm-timeout-commit',
+            'kimi-swarm-timeout-config',
+            'kimi-swarm-timeout-changeset',
+          ],
+        },
       },
     }),
   });
