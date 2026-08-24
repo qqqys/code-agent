@@ -438,6 +438,14 @@ window.matrixData = {
       label: 'Codex TUI task tools source',
       url: 'https://github.com/openai/codex/blob/a8468330bb5f45e9f4d2ec630b01ea8c52908be3/codex-rs/tui/src/dynamic_tools.rs',
     },
+    'codex-task-mentions-commit': {
+      label: 'Codex TUI composer task mentions commit',
+      url: 'https://github.com/openai/codex/commit/76d98a771e6cd44a79a3ab895a9f7c49d27d6deb',
+    },
+    'codex-task-mentions-source': {
+      label: 'Codex TUI task mentions source',
+      url: 'https://github.com/openai/codex/blob/76d98a771e6cd44a79a3ab895a9f7c49d27d6deb/codex-rs/tui/src/task_mentions.rs',
+    },
     'codex-agents-dashboard-commit': {
       label: 'Codex agents overview dashboard commit',
       url: 'https://github.com/openai/codex/commit/4617d4d21d278592002249773faaaf47d4c52e63',
@@ -1867,7 +1875,7 @@ window.matrixData = {
       category: 'sessions',
       capability: '跨会话消息',
       description: '发现其他会话、后台 Agent 或队友并互相发送消息。',
-      values: { claude: '`/list-agents` · `/peers` · `SendMessage`/`ListAgents` · `@` 会话名提及 · `crossSessionInbound` · 原生 Windows（v2.1.239 宣布可用）', codex: '`codex queue --thread <UUID|精确会话名> --message <文本>` · 经 app-server `thread/queue/add` 投递 · `--remote` 指向远程 app server（rust-v0.149.0 引入）；条件：`codex_tui` 任务工具列出、读取、等待、发消息、创建、派生其他任务（合入 main 尚未发布）', qwen: '`send_message` · `list_agents`；限当前会话后台 Agent', kimi: '官方命令表未列出会话间消息', qoder: '条件：`QODER_AGENT_TEAMS=1` Agent Teams `SendMessage`（beta，单会话内）' },
+      values: { claude: '`/list-agents` · `/peers` · `SendMessage`/`ListAgents` · `@` 会话名提及 · `crossSessionInbound` · 原生 Windows（v2.1.239 宣布可用）', codex: '`codex queue --thread <UUID|精确会话名> --message <文本>` · 经 app-server `thread/queue/add` 投递 · `--remote` 指向远程 app server（rust-v0.149.0 引入）；条件：`codex_tui` 任务工具列出、读取、等待、发消息、创建、派生其他任务（合入 main 尚未发布）；条件：TUI 输入框 `@` 任务提及提交为其他任务的实时引用、模型经 `read_thread` 读取（合入 main 尚未发布）', qwen: '`send_message` · `list_agents`；限当前会话后台 Agent', kimi: '官方命令表未列出会话间消息', qoder: '条件：`QODER_AGENT_TEAMS=1` Agent Teams `SendMessage`（beta，单会话内）' },
     },
     {
       id: 'extension-mcp',
