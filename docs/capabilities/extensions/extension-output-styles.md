@@ -2,7 +2,7 @@
 
 [返回扩展系统详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=extension-output-styles)
 
-> 核对日期：2026-08-24
+> 核对日期：2026-08-25
 
 ## 定义
 
