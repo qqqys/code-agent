@@ -1216,7 +1216,7 @@
         '把所有云任务统称为远程控制',
       ],
       facts: [
-        'Claude 与 Qoder 提供账号中继的本地会话远程控制，浏览器/手机可处理审批并继续发消息。',
+        'Claude、Qoder 与 Kimi Code 提供账号中继的本地会话远程控制，浏览器/手机可经厂商中继控制本地会话而无需自建网络；Kimi Code 的入口仍为实验功能（main 分支，尚未发布）。',
         'Codex app-server 可让另一个 CLI TUI 跨机器连接服务端 workspace；Qwen serve 与 kimi web 也能被远程客户端连接，公网网络仍由用户自建；Qwen Code 另以 `--local-control` 提供局域网扫码配对（main 分支，尚未发布）。',
         'Claude teleport 是把云会话与分支拉回 CLI；它与 Remote Control 同品牌但状态移动方式不同。',
       ],
@@ -1290,23 +1290,33 @@
         },
         kimi: {
           entry:
-            '`kimi web --host 0.0.0.0` 或指定地址，让其他设备打开 Web UI/API。',
+            '自建网络：`kimi web --host 0.0.0.0` 或指定地址，让其他设备打开 Web UI/API。官方中继：先启用实验开关 `KIMI_CODE_EXPERIMENTAL_REMOTE_CONTROL=1`（master 开关 `KIMI_CODE_EXPERIMENTAL_FLAG=1` 同样生效），再运行 `kimi rc`（别名 `remote`，未启用时隐藏）、`kimi web --remote-control`（帮助文本同样隐藏），或会话内 `/remote-control`（别名 `/rc`）。',
           protocol:
-            'REST + WebSocket，bearer token 鉴权；部署者负责网络可达性。',
+            '自建网络为 REST + WebSocket，bearer token 鉴权，部署者负责网络可达性。Remote Control 由本机 CLI 主动出站连接官方中继 `https://code-rc.kimi.com`：先经 `/v1/remote/create` 注册设备（`device_id`、主机名、平台、客户端版本与本机地址），再以 `/v1/remote/http?device_id=...` 承载 HTTP 隧道、`/v1/remote/stream/<streamId>` 双向桥接 WebSocket 流；转发到本地 Web 服务时附加本机 bearer token，并对 HTML/JS/CSS 响应做路径前缀改写；断线按指数退避重连，上限 30 秒。',
           behavior:
-            '远程浏览器可发送 prompt、查看工具与文件；执行仍发生在运行 kimi web 的主机。',
+            '自建网络下远程浏览器可发送 prompt、查看工具与文件。Remote Control 启动后终端显示 “Kimi Remote Control ready”、二维码（终端渲染并保存 PNG）与设备页面链接；`/remote-control` 携带当前会话深链接（`/devices/<deviceId>/sessions/<sessionId>`），TUI 退出后原进程转为前台 Web 服务；远程设备在页面上登录后即可聊天，会话、文件与工具执行始终发生在运行 Kimi 的本机。',
           state:
-            '会话、文件和 token 留在服务主机；服务退出后连接结束。',
+            '会话、文件与本地服务 token 留在服务主机；中继只转发流量，本机进程退出即向中继发送断开原因并终止隧道。同一台机器只允许一个 Remote Control 实例（文件锁），已有实例运行时再次启动会提示已在运行。',
           tools:
             '使用服务主机上的 Kimi 工具、Shell 和 Provider。',
           auth:
-            '默认 bearer token，可轮换；不得在公网使用 bypass-auth。',
+            'Remote Control 要求先 `kimi login`（从数据目录 `credentials/` 读取 Kimi OAuth refresh token，未登录报 “Remote Control requires a Kimi login. Run `kimi login` first.”），且本地 Web 服务必须启用认证（读不到本地服务 token 报 “Unable to read the local server token.”）；远程设备需登录 Kimi 账号。`--remote-control` 不能与 `--dangerous-bypass-auth` 同用。自建网络默认 bearer token，可轮换；不得在公网使用 bypass-auth。',
           deployment:
-            '自管本机或远程服务器，没有官方账号中继。',
+            '自建网络需自管本机或远程服务器。Remote Control 使用 Kimi 官方中继（`https://code-rc.kimi.com/devices/<deviceId>/`），远程设备无需自建网络；执行仍在本机，不构成托管云任务。',
           conditions:
-            '当前没有托管跨端 handoff 或移动端 Remote Control；只有可远程部署的本地 Web 服务。',
-          status: '条件项',
-          sources: ['kimi-cli-surface-current'],
+            '实验标志 `remote-control` 经 `registerFlagDefinition` 注册（`surface: \'both\'`，默认关闭），CLI 子命令、`--remote-control` 选项与 `/remote-control` 命令均受其门禁；未启用时运行报 “--remote-control is experimental: set KIMI_CODE_EXPERIMENTAL_REMOTE_CONTROL=1 (or KIMI_CODE_EXPERIMENTAL_FLAG=1) to enable it.”。`kimi web --remote-control` 要求回环绑定；HTTP 隧道单请求上限 10 MiB、头部上限 64 KiB、转发超时 30 秒。同一提交移除 `--allow-remote-terminals`，PTY 终端路由仅保留在回环绑定。2026-08-25 合入 main（提交 `f0a609487fb8`，PR #3034），changeset 为 minor、尚未随 Release 发布；官方 Slash 命令文档与仓库 `docs/zh` 未同步，终端输出链接的 `https://kimi.com/code/docs/remote-control` 文档页核对时返回 404。',
+          status: '源码确认',
+          sources: [
+            'kimi-cli-surface-current',
+            'kimi-remote-control-commit',
+            'kimi-remote-control-changeset',
+            'kimi-remote-control-source',
+            'kimi-remote-control-flag',
+            'kimi-remote-control-web-command',
+            'kimi-remote-control-tui-command',
+            'kimi-remote-control-registry',
+            'kimi-remote-control-drop-terminals',
+          ],
         },
         qoder: {
           entry:

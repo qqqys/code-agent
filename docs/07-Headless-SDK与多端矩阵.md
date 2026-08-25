@@ -15,7 +15,7 @@
 | [Web 界面](./capabilities/surfaces/surface-web.md) | claude.ai/code · Remote Control | ChatGPT Web · Codex Cloud | `qwen serve` 内置 Web Shell；条件：图片拖拽/粘贴输入（v0.21.9 起）· 工作区文件上传（v0.21.12-preview.3 预览通道）· 文本文件附件（main 分支，尚未发布） | `kimi web` 本地 Web UI | Qoder Web · Cloud Agents Console |
 | [桌面端](./capabilities/surfaces/surface-desktop.md) | Claude Desktop Code | ChatGPT Desktop Codex | Qwen Code Desktop | 无独立桌面端；提供 VS Code/Web | Qoder IDE |
 | [云端仓库任务](./capabilities/surfaces/surface-cloud.md) | `claude --remote` · Web Cloud · 条件：`claude self-hosted-runner` 自托管云会话执行（Team/Enterprise 公测） | Codex Cloud | 无托管云任务；`qwen serve` 为自托管 | 无托管云任务；`kimi web` 为自托管 | `qodercli --remote` · Cloud Mode |
-| [远程接管与跨端继续](./capabilities/surfaces/surface-remote-control.md) | `/remote-control` · `/teleport` | `app-server --listen` · `codex --remote` · Cloud | `qwen serve` 多客户端；条件：`--local-control` 局域网扫码配对（main 分支，尚未发布）；公网需自建网络 | `kimi web --host`；需自建网络 | `/remote-control` · `qodercli remote-control` |
+| [远程接管与跨端继续](./capabilities/surfaces/surface-remote-control.md) | `/remote-control` · `/teleport` | `app-server --listen` · `codex --remote` · Cloud | `qwen serve` 多客户端；条件：`--local-control` 局域网扫码配对（main 分支，尚未发布）；公网需自建网络 | `kimi web --host` 自建网络；条件：Remote Control 官方中继隧道 `kimi rc` · `kimi web --remote-control` · `/remote-control`（别名 `/rc`，实验开关 `KIMI_CODE_EXPERIMENTAL_REMOTE_CONTROL`，main 分支，尚未发布） | `/remote-control` · `qodercli remote-control` |
 
 ## 阅读边界
 

@@ -59,7 +59,7 @@
 | 临时旁路问题 | `/btw` | `/side`、`/btw` | `/btw` | `/btw` | — |
 | 浏览器或 Web | `/chrome`、`/deep-research` | `/apps` | — | `/web` | — |
 | 多模型或多代理协作模式 | `/advisor`、`/batch` | `/agent` | `/advisor`（v0.21.14 起）、`/arena`、`/batch`、`/coordinate`（v0.21.11 起） | `/swarm`、`/tower`（条件：2026-08-21 起重建为与 plan 并列的模式重新开启，实验标志 `KIMI_CODE_EXPERIMENTAL_TOWER` 默认关闭，合入 main 尚未发布） | `/quest`、`/batch` |
-| 远程控制 | `/remote-control`、`/rc`、`/teleport`、`/desktop`、`/app` | `/app` | — | `/web` | 条件项：Cloud Mode |
+| 远程控制 | `/remote-control`、`/rc`、`/teleport`、`/desktop`、`/app` | `/app` | — | `/web`、`/remote-control`（别名 `/rc`，条件：实验开关 `KIMI_CODE_EXPERIMENTAL_REMOTE_CONTROL`，main 分支，尚未发布） | 条件项：Cloud Mode |
 | 退出程序 | `/exit`、`/quit` | `/exit`、`/quit` | `/quit`、`/exit` | `/exit`、`/quit`、`/q` | `/quit`、`/exit` |
 | 帮助 | `/help` | 命令选择器 | `/help`、`/?` | `/help`、`/h`、`/?` | `/help` |
 
@@ -152,9 +152,11 @@ Web Shell 还固定提供 4 个不属于 CLI/TUI 硬编码加载器的本地命�
 
 ### Kimi Code
 
-`/add-dir`、`/auto`、`/btw`、`/bug`、`/check-kimi-code-docs`、`/compact`、`/copy`、`/custom-theme`、`/editor`、`/exit`、`/experiments`、`/export-debug-zip`、`/export-md`、`/feedback`、`/fork`、`/goal`、`/help`、`/import-from-cc-codex`、`/init`、`/login`、`/logout`、`/mcp`、`/mcp-config`、`/model`、`/new`、`/permission`、`/plan`、`/plugins`、`/provider`、`/secondary-model`、`/sessions`、`/settings`、`/status`、`/sub-skill`、`/subagent-model`、`/swarm`、`/tasks`、`/theme`、`/title`、`/tower`、`/undo`、`/update-config`、`/usage`、`/version`、`/web`、`/yolo`。
+`/add-dir`、`/auto`、`/btw`、`/bug`、`/check-kimi-code-docs`、`/compact`、`/copy`、`/custom-theme`、`/editor`、`/exit`、`/experiments`、`/export-debug-zip`、`/export-md`、`/feedback`、`/fork`、`/goal`、`/help`、`/import-from-cc-codex`、`/init`、`/login`、`/logout`、`/mcp`、`/mcp-config`、`/model`、`/new`、`/permission`、`/plan`、`/plugins`、`/provider`、`/remote-control`、`/secondary-model`、`/sessions`、`/settings`、`/status`、`/sub-skill`、`/subagent-model`、`/swarm`、`/tasks`、`/theme`、`/title`、`/tower`、`/undo`、`/update-config`、`/usage`、`/version`、`/web`、`/yolo`。
 
 其中 `/bug` 是 `/feedback` 的别名（提交 `8db7d42f2347`），自 0.33.0（2026-08-05 发布）起包含。0.33.0 起 `/fork` 派生副本后不再切换到副本，仍停留在当前会话（提交 `54c04bf03ddb`）；0.36.1（2026-08-14 发布）起在回合运行中 fork 会报错，不再复制未写完的回合；提交 `6b72345f8bb0`（2026-08-15 合入 main，尚未发布）后 `/fork` 还会打印可在新进程进入 fork 的 `kimi --resume` 命令并复制到剪贴板。0.36.0（2026-08-13 发布）起，原 `/secondary_model` 改名为 `/secondary-model`，`/subagent-model` 是它的别名（提交 `c9bfe8b2c831`）；命令打开模型选择器并写入 `[secondary_model] default_model`，仅在 `secondary-model` 实验功能启用时可见。
+
+`/remote-control`（Remote Control Web 隧道，别名 `/rc`）于 2026-08-25 合入 main 分支（提交 `f0a609487fb8`，PR #3034），尚未进入 Release：命令在注册表带 `experimentalFlag: 'remote-control'`（与 `/tower` 同一门禁机制），实验开关 `KIMI_CODE_EXPERIMENTAL_REMOTE_CONTROL=1`（master 开关 `KIMI_CODE_EXPERIMENTAL_FLAG=1` 同样生效）启用后才可用；执行时 TUI 退出、原进程转为前台 Web 服务并连接官方中继 `https://code-rc.kimi.com`，打印 “Kimi Remote Control ready”、二维码与当前会话深链接，远程设备登录 Kimi 账号即可控制本机会话；要求已 `kimi login` 且本机 Web 服务启用认证，同一台机器只允许一个实例。CLI 另有 `kimi rc`（别名 `remote`）与 `kimi web --remote-control`（`--rc`）入口，未启用开关时均隐藏。同一提交移除 `kimi web` 的 `--allow-remote-terminals`，PTY 终端路由仅保留回环绑定。官方 Slash 命令文档尚未列出 `/remote-control`。
 
 `/tower`（多代理 Tower 编排）于 2026-08-16 合入 main 分支（提交 `f492cd7c9e03`，PR #2633），从未进入 Release；2026-08-18 提交 `5ae82cd5bcb9`（PR #3023）将 tower 功能整体禁用（`tower` 标志未注册进实验功能登记册，环境变量、master 开关或 `[experimental]` 配置都无法开启）；2026-08-21 提交 `0f44537c13e7`（PR #3099）把 `/tower` 重建为与 plan 并列的一等模式重新开启，合入 main 尚未发布（changeset `.changeset/tower-mode-command.md` 为 minor，随下一个版本发布）。当前形态：`/tower` 是 v2 引擎内置命令——不带参数或带 `status` 报告状态，`on|off` 切换模式，`teardown` 发送拆除指令（由模型的 `TowerTeardown` 退出模式），其余输入作为目标（先幂等确保模式开启，再把目标作为普通输入发送）；v2 引擎无会话时惰性创建会话。编排手册从删除的内置 Skill 移入 `tower_mode` 上下文注入（full、sparse、exit 三类提醒），编排工具集（十一个 `Tower*` 工具）在进入模式时以工具覆盖层启用、会话恢复时重新应用，`tower_mode.enter`/`tower_mode.exit` 写入会话 wire 历史、恢复时重放。模式由 `tower` 实验标志门禁（`KIMI_CODE_EXPERIMENTAL_TOWER`，默认关闭），标志现经 `registerFlagDefinition` 注册进实验功能登记册、`/experiments` 列出，功能在 App 启动时组装，运行中开启需要重启；标志关闭时钩子否决全部 tower 工具。同一仓库的 tower 只允许一个在世持有者会话，SDK `Session.setTowerMode()` 与 kap-server `agent_config.tower_mode` 也可切换，TUI 页脚显示 `tower` 徽标。编排行为与原设计一致：主 Agent 作为唯一控制塔规划 mission 并合并分支，worker 在 `.tower/worktrees/` 下的独立 git worktree 中执行任务，reviewer 审查分支，`TowerMerge` 门禁要求针对当前 tip 的 clean review。官方 Slash 命令文档尚未列出 `/tower`。2026-08-16 同一提交起，回合运行中输入的 Skill 命令不再被拒绝，而是排队显示，Ctrl-S 可作为 activation 注入运行中的回合（该行为不属于 tower，仍保留）。
 
@@ -213,5 +215,10 @@ Web Shell 还固定提供 4 个不属于 CLI/TUI 硬编码加载器的本地命�
 - [Kimi Code Subagent 模型池提交](https://github.com/MoonshotAI/kimi-code/commit/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860)
 - [Kimi Code 0.36.0 发布说明](https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%400.36.0)
 - [Kimi Code 0.36.1 发布说明](https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%400.36.1)
+- [Kimi Code Remote Control Web 隧道提交](https://github.com/MoonshotAI/kimi-code/commit/f0a609487fb835371c608cde101a6ff544c3c33e)
+- [Kimi Code Remote Control changeset](https://github.com/MoonshotAI/kimi-code/blob/f0a609487fb835371c608cde101a6ff544c3c33e/.changeset/add-remote-control.md)
+- [Kimi Code `/remote-control` TUI 命令源码](https://github.com/MoonshotAI/kimi-code/blob/f0a609487fb835371c608cde101a6ff544c3c33e/apps/kimi-code/src/tui/commands/web.ts)
+- [Kimi Code TUI 命令注册表（/remote-control）](https://github.com/MoonshotAI/kimi-code/blob/f0a609487fb835371c608cde101a6ff544c3c33e/apps/kimi-code/src/tui/commands/registry.ts)
+- [Kimi Code `kimi web` Remote Control 选项源码](https://github.com/MoonshotAI/kimi-code/blob/f0a609487fb835371c608cde101a6ff544c3c33e/apps/kimi-code/src/cli/sub/web/run.ts)
 - [Qoder CLI Slash 命令参考](https://docs.qoder.com/cli/slash-reference)
 - [Qoder CLI Goal Command Reference](https://docs.qoder.com/cli/goal-reference)

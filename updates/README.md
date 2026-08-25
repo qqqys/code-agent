@@ -4,6 +4,7 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-08-25 | [远程接管与跨端继续：Kimi Code Remote Control 官方中继隧道（PR #3034，main 分支）](./2026-08-25-远程接管与跨端继续-Kimi-RemoteControl中继隧道.md) |
 | 2026-08-25 | [代码 Review：Qwen Code `/review --topology minimal` 单遍 A/B 对比臂（PR #9919，main 分支）](./2026-08-25-执行与Git-Qwen-review-topology单遍审查臂.md) |
 | 2026-08-25 | [模型选择：Claude Code v2.1.243 `modelPicker` 选择器列表定制](./2026-08-25-模型选择-Claude-modelPicker选择器列表自定义.md) |
 | 2026-08-24 | [Subagent 轮数与超时限制：Kimi Code AgentSwarm 独立 `[swarm] timeout_ms`（PR #3198，main 分支）](./2026-08-24-Subagent轮数与超时限制-Kimi-AgentSwarm独立超时.md) |
