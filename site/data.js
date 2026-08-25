@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-08-24',
+  updatedAt: '2026-08-25',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -134,6 +134,10 @@ window.matrixData = {
       label: 'Claude Code settings',
       url: 'https://code.claude.com/docs/en/settings',
     },
+    'claude-settings-reference': {
+      label: 'Claude Code settings reference',
+      url: 'https://code.claude.com/docs/en/settings-reference',
+    },
     'claude-managed-settings': {
       label: 'Claude Code server-managed settings',
       url: 'https://code.claude.com/docs/en/server-managed-settings',
@@ -233,6 +237,10 @@ window.matrixData = {
     'claude-default-model-v236': {
       label: 'Claude Code v2.1.236 changelog (ANTHROPIC_DEFAULT_MODEL)',
       url: 'https://github.com/anthropics/claude-code/blob/084ca20bcf90/CHANGELOG.md',
+    },
+    'claude-model-picker-v243': {
+      label: 'Claude Code v2.1.243 changelog (modelPicker)',
+      url: 'https://github.com/anthropics/claude-code/blob/8b6ef81f636a/CHANGELOG.md',
     },
     'claude-output-styles': {
       label: 'Claude Code output styles',
@@ -2097,7 +2105,7 @@ window.matrixData = {
       category: 'models',
       capability: '模型选择与切换',
       description: '选择当前模型，并区分会话级、项目级和用户级默认值。',
-      values: { claude: '`/model` · `--model` · `ANTHROPIC_DEFAULT_MODEL` 新会话默认模型（v2.1.236 起）', codex: '`/model` · `-m`', qwen: '`/model` · `--model`', kimi: '`/model` · `-m`', qoder: '`/model` · `--model`' },
+      values: { claude: '`/model` · `--model` · `ANTHROPIC_DEFAULT_MODEL` 新会话默认模型（v2.1.236 起）· `modelPicker` 定制选择器列表（v2.1.243 起）', codex: '`/model` · `-m`', qwen: '`/model` · `--model`', kimi: '`/model` · `-m`', qoder: '`/model` · `--model`' },
     },
     {
       id: 'model-effort',
