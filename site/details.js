@@ -989,7 +989,7 @@
       facts: [
         'Claude Code 提供 Remote Control、Teleport 和 Desktop 三类不同入口。',
         'Codex `/app` 把当前会话继续到 ChatGPT 桌面应用。',
-        'Kimi Code `/web` 可选择运行中的 Web 实例，或启动 Web Server 后继续当前会话。',
+        'Kimi Code `/web` 可选择运行中的 Web 实例，或启动 Web Server 后继续当前会话；`/remote-control`（别名 `/rc`，2026-08-25 合入 main，尚未发布）改为经官方中继暴露本机 Web 会话。',
       ],
       products: {
         claude: command('claude', ['/remote-control', '/teleport', '/desktop'], '暴露当前本地会话供远程控制、把 Web 会话拉到终端，或在 Desktop 继续当前会话。', {
@@ -1002,9 +1002,13 @@
           persistence: '同一会话跨 Surface 继续',
         }),
         qwen: unconfirmed('qwen', 'Daemon、Web Shell 与 Channel 可提供远程 Surface，但当前内置命令目录没有统一远程迁移命令。'),
-        kimi: command('kimi', ['/web'], '选择运行中的 Web 实例连接当前会话，或退出 TUI 后启动前台 Web Server。', {
-          conditions: '流式输出期间可使用',
-          persistence: '当前会话在 Web UI 中继续',
+        kimi: command('kimi', ['/web', '/remote-control'], '选择运行中的 Web 实例连接当前会话，或退出 TUI 后启动前台 Web Server；`/remote-control` 让 TUI 退出、原进程转为前台 Web 服务并接入官方 Remote Control 中继，打印 “Kimi Remote Control ready”、二维码与当前会话深链接，供手机或其他电脑登录后远程控制该会话。', {
+          aliases: ['/rc'],
+          mode: '交互式 TUI',
+          persistence: '`/web`：当前会话在 Web UI 中继续。`/remote-control`：会话与执行留在本机进程，本机进程停止即向中继发送断开原因并终止隧道',
+          conditions: '`/web` 流式输出期间可使用。`/remote-control` 在命令注册表带 `experimentalFlag: \'remote-control\'`（与 `/tower` 同一机制），默认关闭，需 `KIMI_CODE_EXPERIMENTAL_REMOTE_CONTROL=1` 或 master 开关 `KIMI_CODE_EXPERIMENTAL_FLAG=1`；另要求已 `kimi login`（读取本地 OAuth refresh token）且能读取本机 Web 服务认证 token；同一台机器只允许一个 Remote Control 实例（文件锁）；2026-08-25 合入 main（提交 `f0a609487fb8`，PR #3034），changeset 为 minor、尚未随 Release 发布，官方 Slash 命令文档未同步',
+          status: '源码确认',
+          sources: ['kimi-commands', 'kimi-remote-control-commit', 'kimi-remote-control-changeset', 'kimi-remote-control-tui-command', 'kimi-remote-control-registry'],
         }),
         qoder: unconfirmed('qoder', 'Qoder 提供 Remote Control 和 Cloud Mode 文档，但当前 Slash 命令目录没有独立远程控制命令。'),
       },

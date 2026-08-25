@@ -15,7 +15,7 @@
 | Claude Code | `/remote-control` · `/teleport` | 官方确认 |
 | Codex | `app-server --listen` · `codex --remote` · Cloud | 条件项 |
 | Qwen Code | `qwen serve` 多客户端；条件：`--local-control` 局域网扫码配对（main 分支，尚未发布）；公网需自建网络 | 条件项 |
-| Kimi Code | `kimi web --host`；需自建网络 | 条件项 |
+| Kimi Code | `kimi web --host` 自建网络；条件：Remote Control 官方中继隧道 `kimi rc` · `kimi web --remote-control` · `/remote-control`（别名 `/rc`，实验开关 `KIMI_CODE_EXPERIMENTAL_REMOTE_CONTROL`，main 分支，尚未发布） | 源码确认 |
 | Qoder CLI | `/remote-control` · `qodercli remote-control` | 官方确认 |
 
 ## 比较边界
@@ -34,7 +34,7 @@
 
 ## 跨产品事实
 
-1. Claude 与 Qoder 提供账号中继的本地会话远程控制，浏览器/手机可处理审批并继续发消息。
+1. Claude、Qoder 与 Kimi Code 提供账号中继的本地会话远程控制，浏览器/手机可经厂商中继控制本地会话而无需自建网络；Kimi Code 的入口仍为实验功能（main 分支，尚未发布）。
 2. Codex app-server 可让另一个 CLI TUI 跨机器连接服务端 workspace；Qwen serve 与 kimi web 也能被远程客户端连接，公网网络仍由用户自建；Qwen Code 另以 `--local-control` 提供局域网扫码配对（main 分支，尚未发布）。
 3. Claude teleport 是把云会话与分支拉回 CLI；它与 Remote Control 同品牌但状态移动方式不同。
 
@@ -92,17 +92,17 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 矩阵结论 | `kimi web --host`；需自建网络 |
-| 入口与调用 | `kimi web --host 0.0.0.0` 或指定地址，让其他设备打开 Web UI/API。 |
-| 协议与输出 | REST + WebSocket，bearer token 鉴权；部署者负责网络可达性。 |
-| 具体行为 | 远程浏览器可发送 prompt、查看工具与文件；执行仍发生在运行 kimi web 的主机。 |
-| 会话与状态 | 会话、文件和 token 留在服务主机；服务退出后连接结束。 |
+| 矩阵结论 | `kimi web --host` 自建网络；条件：Remote Control 官方中继隧道 `kimi rc` · `kimi web --remote-control` · `/remote-control`（别名 `/rc`，实验开关 `KIMI_CODE_EXPERIMENTAL_REMOTE_CONTROL`，main 分支，尚未发布） |
+| 入口与调用 | 自建网络：`kimi web --host 0.0.0.0` 或指定地址，让其他设备打开 Web UI/API。官方中继：先启用实验开关 `KIMI_CODE_EXPERIMENTAL_REMOTE_CONTROL=1`（master 开关 `KIMI_CODE_EXPERIMENTAL_FLAG=1` 同样生效），再运行 `kimi rc`（别名 `remote`，未启用时隐藏）、`kimi web --remote-control`（帮助文本同样隐藏），或会话内 `/remote-control`（别名 `/rc`）。 |
+| 协议与输出 | 自建网络为 REST + WebSocket，bearer token 鉴权，部署者负责网络可达性。Remote Control 由本机 CLI 主动出站连接官方中继 `https://code-rc.kimi.com`：先经 `/v1/remote/create` 注册设备（`device_id`、主机名、平台、客户端版本与本机地址），再以 `/v1/remote/http?device_id=...` 承载 HTTP 隧道、`/v1/remote/stream/<streamId>` 双向桥接 WebSocket 流；转发到本地 Web 服务时附加本机 bearer token，并对 HTML/JS/CSS 响应做路径前缀改写；断线按指数退避重连，上限 30 秒。 |
+| 具体行为 | 自建网络下远程浏览器可发送 prompt、查看工具与文件。Remote Control 启动后终端显示 “Kimi Remote Control ready”、二维码（终端渲染并保存 PNG）与设备页面链接；`/remote-control` 携带当前会话深链接（`/devices/<deviceId>/sessions/<sessionId>`），TUI 退出后原进程转为前台 Web 服务；远程设备在页面上登录后即可聊天，会话、文件与工具执行始终发生在运行 Kimi 的本机。 |
+| 会话与状态 | 会话、文件与本地服务 token 留在服务主机；中继只转发流量，本机进程退出即向中继发送断开原因并终止隧道。同一台机器只允许一个 Remote Control 实例（文件锁），已有实例运行时再次启动会提示已在运行。 |
 | 工具与能力 | 使用服务主机上的 Kimi 工具、Shell 和 Provider。 |
-| 认证与权限 | 默认 bearer token，可轮换；不得在公网使用 bypass-auth。 |
-| 运行位置 | 自管本机或远程服务器，没有官方账号中继。 |
-| 条件与边界 | 当前没有托管跨端 handoff 或移动端 Remote Control；只有可远程部署的本地 Web 服务。 |
-| 证据状态 | 条件项 |
-| 来源 | [Kimi Code current CLI, Headless and Web reference](https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/reference/kimi-command.md) |
+| 认证与权限 | Remote Control 要求先 `kimi login`（从数据目录 `credentials/` 读取 Kimi OAuth refresh token，未登录报 “Remote Control requires a Kimi login. Run `kimi login` first.”），且本地 Web 服务必须启用认证（读不到本地服务 token 报 “Unable to read the local server token.”）；远程设备需登录 Kimi 账号。`--remote-control` 不能与 `--dangerous-bypass-auth` 同用。自建网络默认 bearer token，可轮换；不得在公网使用 bypass-auth。 |
+| 运行位置 | 自建网络需自管本机或远程服务器。Remote Control 使用 Kimi 官方中继（`https://code-rc.kimi.com/devices/<deviceId>/`），远程设备无需自建网络；执行仍在本机，不构成托管云任务。 |
+| 条件与边界 | 实验标志 `remote-control` 经 `registerFlagDefinition` 注册（`surface: 'both'`，默认关闭），CLI 子命令、`--remote-control` 选项与 `/remote-control` 命令均受其门禁；未启用时运行报 “--remote-control is experimental: set KIMI_CODE_EXPERIMENTAL_REMOTE_CONTROL=1 (or KIMI_CODE_EXPERIMENTAL_FLAG=1) to enable it.”。`kimi web --remote-control` 要求回环绑定；HTTP 隧道单请求上限 10 MiB、头部上限 64 KiB、转发超时 30 秒。同一提交移除 `--allow-remote-terminals`，PTY 终端路由仅保留在回环绑定。2026-08-25 合入 main（提交 `f0a609487fb8`，PR #3034），changeset 为 minor、尚未随 Release 发布；官方 Slash 命令文档与仓库 `docs/zh` 未同步，终端输出链接的 `https://kimi.com/code/docs/remote-control` 文档页核对时返回 404。 |
+| 证据状态 | 源码确认 |
+| 来源 | [Kimi Code current CLI, Headless and Web reference](https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/reference/kimi-command.md)、[Kimi Code Remote Control web tunnel commit](https://github.com/MoonshotAI/kimi-code/commit/f0a609487fb835371c608cde101a6ff544c3c33e)、[Kimi Code Remote Control changeset](https://github.com/MoonshotAI/kimi-code/blob/f0a609487fb835371c608cde101a6ff544c3c33e/.changeset/add-remote-control.md)、[Kimi Code Remote Control tunnel source](https://github.com/MoonshotAI/kimi-code/blob/f0a609487fb835371c608cde101a6ff544c3c33e/apps/kimi-code/src/cli/sub/web/remote-control.ts)、[Kimi Code Remote Control experimental flag source](https://github.com/MoonshotAI/kimi-code/blob/f0a609487fb835371c608cde101a6ff544c3c33e/packages/agent-core-v2/src/app/remoteControl/flag.ts)、[Kimi Code kimi web Remote Control option source](https://github.com/MoonshotAI/kimi-code/blob/f0a609487fb835371c608cde101a6ff544c3c33e/apps/kimi-code/src/cli/sub/web/run.ts)、[Kimi Code /remote-control TUI command source](https://github.com/MoonshotAI/kimi-code/blob/f0a609487fb835371c608cde101a6ff544c3c33e/apps/kimi-code/src/tui/commands/web.ts)、[Kimi Code TUI command registry (/remote-control)](https://github.com/MoonshotAI/kimi-code/blob/f0a609487fb835371c608cde101a6ff544c3c33e/apps/kimi-code/src/tui/commands/registry.ts)、[Kimi Code --allow-remote-terminals removal changeset](https://github.com/MoonshotAI/kimi-code/blob/f0a609487fb835371c608cde101a6ff544c3c33e/.changeset/drop-allow-remote-terminals.md) |
 
 ### Qoder CLI
 
@@ -134,6 +134,14 @@
 - [Qwen Code Desktop Local Control README](https://github.com/QwenLM/qwen-code/blob/bf84caf1737163e3e15acff6c6a1c8a6af91df4d/packages/desktop-shell/README.md)
 - [Qwen Code serve command source (--local-control flag)](https://github.com/QwenLM/qwen-code/blob/bf84caf1737163e3e15acff6c6a1c8a6af91df4d/packages/cli/src/commands/serve.ts)
 - [Kimi Code current CLI, Headless and Web reference](https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/reference/kimi-command.md)
+- [Kimi Code Remote Control web tunnel commit](https://github.com/MoonshotAI/kimi-code/commit/f0a609487fb835371c608cde101a6ff544c3c33e)
+- [Kimi Code Remote Control changeset](https://github.com/MoonshotAI/kimi-code/blob/f0a609487fb835371c608cde101a6ff544c3c33e/.changeset/add-remote-control.md)
+- [Kimi Code Remote Control tunnel source](https://github.com/MoonshotAI/kimi-code/blob/f0a609487fb835371c608cde101a6ff544c3c33e/apps/kimi-code/src/cli/sub/web/remote-control.ts)
+- [Kimi Code Remote Control experimental flag source](https://github.com/MoonshotAI/kimi-code/blob/f0a609487fb835371c608cde101a6ff544c3c33e/packages/agent-core-v2/src/app/remoteControl/flag.ts)
+- [Kimi Code kimi web Remote Control option source](https://github.com/MoonshotAI/kimi-code/blob/f0a609487fb835371c608cde101a6ff544c3c33e/apps/kimi-code/src/cli/sub/web/run.ts)
+- [Kimi Code /remote-control TUI command source](https://github.com/MoonshotAI/kimi-code/blob/f0a609487fb835371c608cde101a6ff544c3c33e/apps/kimi-code/src/tui/commands/web.ts)
+- [Kimi Code TUI command registry (/remote-control)](https://github.com/MoonshotAI/kimi-code/blob/f0a609487fb835371c608cde101a6ff544c3c33e/apps/kimi-code/src/tui/commands/registry.ts)
+- [Kimi Code --allow-remote-terminals removal changeset](https://github.com/MoonshotAI/kimi-code/blob/f0a609487fb835371c608cde101a6ff544c3c33e/.changeset/drop-allow-remote-terminals.md)
 - [Qoder CLI Remote Control](https://docs.qoder.com/en/cli/remote-control)
 - [Qoder Web remote and cloud tasks](https://docs.qoder.com/mobile/web/remote-control)
 

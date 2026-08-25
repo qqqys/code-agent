@@ -1282,6 +1282,38 @@ window.matrixData = {
       label: 'Kimi Code WaitFor changeset',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/8440801de47ddae29224430048e1228b80cde370/.changeset/wait-for-tool.md',
     },
+    'kimi-remote-control-commit': {
+      label: 'Kimi Code Remote Control web tunnel commit',
+      url: 'https://github.com/MoonshotAI/kimi-code/commit/f0a609487fb835371c608cde101a6ff544c3c33e',
+    },
+    'kimi-remote-control-changeset': {
+      label: 'Kimi Code Remote Control changeset',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/f0a609487fb835371c608cde101a6ff544c3c33e/.changeset/add-remote-control.md',
+    },
+    'kimi-remote-control-source': {
+      label: 'Kimi Code Remote Control tunnel source',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/f0a609487fb835371c608cde101a6ff544c3c33e/apps/kimi-code/src/cli/sub/web/remote-control.ts',
+    },
+    'kimi-remote-control-flag': {
+      label: 'Kimi Code Remote Control experimental flag source',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/f0a609487fb835371c608cde101a6ff544c3c33e/packages/agent-core-v2/src/app/remoteControl/flag.ts',
+    },
+    'kimi-remote-control-web-command': {
+      label: 'Kimi Code kimi web Remote Control option source',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/f0a609487fb835371c608cde101a6ff544c3c33e/apps/kimi-code/src/cli/sub/web/run.ts',
+    },
+    'kimi-remote-control-tui-command': {
+      label: 'Kimi Code /remote-control TUI command source',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/f0a609487fb835371c608cde101a6ff544c3c33e/apps/kimi-code/src/tui/commands/web.ts',
+    },
+    'kimi-remote-control-registry': {
+      label: 'Kimi Code TUI command registry (/remote-control)',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/f0a609487fb835371c608cde101a6ff544c3c33e/apps/kimi-code/src/tui/commands/registry.ts',
+    },
+    'kimi-remote-control-drop-terminals': {
+      label: 'Kimi Code --allow-remote-terminals removal changeset',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/f0a609487fb835371c608cde101a6ff544c3c33e/.changeset/drop-allow-remote-terminals.md',
+    },
     'qoder-commands': {
       label: 'Qoder CLI slash commands',
       url: 'https://docs.qoder.com/cli/slash-reference',
@@ -1606,7 +1638,7 @@ window.matrixData = {
       category: 'commands',
       capability: '远程与跨端',
       description: '把本地会话连接到桌面端、Web 或远程控制入口。',
-      values: { claude: '`/remote-control` · `/rc` · `/teleport` · `/desktop`', codex: '`/app`', qwen: '—', kimi: '`/web`', qoder: 'Cloud Mode；无对应 Slash 命令' },
+      values: { claude: '`/remote-control` · `/rc` · `/teleport` · `/desktop`', codex: '`/app`', qwen: '—', kimi: '`/web` · 条件：`/remote-control`（别名 `/rc`）启动 Remote Control 中继（实验开关，main 分支，尚未发布）', qoder: 'Cloud Mode；无对应 Slash 命令' },
     },
     {
       id: 'cmd-keymap',
@@ -2110,7 +2142,7 @@ window.matrixData = {
       category: 'surfaces',
       capability: '远程接管与跨端继续',
       description: '从另一设备控制本地会话，或在本地与云端 Surface 之间继续工作。',
-      values: { claude: '`/remote-control` · `/teleport`', codex: '`app-server --listen` · `codex --remote` · Cloud', qwen: '`qwen serve` 多客户端；条件：`--local-control` 局域网扫码配对（main 分支，尚未发布）；公网需自建网络', kimi: '`kimi web --host`；需自建网络', qoder: '`/remote-control` · `qodercli remote-control`' },
+      values: { claude: '`/remote-control` · `/teleport`', codex: '`app-server --listen` · `codex --remote` · Cloud', qwen: '`qwen serve` 多客户端；条件：`--local-control` 局域网扫码配对（main 分支，尚未发布）；公网需自建网络', kimi: '`kimi web --host` 自建网络；条件：Remote Control 官方中继隧道 `kimi rc` · `kimi web --remote-control` · `/remote-control`（别名 `/rc`，实验开关 `KIMI_CODE_EXPERIMENTAL_REMOTE_CONTROL`，main 分支，尚未发布）', qoder: '`/remote-control` · `qodercli remote-control`' },
     },
     {
       id: 'model-switch',
