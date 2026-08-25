@@ -562,6 +562,18 @@ window.matrixData = {
       label: 'Qwen Code v0.21.15 release notes',
       url: 'https://github.com/QwenLM/qwen-code/releases/tag/v0.21.15',
     },
+    'qwen-review-topology-commit': {
+      label: 'Qwen Code review --topology minimal arm commit',
+      url: 'https://github.com/QwenLM/qwen-code/commit/43d7596d9d4ea44b9fc5b305d01a313d837c8c81',
+    },
+    'qwen-review-topology-skill': {
+      label: 'Qwen Code review Skill --topology dispatch (Step 3M)',
+      url: 'https://github.com/QwenLM/qwen-code/blob/43d7596d9d4ea44b9fc5b305d01a313d837c8c81/packages/core/src/skills/bundled/review/SKILL.md',
+    },
+    'qwen-review-topology-parse-args': {
+      label: 'Qwen Code review --topology argument parsing source',
+      url: 'https://github.com/QwenLM/qwen-code/blob/43d7596d9d4ea44b9fc5b305d01a313d837c8c81/packages/cli/src/commands/review/parse-args.ts',
+    },
     'qwen-v022-release': {
       label: 'Qwen Code v0.22.0 release notes',
       url: 'https://github.com/QwenLM/qwen-code/releases/tag/v0.22.0',
@@ -1993,7 +2005,7 @@ window.matrixData = {
       category: 'execution',
       capability: '代码 Review',
       description: '由产品提供的审查命令或工作流。',
-      values: { claude: '`/review` 为 `/code-review` 别名 · `ultra` 云审查 · GitHub Review', codex: '`/review` · GitHub Review', qwen: '`/review` 内置 Skill · `--resume` 继续中断的 PR 审查（v0.21.15 起） · `publish-assets` 证据图 · Web Shell 结构化结果 · `cost-ledger` 成本台账 · `repo-context` 仓库上下文清单', kimi: '自然语言；无内置 `/review`', qoder: '`/review [instruction]`' },
+      values: { claude: '`/review` 为 `/code-review` 别名 · `ultra` 云审查 · GitHub Review', codex: '`/review` · GitHub Review', qwen: '`/review` 内置 Skill · `--resume` 继续中断的 PR 审查（v0.21.15 起） · `--topology minimal` 单遍 A/B 对比臂（条件：main 分支，尚未发布） · `publish-assets` 证据图 · Web Shell 结构化结果 · `cost-ledger` 成本台账 · `repo-context` 仓库上下文清单', kimi: '自然语言；无内置 `/review`', qoder: '`/review [instruction]`' },
     },
     {
       id: 'execution-git',
