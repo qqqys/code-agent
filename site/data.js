@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-08-25',
+  updatedAt: '2026-08-26',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -233,6 +233,10 @@ window.matrixData = {
     'claude-goal-v239': {
       label: 'Claude Code v2.1.239 changelog (/goal resume restore and check-in backoff)',
       url: 'https://github.com/anthropics/claude-code/blob/16440d0f6ee8/CHANGELOG.md',
+    },
+    'claude-goal-v246': {
+      label: 'Claude Code v2.1.246 changelog (/goal idle check-in limit)',
+      url: 'https://github.com/anthropics/claude-code/blob/005c5dade90c/CHANGELOG.md',
     },
     'claude-default-model-v236': {
       label: 'Claude Code v2.1.236 changelog (ANTHROPIC_DEFAULT_MODEL)',
@@ -657,6 +661,18 @@ window.matrixData = {
     'qwen-goal-v3-acp': {
       label: 'Qwen Code Goal v3 adoption in ACP sessions commit',
       url: 'https://github.com/QwenLM/qwen-code/commit/05079297d26c9c42013c3699743350d1d272fac2',
+    },
+    'qwen-goal-stall-commit': {
+      label: 'Qwen Code Goal checkpoint stall breaker commit',
+      url: 'https://github.com/QwenLM/qwen-code/commit/463809cbb39315b11dd9e410a2bcf5d52107418c',
+    },
+    'qwen-goal-stall-protocol': {
+      label: 'Qwen Code Goal stall limit and reason constants',
+      url: 'https://github.com/QwenLM/qwen-code/blob/463809cbb39315b11dd9e410a2bcf5d52107418c/packages/core/src/goals/goal-protocol.ts',
+    },
+    'qwen-goal-stall-checkpoint': {
+      label: 'Qwen Code Goal checkpoint stall predicate source',
+      url: 'https://github.com/QwenLM/qwen-code/blob/463809cbb39315b11dd9e410a2bcf5d52107418c/packages/core/src/goals/goal-checkpoint.ts',
     },
     'qwen-docs': {
       label: 'Qwen Code Documentation',
@@ -1484,7 +1500,7 @@ window.matrixData = {
       category: 'commands',
       capability: '目标管理',
       description: '创建或查看跨多轮持续执行的目标。',
-      values: { claude: '`/goal`', codex: '`/goal`', qwen: '`/goal`', kimi: '`/goal` · 条件：0.37.0 起单条目标不超过 4000 字符', qoder: '`/goal [description] [--turns <N>]` · `/goal status|pause|resume|take|clear`' },
+      values: { claude: '`/goal`', codex: '`/goal`', qwen: '`/goal` · 条件：main 分支（尚未发布）起证据检查点连续 3 次停滞自动停止目标', kimi: '`/goal` · 条件：0.37.0 起单条目标不超过 4000 字符', qoder: '`/goal [description] [--turns <N>]` · `/goal status|pause|resume|take|clear`' },
     },
     {
       id: 'cmd-agents',
