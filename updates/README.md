@@ -4,6 +4,7 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-08-26 | [跨会话消息：Qwen Code 入站跨会话消息门禁与 `/peers`（PR #9576，v0.22.2）](./2026-08-26-跨会话消息-Qwen入站消息门禁与peers命令.md) |
 | 2026-08-26 | [推理强度：Codex main 分支新增 `persistent` 档位（PR #40799，合入 main 尚未发布）](./2026-08-26-推理强度-Codex-persistent档位.md) |
 | 2026-08-26 | [目标管理：Qwen Code 证据检查点连续停滞自动停止，Claude Code v2.1.246 空闲检查上限](./2026-08-26-目标管理-Qwen证据检查点停滞停止与Claude空闲检查上限.md) |
 | 2026-08-25 | [远程接管与跨端继续：Kimi Code Remote Control 官方中继隧道（PR #3034，main 分支）](./2026-08-25-远程接管与跨端继续-Kimi-RemoteControl中继隧道.md) |

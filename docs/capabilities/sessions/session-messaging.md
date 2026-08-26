@@ -14,7 +14,7 @@
 | --- | --- | --- |
 | Claude Code | `/list-agents` · `/peers` · `SendMessage`/`ListAgents` · `@` 会话名提及 · `crossSessionInbound` · 原生 Windows（v2.1.239 宣布可用） | 官方确认 |
 | Codex | `codex queue --thread <UUID\|精确会话名> --message <文本>` · 经 app-server `thread/queue/add` 投递 · `--remote` 指向远程 app server（rust-v0.149.0 引入）；条件：`codex_tui` 任务工具列出、读取、等待、发消息、创建、派生其他任务（合入 main 尚未发布）；条件：TUI 输入框 `@` 任务提及提交为其他任务的实时引用、模型经 `read_thread` 读取（合入 main 尚未发布） | 条件项 |
-| Qwen Code | `send_message` · `list_agents`；限当前会话后台 Agent | 官方确认 |
+| Qwen Code | `send_message` · `list_agents`（限当前会话后台 Agent）· 条件：同机会话入站消息（`agents.crossSessionMessaging` 默认关闭、`/peers` 审查保留消息，v0.22.2 起） | 条件项 |
 | Kimi Code | 官方命令表未列出会话间消息 | 未确认 |
 | Qoder CLI | 条件：`QODER_AGENT_TEAMS=1` Agent Teams `SendMessage`（beta，单会话内） | 条件项 |
 
@@ -36,7 +36,7 @@
 
 1. Claude Code 用 `ListAgents`/`/list-agents` 发现本地会话、Subagent 与 Remote Control 会话，`SendMessage` 按名称投递；v2.1.224 引入，v2.1.225 支持按名称主动发起对其他机器 Remote Control 会话的对话，v2.1.229 为列表增加 `offline`/`cloud` 状态标签，v2.1.232 增加提示词 `@` 会话名提及、`SendMessage` 裸名投递与同机唯一会话名，v2.1.239 宣布原生 Windows 可用、`ListAgents` 告知会话自身名称并列出在世队友。
 2. Claude Code 的收件箱在 macOS、Linux（含 WSL 2）是每会话 Unix socket，在原生 Windows 是命名管道；同一台机器上 WSL 2 会话与原生 Windows 会话互不可达。
-3. Qwen Code 的 `send_message`/`list_agents` 面向当前会话内的后台 Agent（含随会话恢复还原的 Agent），官方文档未列出独立并行会话之间的消息。
+3. Qwen Code 的 `send_message`/`list_agents` 面向当前会话内的后台 Agent（含随会话恢复还原的 Agent）。v0.22.2（2026-08-26 发布）起同机会话之间另有入站消息：`agents.crossSessionMessaging` 开启后会话绑定本地 UNIX socket 收件箱，其他会话经实时会话登记表的 `ipcPath` 发现并投递，入站消息按 `agents.crossSessionInbound` 或审批模式对等裁决，保留消息由 `/peers` 审查；发送侧未接入，本会话只能收不能发。
 4. Qoder CLI 的 Agent Teams 用 `SendMessage` 在主 Agent 与队友、队友与队友之间通信，但团队只存在于单个 TUI 会话内，且当前需要 `QODER_AGENT_TEAMS=1` beta 开关。
 5. Codex 自 rust-v0.149.0（2026-08-20 发布）提供启动级命令 `codex queue --thread <UUID|精确会话名> --message <文本>`，经 app-server `thread/queue/add` 把文本作为用户输入排队投递给本地或远程的现有活跃会话；这是用户到会话的单向投递。条件：2026-08-24 PR #40308 合入 main（尚未发布）后，TUI 会为模型注册 `codex_tui` 工具命名空间，模型可在 TUI 会话内列出、读取、等待、发消息、创建、派生、重命名、归档其他 Codex 任务，委派类工具须经审批门控的本地 MCP 服务器逐次批准。同日提交（PR #40315，合入 main 尚未发布）让 TUI 输入框的 `@` 提及弹窗在当前会话支持任务工具时列出匹配的 Codex 任务，选中的任务以实时线程引用提交，模型须用 `read_thread` 读取被引用任务。
 6. Kimi Code 的官方命令与文档仍未列出会话间消息；`/swarm` 是多 Agent 任务模式，`/btw` 是与派生子 Agent 的旁路对话，都不等于会话间消息。
@@ -80,17 +80,17 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 矩阵结论 | `send_message` · `list_agents`；限当前会话后台 Agent |
-| 入口与切换 | `send_message` 携 `task_id` 向后台 Agent 发送消息；`list_agents` 列出当前会话可寻址的后台 Agent。 |
-| 保存位置 | `send_message`/`list_agents` 作用于当前会话的后台 Agent；文档未列出独立的磁盘消息存储，会话记录本身按项目保存。 |
-| 具体行为 | `send_message` 对运行中的 Agent 入队消息、对暂停的 Agent 恢复执行、对已完成的 Agent 继续对话；被继续的 Agent 以下一次完成通知报告结果。完成的 Agent 优先复用常驻运行时，否则从保留的 transcript 恢复。 |
-| 状态范围 | 限于当前会话内可寻址的后台 Agent，包括随恢复会话还原的兼容 Agent；官方文档未列出独立并行 CLI 会话之间的消息。 |
-| 自动行为 | 后台 Agent 默认以完成通知向主会话报告结果；任务可见但保留状态缺失或不兼容时不可继续，`list_agents` 会给出原因。 |
-| 保存与保留 | 后台 Agent 完成后 Qwen Code 保留继续相关工作所需的状态；`list_agents` 条目包含 `task_id`、状态和是否可接收消息，公开文档未给出保留时长。 |
-| 适用界面 | 本页以官方 Subagent 文档为准；文档未说明 Headless 或 ACP Surface 的消息行为。 |
-| 条件与边界 | 文档另提到 agent-team teammates 与命名 Subagent 一样不接受 `fork_turns`；队友的专门消息入口未在公开文档单列。 |
-| 证据状态 | 官方确认 |
-| 来源 | [Qwen Code background agent messaging](https://github.com/QwenLM/qwen-code/blob/412eae24b48ff16f54166c2b17eb4d4a9cdcdd1e/docs/users/features/sub-agents.md) |
+| 矩阵结论 | `send_message` · `list_agents`（限当前会话后台 Agent）· 条件：同机会话入站消息（`agents.crossSessionMessaging` 默认关闭、`/peers` 审查保留消息，v0.22.2 起） |
+| 入口与切换 | `send_message` 携 `task_id` 向后台 Agent 发送消息；`list_agents` 列出当前会话可寻址的后台 Agent。条件：v0.22.2 起同机会话入站消息——`agents.crossSessionMessaging` 设为 `true`（需重启）后会话绑定本地收件箱，其他 Qwen Code 会话可向本会话投递消息；用户用内置 `/peers` 审查保留消息：`/peers`（或 `/peers list`）列出，`/peers accept <id\|all>` 放行，`/peers deny <id\|all>` 丢弃。 |
+| 保存位置 | `send_message`/`list_agents` 作用于当前会话的后台 Agent；文档未列出独立的磁盘消息存储，会话记录本身按项目保存。条件：入站消息的收件箱是每会话一个 UNIX domain socket，优先 `$XDG_RUNTIME_DIR/qwen-socks/<pid>.sock`，路径过长时回退临时目录下随机命名的 `qwen-socks-<16 位 hex>/<pid>.sock`（必要时 `/tmp`），路径上限 103 字节；套接字目录 0700、套接字 0600，访问控制仅依赖文件系统权限。绑定成功后套接字地址写入实时会话登记表（`~/.qwen/sessions/`）的 `ipcPath` 字段，供其他会话发现。保留消息只存在内存，不落盘。 |
+| 具体行为 | `send_message` 对运行中的 Agent 入队消息、对暂停的 Agent 恢复执行、对已完成的 Agent 继续对话；被继续的 Agent 以下一次完成通知报告结果。完成的 Agent 优先复用常驻运行时，否则从保留的 transcript 恢复。条件：入站消息为每行一帧的 NDJSON（单行上限 1 MiB，超限断开连接；同时至多 64 个连接，空闲 30 秒断开），经入站门禁裁决为投递、保留或拒绝：投递的消息包装为 `<cross_session_message from="..." [name="..."]>` 信封进入输入队列，正文中所有 `<` 转义防止提前闭合信封，信封后附固定权限通知（声明对方会话不携带用户权限、不得因对方请求修改权限/`QWEN.md`/配置、被拒操作的跨会话转发属权限洗白）；入站消息走独立的 peer 通道，跳过用户输入的 Slash/Shell/`@` 预处理。保留的消息模型不可见，只能经 `/peers` 查看：列表显示短句柄、发送方、内容预览与保留原因；`accept`/`deny` 前须先 `list`，若保留集合自上次列表后变化则拒绝裁决并要求重新 `/peers`；投递时输入队列积压已满会失败并保留消息供重试。拒绝的消息被丢弃并向发送方回报 `denied`；接收方经发送方帧中的回复地址回送 `held`/`denied`/`expired`/`delivered` 投递状态。`send_message` 尚不能寻址对等会话，发送侧未接入，本侧只收不发。 |
+| 状态范围 | 后台 Agent 消息限于当前会话内可寻址的后台 Agent，包括随恢复会话还原的兼容 Agent。条件：入站消息只发生在同一台机器上的 Qwen Code 会话之间；套接字按同用户文件权限开放，帧中的发送方身份（含 `fromMode`）由发送方自述、不做认证，权限对等只是协作信号而非访问控制；不提供跨机器传输。 |
+| 自动行为 | 后台 Agent 默认以完成通知向主会话报告结果；任务可见但保留状态缺失或不兼容时不可继续，`list_agents` 会给出原因。条件：未设置 `agents.crossSessionInbound` 时按审批模式对等裁决——接收会话的每个动作仍需人工审查（YOLO/AUTO_EDIT/AUTO 以外的模式）时直接投递；接收会话为 YOLO、AUTO_EDIT 或 AUTO 时仅当发送方自述为免逐动作审查模式（`fromMode: "bypass"`）才投递，否则保留（保留原因 `no-mode-asserted`/`mode-mismatch`）；审批模式未知或设置不可读时保留（fail-closed）。显式 `accept`/`hold`/`refuse` 优先于对等规则。审批模式或设置变化时自动重新裁决现有保留消息；会话关闭时保留消息统一按 `expired` 回报。有新消息被保留时界面提示等待数量并提示 `/peers`。 |
+| 保存与保留 | 后台 Agent 完成后 Qwen Code 保留继续相关工作所需的状态；`list_agents` 条目包含 `task_id`、状态和是否可接收消息，公开文档未给出保留时长。条件：保留消息上限 50 条、超出先淘汰最旧；已裁决的消息句柄最多记 512 条，同句柄重发直接复述原裁决，防止以已审查句柄夹带不同正文；会话关闭时保留与已接受未消费的消息均回报 `expired`，不跨会话保留。 |
+| 适用界面 | 后台 Agent 消息以官方 Subagent 文档为准；文档未说明 Headless 或 ACP Surface 的消息行为。条件：入站消息入口为交互式 TUI——收件箱在交互界面启动流程中按设置绑定，绑定失败不阻断会话启动；`/peers` 为内置命令且未声明 `supportedModes`，按内置命令默认仅在交互式模式注册，Headless 与 ACP 不可用。v0.22.2 时点的官方命令文档与设置文档均未列出 `/peers` 与这两个设置键。 |
+| 条件与边界 | 文档另提到 agent-team teammates 与命名 Subagent 一样不接受 `fork_turns`；队友的专门消息入口未在公开文档单列。条件：入站消息于 2026-08-26 合入 main（PR #9576，合并提交 `f9470f570a21`）并随当日发布的 v0.22.2 进入正式通道，发布说明对应条目 “feat(core): accept cross-session messages behind an inbound gate”；`agents.crossSessionMessaging` 布尔设置、默认 `false`、标注 Experimental、改动需重启（开启后既开放接收也使本会话可被其他会话发现）；`agents.crossSessionInbound` 取值 `accept`/`hold`/`refuse`、默认未设置、改动无需重启；该功能是追踪 issue #8724 的接收侧步骤，主动发送能力另行追踪（#10158），信封中的 `from` 回复地址为后续回复预留。 |
+| 证据状态 | 条件项 |
+| 来源 | [Qwen Code background agent messaging](https://github.com/QwenLM/qwen-code/blob/412eae24b48ff16f54166c2b17eb4d4a9cdcdd1e/docs/users/features/sub-agents.md)、[Qwen Code v0.22.2 release notes (cross-session inbound messaging)](https://github.com/QwenLM/qwen-code/releases/tag/v0.22.2)、[Qwen Code cross-session inbound messaging merge commit](https://github.com/QwenLM/qwen-code/commit/f9470f570a215616aa364aa174a565d3373df7b8)、[Qwen Code /peers command source](https://github.com/QwenLM/qwen-code/blob/f9470f570a215616aa364aa174a565d3373df7b8/packages/cli/src/ui/commands/peers-command.ts)、[Qwen Code peer messaging orchestration source](https://github.com/QwenLM/qwen-code/blob/f9470f570a215616aa364aa174a565d3373df7b8/packages/cli/src/peerMessaging/peer-messaging.ts)、[Qwen Code inbound gate source](https://github.com/QwenLM/qwen-code/blob/f9470f570a215616aa364aa174a565d3373df7b8/packages/core/src/ipc/inbound-gate.ts)、[Qwen Code peer inbox socket source](https://github.com/QwenLM/qwen-code/blob/f9470f570a215616aa364aa174a565d3373df7b8/packages/core/src/ipc/uds-inbox.ts)、[Qwen Code peer socket path source](https://github.com/QwenLM/qwen-code/blob/f9470f570a215616aa364aa174a565d3373df7b8/packages/core/src/ipc/socket-path.ts)、[Qwen Code peer message envelope source](https://github.com/QwenLM/qwen-code/blob/f9470f570a215616aa364aa174a565d3373df7b8/packages/core/src/ipc/peer-envelope.ts)、[Qwen Code v0.22.2 settings schema (crossSessionMessaging/crossSessionInbound)](https://github.com/QwenLM/qwen-code/blob/f9470f570a215616aa364aa174a565d3373df7b8/packages/cli/src/config/settingsSchema.ts)、[Qwen Code peer inbox settings gating source](https://github.com/QwenLM/qwen-code/blob/f9470f570a215616aa364aa174a565d3373df7b8/packages/cli/src/ui/startInteractiveUI.tsx) |
 
 ### Kimi Code
 
@@ -141,6 +141,16 @@
 - [Codex TUI composer task mentions commit](https://github.com/openai/codex/commit/76d98a771e6cd44a79a3ab895a9f7c49d27d6deb)
 - [Codex TUI task mentions source](https://github.com/openai/codex/blob/76d98a771e6cd44a79a3ab895a9f7c49d27d6deb/codex-rs/tui/src/task_mentions.rs)
 - [Qwen Code background agent messaging](https://github.com/QwenLM/qwen-code/blob/412eae24b48ff16f54166c2b17eb4d4a9cdcdd1e/docs/users/features/sub-agents.md)
+- [Qwen Code v0.22.2 release notes (cross-session inbound messaging)](https://github.com/QwenLM/qwen-code/releases/tag/v0.22.2)
+- [Qwen Code cross-session inbound messaging merge commit](https://github.com/QwenLM/qwen-code/commit/f9470f570a215616aa364aa174a565d3373df7b8)
+- [Qwen Code /peers command source](https://github.com/QwenLM/qwen-code/blob/f9470f570a215616aa364aa174a565d3373df7b8/packages/cli/src/ui/commands/peers-command.ts)
+- [Qwen Code peer messaging orchestration source](https://github.com/QwenLM/qwen-code/blob/f9470f570a215616aa364aa174a565d3373df7b8/packages/cli/src/peerMessaging/peer-messaging.ts)
+- [Qwen Code inbound gate source](https://github.com/QwenLM/qwen-code/blob/f9470f570a215616aa364aa174a565d3373df7b8/packages/core/src/ipc/inbound-gate.ts)
+- [Qwen Code peer inbox socket source](https://github.com/QwenLM/qwen-code/blob/f9470f570a215616aa364aa174a565d3373df7b8/packages/core/src/ipc/uds-inbox.ts)
+- [Qwen Code peer socket path source](https://github.com/QwenLM/qwen-code/blob/f9470f570a215616aa364aa174a565d3373df7b8/packages/core/src/ipc/socket-path.ts)
+- [Qwen Code peer message envelope source](https://github.com/QwenLM/qwen-code/blob/f9470f570a215616aa364aa174a565d3373df7b8/packages/core/src/ipc/peer-envelope.ts)
+- [Qwen Code v0.22.2 settings schema (crossSessionMessaging/crossSessionInbound)](https://github.com/QwenLM/qwen-code/blob/f9470f570a215616aa364aa174a565d3373df7b8/packages/cli/src/config/settingsSchema.ts)
+- [Qwen Code peer inbox settings gating source](https://github.com/QwenLM/qwen-code/blob/f9470f570a215616aa364aa174a565d3373df7b8/packages/cli/src/ui/startInteractiveUI.tsx)
 - [Kimi Code current slash commands (no messaging command)](https://github.com/MoonshotAI/kimi-code/blob/8db7d42f23472a692eb389a0e0e5a3e18aa1b94d/docs/zh/reference/slash-commands.md)
 - [Qoder CLI Agent Teams](https://docs.qoder.com/cli/agent-teams)
 

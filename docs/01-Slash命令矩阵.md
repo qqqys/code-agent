@@ -83,9 +83,9 @@ Qwen Code 的固定命令面由两套加载器共同组成。只扫描硬编码�
 
 #### 硬编码命令
 
-源码中共有 68 个主命令定义：
+源码中共有 69 个主命令定义：
 
-`/advisor`、`/agents`、`/approval-mode`、`/arena`、`/auth`、`/branch`、`/btw`、`/bug`、`/cd`、`/clear`、`/compress`、`/compress-fast`、`/config`、`/context`、`/copy`、`/curator`、`/delete`、`/diff`、`/directory`、`/docs`、`/doctor`、`/dream`、`/editor`、`/effort`、`/export`、`/extensions`、`/forget`、`/fork`、`/goal`、`/help`、`/history`、`/hooks`、`/ide`、`/import-config`、`/init`、`/insight`、`/language`、`/learn`、`/lsp`、`/mcp`、`/memory`、`/model`、`/permissions`、`/plan`、`/quit`、`/recap`、`/reload-plugins`、`/remember`、`/rename`、`/restore`、`/resume`、`/rewind`、`/settings`、`/setup-github`、`/skills`、`/stats`、`/status`、`/statusline`、`/summary`、`/tasks`、`/terminal-setup`、`/theme`、`/tools`、`/trust`、`/update`、`/vim`、`/voice`、`/workflows`。
+`/advisor`、`/agents`、`/approval-mode`、`/arena`、`/auth`、`/branch`、`/btw`、`/bug`、`/cd`、`/clear`、`/compress`、`/compress-fast`、`/config`、`/context`、`/copy`、`/curator`、`/delete`、`/diff`、`/directory`、`/docs`、`/doctor`、`/dream`、`/editor`、`/effort`、`/export`、`/extensions`、`/forget`、`/fork`、`/goal`、`/help`、`/history`、`/hooks`、`/ide`、`/import-config`、`/init`、`/insight`、`/language`、`/learn`、`/lsp`、`/mcp`、`/memory`、`/model`、`/peers`、`/permissions`、`/plan`、`/quit`、`/recap`、`/reload-plugins`、`/remember`、`/rename`、`/restore`、`/resume`、`/rewind`、`/settings`、`/setup-github`、`/skills`、`/stats`、`/status`、`/statusline`、`/summary`、`/tasks`、`/terminal-setup`、`/theme`、`/tools`、`/trust`、`/update`、`/vim`、`/voice`、`/workflows`。
 
 其中 6 个受条件控制：
 
@@ -104,6 +104,8 @@ v0.21.8（2026-08-08 发布）起，`/workflows` 增加 `p <runId>` 形式（提
 `/about`、`/connect`、`/login`、`/reset`、`/new`、`/summarize`、`/dir`、`/?`、`/exit`、`/tag`、`/continue`、`/rollback`、`/usage`。
 
 `/advisor`（会话二次意见审查）于 2026-08-17 合入 main 分支（提交 `18c9763f46ce`，PR #7567），随 v0.21.14（2026-08-19 发布）发布：`/advisor [focus]` 以工具全部移除的只读旁路单轮查询（官方文档：至多最近 40 条消息上下文）请审查模型对当前对话给出二次意见，固定输出 Verdict、Risks、Missing evidence、Recommendation 四节，执行期间阻塞输入直到审查返回；`advisorModel` 设置可指定审查模型（可跨 Provider），未设置时用主模型；命令只在交互式与 ACP 模式可用，内置 `/advisor` 不写入 ACP 会话记录。`/curator`（Auto Skill 维护，提供 status、`run [--dry-run]`、`pin`/`unpin`、`restore` 子命令）由 2026-08-01 提交 `e569734a1e12`（PR #7846）注册为硬编码命令，本目录此前漏记。
+
+`/peers`（审查其他会话发来的保留消息）于 2026-08-26 合入 main 分支（PR #9576，合并提交 `f9470f570a21`）并随当日发布的 v0.22.2 进入正式通道：`/peers` 或 `/peers list` 列出等待审查的消息（短句柄、发送方、内容预览与保留原因），`/peers accept <id|all>` 放行，`/peers deny <id|all>` 丢弃；`accept`/`deny` 只在保留集合与最近一次列表一致时生效，否则要求重新运行 `/peers`。命令无条件注册，但只在交互式模式可用（内置命令未声明 `supportedModes` 时默认仅交互式）；只有 `agents.crossSessionMessaging` 开启、收件箱成功绑定后才有消息可审查，未启用时命令提示服务不可用。消息门禁、套接字收件箱与投递行为详见跨会话消息详情。
 
 #### 随产品提供的 Skill 命令
 
@@ -196,6 +198,10 @@ Web Shell 还固定提供 4 个不属于 CLI/TUI 硬编码加载器的本地命�
 - [Qwen Code `/advisor` 命令源码](https://github.com/QwenLM/qwen-code/blob/18c9763f46ce95eb64f46038941618c4ea50dcce/packages/cli/src/ui/commands/advisor-command.ts)
 - [Qwen Code `advisorModel` 设置文档](https://github.com/QwenLM/qwen-code/blob/18c9763f46ce95eb64f46038941618c4ea50dcce/docs/users/configuration/settings.md)
 - [Qwen Code Auto Skill curator 提交](https://github.com/QwenLM/qwen-code/commit/e569734a1e127d253433409c91926373afda6b47)
+- [Qwen Code 跨会话入站消息合并提交](https://github.com/QwenLM/qwen-code/commit/f9470f570a215616aa364aa174a565d3373df7b8)
+- [Qwen Code `/peers` 命令源码](https://github.com/QwenLM/qwen-code/blob/f9470f570a215616aa364aa174a565d3373df7b8/packages/cli/src/ui/commands/peers-command.ts)
+- [Qwen Code v0.22.2 硬编码命令加载器（/peers）](https://github.com/QwenLM/qwen-code/blob/f9470f570a215616aa364aa174a565d3373df7b8/packages/cli/src/services/BuiltinCommandLoader.ts)
+- [Qwen Code v0.22.2 发布说明](https://github.com/QwenLM/qwen-code/releases/tag/v0.22.2)
 - [Qwen Code Web Shell 本地命令](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/web-shell/client/constants/localCommands.ts)
 - [Kimi Code Slash 命令](https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/reference/slash-commands.md)
 - [Kimi Code `/bug` 别名提交](https://github.com/MoonshotAI/kimi-code/commit/8db7d42f23472a692eb389a0e0e5a3e18aa1b94d)
