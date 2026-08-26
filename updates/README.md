@@ -4,6 +4,8 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-08-26 | [推理强度：Codex main 分支新增 `persistent` 档位（PR #40799，合入 main 尚未发布）](./2026-08-26-推理强度-Codex-persistent档位.md) |
+| 2026-08-26 | [目标管理：Qwen Code 证据检查点连续停滞自动停止，Claude Code v2.1.246 空闲检查上限](./2026-08-26-目标管理-Qwen证据检查点停滞停止与Claude空闲检查上限.md) |
 | 2026-08-25 | [远程接管与跨端继续：Kimi Code Remote Control 官方中继隧道（PR #3034，main 分支）](./2026-08-25-远程接管与跨端继续-Kimi-RemoteControl中继隧道.md) |
 | 2026-08-25 | [代码 Review：Qwen Code `/review --topology minimal` 单遍 A/B 对比臂（PR #9919，main 分支）](./2026-08-25-执行与Git-Qwen-review-topology单遍审查臂.md) |
 | 2026-08-25 | [模型选择：Claude Code v2.1.243 `modelPicker` 选择器列表定制](./2026-08-25-模型选择-Claude-modelPicker选择器列表自定义.md) |

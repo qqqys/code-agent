@@ -190,6 +190,7 @@
         'Claude Code、Qwen Code 和 Qoder CLI 有独立 `/effort`；Codex 把 effort 放入 `/model`。',
         'Kimi Code 没有独立 effort Slash 命令，但可在模型 `[thinking]` 配置与临时模型环境变量中设置。',
         '相同档位名称不能视为相同推理预算；每个 Provider 会自行映射、截断或忽略。',
+        'Codex main 分支（尚未发布）新增 `persistent` 推理档位：选择器显示 `Persistent`，本地配置保留 `persistent`，发送请求时换算为 Responses API 线值 `disabled`。',
       ],
       products: {
         claude: {
@@ -204,15 +205,23 @@
           sources: ['claude-model-config', 'claude-commands', 'claude-env-vars'],
         },
         codex: {
-          entry: '`/model` 中选择；`model_reasoning_effort` 配置字段。',
-          mechanism: 'reasoning effort 与模型目录绑定；`/fast` 控制可用的快速档位。',
-          behavior: '对支持 reasoning 的模型设置推理强度，后续 turn 采用该档位。',
+          entry: '`/model` 中选择；`model_reasoning_effort` 配置字段；TypeScript SDK `modelReasoningEffort` 选项。',
+          mechanism: 'reasoning effort 与模型目录绑定；`/fast` 控制可用的快速档位。TUI 推理强度选择器按模型预设的 `supported_reasoning_efforts` 列出选项，每条可带说明文字。',
+          behavior: '对支持 reasoning 的模型设置推理强度，后续 turn 采用该档位。main 分支新增 `persistent` 档位：本地配置与选择结果保留 `persistent`，客户端发送请求时把它换算为 Responses API 线值 `disabled`；TUI 把该档位显示为 `Persistent`，测试夹具中的说明文字为 `Continue working until put to sleep`。TypeScript SDK `ModelReasoningEffort` 类型同步加入 `persistent`，`modelReasoningEffort: "persistent"` 以 `--config model_reasoning_effort="persistent"` 传给 CLI。',
           scope: '交互选择影响当前线程；配置或 profile 提供长期默认值。',
-          persistence: '`config.toml` 中的字段跨会话；会话选择不必改写配置。',
+          persistence: '`config.toml` 中的字段跨会话；会话选择不必改写配置。`persistent` 在本地配置中原样保存，不被改写为 `disabled`。',
           automation: 'CI 和 SDK 使用配置 profile 或显式模型选项固定 effort。',
           security: '组织 Managed config 可统一模型与运行配置。',
-          conditions: '不同模型暴露不同档位；无对应档位时不能假设静默等价。',
-          sources: ['codex-models', 'codex-config-reference', 'codex-commands'],
+          conditions: '不同模型暴露不同档位；无对应档位时不能假设静默等价。`persistent` 于 2026-08-26 合入 main（提交 `3e4707b34b16`，PR #40799），尚未进入 Release；官方 models 文档与配置参考未列 `persistent`（配置参考当前只列 `minimal | low | medium | high | xhigh`）。',
+          status: '源码确认',
+          sources: [
+            'codex-models',
+            'codex-config-reference',
+            'codex-commands',
+            'codex-persistent-effort-commit',
+            'codex-persistent-effort-protocol',
+            'codex-persistent-effort-client',
+          ],
         },
         qwen: {
           entry: '`/effort` 与模型 Provider 配置。',

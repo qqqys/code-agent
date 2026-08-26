@@ -474,6 +474,18 @@ window.matrixData = {
       label: 'Codex agents overview dashboard source',
       url: 'https://github.com/openai/codex/blob/758ef40f50c1a458425c7cfbf1eb12cbc07af0b0/codex-rs/tui/src/app/agents_overview.rs',
     },
+    'codex-persistent-effort-commit': {
+      label: 'Codex persistent reasoning effort commit',
+      url: 'https://github.com/openai/codex/commit/3e4707b34b16e139fcb7ad11ab8445993b62bba1',
+    },
+    'codex-persistent-effort-protocol': {
+      label: 'Codex persistent reasoning effort protocol source',
+      url: 'https://github.com/openai/codex/blob/3e4707b34b16e139fcb7ad11ab8445993b62bba1/codex-rs/protocol/src/openai_models.rs',
+    },
+    'codex-persistent-effort-client': {
+      label: 'Codex persistent effort Responses API translation source',
+      url: 'https://github.com/openai/codex/blob/3e4707b34b16e139fcb7ad11ab8445993b62bba1/codex-rs/core/src/client.rs',
+    },
     'qwen-commands': {
       label: 'Qwen Code commands documentation',
       url: 'https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/commands.md',
@@ -2172,7 +2184,7 @@ window.matrixData = {
       category: 'models',
       capability: '推理强度',
       description: '设置 reasoning effort、thinking effort 或快速档位。',
-      values: { claude: '`/effort` · `--effort`', codex: '`/model` · `model_reasoning_effort`', qwen: '`/effort`', kimi: '`[thinking] effort`；无独立命令', qoder: '`/effort` · `--reasoning-effort`' },
+      values: { claude: '`/effort` · `--effort`', codex: '`/model` · `model_reasoning_effort` · 条件：main 分支（尚未发布）新增 `persistent` 档位，本地保留 `persistent`、发送 Responses API 时换为 `disabled`', qwen: '`/effort`', kimi: '`[thinking] effort`；无独立命令', qoder: '`/effort` · `--reasoning-effort`' },
     },
     {
       id: 'model-provider',

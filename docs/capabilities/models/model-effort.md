@@ -13,7 +13,7 @@
 | 产品 | 结论 | 证据状态 |
 | --- | --- | --- |
 | Claude Code | `/effort` · `--effort` | 官方确认 |
-| Codex | `/model` · `model_reasoning_effort` | 官方确认 |
+| Codex | `/model` · `model_reasoning_effort` · 条件：main 分支（尚未发布）新增 `persistent` 档位，本地保留 `persistent`、发送 Responses API 时换为 `disabled` | 源码确认 |
 | Qwen Code | `/effort` | 源码确认 |
 | Kimi Code | `[thinking] effort`；无独立命令 | 条件项 |
 | Qoder CLI | `/effort` · `--reasoning-effort` | 官方确认 |
@@ -37,6 +37,7 @@
 1. Claude Code、Qwen Code 和 Qoder CLI 有独立 `/effort`；Codex 把 effort 放入 `/model`。
 2. Kimi Code 没有独立 effort Slash 命令，但可在模型 `[thinking]` 配置与临时模型环境变量中设置。
 3. 相同档位名称不能视为相同推理预算；每个 Provider 会自行映射、截断或忽略。
+4. Codex main 分支（尚未发布）新增 `persistent` 推理档位：选择器显示 `Persistent`，本地配置保留 `persistent`，发送请求时换算为 Responses API 线值 `disabled`。
 
 ## 逐产品记录
 
@@ -60,17 +61,17 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 矩阵结论 | `/model` · `model_reasoning_effort` |
-| 入口与配置 | `/model` 中选择；`model_reasoning_effort` 配置字段。 |
-| 支持范围 | reasoning effort 与模型目录绑定；`/fast` 控制可用的快速档位。 |
-| 具体行为 | 对支持 reasoning 的模型设置推理强度，后续 turn 采用该档位。 |
+| 矩阵结论 | `/model` · `model_reasoning_effort` · 条件：main 分支（尚未发布）新增 `persistent` 档位，本地保留 `persistent`、发送 Responses API 时换为 `disabled` |
+| 入口与配置 | `/model` 中选择；`model_reasoning_effort` 配置字段；TypeScript SDK `modelReasoningEffort` 选项。 |
+| 支持范围 | reasoning effort 与模型目录绑定；`/fast` 控制可用的快速档位。TUI 推理强度选择器按模型预设的 `supported_reasoning_efforts` 列出选项，每条可带说明文字。 |
+| 具体行为 | 对支持 reasoning 的模型设置推理强度，后续 turn 采用该档位。main 分支新增 `persistent` 档位：本地配置与选择结果保留 `persistent`，客户端发送请求时把它换算为 Responses API 线值 `disabled`；TUI 把该档位显示为 `Persistent`，测试夹具中的说明文字为 `Continue working until put to sleep`。TypeScript SDK `ModelReasoningEffort` 类型同步加入 `persistent`，`modelReasoningEffort: "persistent"` 以 `--config model_reasoning_effort="persistent"` 传给 CLI。 |
 | 会话与作用域 | 交互选择影响当前线程；配置或 profile 提供长期默认值。 |
-| 持久化位置 | `config.toml` 中的字段跨会话；会话选择不必改写配置。 |
+| 持久化位置 | `config.toml` 中的字段跨会话；会话选择不必改写配置。`persistent` 在本地配置中原样保存，不被改写为 `disabled`。 |
 | 自动化用法 | CI 和 SDK 使用配置 profile 或显式模型选项固定 effort。 |
 | 安全与管理 | 组织 Managed config 可统一模型与运行配置。 |
-| 条件与边界 | 不同模型暴露不同档位；无对应档位时不能假设静默等价。 |
-| 证据状态 | 官方确认 |
-| 来源 | [Codex models](https://learn.chatgpt.com/docs/models)、[Codex configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference)、[Codex CLI commands](https://developers.openai.com/codex/cli/slash-commands) |
+| 条件与边界 | 不同模型暴露不同档位；无对应档位时不能假设静默等价。`persistent` 于 2026-08-26 合入 main（提交 `3e4707b34b16`，PR #40799），尚未进入 Release；官方 models 文档与配置参考未列 `persistent`（配置参考当前只列 `minimal \| low \| medium \| high \| xhigh`）。 |
+| 证据状态 | 源码确认 |
+| 来源 | [Codex models](https://learn.chatgpt.com/docs/models)、[Codex configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference)、[Codex CLI commands](https://developers.openai.com/codex/cli/slash-commands)、[Codex persistent reasoning effort commit](https://github.com/openai/codex/commit/3e4707b34b16e139fcb7ad11ab8445993b62bba1)、[Codex persistent reasoning effort protocol source](https://github.com/openai/codex/blob/3e4707b34b16e139fcb7ad11ab8445993b62bba1/codex-rs/protocol/src/openai_models.rs)、[Codex persistent effort Responses API translation source](https://github.com/openai/codex/blob/3e4707b34b16e139fcb7ad11ab8445993b62bba1/codex-rs/core/src/client.rs) |
 
 ### Qwen Code
 
@@ -128,6 +129,9 @@
 - [Codex models](https://learn.chatgpt.com/docs/models)
 - [Codex configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference)
 - [Codex CLI commands](https://developers.openai.com/codex/cli/slash-commands)
+- [Codex persistent reasoning effort commit](https://github.com/openai/codex/commit/3e4707b34b16e139fcb7ad11ab8445993b62bba1)
+- [Codex persistent reasoning effort protocol source](https://github.com/openai/codex/blob/3e4707b34b16e139fcb7ad11ab8445993b62bba1/codex-rs/protocol/src/openai_models.rs)
+- [Codex persistent effort Responses API translation source](https://github.com/openai/codex/blob/3e4707b34b16e139fcb7ad11ab8445993b62bba1/codex-rs/core/src/client.rs)
 - [Qwen Code current commands](https://github.com/QwenLM/qwen-code/blob/7f8adc659ebe2d2f809ef31c79fea5638f3bf5ab/docs/users/features/commands.md)
 - [Qwen Code current model providers](https://github.com/QwenLM/qwen-code/blob/7f8adc659ebe2d2f809ef31c79fea5638f3bf5ab/docs/users/configuration/model-providers.md)
 - [Qwen Code current settings](https://github.com/QwenLM/qwen-code/blob/7f8adc659ebe2d2f809ef31c79fea5638f3bf5ab/docs/users/configuration/settings.md)
