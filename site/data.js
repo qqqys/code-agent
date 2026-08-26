@@ -902,6 +902,50 @@ window.matrixData = {
       label: 'Qwen Code v0.21.14 release notes',
       url: 'https://github.com/QwenLM/qwen-code/releases/tag/v0.21.14',
     },
+    'qwen-v0222-release': {
+      label: 'Qwen Code v0.22.2 release notes (cross-session inbound messaging)',
+      url: 'https://github.com/QwenLM/qwen-code/releases/tag/v0.22.2',
+    },
+    'qwen-peer-messaging-commit': {
+      label: 'Qwen Code cross-session inbound messaging merge commit',
+      url: 'https://github.com/QwenLM/qwen-code/commit/f9470f570a215616aa364aa174a565d3373df7b8',
+    },
+    'qwen-peers-command-source': {
+      label: 'Qwen Code /peers command source',
+      url: 'https://github.com/QwenLM/qwen-code/blob/f9470f570a215616aa364aa174a565d3373df7b8/packages/cli/src/ui/commands/peers-command.ts',
+    },
+    'qwen-peer-messaging-source': {
+      label: 'Qwen Code peer messaging orchestration source',
+      url: 'https://github.com/QwenLM/qwen-code/blob/f9470f570a215616aa364aa174a565d3373df7b8/packages/cli/src/peerMessaging/peer-messaging.ts',
+    },
+    'qwen-peer-inbound-gate-source': {
+      label: 'Qwen Code inbound gate source',
+      url: 'https://github.com/QwenLM/qwen-code/blob/f9470f570a215616aa364aa174a565d3373df7b8/packages/core/src/ipc/inbound-gate.ts',
+    },
+    'qwen-peer-inbox-source': {
+      label: 'Qwen Code peer inbox socket source',
+      url: 'https://github.com/QwenLM/qwen-code/blob/f9470f570a215616aa364aa174a565d3373df7b8/packages/core/src/ipc/uds-inbox.ts',
+    },
+    'qwen-peer-socket-path-source': {
+      label: 'Qwen Code peer socket path source',
+      url: 'https://github.com/QwenLM/qwen-code/blob/f9470f570a215616aa364aa174a565d3373df7b8/packages/core/src/ipc/socket-path.ts',
+    },
+    'qwen-peer-envelope-source': {
+      label: 'Qwen Code peer message envelope source',
+      url: 'https://github.com/QwenLM/qwen-code/blob/f9470f570a215616aa364aa174a565d3373df7b8/packages/core/src/ipc/peer-envelope.ts',
+    },
+    'qwen-peer-settings-schema': {
+      label: 'Qwen Code v0.22.2 settings schema (crossSessionMessaging/crossSessionInbound)',
+      url: 'https://github.com/QwenLM/qwen-code/blob/f9470f570a215616aa364aa174a565d3373df7b8/packages/cli/src/config/settingsSchema.ts',
+    },
+    'qwen-peer-wiring-source': {
+      label: 'Qwen Code peer inbox settings gating source',
+      url: 'https://github.com/QwenLM/qwen-code/blob/f9470f570a215616aa364aa174a565d3373df7b8/packages/cli/src/ui/startInteractiveUI.tsx',
+    },
+    'qwen-builtin-loader-v0222': {
+      label: 'Qwen Code v0.22.2 built-in command loader (/peers)',
+      url: 'https://github.com/QwenLM/qwen-code/blob/f9470f570a215616aa364aa174a565d3373df7b8/packages/cli/src/services/BuiltinCommandLoader.ts',
+    },
     'qwen-commands-current': {
       label: 'Qwen Code current custom commands',
       url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/commands.md',
@@ -1967,7 +2011,7 @@ window.matrixData = {
       category: 'sessions',
       capability: '跨会话消息',
       description: '发现其他会话、后台 Agent 或队友并互相发送消息。',
-      values: { claude: '`/list-agents` · `/peers` · `SendMessage`/`ListAgents` · `@` 会话名提及 · `crossSessionInbound` · 原生 Windows（v2.1.239 宣布可用）', codex: '`codex queue --thread <UUID|精确会话名> --message <文本>` · 经 app-server `thread/queue/add` 投递 · `--remote` 指向远程 app server（rust-v0.149.0 引入）；条件：`codex_tui` 任务工具列出、读取、等待、发消息、创建、派生其他任务（合入 main 尚未发布）；条件：TUI 输入框 `@` 任务提及提交为其他任务的实时引用、模型经 `read_thread` 读取（合入 main 尚未发布）', qwen: '`send_message` · `list_agents`；限当前会话后台 Agent', kimi: '官方命令表未列出会话间消息', qoder: '条件：`QODER_AGENT_TEAMS=1` Agent Teams `SendMessage`（beta，单会话内）' },
+      values: { claude: '`/list-agents` · `/peers` · `SendMessage`/`ListAgents` · `@` 会话名提及 · `crossSessionInbound` · 原生 Windows（v2.1.239 宣布可用）', codex: '`codex queue --thread <UUID|精确会话名> --message <文本>` · 经 app-server `thread/queue/add` 投递 · `--remote` 指向远程 app server（rust-v0.149.0 引入）；条件：`codex_tui` 任务工具列出、读取、等待、发消息、创建、派生其他任务（合入 main 尚未发布）；条件：TUI 输入框 `@` 任务提及提交为其他任务的实时引用、模型经 `read_thread` 读取（合入 main 尚未发布）', qwen: '`send_message` · `list_agents`（限当前会话后台 Agent）· 条件：同机会话入站消息（`agents.crossSessionMessaging` 默认关闭、`/peers` 审查保留消息，v0.22.2 起）', kimi: '官方命令表未列出会话间消息', qoder: '条件：`QODER_AGENT_TEAMS=1` Agent Teams `SendMessage`（beta，单会话内）' },
     },
     {
       id: 'extension-mcp',
