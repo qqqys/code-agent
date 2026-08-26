@@ -224,16 +224,18 @@
         'Kimi Code 0.37.0 起单条目标不超过 4000 字符，TUI 输入提示与 v1/v2 引擎双层校验，超限拒绝并保留已输入内容。',
         'Claude Code v2.1.234 起 `/goal` 在回合因不可恢复错误终止时自动清除并提示；后台任务让目标等待超过 30 分钟时主动检查这些任务。',
         'Claude Code v2.1.239 起经 `claude --resume` 选择列表恢复会话时恢复其活动目标；对长时后台工作的重复检查放宽为 30 分钟、1 小时、之后每 2 小时一次。',
+        'Claude Code v2.1.246 起，空闲会话就长时后台工作每个目标至多发起 3 次检查（check-in），下一条用户消息再允许 3 次。',
         'Qwen Code Headless 把 `/goal` 作为完整提示词，Goal 状态随会话保存，`--continue` 或 `--resume <sessionId>` 可跨进程查看或控制；stream-json 以 `goal_state` 为权威状态事件。',
         'Qwen Code ACP 会话自提交 `05079297d26c`（2026-08-12 合入 main，尚未发布）起采用 Goal v3 规范运行时，Goal 状态变化经 `_meta.goalState` 下发。',
+        'Qwen Code 自合并提交 `463809cbb393`（PR #9975，2026-08-25 合入 main，尚未发布）起，证据检查点连续 3 次停滞的 Goal 自动停止，以 `usage_limited` 落定并给出改窄目标的固定原因。',
         'Qoder CLI 官方命令参考列出 `/goal` 并提供独立 Goal Command Reference：`--turns <N>` 限制交互轮数，`status`、`pause`、`resume`、`take`、`clear` 子命令管理目标，目标随会话保存并记录持有会话。',
       ],
       products: {
         claude: command('claude', ['/goal [condition|clear]'], '设置持续目标；不带参数显示当前或最近完成的目标。', {
           parameters: '`condition`；`clear|stop|off|reset|none|cancel` 可提前移除',
           persistence: '当前会话的持续目标状态；v2.1.239 起经 `claude --resume` 选择列表恢复会话时恢复其活动目标',
-          conditions: 'v2.1.234 起：回合因不可恢复错误（如撤销认证、余额用尽、上下文溢出）终止时，`/goal` 自动清除并提示，不再保持生效；后台任务让目标等待超过 30 分钟时主动检查这些任务而不是无限等待，`CLAUDE_CODE_GOAL_CHECKIN_MINUTES=0` 可关闭该检查。v2.1.239 起：对长时后台工作的重复检查逐步放宽间隔（先等待 30 分钟，然后 1 小时，之后每 2 小时一次），不再每 30 分钟重复',
-          sources: ['claude-commands', 'claude-goal-v234', 'claude-goal-v239'],
+          conditions: 'v2.1.234 起：回合因不可恢复错误（如撤销认证、余额用尽、上下文溢出）终止时，`/goal` 自动清除并提示，不再保持生效；后台任务让目标等待超过 30 分钟时主动检查这些任务而不是无限等待，`CLAUDE_CODE_GOAL_CHECKIN_MINUTES=0` 可关闭该检查。v2.1.239 起：对长时后台工作的重复检查逐步放宽间隔（先等待 30 分钟，然后 1 小时，之后每 2 小时一次），不再每 30 分钟重复。v2.1.246 起：空闲会话就长时后台工作每个目标至多发起 3 次检查（check-in），下一条用户消息再允许 3 次',
+          sources: ['claude-commands', 'claude-goal-v234', 'claude-goal-v239', 'claude-goal-v246'],
         }),
         codex: command('codex', ['/goal'], '设置、编辑、暂停、恢复、查看或清除任务目标。', {
           persistence: '当前会话的持久目标状态',
@@ -242,8 +244,8 @@
           parameters: '交互命令目录列 `/goal <condition>` 与 `/goal clear`；Headless 文档另列 `/goal`、`/goal set`、`/goal edit <objective>`、`/goal pause`、`/goal resume` 控制形式',
           mode: '交互式、非交互式、ACP',
           persistence: 'Goal 状态随会话保存；跨进程查看或控制同一 Goal 用 `--continue` 或 `--resume <sessionId>`，并要求 `general.chatRecording` 保持启用（默认启用）',
-          conditions: 'Headless 中运行期调度的 Goal 续跑段不计入 `--max-session-turns`，真实用户提示仍计入；`--max-wall-time`、`--max-tool-calls` 预算继续生效，超限时先暂停活动 Goal 工作再以预算专属错误退出；`--output-format stream-json` 每次 Goal 状态变化发出 `event.type` 为 `goal_state` 的 `stream_event`（无需 `--include-partial-messages`），启用 partial messages 时旧版 `active_goal` 事件作为兼容投影跟随，自动化应以 `goal_state` 为准；预算与事件行为适用于标准 Headless CLI 运行。ACP 会话自提交 `05079297d26c`（main 分支，尚未发布）起改用 Goal v3 规范运行时，不再走旧版 Goal 命令路径：Goal 状态变化经 `_meta.goalState` 下发给客户端，paused 状态在 Web Shell 与 WebUI 渲染；Goal 持久化不可用（`general.chatRecording` 关闭或会话写入失败）时，查看状态与 `/goal clear` 降级返回空快照，`/goal set`、`/goal edit`、`/goal resume` 仍然失败；新到达的用户提示会打断进行中的 Goal 轮次；运行期调度的 Goal 续跑不触发 UserPromptSubmit 钩子；官方 Headless 文档页尚未同步该变化',
-          sources: ['qwen-commands', 'qwen-headless-goal', 'qwen-goal-v3-acp'],
+          conditions: 'Headless 中运行期调度的 Goal 续跑段不计入 `--max-session-turns`，真实用户提示仍计入；`--max-wall-time`、`--max-tool-calls` 预算继续生效，超限时先暂停活动 Goal 工作再以预算专属错误退出；`--output-format stream-json` 每次 Goal 状态变化发出 `event.type` 为 `goal_state` 的 `stream_event`（无需 `--include-partial-messages`），启用 partial messages 时旧版 `active_goal` 事件作为兼容投影跟随，自动化应以 `goal_state` 为准；预算与事件行为适用于标准 Headless CLI 运行。ACP 会话自提交 `05079297d26c`（main 分支，尚未发布）起改用 Goal v3 规范运行时，不再走旧版 Goal 命令路径：Goal 状态变化经 `_meta.goalState` 下发给客户端，paused 状态在 Web Shell 与 WebUI 渲染；Goal 持久化不可用（`general.chatRecording` 关闭或会话写入失败）时，查看状态与 `/goal clear` 降级返回空快照，`/goal set`、`/goal edit`、`/goal resume` 仍然失败；新到达的用户提示会打断进行中的 Goal 轮次；运行期调度的 Goal 续跑不触发 UserPromptSubmit 钩子；官方 Headless 文档页尚未同步该变化。合并提交 `463809cbb393`（PR #9975，2026-08-25 合入 main，尚未发布）起为规范 Goal 运行时新增证据检查点停滞熔断：检查点在其压缩的证据窗口已截断时带回满额 32 条 claims（`GOAL_CHECKPOINT_CLAIM_LIMIT`），或窗口截断时校验器输出无法折叠成 claims（抛 `InvalidGoalCheckpointError`），记为一次停滞；连续 3 次停滞（`GOAL_CHECKPOINT_STALL_LIMIT`）后 Goal 以 `usage_limited` 落定（`limitKind` 沿用 `evidence_catalog`，activity 置为 idle），固定原因说明证据窗口每次溢出、自动重试无法恢复，建议 edit 或 replace 改窄目标后再继续，并广播 `usage_limited` 状态。停滞计数持久化为 `GoalRecord.checkpointStalls`（缺省即 0），守护进程重启或会话恢复不能清零；找到余量的检查点把计数清零，瞬时校验失败与空回合保留计数；开启新证据窗口的控制动作（edit、replace 与恢复因证据受限停止的目标）清零计数，从 paused、blocked 恢复保留计数。不新增 limitKind，wire 协议无变化；官方用户文档尚未同步',
+          sources: ['qwen-commands', 'qwen-headless-goal', 'qwen-goal-v3-acp', 'qwen-goal-stall-commit', 'qwen-goal-stall-protocol', 'qwen-goal-stall-checkpoint'],
         }),
         kimi: command('kimi', ['/goal [...]'], '创建并管理目标模式，支持暂停、恢复、替换、取消和后续目标队列。', {
           parameters: '`status|pause|resume|cancel|replace <objective>|next <objective>|next manage`',
