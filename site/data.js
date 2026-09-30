@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-08-26',
+  updatedAt: '2026-09-30',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -486,6 +486,54 @@ window.matrixData = {
       label: 'Codex persistent effort Responses API translation source',
       url: 'https://github.com/openai/codex/blob/3e4707b34b16e139fcb7ad11ab8445993b62bba1/codex-rs/core/src/client.rs',
     },
+    'codex-v0154-release': {
+      label: 'Codex rust-v0.154.0 发布说明（实验性托管 Worktree）',
+      url: 'https://github.com/openai/codex/releases/tag/rust-v0.154.0',
+    },
+    'codex-v0156-release': {
+      label: 'Codex rust-v0.156.0 发布说明（Worktree 默认开启）',
+      url: 'https://github.com/openai/codex/releases/tag/rust-v0.156.0',
+    },
+    'codex-worktree-feature-experimental': {
+      label: 'Codex rust-v0.154.0 功能登记册（worktrees 实验性默认关闭）',
+      url: 'https://github.com/openai/codex/blob/6b9826e3aa83b1a5947db50f4332cb9c65f1b340/codex-rs/features/src/lib.rs',
+    },
+    'codex-worktree-feature-stable': {
+      label: 'Codex rust-v0.156.0 功能登记册（worktrees 转 Stable 默认开启）',
+      url: 'https://github.com/openai/codex/blob/fe74a774532af67b5a4a3dec03ce9469e17f89af/codex-rs/features/src/lib.rs',
+    },
+    'codex-worktree-cli-flag': {
+      label: 'Codex `--worktree` 共享参数源码',
+      url: 'https://github.com/openai/codex/blob/ff6aec96948b70d94983af2641a6b67c94faeff5/codex-rs/utils/cli/src/shared_options.rs',
+    },
+    'codex-worktree-unsupported': {
+      label: 'Codex `--worktree` 不支持组合的报错快照',
+      url: 'https://github.com/openai/codex/blob/ff6aec96948b70d94983af2641a6b67c94faeff5/codex-rs/cli/src/snapshots/codex__tests__unsupported_worktree_commands.snap',
+    },
+    'codex-worktree-manager': {
+      label: 'Codex WorktreeManager 创建与列举源码',
+      url: 'https://github.com/openai/codex/blob/ff6aec96948b70d94983af2641a6b67c94faeff5/codex-rs/worktree/src/lib.rs',
+    },
+    'codex-worktree-settings': {
+      label: 'Codex 托管 Worktree 设置解析源码',
+      url: 'https://github.com/openai/codex/blob/ff6aec96948b70d94983af2641a6b67c94faeff5/codex-rs/worktree/src/settings.rs',
+    },
+    'codex-worktree-owner': {
+      label: 'Codex Worktree 线程归属记录源码',
+      url: 'https://github.com/openai/codex/blob/ff6aec96948b70d94983af2641a6b67c94faeff5/codex-rs/worktree/src/metadata.rs',
+    },
+    'codex-worktree-tui-creation': {
+      label: 'Codex TUI 托管 Worktree 创建与交接源码',
+      url: 'https://github.com/openai/codex/blob/ff6aec96948b70d94983af2641a6b67c94faeff5/codex-rs/tui/src/app/managed_worktree_creation.rs',
+    },
+    'codex-worktree-picker': {
+      label: 'Codex `/worktree` 选择器与可用性判定源码',
+      url: 'https://github.com/openai/codex/blob/ff6aec96948b70d94983af2641a6b67c94faeff5/codex-rs/tui/src/chatwidget/worktree_picker.rs',
+    },
+    'codex-slash-command-registry': {
+      label: 'Codex TUI Slash 命令定义源码',
+      url: 'https://github.com/openai/codex/blob/ff6aec96948b70d94983af2641a6b67c94faeff5/codex-rs/tui/src/slash_command.rs',
+    },
     'qwen-commands': {
       label: 'Qwen Code commands documentation',
       url: 'https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/commands.md',
@@ -777,6 +825,10 @@ window.matrixData = {
     'qwen-worktree-current': {
       label: 'Qwen Code current worktree',
       url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/worktree.md',
+    },
+    'qwen-worktree-v0247': {
+      label: 'Qwen Code v0.24.7 Worktree 文档（清扫守卫与 `working_dir` 后台规则）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/b12edec1401a28fc53cd9e714d5928b285071fc8/docs/users/features/worktree.md',
     },
     'qwen-mcp-current': {
       label: 'Qwen Code current MCP',
@@ -1146,6 +1198,22 @@ window.matrixData = {
       label: 'Kimi Code current slash commands',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/reference/slash-commands.md',
     },
+    'kimi-slash-commands-211': {
+      label: 'Kimi Code 2.1.1 斜杠命令文档（无 Worktree 入口）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/f67e6398fb3210ad8ace970e2dfd5bcc984ed61f/docs/zh/reference/slash-commands.md',
+    },
+    'kimi-agents-211': {
+      label: 'Kimi Code 2.1.1 Agents 文档（无 Worktree 隔离字段）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/f67e6398fb3210ad8ace970e2dfd5bcc984ed61f/docs/zh/customization/agents.md',
+    },
+    'kimi-tower-paths-211': {
+      label: 'Kimi Code 2.1.1 tower 目录常量源码（`.tower/worktrees`）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/f67e6398fb3210ad8ace970e2dfd5bcc984ed61f/packages/agent-core-v2/src/features/tower/protocol/paths.ts',
+    },
+    'kimi-tower-worktree-guard-211': {
+      label: 'Kimi Code 2.1.1 tower worker Worktree 写隔离源码',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/f67e6398fb3210ad8ace970e2dfd5bcc984ed61f/packages/agent-core-v2/src/features/tower/towerService.ts',
+    },
     'kimi-cli-surface-current': {
       label: 'Kimi Code current CLI, Headless and Web reference',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/reference/kimi-command.md',
@@ -1461,6 +1529,14 @@ window.matrixData = {
     'qoder-using-cli': {
       label: 'Qoder CLI usage and worktrees',
       url: 'https://docs.qoder.com/en/cli/using-cli',
+    },
+    'qoder-cli-reference': {
+      label: 'Qoder CLI 命令行参考（`--worktree` 与子命令表）',
+      url: 'https://docs.qoder.com/cli/cli-reference',
+    },
+    'qoder-builtins-reference': {
+      label: 'Qoder CLI 内置能力参考（`batch` Skill）',
+      url: 'https://docs.qoder.com/cli/builtins-reference',
     },
     'qoder-remote-control': {
       label: 'Qoder CLI Remote Control',
@@ -2137,7 +2213,7 @@ window.matrixData = {
       category: 'execution',
       capability: '并行 Worktree',
       description: '并行任务在独立 Git Worktree 中修改代码。',
-      values: { claude: '`--worktree` · `EnterWorktree` · Agent 隔离', codex: '桌面 App Worktree；CLI 无对应隔离', qwen: '`--worktree` · `enter_worktree` · Agent 隔离', kimi: '无内置入口；可在已有 Worktree 中运行', qoder: '`--worktree` Job · Agent 隔离' },
+      values: { claude: '`--worktree` · `EnterWorktree` · Agent 隔离 · 主检出写入阻断', codex: '`--worktree` · `/worktree` 托管检出（rust-v0.154.0 实验性、0.156.0 起默认开启）', qwen: '`--worktree` · `enter_worktree` · Agent 隔离', kimi: '官方文档无入口；条件：`/tower` worker 独占 `.tower/worktrees/`（实验标志默认关闭）', qoder: '`--worktree [name]` 隔离执行并合回主分支 · Agent `isolation: worktree` · `batch` Skill' },
     },
     {
       id: 'execution-computer-use',
