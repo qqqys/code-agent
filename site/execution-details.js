@@ -1170,49 +1170,65 @@
         '云端 VM 的仓库 checkout',
       ],
       facts: [
-        'Claude Code、Qwen Code 和 Qoder CLI 都提供 CLI Worktree 入口；Codex 的托管 Worktree 当前只在 ChatGPT 桌面 App，Kimi Code 当前没有内置管理入口。',
-        'Claude 和 Qwen 都支持会话级与 Subagent 级 Worktree，但实现细节不同：Claude 默认可从 origin/HEAD 开始，Qwen 默认从当前本地分支开始。',
-        'Qoder CLI 把 Worktree 设计成可列出和删除的 Concurrent Job；Codex App 则把 Worktree 作为本地任务的一种启动位置。',
+        'Claude Code、Codex、Qwen Code 和 Qoder CLI 都有 CLI Worktree 入口。Codex 的 CLI 托管 Worktree 自 rust-v0.154.0 引入、rust-v0.156.0 起默认开启，此前只能记录到 ChatGPT 桌面 App；Kimi Code 2.1.1 的官方文档没有任何 Worktree 入口。',
+        '起点与分支不同：Claude 默认 `worktree.baseRef` 为 `"fresh"`，从远端默认分支（通常 `origin/HEAD`）创建并建 `worktree-<name>` 分支；Codex 默认解析 `HEAD^{commit}`，用 `git worktree add --detach` 得到 detached HEAD 且不建分支；Qwen 从当前本地分支创建 `worktree-<slug>` 分支。',
+        '清理责任不同：Claude 用 `cleanupPeriodDays` 周期清扫并按 marker、未推送提交与 submodule 状态保留；Codex CLI 把自动清理硬编码为关闭（`desktop.worktree-auto-cleanup-enabled` 与 `desktop.worktree-keep-count` 默认 15 只服务 Desktop），删除靠 `/worktree` 浏览器逐项确认；Qwen 只清扫 `agent-<7hex>` 形状的临时 Worktree，`enter_worktree` 命名的其他 Worktree 永不清扫。',
+        '隔离强度不同：Claude 在 Worktree 会话内用四项检查阻断指向主检出的编辑与命令，并覆盖该会话派生的每个 Subagent；Kimi 只在 `/tower` 模式下按 worker 身份拒绝写自己 worktree 之外的路径；Qwen 记录的是删除时的会话归属拒绝。Codex 与 Qoder 的一手资料未记录等价的越界写入拦截。',
+        'Qoder CLI 把 `--worktree` 定义为单次运行的启动位置并“把结果并回主分支”，但目录位置、冲突处理与是否自动删除都未记录；此前引用的 `en/cli/using-cli` 页核对时返回 404，Concurrent Job 表述已无法用一手资料复核。',
       ],
       products: {
         claude: {
           entry:
-            '`claude --worktree|-w [name|#PR|URL]`；会话内用 `EnterWorktree`/`ExitWorktree`；Agent frontmatter 可写 `isolation: worktree`。',
+            '`claude --worktree|-w [name|#PR|URL]`（省略名字时自动生成，如 `bright-running-fox`；`#` 需加引号）；会话内用 `EnterWorktree`/`ExitWorktree`，`EnterWorktree` 带目标路径可在 `.claude/worktrees/` 下直接切换；Agent frontmatter 写 `isolation: worktree`；`--resume`/`--continue` 回到 Worktree 会话。',
           primitives:
-            '`.claude/worktrees/<name>`、`worktree-<name>` 分支、`.worktreeinclude` 与 WorktreeCreate/Remove Hooks。',
+            '`.claude/worktrees/<name>/`（PR/MR 用 `.claude/worktrees/pr-<number>`）、`worktree-<name>` 分支、写入 Git 元数据的创建 marker、`.worktreeinclude`（gitignore 语法，只复制既匹配模式又被 ignore 的文件，跟踪文件从不复制）与 WorktreeCreate/Remove Hooks。',
           behavior:
-            '新会话、当前会话和 Subagent 都可隔离；无改动临时 Worktree 自动清理，有改动时提示保留或删除。',
+            '新会话、当前会话和 Subagent 都可隔离；无改动临时 Worktree 自动清理，有改动时提示保留或删除。隔离期间四项检查阻断指向主检出的操作：`Edit`/`Write`/`NotebookEdit` 目标在主检出、Bash/PowerShell/Monitor 的工作目录解析到主检出或无法核实、把 git 重定向进主检出（`git -C`、`--git-dir`、`GIT_DIR`/`GIT_WORK_TREE`、先 `cd` 再跑 git）、以及无法从命令文本核实 git 停留位置的命令形状（该检查不能关闭）；同样覆盖隔离会话派生的每个 Subagent，PowerShell 只做工作目录检查，每次拒绝以工具错误返回并写明 Worktree 与后续做法。',
           scope:
-            '默认从 `origin/HEAD` 创建，失败时回退本地 HEAD；`worktree.baseRef=head` 可改为当前本地 HEAD。',
+            '`worktree.baseRef` 默认 `"fresh"`：从远端默认分支创建，仓库 24 小时内未 fetch 时拉取默认分支（上限 5 秒），无远端或 fetch 失败回退本地 `HEAD`；设为 `"head"` 则从当前本地 HEAD 创建；不能设为具体分支名。Subagent Worktree 用同一 base 规则；PR/MR 从 `origin` 的 `pull/<number>/head` 或 `merge-requests/<number>/head` 取 head commit。',
           background:
-            '`/batch` 把 5–30 个单元交给后台 Agent，每个单元用独立 Worktree 并可打开 PR。',
+            '`/batch` 把 5–30 个单元交给后台 Agent，每个单元用独立 Worktree 并可打开 PR；配 `WorktreeCreate` Hook 可在非 Git 仓库运行 `/batch`（v2.1.281 起），各 Subagent 改用项目自己的版本控制命令发布改动、开不出 PR 时报告已发布内容。转后台的 `--worktree` 会话其 Worktree 变成可被清扫的后台会话 Worktree，Agent 运行期间持有 `git worktree lock`。',
           integration:
-            'PR reference 可直接成为基础；`.worktreeinclude` 复制被 Git ignore 的本地文件；Hooks 可替换 Git 创建逻辑。',
+            'PR/MR 引用可直接成为基础；`.worktreeinclude` 复制被 Git ignore 的本地文件，使用 `WorktreeCreate` Hook 时不处理该文件（Hook 完全替换默认 git 逻辑，也能把 Worktree 放到 `.claude/worktrees/` 之外，用于 SVN、Perforce、Mercurial）；创建时跳过仓库自己的 filter driver（v2.1.247 起，理由是 filter driver 是 shell 命令）；主检出 `.claude/skills` 的未跟踪内容读通到 Worktree（skills 需 v2.1.277 起，`.claude/agents` 与 `.claude/commands` 同样读通）。',
           artifacts:
-            '独立目录、分支、commit 和可选 PR；Headless 创建的 Worktree 不自动清理。',
+            '独立目录、分支、commit 和可选 PR。交互式未命名且干净的 Worktree 连同分支自动删除，命名干净的与仍有工作的都提示用户；`-p` 不提示也不清理，并把创建时加上的 `git worktree lock` 留给后续会话的 stale-lock 清扫释放；Subagent Worktree 无改动自动删除、有改动保留到周期清扫。清扫按 `cleanupPeriodDays` 只处理带 marker 的 Subagent 与后台会话 Worktree，仍有改动或未推送提交、submodule 有改动或无法检查（v2.1.274 起）、命中四种 filter driver 情况、属于未转后台的 `--worktree` 会话、由用户 `git worktree add` 手工创建或缺少 marker 时保留；stream-json 结果用 `startup_failure_reason` 区分 `worktree_unverified` 与 `worktree_resume_refused`（v2.1.274 起）。',
           conditions:
-            '需要 Git 仓库和已接受 workspace trust；删除会丢弃未提交变更时必须谨慎确认。',
+            '需要 Git 仓库（除非用 `WorktreeCreate` Hook 接管）；交互式运行要求已接受 workspace trust，否则 `--worktree` 报错退出，`-p` 跳过该检查；`.claude`、`.claude/worktrees` 或目标 Worktree 目录是符号链接时拒绝创建并点名该路径；建议把 `.claude/worktrees/` 加进 `.gitignore`。',
           sources: ['claude-worktrees', 'claude-tools', 'claude-commands'],
         },
         codex: {
           entry:
-            '在 ChatGPT 桌面 App 创建任务时选择 Worktree；CLI 当前没有对应托管 Worktree 或 per-Agent 隔离入口。',
+            '`codex --worktree`（help 文本 `Run the session in a new managed Git worktree.`，根级与子命令级都接受，合并规则 `*worktree |= *root_worktree`）；被接受的形式为 `codex --worktree`、`codex --worktree <prompt>`、`codex --worktree exec <prompt>`、`codex exec --worktree <prompt>`、`codex fork --worktree <SESSION_ID>`、`codex exec fork --worktree <SESSION_ID>`；TUI 用 `/worktree`（说明文字 `start or continue a conversation in a new worktree`）；`/new` 与 `/fork` 在功能可用时改问 `Where should the new conversation run?`／`Where should the forked conversation run?`，选项为 `Current checkout` 与 `New worktree`（`Create an isolated managed checkout`）。',
           primitives:
-            '`$CODEX_HOME/worktrees`、detached HEAD、本地后台任务、`.worktreeinclude` 和 Local/Worktree handoff。',
+            '托管根默认 `$CODEX_HOME/worktrees`，检出落在 `<root>/<4 位十六进制桶>/<仓库名>`；`desktop.git-worktree-root` 可覆盖但必须是绝对路径字符串，否则报 `desktop.git-worktree-root must be an absolute path`，空串回退默认；创建用 `git worktree add --detach --no-checkout <root> <sha>`，随后只写目标检出的 `core.worktree`（经 `git rev-parse --path-format=absolute --git-path config.worktree`）并执行 `git --work-tree=. reset --hard --no-recurse-submodules <sha>`，不改源仓库共享配置、不为其开启 worktreeConfig；线程归属记录写在检出 Git 元数据下的 `codex-thread.json`（`version: 1` + `ownerThreadId`）；macOS 在托管根写 `.metadata_never_index` 关闭 Spotlight 索引。',
           behavior:
-            'App 创建独立 checkout 并在后台运行任务；用户可从 Worktree 创建分支、提交、推送和开 PR。',
+            'base 省略时解析 `HEAD^{commit}`，检出为 detached HEAD 且不创建分支；cwd 保留原目录相对仓库根的子路径，子路径不安全时报 `requested base does not contain a safe working directory <path>`；创建中途失败回滚 `git worktree remove --force`，交接阶段失败则保留检出并提示 `A checkout was retained at <path>; remove it with git worktree remove <checkout-path> from the source repository if it is no longer needed.`；`/worktree` 选择器三项为 `Continue current conversation`（`Preserve this conversation in the new checkout`）、`Start new conversation`（`Open a fresh conversation in the new checkout`）、`Browse worktrees`（`Resume an owner thread or copy a working directory`）；浏览器标题 `Managed worktrees`，单项动作 `Resume owner thread`／`Copy working directory`／`Delete worktree`，删除确认写明 `Keeps thread history; may disrupt other sessions`，列表状态标签有 `Archived`、`Owner thread unavailable`、`No attached thread`。',
           scope:
-            '只在 ChatGPT desktop app；不应推断为 Codex CLI Subagent 字段。',
+            '限本地会话：远程工作区或远程环境下 `/worktree` 报 `Managed worktrees are only supported for local sessions.`，命令补全也不列出该命令；不在 Git 仓库内报 `Managed worktrees require a local Git repository.`；显式不受信任的来源报 `Cannot create a worktree from an explicitly untrusted source.`，新检出未受信时报 `The new worktree is not trusted; run Codex there.`；Surface 为 CLI 交互 TUI 与 `codex exec`，沿用 Codex Desktop 的分配根与检出契约（`WorktreeManager` 注释 `Creates and identifies worktrees using the existing Codex Desktop contract.`，`WorktreeSettings::for_cli` 注释 `Shares Desktop\'s allocation root while leaving CLI cleanup disabled.`）。',
           background:
-            '每个 Worktree 任务可本地后台运行；App 管理其生命周期和历史。',
+            'rust-v0.155.0 起 agents 总览显示 Worktree 归属并支持确认后删除干净的托管 Worktree，rust-v0.156.0 起可从 agent command center 直接创建 Worktree 会话；`/worktree` 的 `available_during_task()` 返回 false，任务运行中不可用；创建要求主会话空闲且无排队输入（`Creating a worktree requires an idle primary session without queued input.`），MCP 清单仍在加载、另一个 agent 正在运行、对话历史未保存或存在后台终端时先被拦下，同一时间只允许一次创建（`A worktree is already being created.`）。',
           integration:
-            '可在 Local 与 Worktree 之间 handoff；默认保留最近 15 个，清理前创建 snapshot。',
+            '不支持的组合逐字报错：`--worktree` 只支持新交互会话、`codex fork`、`codex exec` 与 `codex exec fork`，`login`、`resume`、`archive`、`delete`、`queue` 都被拒；`codex fork --worktree` 与 `codex fork --worktree --last` 报 `codex fork --worktree requires an explicit session ID`；`codex exec resume --worktree` 报 `--worktree cannot resume an existing session; use codex exec fork --worktree`；`codex exec review --worktree` 报 `--worktree is not supported for code review`。归属绑定是原子写入：同一线程重复绑定无副作用，已被其他线程绑定时报 `worktree already belongs to thread <id>`。',
           artifacts:
-            '隔离 checkout、snapshot、可选 branch/commit/PR。',
+            '独立检出目录、detached HEAD、`codex-thread.json` 归属记录与被绑定的线程历史。CLI 侧不做自动清理（`for_cli` 把 `auto_cleanup_enabled` 硬编码为 false），`desktop.worktree-auto-cleanup-enabled` 默认 true 与 `desktop.worktree-keep-count` 默认 15 只对 Desktop 生效；手动删除有两道守卫：当前目录在该检出内报 `switch to another checkout before deleting the current worktree`，检出内有被 ignore 的本地文件报 `worktree contains ignored local files; remove them before deleting it`，通过后执行 `git worktree remove` 并删掉空桶目录。',
           conditions:
-            '当前能力限桌面 App；新任务默认 detached HEAD，交付前需显式创建分支。',
-          status: '条件项',
-          sources: ['codex-worktrees', 'codex-review'],
+            '功能开关 key 为 `worktrees`：rust-v0.154.0（2026-09-09）是 `Stage::Experimental`、`default_enabled: false`，需从 `/experimental` 打开并重启（announcement 逐字为 `NEW: Worktrees can now be enabled from /experimental. Restart Codex after enabling it.`）；rust-v0.156.0（2026-09-22）改为 `Stage::Stable`、`default_enabled: true`，`Stage::Stable` 的注释是 `The feature flag is kept for ad-hoc enabling/disabling`，`[features]` 表接受布尔项，`worktrees = false` 走 `Features::disable`；关闭时 `/worktree` 报 `Enable worktrees in your Codex configuration to create a worktree.`。官方 Worktrees 文档页核对时仍只描述桌面 App，未记录 CLI 入口，CLI 结论来自官方 Release 与 rust-v0.159.2（提交 `ff6aec96`）源码；平台条件发布说明未给出，未确认。',
+          status: '官方确认',
+          sources: [
+            'codex-worktrees',
+            'codex-v0154-release',
+            'codex-v0156-release',
+            'codex-worktree-feature-experimental',
+            'codex-worktree-feature-stable',
+            'codex-worktree-cli-flag',
+            'codex-worktree-unsupported',
+            'codex-worktree-manager',
+            'codex-worktree-settings',
+            'codex-worktree-owner',
+            'codex-worktree-tui-creation',
+            'codex-worktree-picker',
+            'codex-slash-command-registry',
+          ],
         },
         qwen: {
           entry:
@@ -1224,53 +1240,62 @@
           scope:
             '普通 Worktree 从当前本地分支创建；PR reference 从 fetch 的 PR tip 创建；Fork Agent 不支持 Worktree 隔离。',
           background:
-            '隔离 Agent 沿默认后台行为运行；Arena 使用另一套 Worktree 目录。',
+            '隔离 Agent 沿默认后台行为运行，清理在 Agent 报告完成时执行，`run_in_background: false` 取内联结果；caller-owned `working_dir` 启动未命名时前台运行、显式后台执行被拒绝，Subagent 定义里的 `background: true` 在顶层被拒绝、嵌套时降级为前台运行；Arena 使用另一套 Worktree 目录。',
           integration:
-            '可复用 node_modules 等目录的 symlink；恢复会话用 `<sessionId>.worktree.json` 恢复绑定。',
+            '可复用 node_modules 等目录的 symlink；恢复会话用 `<sessionId>.worktree.json` 恢复绑定。Worktree 是独立的会话存储“项目”：`--worktree foo` 启动的会话只出现在该 Worktree 的恢复列表里，不带 `--worktree` 的会话存在主检出下。',
           artifacts:
             'Worktree、分支、sidecar、状态栏标识和可保留的 Agent Diff。',
           conditions:
-            'ACP 不接受 `--worktree`，应把 Worktree path 作为 cwd；退出删除受 ownership、dirty 和未合并 commit 三重保护。',
-          sources: ['qwen-worktree-current', 'qwen-review-current'],
+            'ACP 不接受 `--worktree`，应把 Worktree path 作为 cwd；退出删除受 ownership、dirty 和未合并 commit 三重保护，其他会话删除会被拒并指向 `git worktree remove`。v0.24.7 文档把过期清扫守卫写细：只有 `agent-<7hex>` 形状才是清扫候选（用户恰好取该名字的 Worktree 也会被扫），`enter_worktree` 命名的其他 Worktree 永不清扫；未提交内容按 `git status --porcelain --untracked-files=normal --ignored=matching` 判定，被 ignore 的内容（如 `.env`）同样保留检出，例外只有可丢弃构建产物（被 ignore 条目的首个路径段为 `node_modules`、`dist` 或 `coverage`）、符号链接和 daemon 的 `.qwen-session` 标记（未被跟踪时）；30 天阈值在阈值后的下次 CLI 启动执行，`--debug` 下可 grep `cleanupStaleAgentWorktrees: keeping` 与 `worktreeHasWork: waiving` 查看判定原因。',
+          sources: [
+            'qwen-worktree-current',
+            'qwen-worktree-v0247',
+            'qwen-review-current',
+          ],
         },
         kimi: {
           entry:
-            '当前 CLI 与 Agent 文档没有创建、切换或清理 Worktree 的内置入口；可先用 `git worktree add`，再从该目录启动 `kimi`。',
+            '2.1.1（提交 `f67e639`）的斜杠命令、Agents、工具与会话文档没有任何创建、切换或清理 Worktree 的入口，Agent 定义也没有 `isolation` 字段；可先 `git worktree add`，再从该目录启动 `kimi`。条件入口：`/tower` 模式下每个 worker 独占 `.tower/worktrees/` 下的一个 git worktree（路径常量 `WORKTREES_DIR`），但 `tower` 是默认关闭的实验标志，官方斜杠命令文档未列出 `/tower`。',
           primitives:
-            '标准 Git Worktree 和当前工作目录；内部能识别 `.git` 文件形式，但这不是用户可调用的管理能力。',
+            '标准 Git Worktree 与当前工作目录；tower 模式另有 `.tower/` 工作区（`comms/state.json` 与 `comms/` 下的 inbox、findings、reviews、missions、log）和按身份的写隔离，内部能识别 `.git` 文件形式但那不是用户可调用的管理能力。',
           behavior:
-            '从已有 Worktree 启动时，文件与 Bash 自然作用于该 checkout；产品不负责创建分支或清理。',
+            '从已有 Worktree 启动时，文件与 Bash 自然作用于该 checkout，产品不负责创建分支或清理；tower worker 只能写自己的 worktree，越界写入被拒并返回 `tower workers may only write inside their own worktree (<path>) — denied: …`，该判定按 worker 身份（`tower-worker` profile）而不是功能开关状态。',
           scope:
-            '用户选定的启动目录；Subagent 默认共享被分配的工作目录。',
+            '用户选定的启动目录；Subagent 默认共享被分配的工作目录。tower 模式下一个 worker 一个 mission 一个 worktree，`AgentSwarm` 与 tower 模式互斥（同时使用会返回 `AgentSwarm is not available while tower mode is active`）。',
           background:
-            '后台 Agent 可以并行，但当前文档未提供每 Agent Worktree 隔离字段。',
+            '后台 Agent 可以并行，但官方 Agent 文档没有每 Agent Worktree 隔离字段；tower 的并行派生由 `TowerSpawn` 承担。',
           integration:
-            '可用自定义 Skill/Plugin 封装 `git worktree`，仍属于用户扩展。',
+            '可用自定义 Skill/Plugin 封装 `git worktree`，仍属于用户扩展；tower 的分支合并由 `TowerMerge` 门禁把关。',
           artifacts:
-            '由 Git 手工创建的 Worktree 和分支；Kimi 只产生其中的文件修改。',
+            '由 Git 手工创建的 Worktree 和分支（Kimi 只产生其中的文件修改），或 tower 的 `.tower/worktrees/` 检出、`.tower/comms/` 记录与合并后保留的分支。',
           conditions:
-            '本结论描述当前公开 Surface；不把内部 Git marker 检测当成 Worktree 管理功能。',
-          status: '未确认',
-          sources: ['kimi-agents-execution-current', 'kimi-tools-current'],
+            'tower 结论来自 2.1.1 源码 `packages/agent-core-v2/src/features/tower/`，仅 v2 引擎、需 `tower` 实验标志开启（默认关闭）；官方文档没有描述这些目录，面向用户的 Worktree 管理入口未确认。',
+          status: '源码确认',
+          sources: [
+            'kimi-slash-commands-211',
+            'kimi-agents-211',
+            'kimi-tower-paths-211',
+            'kimi-tower-worktree-guard-211',
+          ],
         },
         qoder: {
           entry:
-            '`qodercli --worktree "job"` 创建；`qodercli jobs --worktree` 列出；`qodercli rm <job-id>` 删除。Agent 也支持 `isolation: worktree`。',
+            '`qoder --worktree [name]`（CLI 参考逐字：`Execute in isolation within a new Git Worktree, merging results back to the main branch; the name is optional and auto-generated if omitted.`，示例 `qoder --worktree "Refactor the database layer"`）；Subagent frontmatter `isolation: worktree`（`worktree runs the Subagent in a separate git worktree. Omitted means the default workspace.`）；内置 Skill `batch`（`Spawns parallel working agents in isolated git worktrees to apply bulk changes across multiple files (requires the current directory to be a Git repository).`）。',
           primitives:
-            '`~/.qoder/worktrees/<job-id>`、Concurrent Job、可选 `--branch` 与容器执行。',
+            '现行文档未给出 Worktree 目录位置、分支命名或元数据文件；此前引用的 `en/cli/using-cli` 页核对时返回 404，`~/.qoder/worktrees/<job-id>` 与 Concurrent Job 目录布局未确认。',
           behavior:
-            '多个终端可启动独立 Worktree Job；默认进入容器内 TUI，`-p` 可非交互执行后停止容器。',
+            '`--worktree` 让本次运行在新 Worktree 中隔离执行，文档写明结束后把结果并回主分支，name 省略时自动生成；合并冲突、失败回退、是否要求干净工作树、是否自动删除 Worktree 都未记录。Subagent `isolation: worktree` 让该 Agent 在单独 worktree 中运行。',
           scope:
-            '当前 Git 仓库；`--branch` 选择任务代码分支，其他 Agent 参数透传给容器内 CLI。',
+            '当前 Git 仓库（`--worktree` 未明说，`batch` Skill 明确要求）；插件提供的 Subagent 会移除 `hooks`、`mcpServers` 与 `permissionMode`，`isolation` 只在取值为 `worktree` 时保留。',
           background:
-            '每个 Job 有独立 ID、路径、状态和创建时间；可并行运行。',
+            '`batch` Skill 并行派发多个 Agent、各自在隔离 worktree 中批量改文件；`--worktree` 本身只是单次运行的启动位置，文档未描述并发上限或任务列表。',
           integration:
-            'Subagent `isolation: worktree` 提供任务内隔离；Quest 也有 Local/Worktree execution environment。',
+            '文档只写 `merging results back to the main branch`，未记录使用的 Git 命令、主分支解析方式、推送与开 PR 行为。',
           artifacts:
-            'Worktree 目录、Job 状态、分支和任务修改。',
+            'Worktree 目录、自动生成的名字与并回主分支的改动；具体产物路径未确认。',
           conditions:
-            '需要本机 Git；`qodercli rm` 会删除 Worktree 且不可撤销。',
-          sources: ['qoder-using-cli', 'qoder-agents'],
+            '现行 CLI 参考的可执行名是 `qoder`，子命令表为 `mcp`、`plugins`、`skills`、`hooks`、`agents`、`login`、`commit`、`rollback`、`update`、`remote-control`、`status`、`feedback`、`wiki`，不含 `jobs` 或 `rm`；此前记录的 `qodercli jobs --worktree` 与 `qodercli rm <job-id>` 在现行文档中未确认。',
+          sources: ['qoder-cli-reference', 'qoder-agents', 'qoder-builtins-reference'],
         },
       },
       related: ['agent-worktree', 'execution-git', 'execution-pr'],
