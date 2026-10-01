@@ -2,7 +2,7 @@
 
 [返回任务执行与 Git 详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=execution-background)
 
-> 核对日期：2026-09-30
+> 核对日期：2026-10-01
 
 ## 定义
 
@@ -15,7 +15,7 @@
 | Claude Code | `/background` · `/tasks` · `Monitor` | 官方确认 |
 | Codex | `/ps` · `/stop` | 官方确认 |
 | Qwen Code | `is_background` · `Ctrl+B` · `/tasks` | 源码确认 |
-| Kimi Code | `run_in_background` · `/tasks` · `WaitFor` 回合内等待（0.38.0 起）；条件：`/tasks` 后台 Agent 实时活动（0.35.0 起） | 源码确认 |
+| Kimi Code | `run_in_background` · `/tasks` · `WaitFor` 回合内等待（0.38.0 起）；条件：main 分支（尚未发布）起 `WaitFor` 上限由 600 秒收紧为 90 秒、新输入立即结束等待；`/tasks` 后台 Agent 实时活动（0.35.0 起） | 源码确认 |
 | Qoder CLI | `/tasks` · `TaskOutput` · `TaskStop` | 官方确认 |
 
 ## 比较边界
@@ -39,6 +39,7 @@
 3. 后台不等于无人监管：TaskOutput、任务日志、完成通知、超时和精确停止共同决定任务是否可控。
 4. Kimi Code 的后台 Agent 输出原在任务终态时一次性捕获，完成前输出视图显示 `[no output captured]`；0.35.0 起 `/tasks` 预览窗格改为实时显示步骤级活动，活动记录只保存在内存、上限最近 20 步，不落盘。
 5. Kimi Code 0.38.0 起提供 `WaitFor` 工具：模型在当前回合内挂起等待后台任务（子 Agent、后台 Bash、后台提问）结束，而不是结束回合等待重新调用；其余四家当前一手资料未列出同类专门的回合内等待工具。
+6. Kimi Code `WaitFor` 的 `timeout` 上限在 main 分支（提交 `20a2cea72f5d`，PR #4061，changeset 为 minor，尚未发布）由 600 秒收紧为 90 秒、不再接受更长取值，工具描述改为按任务预期耗时选取而非直接填上限、并不鼓励反复等待，同时让新输入（终端 `Enter`/`Ctrl-S` steer 或等待前已排队消息）立即结束等待；已发布版本（0.38.0–2.1.1）仍为 600 秒上限。
 
 ## 逐产品记录
 
@@ -94,17 +95,17 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 矩阵结论 | `run_in_background` · `/tasks` · `WaitFor` 回合内等待（0.38.0 起）；条件：`/tasks` 后台 Agent 实时活动（0.35.0 起） |
+| 矩阵结论 | `run_in_background` · `/tasks` · `WaitFor` 回合内等待（0.38.0 起）；条件：main 分支（尚未发布）起 `WaitFor` 上限由 600 秒收紧为 90 秒、新输入立即结束等待；`/tasks` 后台 Agent 实时活动（0.35.0 起） |
 | 入口与工具 | `Bash.run_in_background`、`Agent.run_in_background` 或后台 AskUserQuestion；`/tasks` 打开任务浏览器。0.38.0 起新增 `WaitFor` 工具，模型可在当前回合内等待后台任务结束。条件：0.35.0 起 `/tasks` 预览窗格实时显示后台 Agent（`run_in_background` 或 `Ctrl+B` 启动）的活动，Enter/O 打开全屏活动详情，Ctrl+O 展开或收起。 |
-| 核心机制 | `TaskList`、`TaskOutput`、`TaskStop`、`WaitFor`；Bash/Agent/问题任务共用任务服务。`TaskOutput` 始终非阻塞，立即返回当前快照，任务完成经自动通知送达。`WaitFor` 参数：`timeout`（必填，单位秒，上限 600）与可选 `task_id`；不传 `task_id` 时调用时刻运行中的任意一个后台任务结束即返回，无运行中任务时立即返回，等待更久可再次调用。`WaitFor` 与 `TaskList`/`TaskOutput` 一样自动放行。条件：0.35.0 起新增按 Agent 的内存活动流（subagent activity store），子 Agent 事件分流进该存储，按引擎 `turn.step.started` 事件分段，上限 `MAX_SUBAGENT_ACTIVITY_STEPS = 20` 步、步骤文本尾段 4000 字符、单条工具输出 8000 字符、工具参数字符串 16 KiB。 |
-| 执行行为 | 立即返回 task id，终态自动通知主 Agent；回合内等待由 `WaitFor` 承担：调用在当前回合内挂起，等待期间不发起 LLM 请求，超时不是错误、结果列出仍在运行的任务，等待结束时一并列出等待窗口内完成的其他任务，已通过 `WaitFor` 汇报结果的任务不再推送自动完成通知。Goal 模式可用 `WaitFor` 时，注入的指引文本要求模型优先在回合内调用 `WaitFor` 等待而不是结束回合。等待对被等待任务无副作用：`WaitFor` 不停止任务，用户打断等待时任务继续运行。条件：0.35.0 起后台 Agent 事件实时写入活动流，预览窗格展示步骤级进展，不再等待任务结束；全屏详情按步骤分组渲染 Markdown 文本和各工具结果。 |
+| 核心机制 | `TaskList`、`TaskOutput`、`TaskStop`、`WaitFor`；Bash/Agent/问题任务共用任务服务。`TaskOutput` 始终非阻塞，立即返回当前快照，任务完成经自动通知送达。`WaitFor` 参数：`timeout`（必填，单位秒；已发布版本 0.38.0–2.1.1 上限 600，main 分支提交 `20a2cea72f5d`（PR #4061，尚未发布）起收紧为 `WAIT_FOR_MAX_TIMEOUT_S = 90`、schema 以 `.max(90)` 拒绝更长取值，描述文本改为 `1-90` 并要求按任务预期耗时选取而非直接填上限）与可选 `task_id`；不传 `task_id` 时调用时刻运行中的任意一个后台任务结束即返回，无运行中任务时立即返回，等待更久可再次调用（main 分支起指引不鼓励反复等待）。`WaitFor` 与 `TaskList`/`TaskOutput` 一样自动放行。条件：0.35.0 起新增按 Agent 的内存活动流（subagent activity store），子 Agent 事件分流进该存储，按引擎 `turn.step.started` 事件分段，上限 `MAX_SUBAGENT_ACTIVITY_STEPS = 20` 步、步骤文本尾段 4000 字符、单条工具输出 8000 字符、工具参数字符串 16 KiB。 |
+| 执行行为 | 立即返回 task id，终态自动通知主 Agent；回合内等待由 `WaitFor` 承担：调用在当前回合内挂起，等待期间不发起 LLM 请求，超时不是错误、结果列出仍在运行的任务，等待结束时一并列出等待窗口内完成的其他任务，已通过 `WaitFor` 汇报结果的任务不再推送自动完成通知。Goal 模式可用 `WaitFor` 时，注入的指引文本要求模型优先在回合内调用 `WaitFor` 等待而不是结束回合。等待对被等待任务无副作用：`WaitFor` 不停止任务，用户打断等待时任务继续运行。main 分支（提交 `20a2cea72f5d`，尚未发布）起新消息会提前结束本次等待：终端等待期间按 `Enter`（`Ctrl-S` 同样有效）把消息 steer 进当前轮次，等待开始时已在队列中的消息也会被 steer 进来（队列含 shell 命令或 skill 时整个队列与新输入仍排队到轮次结束），被等待的后台任务继续运行、完成后仍自动通知，TUI 把该状态渲染为 `interrupted`（`Wait interrupted by new input`）。条件：0.35.0 起后台 Agent 事件实时写入活动流，预览窗格展示步骤级进展，不再等待任务结束；全屏详情按步骤分组渲染 Markdown 文本和各工具结果。 |
 | 运行范围 | 任务状态与输出保存在当前会话目录；后台 Agent 有独立上下文。`WaitFor` 只能等待本 Agent 启动的后台任务，其他 Agent 的任务 ID 不可见。 |
 | 后台与并发 | Bash 默认 10 分钟、Agent 默认 2 小时；print 模式两者默认无超时，可在配置中调整。 |
 | Git 与平台联动 | TUI、Web、SDK 都能显示或轮询任务状态；完整日志路径可交给 Read。实时活动视图只在 TUI 任务浏览器实现（`apps/kimi-code/src/tui/`），Web 与 SDK 未提供。 |
 | 状态与产物 | TaskOutput 内联最近 32 KB，完整日志落盘；任务修改留在工作目录。活动流仅存内存，会话切换时释放（`clear`），不落盘。 |
-| 条件与边界 | 停止后台任务需要审批；Plan 模式会拦截 TaskStop。条件：`WaitFor` 仅 v2 引擎（agent-core-v2）提供，实验标志 `wait_for` 默认开启，`KIMI_CODE_EXPERIMENTAL_WAIT_FOR=false` 可关闭，随 PR #3060（提交 `8440801de47d`）合入 main 并于 0.38.0 发布；实时活动随 PR #2816（提交 `ad12ad8a140d`）于 2026-08-11 合入 main 分支，随 0.35.0（2026-08-12 发布）交付；会话恢复后没有内存活动记录的任务（如 lost 任务）回退到原捕获输出视图，Agent 任务输出仍在终态时一次性捕获。 |
+| 条件与边界 | 停止后台任务需要审批；Plan 模式会拦截 TaskStop。条件：`WaitFor` 仅 v2 引擎（agent-core-v2）提供，实验标志 `wait_for` 默认开启，`KIMI_CODE_EXPERIMENTAL_WAIT_FOR=false` 可关闭，随 PR #3060（提交 `8440801de47d`）合入 main 并于 0.38.0 发布；90 秒上限与"新输入结束等待"随 PR #4061（提交 `20a2cea72f5d`，2026-09-29 合入 main，changeset `.changeset/shorter-wait-for.md` 为 minor）合入，晚于最新发布 `@moonshot-ai/kimi-code@2.1.1`（2026-09-24），属于合入 main 尚未发布；实时活动随 PR #2816（提交 `ad12ad8a140d`）于 2026-08-11 合入 main 分支，随 0.35.0（2026-08-12 发布）交付；会话恢复后没有内存活动记录的任务（如 lost 任务）回退到原捕获输出视图，Agent 任务输出仍在终态时一次性捕获。 |
 | 证据状态 | 源码确认 |
-| 来源 | [Kimi Code current built-in tools](https://github.com/MoonshotAI/kimi-code/blob/%40moonshot-ai/kimi-code%400.38.0/docs/zh/reference/tools.md)、[Kimi Code current slash commands](https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/reference/slash-commands.md)、[Kimi Code current agents](https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/customization/agents.md)、[Kimi Code /tasks live background agent activity commit](https://github.com/MoonshotAI/kimi-code/commit/ad12ad8a140d24051d93ec98a4a6921ab33723ff)、[Kimi Code background agent activity changeset](https://github.com/MoonshotAI/kimi-code/blob/ad12ad8a140d24051d93ec98a4a6921ab33723ff/.changeset/background-agent-activity-view.md)、[Kimi Code 0.35.0 release notes](https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%400.35.0)、[Kimi Code 0.38.0 release notes (WaitFor tool)](https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%400.38.0)、[Kimi Code WaitFor tool commit](https://github.com/MoonshotAI/kimi-code/commit/8440801de47ddae29224430048e1228b80cde370)、[Kimi Code built-in tools documentation (WaitFor, 0.38.0)](https://github.com/MoonshotAI/kimi-code/blob/%40moonshot-ai/kimi-code%400.38.0/docs/zh/reference/tools.md)、[Kimi Code WaitFor experimental flag source](https://github.com/MoonshotAI/kimi-code/blob/%40moonshot-ai/kimi-code%400.38.0/packages/agent-core-v2/src/agent/tools/task/task-wait/flag.ts)、[Kimi Code WaitFor changeset](https://github.com/MoonshotAI/kimi-code/blob/8440801de47ddae29224430048e1228b80cde370/.changeset/wait-for-tool.md) |
+| 来源 | [Kimi Code current built-in tools](https://github.com/MoonshotAI/kimi-code/blob/%40moonshot-ai/kimi-code%400.38.0/docs/zh/reference/tools.md)、[Kimi Code current slash commands](https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/reference/slash-commands.md)、[Kimi Code current agents](https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/customization/agents.md)、[Kimi Code /tasks live background agent activity commit](https://github.com/MoonshotAI/kimi-code/commit/ad12ad8a140d24051d93ec98a4a6921ab33723ff)、[Kimi Code background agent activity changeset](https://github.com/MoonshotAI/kimi-code/blob/ad12ad8a140d24051d93ec98a4a6921ab33723ff/.changeset/background-agent-activity-view.md)、[Kimi Code 0.35.0 release notes](https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%400.35.0)、[Kimi Code 0.38.0 release notes (WaitFor tool)](https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%400.38.0)、[Kimi Code WaitFor tool commit](https://github.com/MoonshotAI/kimi-code/commit/8440801de47ddae29224430048e1228b80cde370)、[Kimi Code built-in tools documentation (WaitFor, 0.38.0)](https://github.com/MoonshotAI/kimi-code/blob/%40moonshot-ai/kimi-code%400.38.0/docs/zh/reference/tools.md)、[Kimi Code WaitFor experimental flag source](https://github.com/MoonshotAI/kimi-code/blob/%40moonshot-ai/kimi-code%400.38.0/packages/agent-core-v2/src/agent/tools/task/task-wait/flag.ts)、[Kimi Code WaitFor changeset](https://github.com/MoonshotAI/kimi-code/blob/8440801de47ddae29224430048e1228b80cde370/.changeset/wait-for-tool.md)、[Kimi Code WaitFor 90s cap commit (PR #4061)](https://github.com/MoonshotAI/kimi-code/commit/20a2cea72f5d2c4be3a3845e4ff24ce302a6630e)、[Kimi Code WaitFor timeout cap source (WAIT_FOR_MAX_TIMEOUT_S = 90)](https://github.com/MoonshotAI/kimi-code/blob/20a2cea72f5d2c4be3a3845e4ff24ce302a6630e/packages/agent-core-v2/src/agent/tools/task/task-wait/task-wait.ts)、[Kimi Code built-in tools documentation (WaitFor 90s cap)](https://github.com/MoonshotAI/kimi-code/blob/20a2cea72f5d2c4be3a3845e4ff24ce302a6630e/docs/zh/reference/tools.md)、[Kimi Code WaitFor 90s cap changeset](https://github.com/MoonshotAI/kimi-code/blob/20a2cea72f5d2c4be3a3845e4ff24ce302a6630e/.changeset/shorter-wait-for.md) |
 
 ### Qoder CLI
 
@@ -141,6 +142,10 @@
 - [Kimi Code built-in tools documentation (WaitFor, 0.38.0)](https://github.com/MoonshotAI/kimi-code/blob/%40moonshot-ai/kimi-code%400.38.0/docs/zh/reference/tools.md)
 - [Kimi Code WaitFor experimental flag source](https://github.com/MoonshotAI/kimi-code/blob/%40moonshot-ai/kimi-code%400.38.0/packages/agent-core-v2/src/agent/tools/task/task-wait/flag.ts)
 - [Kimi Code WaitFor changeset](https://github.com/MoonshotAI/kimi-code/blob/8440801de47ddae29224430048e1228b80cde370/.changeset/wait-for-tool.md)
+- [Kimi Code WaitFor 90s cap commit (PR #4061)](https://github.com/MoonshotAI/kimi-code/commit/20a2cea72f5d2c4be3a3845e4ff24ce302a6630e)
+- [Kimi Code WaitFor timeout cap source (WAIT_FOR_MAX_TIMEOUT_S = 90)](https://github.com/MoonshotAI/kimi-code/blob/20a2cea72f5d2c4be3a3845e4ff24ce302a6630e/packages/agent-core-v2/src/agent/tools/task/task-wait/task-wait.ts)
+- [Kimi Code built-in tools documentation (WaitFor 90s cap)](https://github.com/MoonshotAI/kimi-code/blob/20a2cea72f5d2c4be3a3845e4ff24ce302a6630e/docs/zh/reference/tools.md)
+- [Kimi Code WaitFor 90s cap changeset](https://github.com/MoonshotAI/kimi-code/blob/20a2cea72f5d2c4be3a3845e4ff24ce302a6630e/.changeset/shorter-wait-for.md)
 - [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)
 - [Qoder CLI built-in tools](https://docs.qoder.com/en/cli/sdk/tools)
 - [Qoder CLI usage and worktrees](https://docs.qoder.com/en/cli/using-cli)

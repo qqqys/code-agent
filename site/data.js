@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-09-30',
+  updatedAt: '2026-10-01',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -1422,6 +1422,22 @@ window.matrixData = {
       label: 'Kimi Code WaitFor changeset',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/8440801de47ddae29224430048e1228b80cde370/.changeset/wait-for-tool.md',
     },
+    'kimi-wait-for-cap-commit': {
+      label: 'Kimi Code WaitFor 90s cap commit (PR #4061)',
+      url: 'https://github.com/MoonshotAI/kimi-code/commit/20a2cea72f5d2c4be3a3845e4ff24ce302a6630e',
+    },
+    'kimi-wait-for-cap-source': {
+      label: 'Kimi Code WaitFor timeout cap source (WAIT_FOR_MAX_TIMEOUT_S = 90)',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/20a2cea72f5d2c4be3a3845e4ff24ce302a6630e/packages/agent-core-v2/src/agent/tools/task/task-wait/task-wait.ts',
+    },
+    'kimi-wait-for-cap-docs': {
+      label: 'Kimi Code built-in tools documentation (WaitFor 90s cap)',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/20a2cea72f5d2c4be3a3845e4ff24ce302a6630e/docs/zh/reference/tools.md',
+    },
+    'kimi-wait-for-cap-changeset': {
+      label: 'Kimi Code WaitFor 90s cap changeset',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/20a2cea72f5d2c4be3a3845e4ff24ce302a6630e/.changeset/shorter-wait-for.md',
+    },
     'kimi-remote-control-commit': {
       label: 'Kimi Code Remote Control web tunnel commit',
       url: 'https://github.com/MoonshotAI/kimi-code/commit/f0a609487fb835371c608cde101a6ff544c3c33e',
@@ -2178,7 +2194,7 @@ window.matrixData = {
       category: 'execution',
       capability: '后台任务',
       description: '在不阻塞主交互的情况下执行命令或 Agent。',
-      values: { claude: '`/background` · `/tasks` · `Monitor`', codex: '`/ps` · `/stop`', qwen: '`is_background` · `Ctrl+B` · `/tasks`', kimi: '`run_in_background` · `/tasks` · `WaitFor` 回合内等待（0.38.0 起）；条件：`/tasks` 后台 Agent 实时活动（0.35.0 起）', qoder: '`/tasks` · `TaskOutput` · `TaskStop`' },
+      values: { claude: '`/background` · `/tasks` · `Monitor`', codex: '`/ps` · `/stop`', qwen: '`is_background` · `Ctrl+B` · `/tasks`', kimi: '`run_in_background` · `/tasks` · `WaitFor` 回合内等待（0.38.0 起）；条件：main 分支（尚未发布）起 `WaitFor` 上限由 600 秒收紧为 90 秒、新输入立即结束等待；`/tasks` 后台 Agent 实时活动（0.35.0 起）', qoder: '`/tasks` · `TaskOutput` · `TaskStop`' },
     },
     {
       id: 'execution-review',
