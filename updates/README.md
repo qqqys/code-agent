@@ -4,6 +4,7 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-10-01 | [后台任务：Kimi Code `WaitFor` 回合内等待上限由 600 秒收紧为 90 秒、新输入立即结束等待（PR #4061，main 分支）](./2026-10-01-执行与Git-Kimi-WaitFor上限收紧为90秒.md) |
 | 2026-09-30 | [并行 Worktree：Codex CLI 托管 Worktree 转正（rust-v0.154.0 引入、0.156.0 默认开启）与四家复核](./2026-09-30-执行与Git-Codex-CLI托管Worktree与四家复核.md) |
 | 2026-08-26 | [跨会话消息：Qwen Code 入站跨会话消息门禁与 `/peers`（PR #9576，v0.22.2）](./2026-08-26-跨会话消息-Qwen入站消息门禁与peers命令.md) |
 | 2026-08-26 | [推理强度：Codex main 分支新增 `persistent` 档位（PR #40799，合入 main 尚未发布）](./2026-08-26-推理强度-Codex-persistent档位.md) |
