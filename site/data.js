@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-10-01',
+  updatedAt: '2026-10-02',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -97,6 +97,26 @@ window.matrixData = {
     'claude-plugins': {
       label: 'Claude Code Plugins',
       url: 'https://code.claude.com/docs/en/plugins',
+    },
+    'claude-plugins-components': {
+      label: 'Claude Code Plugin components',
+      url: 'https://code.claude.com/docs/en/plugins/components',
+    },
+    'claude-mods-overview': {
+      label: 'Claude Code Mods overview',
+      url: 'https://code.claude.com/docs/en/plugins/mods/overview',
+    },
+    'claude-mods-reference': {
+      label: 'Claude Code Mods reference',
+      url: 'https://code.claude.com/docs/en/plugins/mods/reference',
+    },
+    'claude-v21287-mods-changelog': {
+      label: 'Claude Code v2.1.287 Claude Mods 更新日志',
+      url: 'https://github.com/anthropics/claude-code/blob/816ec211a648/CHANGELOG.md',
+    },
+    'claude-v21288-mods-changelog': {
+      label: 'Claude Code v2.1.288 mods `$.ui.selection()` 更新日志',
+      url: 'https://github.com/anthropics/claude-code/blob/1c229fcd1e1e/CHANGELOG.md',
     },
     'claude-ide': {
       label: 'Claude Code IDE integrations',
@@ -2131,7 +2151,7 @@ window.matrixData = {
       category: 'extensions',
       capability: '生命周期 Hooks',
       description: '在工具调用、会话或 Agent 生命周期节点运行自定义逻辑。',
-      values: { claude: '`/hooks` · 多类 Handler', codex: '`/hooks` · command 同步或 `async: true` 后台执行 · 条件：`mcp_tool` Handler 引擎执行随 rust-v0.148.0 发布，会话运行时接入仍在 main 分支（提交 `87070a77925c`，尚未发布）', qwen: '`/hooks` · command/HTTP/prompt', kimi: '`config.toml` · command', qoder: '`settings.json` · command/HTTP/prompt/agent' },
+      values: { claude: '`/hooks` · 多类 Handler · v2.1.287 起插件 `hooks/hooks.json` 的 `modules` 注册进程内 JS/TS 函数 Hook（mod），可改写事件并绘制界面', codex: '`/hooks` · command 同步或 `async: true` 后台执行 · 条件：`mcp_tool` Handler 引擎执行随 rust-v0.148.0 发布，会话运行时接入仍在 main 分支（提交 `87070a77925c`，尚未发布）', qwen: '`/hooks` · command/HTTP/prompt', kimi: '`config.toml` · command', qoder: '`settings.json` · command/HTTP/prompt/agent' },
     },
     {
       id: 'extension-plugins',
