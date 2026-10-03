@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-10-02',
+  updatedAt: '2026-10-03',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -273,6 +273,14 @@ window.matrixData = {
     'claude-concise-v237': {
       label: 'Claude Code v2.1.237 changelog (Concise output style)',
       url: 'https://github.com/anthropics/claude-code/blob/770933ea1ad2/CHANGELOG.md',
+    },
+    'claude-channels': {
+      label: 'Claude Code Channels',
+      url: 'https://code.claude.com/docs/en/channels',
+    },
+    'claude-channels-reference': {
+      label: 'Claude Code Channels reference',
+      url: 'https://code.claude.com/docs/en/channels-reference',
     },
     'codex-commands': {
       label: 'Codex CLI commands',
@@ -553,6 +561,10 @@ window.matrixData = {
     'codex-slash-command-registry': {
       label: 'Codex TUI Slash 命令定义源码',
       url: 'https://github.com/openai/codex/blob/ff6aec96948b70d94983af2641a6b67c94faeff5/codex-rs/tui/src/slash_command.rs',
+    },
+    'codex-slack': {
+      label: 'Codex Slack 集成（委派给 Codex Cloud）',
+      url: 'https://learn.chatgpt.com/docs/third-party/slack',
     },
     'qwen-commands': {
       label: 'Qwen Code commands documentation',
@@ -1074,6 +1086,34 @@ window.matrixData = {
       label: 'Qwen Code current Extensions introduction',
       url: 'https://github.com/QwenLM/qwen-code/blob/a64d1291d2f6298f67763d0953b1653cf7b34060/docs/users/extension/introduction.md',
     },
+    'qwen-channels-overview': {
+      label: 'Qwen Code Channels 总览文档',
+      url: 'https://github.com/QwenLM/qwen-code/blob/612a55295993ffd60303cfc8d3445abac8ae2ad9/docs/users/features/channels/overview.md',
+    },
+    'qwen-email-channel-docs': {
+      label: 'Qwen Code Email 渠道文档',
+      url: 'https://github.com/QwenLM/qwen-code/blob/612a55295993ffd60303cfc8d3445abac8ae2ad9/docs/users/features/channels/email.md',
+    },
+    'qwen-email-channel-commit': {
+      label: 'Qwen Code Email 渠道提交（PR #12939）',
+      url: 'https://github.com/QwenLM/qwen-code/commit/612a55295993ffd60303cfc8d3445abac8ae2ad9',
+    },
+    'qwen-email-channel-config': {
+      label: 'Qwen Code Email 渠道配置校验源码',
+      url: 'https://github.com/QwenLM/qwen-code/blob/612a55295993ffd60303cfc8d3445abac8ae2ad9/packages/channels/email/src/config.ts',
+    },
+    'qwen-email-channel-design': {
+      label: 'Qwen Code Email 渠道设计文档',
+      url: 'https://github.com/QwenLM/qwen-code/blob/612a55295993ffd60303cfc8d3445abac8ae2ad9/docs/design/email-channel.md',
+    },
+    'qwen-channel-registry': {
+      label: 'Qwen Code 内置渠道注册表源码',
+      url: 'https://github.com/QwenLM/qwen-code/blob/612a55295993ffd60303cfc8d3445abac8ae2ad9/packages/cli/src/commands/channel/channel-registry.ts',
+    },
+    'qwen-settings-no-channels': {
+      label: 'Qwen Code 设置文档（未列出 channels 键）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/612a55295993ffd60303cfc8d3445abac8ae2ad9/docs/users/configuration/settings.md',
+    },
     'kimi-commands': {
       label: 'Kimi Code Slash commands',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/reference/slash-commands.md',
@@ -1490,6 +1530,22 @@ window.matrixData = {
       label: 'Kimi Code --allow-remote-terminals removal changeset',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/f0a609487fb835371c608cde101a6ff544c3c33e/.changeset/drop-allow-remote-terminals.md',
     },
+    'kimi-cli-no-channel': {
+      label: 'Kimi Code CLI 参考（无渠道子命令）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/21406fb4c805cc8c715e6d1f16ad3fb5f25f4fe3/docs/zh/reference/kimi-command.md',
+    },
+    'kimi-commands-no-channel': {
+      label: 'Kimi Code 斜杠命令表（无渠道命令）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/21406fb4c805cc8c715e6d1f16ad3fb5f25f4fe3/docs/zh/reference/slash-commands.md',
+    },
+    'kimi-config-no-channel': {
+      label: 'Kimi Code 配置文档（无渠道配置节）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/21406fb4c805cc8c715e6d1f16ad3fb5f25f4fe3/docs/zh/configuration/config-files.md',
+    },
+    'kimi-remote-control-guide': {
+      label: 'Kimi Code Remote Control 指南（任务始终在本机执行）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/21406fb4c805cc8c715e6d1f16ad3fb5f25f4fe3/docs/zh/guides/remote-control.md',
+    },
     'qoder-commands': {
       label: 'Qoder CLI slash commands',
       url: 'https://docs.qoder.com/cli/slash-reference',
@@ -1625,6 +1681,14 @@ window.matrixData = {
     'qoder-settings': {
       label: 'Qoder CLI Configuration Files and Application Order',
       url: 'https://docs.qoder.com/cli/settings',
+    },
+    'qoder-cli-overview': {
+      label: 'Qoder CLI overview（Remote and Integrations）',
+      url: 'https://docs.qoder.com/cli/overview',
+    },
+    'qoder-im-channel-controls': {
+      label: 'Qoder Teams IM Channel controls（仅 QoderWork 通知投递）',
+      url: 'https://docs.qoder.com/account/teams/im-channel-controls',
     },
   },
   rows: [
@@ -2327,6 +2391,13 @@ window.matrixData = {
       capability: '远程接管与跨端继续',
       description: '从另一设备控制本地会话，或在本地与云端 Surface 之间继续工作。',
       values: { claude: '`/remote-control` · `/teleport`', codex: '`app-server --listen` · `codex --remote` · Cloud', qwen: '`qwen serve` 多客户端；条件：`--local-control` 局域网扫码配对（main 分支，尚未发布）；公网需自建网络', kimi: '`kimi web --host` 自建网络；条件：Remote Control 官方中继隧道 `kimi rc` · `kimi web --remote-control` · `/remote-control`（别名 `/rc`，实验开关 `KIMI_CODE_EXPERIMENTAL_REMOTE_CONTROL`，main 分支，尚未发布）', qoder: '`/remote-control` · `qodercli remote-control`' },
+    },
+    {
+      id: 'surface-channels',
+      category: 'surfaces',
+      capability: '消息平台渠道',
+      description: '把第三方聊天平台或邮箱当作 Agent 会话的输入与输出通道。',
+      values: { claude: '条件：`claude --channels plugin:<name>@<marketplace>`；研究预览内置 Telegram、Discord、iMessage（仅 macOS）与 `fakechat` 演示渠道', codex: 'CLI 无渠道入口；条件：Slack 中提及 `@ChatGPT` 把仓库工作委派给 Codex Cloud', qwen: '`qwen channel start` · `channels.<name>.type`：`telegram`/`weixin`/`qq`/`dingtalk`/`dws`/`wecom`/`feishu`/`github`/`gitlab`/`email`；条件：Email 渠道 IMAP + SMTP（main 分支，尚未发布）', kimi: '无第三方消息平台或邮箱渠道；`kimi web` 与 Remote Control 是自有浏览器窗口', qoder: 'CLI 无第三方消息渠道；条件：Qoder Action 在 GitHub Issue/PR 以 `@qoder` 提及触发，代码在 GitHub Runner 执行' },
     },
     {
       id: 'model-switch',
