@@ -1690,6 +1690,198 @@ window.matrixData = {
       label: 'Qoder Teams IM Channel controls（仅 QoderWork 通知投递）',
       url: 'https://docs.qoder.com/account/teams/im-channel-controls',
     },
+    'claude-scheduled-tasks': {
+      label: 'Claude Code Run prompts on a schedule',
+      url: 'https://code.claude.com/docs/en/scheduled-tasks',
+    },
+    'claude-routines': {
+      label: 'Claude Code Routines（云端定时任务）',
+      url: 'https://code.claude.com/docs/en/routines',
+    },
+    'claude-desktop-scheduled-tasks': {
+      label: 'Claude Code Desktop scheduled tasks',
+      url: 'https://code.claude.com/docs/en/desktop-scheduled-tasks',
+    },
+    'claude-cron-changelog': {
+      label: 'Claude Code 更新日志（`/loop` 与 cron 工具版本时间线）',
+      url: 'https://github.com/anthropics/claude-code/blob/1c229fcd1e1e4e452e29a8f116b45fe4cfe2c528/CHANGELOG.md',
+    },
+    'codex-automations': {
+      label: 'Codex Scheduled tasks（Automations）',
+      url: 'https://learn.chatgpt.com/docs/automations',
+    },
+    'codex-reference-commands': {
+      label: 'Codex Commands reference（`codex://automations` 深链接）',
+      url: 'https://learn.chatgpt.com/docs/reference/commands',
+    },
+    'qwen-scheduled-tasks-doc': {
+      label: 'Qwen Code 定时任务文档',
+      url: 'https://github.com/QwenLM/qwen-code/blob/612a55295993ffd60303cfc8d3445abac8ae2ad9/docs/users/features/scheduled-tasks.md',
+    },
+    'qwen-scheduled-tasks-doc-v0247': {
+      label: 'Qwen Code v0.24.7 定时任务文档（已随 Release 发布）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/v0.24.7/docs/users/features/scheduled-tasks.md',
+    },
+    'qwen-loop-skill': {
+      label: 'Qwen Code `/loop` bundled Skill 正文',
+      url: 'https://github.com/QwenLM/qwen-code/blob/612a55295993ffd60303cfc8d3445abac8ae2ad9/packages/core/src/skills/bundled/loop/SKILL.md',
+    },
+    'qwen-cron-create-tool': {
+      label: 'Qwen Code `cron_create` 工具源码',
+      url: 'https://github.com/QwenLM/qwen-code/blob/612a55295993ffd60303cfc8d3445abac8ae2ad9/packages/core/src/tools/cron-create.ts',
+    },
+    'qwen-cron-tool-names': {
+      label: 'Qwen Code 工具名与显示名对照源码',
+      url: 'https://github.com/QwenLM/qwen-code/blob/612a55295993ffd60303cfc8d3445abac8ae2ad9/packages/core/src/tools/tool-names.ts',
+    },
+    'qwen-cron-scheduler': {
+      label: 'Qwen Code cron 调度器源码（上限、抖动、过期与唤醒上限）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/612a55295993ffd60303cfc8d3445abac8ae2ad9/packages/core/src/services/cronScheduler.ts',
+    },
+    'qwen-cron-scheduler-v0247': {
+      label: 'Qwen Code v0.24.7 cron 调度器源码（已随 Release 发布）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/v0.24.7/packages/core/src/services/cronScheduler.ts',
+    },
+    'qwen-cron-tasks-file': {
+      label: 'Qwen Code 定时任务持久化与跨进程文件锁源码',
+      url: 'https://github.com/QwenLM/qwen-code/blob/612a55295993ffd60303cfc8d3445abac8ae2ad9/packages/core/src/services/cronTasksFile.ts',
+    },
+    'qwen-loop-wakeup-tool': {
+      label: 'Qwen Code `loop_wakeup` 工具源码',
+      url: 'https://github.com/QwenLM/qwen-code/blob/612a55295993ffd60303cfc8d3445abac8ae2ad9/packages/core/src/tools/loop-wakeup.ts',
+    },
+    'qwen-cron-settings-schema': {
+      label: 'Qwen Code 设置 schema（`experimental.cron` 与 `experimental.cronRecurringMaxAgeDays`）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/612a55295993ffd60303cfc8d3445abac8ae2ad9/packages/cli/src/config/settingsSchema.ts',
+    },
+    'qwen-cron-settings-doc': {
+      label: 'Qwen Code 设置文档（`experimental.cron` 两键）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/612a55295993ffd60303cfc8d3445abac8ae2ad9/docs/users/configuration/settings.md',
+    },
+    'qwen-cron-skill-loopmd': {
+      label: 'Qwen Code `/loop` Skill 的 `.qwen/loop.md` 任务文件模式与自主模式',
+      url: 'https://github.com/QwenLM/qwen-code/blob/2c591ecc08a6fa080342f9b1b9f7f43215178cbb/packages/core/src/skills/bundled/loop/SKILL.md',
+    },
+    'kimi-cron-tools-doc': {
+      label: 'Kimi Code 工具文档「定时任务」章节',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/21406fb4c805cc8c715e6d1f16ad3fb5f25f4fe3/docs/zh/reference/tools.md',
+    },
+    'kimi-cron-tools-doc-v211': {
+      label: 'Kimi Code 2.1.1 工具文档「定时任务」章节（已随 Release 发布）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/%40moonshot-ai/kimi-code%402.1.1/docs/zh/reference/tools.md',
+    },
+    'kimi-cron-tools-doc-en': {
+      label: 'Kimi Code 英文工具文档「Scheduled tasks」章节（一次性抖动方向与源码相反）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/21406fb4c805cc8c715e6d1f16ad3fb5f25f4fe3/docs/en/reference/tools.md',
+    },
+    'kimi-cron-changelog': {
+      label: 'Kimi Code 中文更新日志（0.5.0 新增定时任务）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/21406fb4c805cc8c715e6d1f16ad3fb5f25f4fe3/docs/zh/release-notes/changelog.md',
+    },
+    'kimi-cron-env-doc': {
+      label: 'Kimi Code 环境变量文档（`KIMI_DISABLE_CRON`）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/21406fb4c805cc8c715e6d1f16ad3fb5f25f4fe3/docs/zh/configuration/env-vars.md',
+    },
+    'kimi-cron-data-doc': {
+      label: 'Kimi Code 数据位置文档（会话目录 `cron/`）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/21406fb4c805cc8c715e6d1f16ad3fb5f25f4fe3/docs/zh/configuration/data-locations.md',
+    },
+    'kimi-slash-no-cron': {
+      label: 'Kimi Code 斜杠命令表（无定时任务命令）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/21406fb4c805cc8c715e6d1f16ad3fb5f25f4fe3/docs/zh/reference/slash-commands.md',
+    },
+    'kimi-config-no-cron': {
+      label: 'Kimi Code 配置文档（顶层节未列出 `[cron]`）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/21406fb4c805cc8c715e6d1f16ad3fb5f25f4fe3/docs/zh/configuration/config-files.md',
+    },
+    'kimi-cli-session-flag': {
+      label: 'Kimi Code CLI 参考（`--session`/`-S` 与隐藏别名 `-r`/`--resume`）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/21406fb4c805cc8c715e6d1f16ad3fb5f25f4fe3/docs/zh/reference/kimi-command.md',
+    },
+    'kimi-cron-feature': {
+      label: 'Kimi Code cron 功能注册源码（工具名与 domain）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/21406fb4c805cc8c715e6d1f16ad3fb5f25f4fe3/packages/agent-core-v2/src/features/cron/cronFeature.ts',
+    },
+    'kimi-cron-service': {
+      label: 'Kimi Code cron 调度服务源码（轮询、合并、stale、fork 清空）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/21406fb4c805cc8c715e6d1f16ad3fb5f25f4fe3/packages/agent-core-v2/src/features/cron/cronService.ts',
+    },
+    'kimi-cron-create-tool': {
+      label: 'Kimi Code `CronCreate` 工具源码（校验与拒绝文案）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/21406fb4c805cc8c715e6d1f16ad3fb5f25f4fe3/packages/agent-core-v2/src/features/cron/tools/cron-create/cronCreateTool.ts',
+    },
+    'kimi-cron-create-schema': {
+      label: 'Kimi Code `CronCreate` 参数、任务上限与 prompt 上限源码',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/21406fb4c805cc8c715e6d1f16ad3fb5f25f4fe3/packages/agent-core-v2/src/features/cron/tools/cron-create/cron-create.ts',
+    },
+    'kimi-cron-create-desc': {
+      label: 'Kimi Code `CronCreate` 工具说明正文',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/21406fb4c805cc8c715e6d1f16ad3fb5f25f4fe3/packages/agent-core-v2/src/features/cron/tools/cron-create/cron-create.md',
+    },
+    'kimi-cron-list-desc': {
+      label: 'Kimi Code `CronList` 工具说明正文',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/21406fb4c805cc8c715e6d1f16ad3fb5f25f4fe3/packages/agent-core-v2/src/features/cron/tools/cron-list/cron-list.md',
+    },
+    'kimi-cron-delete-desc': {
+      label: 'Kimi Code `CronDelete` 工具说明正文',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/21406fb4c805cc8c715e6d1f16ad3fb5f25f4fe3/packages/agent-core-v2/src/features/cron/tools/cron-delete/cron-delete.md',
+    },
+    'kimi-cron-config-section': {
+      label: 'Kimi Code `[cron]` 配置节与环境变量绑定源码',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/21406fb4c805cc8c715e6d1f16ad3fb5f25f4fe3/packages/agent-core-v2/src/features/cron/configSection.ts',
+    },
+    'kimi-cron-jitter': {
+      label: 'Kimi Code cron 抖动常量与算法源码',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/21406fb4c805cc8c715e6d1f16ad3fb5f25f4fe3/packages/agent-core-v2/src/features/cron/internal/jitter.ts',
+    },
+    'kimi-cron-envelope': {
+      label: 'Kimi Code `<cron-fire>` 信封渲染源码',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/21406fb4c805cc8c715e6d1f16ad3fb5f25f4fe3/packages/agent-core-v2/src/features/cron/internal/format.ts',
+    },
+    'kimi-cron-ops': {
+      label: 'Kimi Code cron durable 事件源码（`cron.add`/`cron.delete`/`cron.cursor`）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/21406fb4c805cc8c715e6d1f16ad3fb5f25f4fe3/packages/agent-core-v2/src/features/cron/cronOps.ts',
+    },
+    'kimi-cron-vis-store': {
+      label: 'Kimi Code `kimi vis` 只读 cron 读取器源码（v1/v2 持久化布局与 ID 形状）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/21406fb4c805cc8c715e6d1f16ad3fb5f25f4fe3/apps/vis/server/src/lib/cron-store.ts',
+    },
+    'kimi-cron-fork-changeset': {
+      label: 'Kimi Code fork 会话清空 cron 任务 changeset',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/21406fb4c805cc8c715e6d1f16ad3fb5f25f4fe3/.changeset/fork-cron-clear.md',
+    },
+    'kimi-cron-fork-commit': {
+      label: 'Kimi Code fork 会话清空 cron 任务提交（PR #4083）',
+      url: 'https://github.com/MoonshotAI/kimi-code/commit/f409caa21e71ce7beb158d29ffca1fed76216a64',
+    },
+    'qoder-scheduled-tasks': {
+      label: 'Qoder CLI Scheduled Execution Task',
+      url: 'https://docs.qoder.com/cli/scheduled-tasks',
+    },
+    'qoder-scheduled-reference': {
+      label: 'Qoder CLI Scheduled Task Reference',
+      url: 'https://docs.qoder.com/cli/scheduled-reference',
+    },
+    'qoder-loop': {
+      label: 'Qoder CLI Loop Tasks',
+      url: 'https://docs.qoder.com/cli/loop',
+    },
+    'qoder-loop-reference': {
+      label: 'Qoder CLI Loop Command Reference',
+      url: 'https://docs.qoder.com/cli/loop-reference',
+    },
+    'qoder-release-notes': {
+      label: 'Qoder CLI Release Notes（`/loop`、`/crontab` 与任务预算的版本时间线）',
+      url: 'https://docs.qoder.com/release-notes/qoder-cli',
+    },
+    'qoder-tools-delegate': {
+      label: 'Qoder CLI Tools（Delegate and Automate 分组的 Scheduled work 行）',
+      url: 'https://docs.qoder.com/cli/tools',
+    },
+    'qoder-ide-automations': {
+      label: 'Qoder IDE Automations（与 CLI 定时任务不同的独立机制）',
+      url: 'https://docs.qoder.com/qoder/automations',
+    },
   },
   rows: [
     {
@@ -2188,6 +2380,13 @@ window.matrixData = {
       capability: '跨会话消息',
       description: '发现其他会话、后台 Agent 或队友并互相发送消息。',
       values: { claude: '`/list-agents` · `/peers` · `SendMessage`/`ListAgents` · `@` 会话名提及 · `crossSessionInbound` · 原生 Windows（v2.1.239 宣布可用）', codex: '`codex queue --thread <UUID|精确会话名> --message <文本>` · 经 app-server `thread/queue/add` 投递 · `--remote` 指向远程 app server（rust-v0.149.0 引入）；条件：`codex_tui` 任务工具列出、读取、等待、发消息、创建、派生其他任务（合入 main 尚未发布）；条件：TUI 输入框 `@` 任务提及提交为其他任务的实时引用、模型经 `read_thread` 读取（合入 main 尚未发布）', qwen: '`send_message` · `list_agents`（限当前会话后台 Agent）· 条件：同机会话入站消息（`agents.crossSessionMessaging` 默认关闭、`/peers` 审查保留消息，v0.22.2 起）', kimi: '官方命令表未列出会话间消息', qoder: '条件：`QODER_AGENT_TEAMS=1` Agent Teams `SendMessage`（beta，单会话内）' },
+    },
+    {
+      id: 'session-schedule',
+      category: 'sessions',
+      capability: '定时任务与循环',
+      description: '按 cron 表达式、固定间隔或模型自定节奏，把提示词在未来时刻重新注入会话。',
+      values: { claude: '`/loop [interval] [prompt]`（bundled Skill，别名 `/proactive`）· `CronCreate`/`CronList`/`CronDelete`/`ScheduleWakeup` · `.claude/loop.md` 与 `~/.claude/loop.md` · 单会话上限 50 个、周期任务 7 天后末次触发再自删 · `CLAUDE_CODE_DISABLE_CRON=1` 关闭 · 条件：`/schedule`（别名 `/routines`）创建云端 Routines、桌面端另有独立定时任务', codex: 'CLI 与 IDE 扩展都不提供 Scheduled 管理界面；条件：ChatGPT 桌面 App 的 Scheduled（RFC 5545 RRULE、`codex://automations` 深链接、`features.in_app_local_automation` 开关、在本地项目或独立 Worktree 执行）与 ChatGPT Web/移动端的 Scheduled（可按 Gmail、Slack、GitHub 事件触发）', qwen: '`/loop [interval] [prompt] | list | clear`（bundled Skill）· `cron_create`/`cron_list`/`cron_delete`/`loop_wakeup` · `.qwen/loop.md` 与 `~/.qwen/loop.md` · 默认只在内存，`durable: true` 才写入 `~/.qwen/tmp/<project-hash>/scheduled_tasks.json` · 上限 50 个、默认 7 天过期（`experimental.cronRecurringMaxAgeDays`，`0` 关闭过期）· `experimental.cron: false` 或 `QWEN_CODE_DISABLE_CRON=1` 关闭', kimi: '`CronCreate`/`CronList`/`CronDelete`（无 Slash 命令，官方工具说明明确用户没有 `/cron` 自助入口）· 单会话上限 50 个、`prompt` ≤8 KiB、周期任务满 7 天以 `stale` 末次触发后自删 · `[cron]` 配置节与 `KIMI_DISABLE_CRON=1`', qoder: '`/loop [interval] [flags] <prompt>` · `/crontab` 管理面板 · `.qoder/loop.md` · 持久任务写入 `<project>/.qoder/scheduled_tasks.json`、会话内任务只在内存 · 上限 50 个、周期任务 7 天过期 · `--durable`/`--permanent` 免自动过期 · `--max-turns`/`--max-credits` 预算上限' },
     },
     {
       id: 'extension-mcp',
