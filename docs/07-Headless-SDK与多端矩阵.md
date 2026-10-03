@@ -2,7 +2,7 @@
 
 [返回文档目录](./README.md) · [网页矩阵](https://qqqys.github.io/code-agent/#surfaces) · [详情目录](./capabilities/surfaces/)
 
-> 核对日期：2026-10-02
+> 核对日期：2026-10-03
 
 | 能力 | Claude Code | Codex | Qwen Code | Kimi Code | Qoder CLI |
 | --- | --- | --- | --- | --- | --- |
@@ -16,6 +16,7 @@
 | [桌面端](./capabilities/surfaces/surface-desktop.md) | Claude Desktop Code | ChatGPT Desktop Codex | Qwen Code Desktop | 无独立桌面端；提供 VS Code/Web | Qoder IDE |
 | [云端仓库任务](./capabilities/surfaces/surface-cloud.md) | `claude --remote` · Web Cloud · 条件：`claude self-hosted-runner` 自托管云会话执行（Team/Enterprise 公测） | Codex Cloud | 无托管云任务；`qwen serve` 为自托管 | 无托管云任务；`kimi web` 为自托管 | `qodercli --remote` · Cloud Mode |
 | [远程接管与跨端继续](./capabilities/surfaces/surface-remote-control.md) | `/remote-control` · `/teleport` | `app-server --listen` · `codex --remote` · Cloud | `qwen serve` 多客户端；条件：`--local-control` 局域网扫码配对（main 分支，尚未发布）；公网需自建网络 | `kimi web --host` 自建网络；条件：Remote Control 官方中继隧道 `kimi rc` · `kimi web --remote-control` · `/remote-control`（别名 `/rc`，实验开关 `KIMI_CODE_EXPERIMENTAL_REMOTE_CONTROL`，main 分支，尚未发布） | `/remote-control` · `qodercli remote-control` |
+| [消息平台渠道](./capabilities/surfaces/surface-channels.md) | 条件：`claude --channels plugin:<name>@<marketplace>`；研究预览内置 Telegram、Discord、iMessage（仅 macOS）与 `fakechat` 演示渠道 | CLI 无渠道入口；条件：Slack 中提及 `@ChatGPT` 把仓库工作委派给 Codex Cloud | `qwen channel start` · `channels.<name>.type`：`telegram`/`weixin`/`qq`/`dingtalk`/`dws`/`wecom`/`feishu`/`github`/`gitlab`/`email`；条件：Email 渠道 IMAP + SMTP（main 分支，尚未发布） | 无第三方消息平台或邮箱渠道；`kimi web` 与 Remote Control 是自有浏览器窗口 | CLI 无第三方消息渠道；条件：Qoder Action 在 GitHub Issue/PR 以 `@qoder` 提及触发，代码在 GitHub Runner 执行 |
 
 ## 阅读边界
 
