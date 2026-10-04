@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-10-03',
+  updatedAt: '2026-10-04',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -1630,6 +1630,10 @@ window.matrixData = {
       label: 'Qoder CLI 内置能力参考（`batch` Skill）',
       url: 'https://docs.qoder.com/cli/builtins-reference',
     },
+    'qoder-parallel-tasks': {
+      label: 'Qoder CLI Parallel Tasks（Worktree 目录、临时分支与清理）',
+      url: 'https://docs.qoder.com/cli/parallel-tasks',
+    },
     'qoder-remote-control': {
       label: 'Qoder CLI Remote Control',
       url: 'https://docs.qoder.com/en/cli/remote-control',
@@ -2512,7 +2516,7 @@ window.matrixData = {
       category: 'execution',
       capability: '并行 Worktree',
       description: '并行任务在独立 Git Worktree 中修改代码。',
-      values: { claude: '`--worktree` · `EnterWorktree` · Agent 隔离 · 主检出写入阻断', codex: '`--worktree` · `/worktree` 托管检出（rust-v0.154.0 实验性、0.156.0 起默认开启）', qwen: '`--worktree` · `enter_worktree` · Agent 隔离', kimi: '官方文档无入口；条件：`/tower` worker 独占 `.tower/worktrees/`（实验标志默认关闭）', qoder: '`--worktree [name]` 隔离执行并合回主分支 · Agent `isolation: worktree` · `batch` Skill' },
+      values: { claude: '`--worktree` · `EnterWorktree` · Agent 隔离 · 主检出写入阻断', codex: '`--worktree` · `/worktree` 托管检出（rust-v0.154.0 实验性、0.156.0 起默认开启）', qwen: '`--worktree` · `enter_worktree` · Agent 隔离', kimi: '官方文档无入口；条件：`/tower` worker 独占 `.tower/worktrees/`（实验标志默认关闭）', qoder: '`--worktree [name]` 在仓库内 `.qoder/worktrees/<name>` 隔离执行、同名复用、结果可并回主分支 · Agent `isolation: worktree` · `batch` Skill' },
     },
     {
       id: 'execution-computer-use',

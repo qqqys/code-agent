@@ -2,7 +2,7 @@
 
 [返回任务执行与 Git 详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=execution-worktree)
 
-> 核对日期：2026-10-03
+> 核对日期：2026-10-04
 
 ## 定义
 
@@ -16,7 +16,7 @@
 | Codex | `--worktree` · `/worktree` 托管检出（rust-v0.154.0 实验性、0.156.0 起默认开启） | 官方确认 |
 | Qwen Code | `--worktree` · `enter_worktree` · Agent 隔离 | 源码确认 |
 | Kimi Code | 官方文档无入口；条件：`/tower` worker 独占 `.tower/worktrees/`（实验标志默认关闭） | 源码确认 |
-| Qoder CLI | `--worktree [name]` 隔离执行并合回主分支 · Agent `isolation: worktree` · `batch` Skill | 官方确认 |
+| Qoder CLI | `--worktree [name]` 在仓库内 `.qoder/worktrees/<name>` 隔离执行、同名复用、结果可并回主分支 · Agent `isolation: worktree` · `batch` Skill | 官方确认 |
 
 ## 比较边界
 
@@ -36,9 +36,9 @@
 
 1. Claude Code、Codex、Qwen Code 和 Qoder CLI 都有 CLI Worktree 入口。Codex 的 CLI 托管 Worktree 自 rust-v0.154.0 引入、rust-v0.156.0 起默认开启，此前只能记录到 ChatGPT 桌面 App；Kimi Code 2.1.1 的官方文档没有任何 Worktree 入口。
 2. 起点与分支不同：Claude 默认 `worktree.baseRef` 为 `"fresh"`，从远端默认分支（通常 `origin/HEAD`）创建并建 `worktree-<name>` 分支；Codex 默认解析 `HEAD^{commit}`，用 `git worktree add --detach` 得到 detached HEAD 且不建分支；Qwen 从当前本地分支创建 `worktree-<slug>` 分支。
-3. 清理责任不同：Claude 用 `cleanupPeriodDays` 周期清扫并按 marker、未推送提交与 submodule 状态保留；Codex CLI 把自动清理硬编码为关闭（`desktop.worktree-auto-cleanup-enabled` 与 `desktop.worktree-keep-count` 默认 15 只服务 Desktop），删除靠 `/worktree` 浏览器逐项确认；Qwen 只清扫 `agent-<7hex>` 形状的临时 Worktree，`enter_worktree` 命名的其他 Worktree 永不清扫。
+3. 清理责任不同：Claude 用 `cleanupPeriodDays` 周期清扫并按 marker、未推送提交与 submodule 状态保留；Codex CLI 把自动清理硬编码为关闭（`desktop.worktree-auto-cleanup-enabled` 与 `desktop.worktree-keep-count` 默认 15 只服务 Desktop），删除靠 `/worktree` 浏览器逐项确认；Qwen 只清扫 `agent-<7hex>` 形状的临时 Worktree，`enter_worktree` 命名的其他 Worktree 永不清扫；Qoder 在交互式退出时按未提交文件与新提交决定自动删除或提示保留，Subagent worktree 干净即删、有改动保留。
 4. 隔离强度不同：Claude 在 Worktree 会话内用四项检查阻断指向主检出的编辑与命令，并覆盖该会话派生的每个 Subagent；Kimi 只在 `/tower` 模式下按 worker 身份拒绝写自己 worktree 之外的路径；Qwen 记录的是删除时的会话归属拒绝。Codex 与 Qoder 的一手资料未记录等价的越界写入拦截。
-5. Qoder CLI 把 `--worktree` 定义为单次运行的启动位置并“把结果并回主分支”，但目录位置、冲突处理与是否自动删除都未记录；此前引用的 `en/cli/using-cli` 页核对时返回 404，Concurrent Job 表述已无法用一手资料复核。
+5. Qoder CLI 的 `--worktree` 把命名 Worktree 放在仓库内 `.qoder/worktrees/<sanitized-name>`、建临时分支 `worktree-<processed-name>` 且同名直接复用；并回主分支是手工提交或合并（`Once completed, they can be committed or merged separately.`），官方未描述自动合并命令、主分支解析与冲突解决。
 
 ## 逐产品记录
 
@@ -110,17 +110,17 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 矩阵结论 | `--worktree [name]` 隔离执行并合回主分支 · Agent `isolation: worktree` · `batch` Skill |
-| 入口与工具 | `qoder --worktree [name]`（CLI 参考逐字：`Execute in isolation within a new Git Worktree, merging results back to the main branch; the name is optional and auto-generated if omitted.`，示例 `qoder --worktree "Refactor the database layer"`）；Subagent frontmatter `isolation: worktree`（`worktree runs the Subagent in a separate git worktree. Omitted means the default workspace.`）；内置 Skill `batch`（`Spawns parallel working agents in isolated git worktrees to apply bulk changes across multiple files (requires the current directory to be a Git repository).`）。 |
-| 核心机制 | 现行文档未给出 Worktree 目录位置、分支命名或元数据文件；此前引用的 `en/cli/using-cli` 页核对时返回 404，`~/.qoder/worktrees/<job-id>` 与 Concurrent Job 目录布局未确认。 |
-| 执行行为 | `--worktree` 让本次运行在新 Worktree 中隔离执行，文档写明结束后把结果并回主分支，name 省略时自动生成；合并冲突、失败回退、是否要求干净工作树、是否自动删除 Worktree 都未记录。Subagent `isolation: worktree` 让该 Agent 在单独 worktree 中运行。 |
-| 运行范围 | 当前 Git 仓库（`--worktree` 未明说，`batch` Skill 明确要求）；插件提供的 Subagent 会移除 `hooks`、`mcpServers` 与 `permissionMode`，`isolation` 只在取值为 `worktree` 时保留。 |
-| 后台与并发 | `batch` Skill 并行派发多个 Agent、各自在隔离 worktree 中批量改文件；`--worktree` 本身只是单次运行的启动位置，文档未描述并发上限或任务列表。 |
-| Git 与平台联动 | 文档只写 `merging results back to the main branch`，未记录使用的 Git 命令、主分支解析方式、推送与开 PR 行为。 |
-| 状态与产物 | Worktree 目录、自动生成的名字与并回主分支的改动；具体产物路径未确认。 |
-| 条件与边界 | 现行 CLI 参考的可执行名是 `qoder`，子命令表为 `mcp`、`plugins`、`skills`、`hooks`、`agents`、`login`、`commit`、`rollback`、`update`、`remote-control`、`status`、`feedback`、`wiki`，不含 `jobs` 或 `rm`；此前记录的 `qodercli jobs --worktree` 与 `qodercli rm <job-id>` 在现行文档中未确认。 |
+| 矩阵结论 | `--worktree [name]` 在仓库内 `.qoder/worktrees/<name>` 隔离执行、同名复用、结果可并回主分支 · Agent `isolation: worktree` · `batch` Skill |
+| 入口与工具 | `qoder --worktree [name]`（CLI 参考逐字：`Execute in isolation within a new Git Worktree, merging results back to the main branch; the name is optional and auto-generated if omitted.`，示例 `qoder --worktree feature-a`、`qoder --worktree feature-a "Implement login fix"`、`qoder --worktree`）；Parallel Tasks 页补充 `When no name is provided, Qoder automatically generates a worktree name.` 与 `If a worktree with the same name already exists, it is reused directly instead of being recreated.`；Subagent frontmatter `isolation: worktree`（`worktree runs the Subagent in a separate git worktree. Omitted means the default workspace.`）；内置 Skill `batch`（`Spawns parallel working agents in isolated git worktrees to apply bulk changes across multiple files (requires the current directory to be a Git repository).`）。 |
+| 核心机制 | 命名 Worktree 落在 `<repo>/.qoder/worktrees/<sanitized-name>`（Parallel Tasks 页逐字：`New named worktrees are placed under <repo>/.qoder/worktrees/<sanitized-name>, and a corresponding temporary branch is created.`），临时分支按手工清理命令为 `worktree-<processed-name>`（`git branch -d worktree-<processed-name>`）；仓库根 `.worktreeinclude` 声明要复制进干净检出的文件（`To copy files like .env, declare them using .worktreeinclude at the repository root.`），新 Worktree 默认不含未跟踪文件（`A new worktree is a clean checkout and does not include untracked files by default.`）；同名 Worktree 直接复用而不重建。此前引用的 `en/cli/using-cli` 页核对时仍返回 404，`~/.qoder/worktrees/<job-id>` 与 Concurrent Job 布局表述已由 Parallel Tasks 页的仓库内路径取代。 |
+| 执行行为 | `--worktree` 让本次运行在新 Worktree 中隔离执行，每个任务各自有工作树与分支、互不覆盖（`each task has its own workspace and context, preventing multiple sessions from sharing the same directory and overwriting each other's changes.`）；会话结束时打印 Worktree 路径与恢复会话的命令，交互式退出时检查未提交文件与新提交——干净的 Worktree 可自动删除、有本地文件或提交的会提示保留还是删除（`clean worktrees can be automatically deleted, while those with local files or commits will prompt you to choose whether to keep or delete them.`）；Subagent `isolation: worktree` 让该 Agent 在单独 worktree 中运行，干净的 Subagent worktree 完成即自动删除、有改动的保留（`Clean Subagent worktrees are automatically deleted upon completion, while those with changes are retained.`）。合并冲突解决流程官方未描述。 |
+| 运行范围 | 当前 Git 仓库：命名 Worktree 放在该仓库的 `.qoder/worktrees/` 下（`batch` Skill 明确要求当前目录是 Git 仓库）；插件提供的 Subagent 会移除 `hooks`、`mcpServers` 与 `permissionMode`，`isolation` 只在取值为 `worktree` 时保留。 |
+| 后台与并发 | `batch` Skill 并行派发多个 Agent、各自在隔离 worktree 中批量改文件，官方建议一个任务一个 worktree 以避免改动重叠（`One task per worktree`）；`/tasks` 查看正在运行的后台任务；`--worktree` 本身只是单次运行的启动位置，官方未给出数值并发上限。 |
+| Git 与平台联动 | CLI 参考写 `merging results back to the main branch`，但 Parallel Tasks 页把并回描述为手工动作——完成后可分别提交或合并（`Once completed, they can be committed or merged separately.`），并在任务完成合并后删除多余 worktree 与临时分支（`Delete unnecessary worktrees and temporary branches after tasks are completed and merged to keep the repository tidy.`）；官方未记录自动合并使用的 Git 命令、主分支解析方式、推送与开 PR 行为。 |
+| 状态与产物 | Worktree 目录 `<repo>/.qoder/worktrees/<sanitized-name>`、临时分支 `worktree-<processed-name>`、自动生成的名字与其中改动；手工清理命令为 `git worktree remove <worktree-path>` 与 `git branch -d worktree-<processed-name>`。 |
+| 条件与边界 | 现行 CLI 参考的可执行名是 `qoder`，子命令表为 `mcp`、`plugins`（别名 `plugin`）、`skills`（别名 `skill`）、`hooks`（别名 `hook`）、`agents`（别名 `agent`）、`login`、`commit`、`rollback`、`update`、`remote-control`、`status`、`feedback`、`wiki`，不含 `jobs`、`rm`、`worktree` 或 `parallel-tasks`；此前记录的 `qodercli jobs --worktree` 与 `qodercli rm <job-id>` 在现行文档中无对应命令。 |
 | 证据状态 | 官方确认 |
-| 来源 | [Qoder CLI 命令行参考（`--worktree` 与子命令表）](https://docs.qoder.com/cli/cli-reference)、[Qoder CLI Subagent](https://docs.qoder.com/en/cli/subagent)、[Qoder CLI 内置能力参考（`batch` Skill）](https://docs.qoder.com/cli/builtins-reference) |
+| 来源 | [Qoder CLI 命令行参考（`--worktree` 与子命令表）](https://docs.qoder.com/cli/cli-reference)、[Qoder CLI Parallel Tasks（Worktree 目录、临时分支与清理）](https://docs.qoder.com/cli/parallel-tasks)、[Qoder CLI Subagent](https://docs.qoder.com/en/cli/subagent)、[Qoder CLI 内置能力参考（`batch` Skill）](https://docs.qoder.com/cli/builtins-reference) |
 
 ## 官方来源
 
@@ -148,6 +148,7 @@
 - [Kimi Code 2.1.1 tower 目录常量源码（`.tower/worktrees`）](https://github.com/MoonshotAI/kimi-code/blob/f67e6398fb3210ad8ace970e2dfd5bcc984ed61f/packages/agent-core-v2/src/features/tower/protocol/paths.ts)
 - [Kimi Code 2.1.1 tower worker Worktree 写隔离源码](https://github.com/MoonshotAI/kimi-code/blob/f67e6398fb3210ad8ace970e2dfd5bcc984ed61f/packages/agent-core-v2/src/features/tower/towerService.ts)
 - [Qoder CLI 命令行参考（`--worktree` 与子命令表）](https://docs.qoder.com/cli/cli-reference)
+- [Qoder CLI Parallel Tasks（Worktree 目录、临时分支与清理）](https://docs.qoder.com/cli/parallel-tasks)
 - [Qoder CLI Subagent](https://docs.qoder.com/en/cli/subagent)
 - [Qoder CLI 内置能力参考（`batch` Skill）](https://docs.qoder.com/cli/builtins-reference)
 
