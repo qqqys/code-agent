@@ -2,7 +2,7 @@
 
 [返回文档目录](./README.md) · [网页矩阵](https://qqqys.github.io/code-agent/#execution) · [详情目录](./capabilities/execution/)
 
-> 核对日期：2026-10-03
+> 核对日期：2026-10-04
 
 | 能力 | Claude Code | Codex | Qwen Code | Kimi Code | Qoder CLI |
 | --- | --- | --- | --- | --- | --- |
@@ -14,7 +14,7 @@
 | [Git 操作](./capabilities/execution/execution-git.md) | `Bash` · `/diff` | Shell · `/diff` · App 暂存/回退 | `run_shell_command` · `/diff` | `Bash` | `Bash` · `!` 模式 |
 | [Pull Request](./capabilities/execution/execution-pr.md) | `/review` · `/autofix-pr` · GitHub App | Codex Cloud · GitHub Review · `gh` | `/review --comment` · Actions · `gh` · 条件：Web Shell Git 对话框创建的 PR 绑定源会话（v0.22.0 起） | `Bash`/`gh`；无专用入口 | Qoder Action · `@qoder` · `gh` |
 | [CI 自动化](./capabilities/execution/execution-ci.md) | GitHub Actions · `/autofix-pr` | `openai/codex-action@v1` | `/setup-github` · Qwen Code Action | 自定义 Shell/CI；无内置工作流 | `/setup-github` · Qoder Action |
-| [并行 Worktree](./capabilities/execution/execution-worktree.md) | `--worktree` · `EnterWorktree` · Agent 隔离 · 主检出写入阻断 | `--worktree` · `/worktree` 托管检出（rust-v0.154.0 实验性、0.156.0 起默认开启） | `--worktree` · `enter_worktree` · Agent 隔离 | 官方文档无入口；条件：`/tower` worker 独占 `.tower/worktrees/`（实验标志默认关闭） | `--worktree [name]` 隔离执行并合回主分支 · Agent `isolation: worktree` · `batch` Skill |
+| [并行 Worktree](./capabilities/execution/execution-worktree.md) | `--worktree` · `EnterWorktree` · Agent 隔离 · 主检出写入阻断 | `--worktree` · `/worktree` 托管检出（rust-v0.154.0 实验性、0.156.0 起默认开启） | `--worktree` · `enter_worktree` · Agent 隔离 | 官方文档无入口；条件：`/tower` worker 独占 `.tower/worktrees/`（实验标志默认关闭） | `--worktree [name]` 在仓库内 `.qoder/worktrees/<name>` 隔离执行、同名复用、结果可并回主分支 · Agent `isolation: worktree` · `batch` Skill |
 | [桌面与浏览器控制](./capabilities/execution/execution-computer-use.md) | 无内置桌面或浏览器控制工具；经 MCP 扩展 | 条件：ChatGPT 桌面 App 的 Computer Use；CLI 未提供 | `computer_use__*` 内置工具；默认开启；含浏览器 `page` 工具 | 条件：`/plugins` 内置 `kimi-cu` 与 `kimi-webbridge`；`kimi-cu` 支持 macOS 与 Windows x64（0.34.0 起）；v2 CLI | 内置工具表未列桌面或浏览器控制；经 MCP 扩展 |
 
 ## 阅读边界
