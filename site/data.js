@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-10-04',
+  updatedAt: '2026-10-05',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -1886,6 +1886,46 @@ window.matrixData = {
       label: 'Qoder IDE Automations（与 CLI 定时任务不同的独立机制）',
       url: 'https://docs.qoder.com/qoder/automations',
     },
+    'qwen-mem0-doc': {
+      label: 'Qwen Code Mem0 官方功能文档（内置外部记忆服务）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/abcf23a3d9b184bb850fb46bd706cd206082366a/docs/users/features/mem0.md',
+    },
+    'qwen-mem0-settings-source': {
+      label: 'Qwen Code `memory.mem0` schema、MCP 绑定与写入确认 Hook 源码',
+      url: 'https://github.com/QwenLM/qwen-code/blob/abcf23a3d9b184bb850fb46bd706cd206082366a/packages/cli/src/config/mem0-settings.ts',
+    },
+    'qwen-mem0-config-gate': {
+      label: 'Qwen Code 配置装配源码（绑定门禁、顶层 MCP 与同名冲突报错）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/abcf23a3d9b184bb850fb46bd706cd206082366a/packages/cli/src/config/config.ts',
+    },
+    'qwen-mem0-settings-scope': {
+      label: 'Qwen Code 设置合并源码（`memory.mem0` 只取系统默认、用户与系统设置）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/abcf23a3d9b184bb850fb46bd706cd206082366a/packages/cli/src/config/settings.ts',
+    },
+    'qwen-mem0-settings-doc': {
+      label: 'Qwen Code v0.25.0 设置文档（`memory.mem0` 与 `memory.enableStructuredRecall`）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/v0.25.0/docs/users/configuration/settings.md',
+    },
+    'qwen-memory-v0250': {
+      label: 'Qwen Code v0.25.0 记忆文档（`pinned/` 与结构化召回）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/v0.25.0/docs/users/features/memory.md',
+    },
+    'qwen-memory-v0247': {
+      label: 'Qwen Code v0.24.7 记忆文档（结构化召回首次出现的发行版）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/v0.24.7/docs/users/features/memory.md',
+    },
+    'qwen-memory-v0220': {
+      label: 'Qwen Code v0.22.0 记忆文档（`pinned/` 首次出现的发行版）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/v0.22.0/docs/users/features/memory.md',
+    },
+    'qwen-v0250-release': {
+      label: 'Qwen Code v0.25.0 发布说明（Mem0 随主 CLI 发布）',
+      url: 'https://github.com/QwenLM/qwen-code/releases/tag/v0.25.0',
+    },
+    'qwen-mem0-pr': {
+      label: 'Qwen Code PR #12891（bundle Mem0 with the main CLI）',
+      url: 'https://github.com/QwenLM/qwen-code/pull/12891',
+    },
   },
   rows: [
     {
@@ -2375,8 +2415,8 @@ window.matrixData = {
       id: 'session-memory',
       category: 'sessions',
       capability: '跨会话记忆',
-      description: '保存项目或用户信息供后续会话使用。',
-      values: { claude: '`CLAUDE.md` + Auto memory', codex: '条件：`/memories`；默认关闭', qwen: '`QWEN.md` + Auto-memory', kimi: '`AGENTS.md`；自动记忆未列出', qoder: '`AGENTS.md`；条件：Auto-memory' },
+      description: '保存项目或用户信息供后续会话使用，或从外部记忆服务按需检索。',
+      values: { claude: '`CLAUDE.md` + Auto memory', codex: '条件：`/memories`；默认关闭', qwen: '`QWEN.md` + Auto-memory（`pinned/` 保护目录、`memory.enableStructuredRecall` 结构化召回与 `search_memory`）· 条件：`memory.mem0` 内置外部 Mem0 记忆服务，自动注册 `external-context` MCP、默认只读 `context_search`（v0.25.0 起）', kimi: '`AGENTS.md`；自动记忆未列出', qoder: '`AGENTS.md`；条件：Auto-memory' },
     },
     {
       id: 'session-messaging',
