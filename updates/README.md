@@ -4,6 +4,9 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-10-05 | [跨会话记忆：Qwen Code v0.25.0 内置 Mem0 外部记忆服务（PR #12891），并补录 `pinned/` 与结构化召回](./2026-10-05-会话与上下文-Qwen内置Mem0外部记忆服务.md) |
+| 2026-10-04 | [并行 Worktree：Qoder CLI 目录布局、临时分支与清理行为由官方 Parallel Tasks 页确认](./2026-10-04-执行与Git-Qoder-Worktree目录布局确认.md) |
+| 2026-10-03 | [定时任务与循环能力字段：四家 CLI 一等入口与 Codex 的 Surface 边界](./2026-10-03-会话与上下文-定时任务与循环能力字段.md) |
 | 2026-10-03 | [消息平台渠道能力字段与 Qwen Code Email 渠道（IMAP + SMTP，PR #12939，main 分支）](./2026-10-03-Headless与多端-消息平台渠道能力字段.md) |
 | 2026-10-02 | [生命周期 Hooks：Claude Code v2.1.287 新增进程内 JS/TS 函数 Hook 模块（Mods）](./2026-10-02-扩展系统-Claude-Mods进程内函数Hook模块.md) |
 | 2026-10-01 | [后台任务：Kimi Code `WaitFor` 回合内等待上限由 600 秒收紧为 90 秒、新输入立即结束等待（PR #4061，main 分支）](./2026-10-01-执行与Git-Kimi-WaitFor上限收紧为90秒.md) |
