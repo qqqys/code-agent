@@ -2,7 +2,7 @@
 
 [返回任务执行与 Git 详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=execution-review)
 
-> 核对日期：2026-10-05
+> 核对日期：2026-10-06
 
 ## 定义
 
@@ -12,7 +12,7 @@
 
 | 产品 | 结论 | 证据状态 |
 | --- | --- | --- |
-| Claude Code | `/review` 为 `/code-review` 别名 · `ultra` 云审查 · GitHub Review | 官方确认 |
+| Claude Code | `/review` 为 `/code-review` 别名 · `--max-findings n\|all\|default` 改 findings 上限（v2.1.288 起，取值跨审查复用直到传 `default`）· `ultra` 云审查 · `--post` 预选以本人 GitHub 账号发单条普通评论（默认 `--no-post`）· `--comment` 自 v2.1.257 起可发 GitLab MR（经 `glab`）· GitHub Review | 官方确认 |
 | Codex | `/review` · GitHub Review | 官方确认 |
 | Qwen Code | `/review` 内置 Skill · `--resume` 继续中断的 PR 审查（v0.21.15 起） · `--topology minimal` 单遍 A/B 对比臂（条件：main 分支，尚未发布） · `publish-assets` 证据图 · Web Shell 结构化结果 · `cost-ledger` 成本台账 · `repo-context` 仓库上下文清单 | 源码确认 |
 | Kimi Code | 自然语言；无内置 `/review` | 条件项 |
@@ -37,13 +37,15 @@
 1. Codex、Qwen Code、Claude Code 和 Qoder CLI 都提供明确 Review 入口；Kimi Code 当前命令目录没有内置 `/review`。
 2. Qwen Code `/review` 是随产品加载的内置 Skill，不是硬编码命令；它能审本地、文件与 PR，同仓 PR 使用隔离 Worktree。
 3. Claude Code 自 v2.1.223 起把 `/review` 改为 `/code-review` 的别名；`/code-review` 不带级别时复用会话最近一次输入的级别，`ultra` 级别在云端运行 ultrareview。
-4. Claude 与 Codex 的 GitHub 托管 Review 和本地 `/code-review` 是不同 Surface：前者可在 PR 上自动触发，后者在当前会话输出结果。
-5. Qwen Code `/review` 自 2026-08-02 起提供 `publish-assets`：把证据图发布到用户指定的资产仓库并回写 URL，供 PR 评论嵌入；其余四家当前一手资料未列出同类内置入口。
-6. Qwen Code medium/high effort Review 会在 `.qwen/reviews/` 保存结构化 JSON 产物，Web Shell 将其渲染为可筛选 findings 的交互式审查视图；其余四家当前一手资料未列出同类内置结构化审查结果视图。
-7. Qwen Code v0.21.6 起提供 `qwen review cost-ledger`：从本次审查在磁盘上的用量记录聚合主循环与各 Agent 的模型调用和 token 消耗，内置 Review Skill 在 Step 8 运行并把结果归档进报告；其余四家当前一手资料未列出同类内置 Review 成本聚合入口。
-8. Qwen Code v0.21.7 起提供 `.qwen/review-context.json` 仓库上下文清单与 `qwen review repo-context`：仓库用严格 JSON 声明路径、领域、推荐测试、必需审查角色等有界审查指引，medium/high effort 的本地与同仓 PR 审查在计划采集后并入审查计划，PR 审查只从 merge base 读取清单；其余四家当前一手资料未列出同类内置 Review 仓库上下文入口。
-9. Qwen Code v0.21.15 起 `/review` 与 `qwen review run` 支持 `--resume`：中断的 PR 审查从 worktree、diff 与 Agent 运行记录等磁盘状态继续而不是重新开始，续跑复用上一次尝试已认证的 Agent 结果；续跑固定在被中断运行的 effort，PR head 移动或 effort 不一致时拒绝续跑并回退为全新审查；其余四家当前一手资料未列出同类恢复中断 Review 的内置入口。
-10. Qwen Code `/review` 自 2026-08-25（PR #9919 合入 main，尚未发布）支持 `--topology`：`minimal` 选择单遍 A/B 对比臂，由 orchestrator 在自己的上下文里对 diff 做一遍资深工程师式通读，至多 15 条 findings 且每条必须带具体失败场景，无 Subagent 扇出、验证、反向审计与发布，仅终端输出；`auto`（默认）保持原有 effort 驱动管线，拓扑与 effort 正交，选中 `minimal` 完全覆盖 effort 分发；其余四家当前一手资料未列出同类审查拓扑选择入口。
+4. Claude Code v2.1.288 起 `/code-review`（含别名 `/review`）接受 `--max-findings n|all|default`：用指定条数或 `all` 取代审查的常规 findings 上限，输入的取值被后续审查复用直到传 `--max-findings default`；官方文档只写“审查的常规上限”，没有给出默认条数，也没有给出复用值的保存位置。
+5. findings 数量控制目前只有 Claude Code 提供显式参数：Qwen Code 以 `--severity-floor critical|suggestion` 按严重级别过滤、`--topology minimal` 固定至多 15 条 findings，Codex、Qoder CLI 与 Kimi Code 当前一手资料未列出同类的 Review findings 条数参数。
+6. Claude 与 Codex 的 GitHub 托管 Review 和本地 `/code-review` 是不同 Surface：前者可在 PR 上自动触发，后者在当前会话输出结果。
+7. Qwen Code `/review` 自 2026-08-02 起提供 `publish-assets`：把证据图发布到用户指定的资产仓库并回写 URL，供 PR 评论嵌入；其余四家当前一手资料未列出同类内置入口。
+8. Qwen Code medium/high effort Review 会在 `.qwen/reviews/` 保存结构化 JSON 产物，Web Shell 将其渲染为可筛选 findings 的交互式审查视图；其余四家当前一手资料未列出同类内置结构化审查结果视图。
+9. Qwen Code v0.21.6 起提供 `qwen review cost-ledger`：从本次审查在磁盘上的用量记录聚合主循环与各 Agent 的模型调用和 token 消耗，内置 Review Skill 在 Step 8 运行并把结果归档进报告；其余四家当前一手资料未列出同类内置 Review 成本聚合入口。
+10. Qwen Code v0.21.7 起提供 `.qwen/review-context.json` 仓库上下文清单与 `qwen review repo-context`：仓库用严格 JSON 声明路径、领域、推荐测试、必需审查角色等有界审查指引，medium/high effort 的本地与同仓 PR 审查在计划采集后并入审查计划，PR 审查只从 merge base 读取清单；其余四家当前一手资料未列出同类内置 Review 仓库上下文入口。
+11. Qwen Code v0.21.15 起 `/review` 与 `qwen review run` 支持 `--resume`：中断的 PR 审查从 worktree、diff 与 Agent 运行记录等磁盘状态继续而不是重新开始，续跑复用上一次尝试已认证的 Agent 结果；续跑固定在被中断运行的 effort，PR head 移动或 effort 不一致时拒绝续跑并回退为全新审查；其余四家当前一手资料未列出同类恢复中断 Review 的内置入口。
+12. Qwen Code `/review` 自 2026-08-25（PR #9919 合入 main，尚未发布）支持 `--topology`：`minimal` 选择单遍 A/B 对比臂，由 orchestrator 在自己的上下文里对 diff 做一遍资深工程师式通读，至多 15 条 findings 且每条必须带具体失败场景，无 Subagent 扇出、验证、反向审计与发布，仅终端输出；`auto`（默认）保持原有 effort 驱动管线，拓扑与 effort 正交，选中 `minimal` 完全覆盖 effort 分发；其余四家当前一手资料未列出同类审查拓扑选择入口。
 
 ## 逐产品记录
 
@@ -51,17 +53,17 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 矩阵结论 | `/review` 为 `/code-review` 别名 · `ultra` 云审查 · GitHub Review |
-| 入口与工具 | v2.1.223 起 `/review` 是 `/code-review` 的别名；`/code-review [low\|medium\|high\|xhigh\|max\|ultra] [--fix] [--comment] [target]` 审查当前 Diff 或指定目标，`ultra` 运行云端 ultrareview；`/security-review` 检查 Diff 的安全漏洞。 |
+| 矩阵结论 | `/review` 为 `/code-review` 别名 · `--max-findings n\|all\|default` 改 findings 上限（v2.1.288 起，取值跨审查复用直到传 `default`）· `ultra` 云审查 · `--post` 预选以本人 GitHub 账号发单条普通评论（默认 `--no-post`）· `--comment` 自 v2.1.257 起可发 GitLab MR（经 `glab`）· GitHub Review |
+| 入口与工具 | v2.1.223 起 `/review` 是 `/code-review` 的别名；`/code-review [low\|medium\|high\|xhigh\|max\|ultra] [--fix] [--comment] [--max-findings n\|all\|default] [pr#\|branch\|path]` 审查当前 Diff 或指定目标，`ultra` 运行云端 ultrareview；`/security-review` 检查 Diff 的安全漏洞。 |
 | 核心机制 | `/code-review` 是 bundled Skill，默认作为带独立上下文窗口的后台 subagent 运行；`ultra` 与托管 Code Review 使用多 Agent 流水线，分别在云端与 GitHub PR 上分析并验证问题。 |
-| 执行行为 | 默认审查分支领先 upstream 的提交加未提交改动；target 可为文件路径、PR 编号、分支名或 ref range（如 `main...my-feature`）。不带级别时复用会话最近一次输入的级别（v2.1.223，官方文档表述为使用会话当前 effort）；`low`/`medium` 只报高置信度 findings，`high` 至 `max` 放宽覆盖。`--fix` 把 findings 应用到工作树；`--comment` 把 findings 发布为 GitHub PR 行内评论。`/code-review ultra` 运行云端 ultrareview，不可用时回退为会话内本地审查。 |
+| 执行行为 | 默认审查分支领先 upstream 的提交加未提交改动；目标可为 PR 编号、分支名、文件路径或 ref range（如 `main...my-feature`）。不带级别时复用会话最近一次输入的 `low` 至 `max` 级别并提示 `Reusing high effort, the level you typed last time` 之类的通知，`-p` 非交互运行传入的级别不更新被复用的值，`ultra` 既不更新也不使用它，从未输入过级别时用会话当前 effort；`low`/`medium` 只报高置信度 findings，`high` 至 `max` 放宽覆盖并可能包含把握较小的 findings。v2.1.290 起 medium 级别在“没有调优审查设置的模型”（更新日志点名 Opus 5.5 与 Sonnet 5.5）上也报告清理类与 CLAUDE.md 约定类 findings。`--max-findings n` 把本次报告限制为 `n` 条、`--max-findings all` 报告全部 findings，两者都取代审查的常规上限，输入的取值被后续审查复用直到传 `--max-findings default`；官方文档只写“审查的常规上限”，没有给出默认条数，也没有给出复用值的保存位置。`--fix` 把 findings 应用到工作树；`--comment` 把 findings 发布为 GitHub PR 行内评论，或（v2.1.257 起）经 GitLab 的 `glab` CLI 发布为 GitLab MR 上的单条 note。`/code-review ultra` 运行云端 ultrareview，不可用时回退为会话内本地审查；审查 `github.com` PR 时可加 `--post` 在启动对话框预选 **Run and post the findings to the PR as me**，默认是 `--no-post`、发帖是每次运行各自的选择，发出的是以本人 GitHub 账号发布、结尾带 “Generated by Claude Code” 的单条普通评论，不是 Review 也不是批准。发帖结果分三种回报：`Posted` 给出评论链接、`Already posted` 说明同一次审查已发过并改给 PR 链接、`Failed` 说明原因且 findings 留在终端供手工发布。 |
 | 运行范围 | 本地为当前分支 Diff 或指定 target；ultrareview 默认审查当前分支与默认分支的差异（含未提交与 staged 改动），可接受自定义 base 分支、PR 编号/URL 或说明文字，单次默认上限 500 个文件和 8,000 行变更。托管 Review 由仓库触发策略决定（PR 打开、每次 push 或手动 `@claude review`）。 |
 | 后台与并发 | 本地审查默认后台 subagent，不占用会话上下文；上一次审查未完成、`-p` 模式或 `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` 时改为前台。托管 Code Review 在 Anthropic 基础设施并行运行。 |
-| Git 与平台联动 | 本地审查遵循 `CLAUDE.md`，不读取 `REVIEW.md`；托管 Code Review 把仓库根目录 `REVIEW.md` 以最高优先级注入审查流水线每个 Agent。findings 去重、按严重级别排序后以行内评论发布到 PR，摘要进 review body，并生成 Claude Code Review check run。 |
-| 状态与产物 | 本地 findings 文本（桌面等宿主应用经 `ReportFindings` 工具）、`--fix` 文件修改、GitHub 行内评论、review 摘要与 check run。 |
-| 条件与边界 | `/code-review` 标记 `disable-model-invocation`，只在显式调用时运行。`ultra` 需要 claude.ai 账号登录并开启 usage credits；Amazon Bedrock、Google Cloud Agent Platform、Microsoft Foundry 与 ZDR 组织不可用，不可用时回退本地审查；账号可用 ultrareview 时 `/ultrareview` 是 `/code-review ultra` 的别名。后台审查的 `--fix` 编辑不经过会话检查点（`/rewind` 不回退），前台编辑可被 `/rewind` 回退。托管 Code Review 为 research preview，面向 Team/Enterprise，ZDR 组织不可用。 |
+| Git 与平台联动 | 本地审查读取仓库的 `CLAUDE.md` 文件并把新引入的违规当作 nit 级 findings，不读取 `REVIEW.md`；托管 Code Review 把仓库根目录 `REVIEW.md` 以最高优先级注入审查流水线每个 Agent。findings 去重、按严重级别排序后以行内评论发布到 PR，摘要进 review body，并生成 Claude Code Review check run。`--post` 的发帖不在本机执行：Claude Code 把审查的会话 ID 发给 Anthropic API，由 API 通过用户已连接的 GitHub 账号发布该审查已保存的 findings。 |
+| 状态与产物 | 本地 findings 列表（每条显示文件位置、一句话摘要与 `correctness` 之类的分类标签；桌面等宿主应用经 `ReportFindings` 工具）、`--fix` 文件修改、GitHub 行内评论、GitLab MR 单条 note、`--post` 以本人账号发布的 PR 普通评论、review 摘要与 check run。 |
+| 条件与边界 | 版本条件：`--max-findings` 需 v2.1.288 及以上，`--post` 需 v2.1.227 及以上，`--comment` 发 GitLab MR 需 v2.1.257 及以上。`/code-review` 标记 `disable-model-invocation`，只在显式调用时运行。`ultra` 需要 claude.ai 账号登录并开启 usage credits；Amazon Bedrock、Google Cloud Agent Platform、Microsoft Foundry 与 ZDR 组织不可用，不可用时回退本地审查；账号可用 ultrareview 时 `/ultrareview` 是 `/code-review ultra` 的别名。发帖要求与审查本身相同的 claude.ai 登录，第三方 Provider 上或设置 `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` 时不可用；审查分支或 GitHub Enterprise Server PR 时只在会话内显示 findings、不提供发帖。交互式会话在 findings 到达时开始发帖，需保持会话打开直到审查结束；发帖选择只在当前会话保留，会话在审查结束前终止则不发帖，即使之后恢复该对话。非交互发帖只能用 `claude ultrareview --post`（运行该子命令即表示同意、不再询问），`claude -p '/code-review ultra'` 会在 findings 到达前退出因而不发帖。后台审查的 `--fix` 编辑不经过会话检查点（`/rewind` 不回退），前台编辑可被 `/rewind` 回退。托管 Code Review 为 research preview，面向 Team/Enterprise，ZDR 组织不可用。 |
 | 证据状态 | 官方确认 |
-| 来源 | [Claude Code Commands](https://code.claude.com/docs/en/commands)、[Claude Code Review](https://code.claude.com/docs/en/code-review)、[Claude Code v2.1.223 changelog](https://github.com/anthropics/claude-code/blob/5cf69b18c86d/CHANGELOG.md)、[Claude Code ultrareview](https://code.claude.com/docs/en/ultrareview) |
+| 来源 | [Claude Code Commands](https://code.claude.com/docs/en/commands)、[Claude Code Review](https://code.claude.com/docs/en/code-review)、[Claude Code v2.1.223 changelog](https://github.com/anthropics/claude-code/blob/5cf69b18c86d/CHANGELOG.md)、[Claude Code ultrareview](https://code.claude.com/docs/en/ultrareview)、[Claude Code v2.1.288 `--max-findings` 更新日志](https://github.com/anthropics/claude-code/blob/1c229fcd1e1e/CHANGELOG.md)、[Claude Code v2.1.290 `/code-review` medium 覆盖范围更新日志](https://github.com/anthropics/claude-code/blob/e8ae451830fb/CHANGELOG.md) |
 
 ### Codex
 
@@ -133,6 +135,8 @@
 - [Claude Code Review](https://code.claude.com/docs/en/code-review)
 - [Claude Code v2.1.223 changelog](https://github.com/anthropics/claude-code/blob/5cf69b18c86d/CHANGELOG.md)
 - [Claude Code ultrareview](https://code.claude.com/docs/en/ultrareview)
+- [Claude Code v2.1.288 `--max-findings` 更新日志](https://github.com/anthropics/claude-code/blob/1c229fcd1e1e/CHANGELOG.md)
+- [Claude Code v2.1.290 `/code-review` medium 覆盖范围更新日志](https://github.com/anthropics/claude-code/blob/e8ae451830fb/CHANGELOG.md)
 - [Codex code review](https://learn.chatgpt.com/docs/code-review)
 - [Codex GitHub integration](https://learn.chatgpt.com/docs/third-party/github)
 - [Codex CLI commands](https://developers.openai.com/codex/cli/slash-commands)

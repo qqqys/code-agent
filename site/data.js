@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-10-05',
+  updatedAt: '2026-10-06',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -189,6 +189,14 @@ window.matrixData = {
     'claude-ultrareview': {
       label: 'Claude Code ultrareview',
       url: 'https://code.claude.com/docs/en/ultrareview',
+    },
+    'claude-v21288-max-findings-changelog': {
+      label: 'Claude Code v2.1.288 `--max-findings` 更新日志',
+      url: 'https://github.com/anthropics/claude-code/blob/1c229fcd1e1e/CHANGELOG.md',
+    },
+    'claude-v21290-review-changelog': {
+      label: 'Claude Code v2.1.290 `/code-review` medium 覆盖范围更新日志',
+      url: 'https://github.com/anthropics/claude-code/blob/e8ae451830fb/CHANGELOG.md',
     },
     'claude-cross-session-messaging': {
       label: 'Claude Code cross-session messaging',
@@ -2528,7 +2536,7 @@ window.matrixData = {
       category: 'execution',
       capability: '代码 Review',
       description: '由产品提供的审查命令或工作流。',
-      values: { claude: '`/review` 为 `/code-review` 别名 · `ultra` 云审查 · GitHub Review', codex: '`/review` · GitHub Review', qwen: '`/review` 内置 Skill · `--resume` 继续中断的 PR 审查（v0.21.15 起） · `--topology minimal` 单遍 A/B 对比臂（条件：main 分支，尚未发布） · `publish-assets` 证据图 · Web Shell 结构化结果 · `cost-ledger` 成本台账 · `repo-context` 仓库上下文清单', kimi: '自然语言；无内置 `/review`', qoder: '`/review [instruction]`' },
+      values: { claude: '`/review` 为 `/code-review` 别名 · `--max-findings n|all|default` 改 findings 上限（v2.1.288 起，取值跨审查复用直到传 `default`）· `ultra` 云审查 · `--post` 预选以本人 GitHub 账号发单条普通评论（默认 `--no-post`）· `--comment` 自 v2.1.257 起可发 GitLab MR（经 `glab`）· GitHub Review', codex: '`/review` · GitHub Review', qwen: '`/review` 内置 Skill · `--resume` 继续中断的 PR 审查（v0.21.15 起） · `--topology minimal` 单遍 A/B 对比臂（条件：main 分支，尚未发布） · `publish-assets` 证据图 · Web Shell 结构化结果 · `cost-ledger` 成本台账 · `repo-context` 仓库上下文清单', kimi: '自然语言；无内置 `/review`', qoder: '`/review [instruction]`' },
     },
     {
       id: 'execution-git',
