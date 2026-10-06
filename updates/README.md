@@ -4,6 +4,7 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-10-06 | [代码 Review：Claude Code `/code-review --max-findings` findings 上限参数（v2.1.288），并补录 `--post` 与 GitLab `--comment`](./2026-10-06-执行与Git-Claude-code-review-max-findings.md) |
 | 2026-10-05 | [跨会话记忆：Qwen Code v0.25.0 内置 Mem0 外部记忆服务（PR #12891），并补录 `pinned/` 与结构化召回](./2026-10-05-会话与上下文-Qwen内置Mem0外部记忆服务.md) |
 | 2026-10-04 | [并行 Worktree：Qoder CLI 目录布局、临时分支与清理行为由官方 Parallel Tasks 页确认](./2026-10-04-执行与Git-Qoder-Worktree目录布局确认.md) |
 | 2026-10-03 | [定时任务与循环能力字段：四家 CLI 一等入口与 Codex 的 Surface 边界](./2026-10-03-会话与上下文-定时任务与循环能力字段.md) |
