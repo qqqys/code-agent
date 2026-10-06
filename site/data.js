@@ -198,6 +198,10 @@ window.matrixData = {
       label: 'Claude Code v2.1.290 `/code-review` medium 覆盖范围更新日志',
       url: 'https://github.com/anthropics/claude-code/blob/e8ae451830fb/CHANGELOG.md',
     },
+    'claude-v21292-effort-changelog': {
+      label: 'Claude Code v2.1.292 Agent 工具 `effort` 参数更新日志',
+      url: 'https://github.com/anthropics/claude-code/blob/fbe20e00e285/CHANGELOG.md',
+    },
     'claude-cross-session-messaging': {
       label: 'Claude Code cross-session messaging',
       url: 'https://code.claude.com/docs/en/cross-session-messaging',
@@ -517,6 +521,10 @@ window.matrixData = {
     'codex-persistent-effort-protocol': {
       label: 'Codex persistent reasoning effort protocol source',
       url: 'https://github.com/openai/codex/blob/3e4707b34b16e139fcb7ad11ab8445993b62bba1/codex-rs/protocol/src/openai_models.rs',
+    },
+    'codex-subagent-effort-activity-commit': {
+      label: 'Codex Subagent activity 记录解析后模型与推理强度的提交',
+      url: 'https://github.com/openai/codex/commit/b0a6b8d86f455d3db9dd869fc1178a5fbd865e7f',
     },
     'codex-persistent-effort-client': {
       label: 'Codex persistent effort Responses API translation source',
@@ -2221,7 +2229,7 @@ window.matrixData = {
       category: 'subagents',
       capability: 'Agent 推理强度',
       description: '单个 Agent 能否设置独立的推理预算。',
-      values: { claude: '`effort`', codex: '`model_reasoning_effort` · `[agents] default_subagent_reasoning_effort` 全局默认', qwen: '未确认独立字段', kimi: '未确认独立 effort 字段', qoder: '`effort`' },
+      values: { claude: '`effort`；Agent 工具调用参数 `effort`（v2.1.292）', codex: '`model_reasoning_effort` · `[agents] default_subagent_reasoning_effort` 全局默认', qwen: '未确认独立字段', kimi: '未确认独立 effort 字段', qoder: '`effort`' },
     },
     {
       id: 'agent-tools',
