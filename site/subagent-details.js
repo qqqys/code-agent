@@ -475,28 +475,52 @@
       id: 'agent-effort',
       definition:
         '为单个 Agent 覆盖主会话的推理强度、思考档位或推理预算。',
-      includes: ['Agent 级 effort 字段', '继承规则', '可用取值', '派生 Agent 的全局默认 effort'],
-      excludes: ['模型选择', '温度', '全局推理设置'],
+      includes: [
+        'Agent 级 effort 字段',
+        '每次调用传入的 effort',
+        '继承规则与优先级',
+        '可用取值与模型支持范围',
+        'effort 上限',
+        '派生 Agent 的全局默认 effort',
+      ],
+      excludes: ['模型选择', '温度', '会话级 effort 的设置入口'],
       facts: [
         'Claude Code、Codex 与 Qoder CLI 提供明确的 Agent 级推理强度字段。',
+        'Claude Code 自 v2.1.292 起在 Agent 工具上增加 `effort` 参数，委派方可为单次派生指定 effort；官方 Subagents 页与模型配置页当前只记录每次调用的 `model` 参数，尚未记录每次调用的 `effort`。',
+        'Claude Code 的 Agent frontmatter `effort` 覆盖会话 effort，但不覆盖 `CLAUDE_CODE_EFFORT_LEVEL`，且仍受 `maxEffortLevel` 与组织 effort 上限约束。',
         'Codex 另有 config.toml 的 `agents.default_subagent_reasoning_effort`，为派生 Agent 设置全局默认推理强度。',
-        'Qwen Code 和 Kimi Code 当前 Agent 文档未确认独立 effort 字段；Qwen Code 把 `effort` 列为尚未落地的兼容字段。',
+        'Qwen Code 和 Kimi Code 当前 Agent 文档未确认独立 effort 字段；Qwen Code 把 `effort` 列为尚未落地的兼容字段，原因是需要模型层参数。',
       ],
       notes: {
         claude:
-          '`effort` 覆盖会话 effort，可用档位为 `low`、`medium`、`high`、`xhigh`、`max`，具体取决于模型；省略时继承会话 effort；v2.1.198 起扩展思考配置也继承主会话。官方未列出 Subagent 全局默认 effort 设置。',
+          'frontmatter `effort` 的官方逐字说明为 “Effort level when this subagent is active. Overrides the session effort level, but not the `CLAUDE_CODE_EFFORT_LEVEL` environment variable. Options: `low`, `medium`, `high`, `xhigh`, `max`; available levels depend on the model”，即覆盖会话 effort、省略时继承会话 effort，但不覆盖该环境变量。官方模型配置页把 Skill 与 Subagent frontmatter 的 `effort` 归为同一机制，写明 frontmatter effort 只在该 Skill 或 Subagent 活动期间生效，且 `maxEffortLevel` 或组织 effort 上限仍然限制其实际运行级别。取值的模型支持范围：Fable 5.1、Fable 5、Opus 5.5、Sonnet 5.5、Opus 5、Sonnet 5、Opus 4.8、Opus 4.7 支持 `low`/`medium`/`high`/`xhigh`/`max`，Opus 4.6 与 Sonnet 4.6 只支持 `low`/`medium`/`high`/`max`；设置模型不支持的级别时回退到不高于该级别的最高受支持级别（官方例子为 `xhigh` 在 Opus 4.6 上按 `high` 运行）。`maxEffortLevel` 需 v2.1.267 及以上，取值 `low`/`medium`/`high`/`xhigh`/`max`（`max` 表示不设上限）、默认未设置，多个作用域都设上限时取最低值因而不能从另一作用域抬高，也可写进 `modelSettings` 的单个模型条目，Claude Code 在每次请求前自行套用因而在 Bedrock、Google Cloud\'s Agent Platform 与 Microsoft Foundry 上同样生效。v2.1.292 起 Agent 工具增加 `effort` 参数，更新日志（固定到 `fbe20e00e285`）逐字为 “Added an `effort` parameter to the Agent tool, so Claude runs a sub-agent at the effort level you ask for”；该每次调用参数与 frontmatter `effort`、`CLAUDE_CODE_EFFORT_LEVEL`、`maxEffortLevel` 之间的优先级官方文档尚未记录，记为未确认。会话 effort 的解析顺序为 `CLAUDE_CODE_EFFORT_LEVEL`/`--effort`/`/effort` → `modelSettings` 或 `effortLevel` 设置 → 模型默认；`CLAUDE_CODE_EFFORT_LEVEL` 另可取 `auto` 表示用模型默认，且优先于 `--effort`、`/effort`、`modelSettings` 与 `effortLevel`。官方环境变量文档没有 Subagent 专用的 effort 环境变量，官方也未列出 Subagent 全局默认 effort 设置。v2.1.198 起扩展思考配置也继承主会话。',
         codex:
-          '`model_reasoning_effort` 可写入 Agent TOML；Agent 文件设置 `model` 或 `model_reasoning_effort` 时文件值优先。否则 Codex 按显式 spawn 值、`[agents]` 默认值、父会话值的顺序独立解析，`agents.default_subagent_reasoning_effort` 是派生 Agent 的全局默认，显式 spawn effort 优先于该默认。spawn 切换模型且没有显式或配置的 effort 时，使用该模型的默认 effort。取值：Subagent 页列出 `ultra`、`max`、`xhigh`、`high`、`medium`、`low`；配置参考 `model_reasoning_effort` 条目列出 `minimal | low | medium | high | xhigh`（Responses API，`xhigh` 依模型而定）。',
+          '`model_reasoning_effort` 可写入 Agent TOML；Agent 文件设置 `model` 或 `model_reasoning_effort` 时文件值优先。否则 Codex 按显式 spawn 值、`[agents]` 默认值、父会话值的顺序独立解析，`agents.default_subagent_reasoning_effort` 是派生 Agent 的全局默认，显式 spawn effort 优先于该默认。spawn 切换模型且没有显式或配置的 effort 时，使用该模型的默认 effort；只设 `model` 的 Agent 文件保留此前解析出的 effort。取值：Subagent 页列出 `ultra`、`max`、`xhigh`、`high`、`medium`、`low`；配置参考 `model_reasoning_effort` 条目列出 `minimal | low | medium | high | xhigh`（Responses API，`xhigh` 依模型而定）。main 分支起 Subagent activity 条目额外记录解析后的 `model` 与 `reasoning_effort`：app-server 协议与 Python SDK 类型把两者作为可空字段，旧记录迁移为 null；v2 多代理 spawn 在子 Agent 启动前捕获启动配置，并按模型元数据解析对外报告的 effort（测试用例把 `ultra` 报告为 `xhigh`）而不改动子 Agent 自身配置的 effort。提交 `b0a6b8d86f45`，合入 main 尚未发布，官方文档未记录。',
         qwen:
-          '当前 Agent 文档把 `effort` 列为尚未落地的 Claude Code 兼容字段，需模型层参数等前置基础设施后随后续版本引入；模型 grade 和 `model` 选择不等同于推理强度。',
+          '当前 Agent 文档把 `effort` 列为尚未落地的 Claude Code 兼容字段，逐字原因为 “`effort` needs a model-layer parameter”，需模型层参数等前置基础设施后随后续版本引入；已落地的兼容字段表只含 `permissionMode`、`maxTurns`、`color`、`mcpServers`、`hooks`，模型 grade 和 `model` 选择不等同于推理强度。',
         kimi:
-          '模型池与 `model_preference` 选择的是模型，不是独立 reasoning effort；v2 中绑定池别名不携带显式 thinking 档位，按全局 `[thinking]` 配置 → 所绑定模型的默认 effort 解析；当前 Agent 字段表仍未列出独立 effort 字段。',
+          '模型池与 `model_preference` 选择的是模型，不是独立 reasoning effort；v2 中绑定池别名不携带显式 thinking 档位，按全局 `[thinking]` 配置 → 所绑定模型的默认 effort 解析；当前 Agent 文档的 frontmatter 字段表仍未列出独立 effort 字段，全文也没有出现 effort 或 reasoning 配置项，Agent 级推理强度只能由全局 `[thinking]` 与所绑定模型决定。',
         qoder:
-          '`effort` 接受 `low`、`medium`、`high`、`xhigh`、`max` 或正整数预算；文档未说明省略时的继承行为，settings.json 覆盖 schema 不含 effort 键。',
+          '`effort` 的官方字段表逐字为取值 `low`、`medium`、`high`、`xhigh`、`max` 或正整数、含义 “Reasoning effort or budget.”；文档未说明省略时的继承行为（同表的 `model` 写明省略即 `inherit`、`permissionMode` 写明省略继承父会话模式，`effort` 行没有对应说明），settings.json 覆盖 schema 只含启用状态、模型配置、运行限制、工具允许列表与追加的 MCP 服务器，不含 effort 键。',
       },
       related: ['agent-model', 'cmd-effort', 'agent-limits'],
       overrides: {
-        codex: { sources: ['codex-agents', 'codex-config-reference'] },
+        claude: {
+          sources: [
+            'claude-agents',
+            'claude-model-config',
+            'claude-settings-reference',
+            'claude-env-vars',
+            'claude-v21292-effort-changelog',
+          ],
+        },
+        codex: {
+          sources: [
+            'codex-agents',
+            'codex-config-reference',
+            'codex-subagent-effort-activity-commit',
+          ],
+        },
       },
     }),
 
