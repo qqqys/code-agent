@@ -2,7 +2,7 @@
 
 [返回权限与沙箱详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=security-network)
 
-> 核对日期：2026-10-06
+> 核对日期：2026-10-07
 
 ## 定义
 
@@ -13,7 +13,7 @@
 | 产品 | 结论 | 证据状态 |
 | --- | --- | --- |
 | Claude Code | Sandbox 域名代理与 Allow/Deny；`strictAllowlist` 直接拒绝未列主机 | 官方确认 |
-| Codex | `workspace-write` 默认断网；可单独启用与限域 | 官方确认 |
+| Codex | `workspace-write` 默认断网；可单独启用与限域 · 条件：原生 Windows 沙箱用防火墙规则或环境级断网，MXC 只放行回环 | 条件项 |
 | Qwen Code | Seatbelt Profile 与代理；依配置 | 条件项 |
 | Kimi Code | 网络工具权限；OS 网络隔离未确认 | 未确认 |
 | Qoder CLI | Web 工具规则；SDK 条件网络 Sandbox | 条件项 |
@@ -36,7 +36,8 @@
 
 1. 网络工具 Allow/Deny 与命令子进程的 OS 网络隔离不是同一层。
 2. Codex 的 `workspace-write` 默认关闭命令网络；Claude Code 和 Qwen Code 可在启用 Sandbox 时按域名或 Profile 控制。
-3. Claude Code 对未列域名默认逐次审批，`sandbox.network.strictAllowlist` 或 Managed `allowManagedDomainsOnly` 可改为直接阻断。
+3. Codex 的原生 Windows 沙箱按实现给出不同网络边界：`elevated` 用防火墙规则，`unelevated` 用环境级断网控制，`mxc` 只放行回环。
+4. Claude Code 对未列域名默认逐次审批，`sandbox.network.strictAllowlist` 或 Managed `allowManagedDomainsOnly` 可改为直接阻断。
 
 ## 逐产品记录
 
@@ -60,17 +61,17 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 矩阵结论 | `workspace-write` 默认断网；可单独启用与限域 |
+| 矩阵结论 | `workspace-write` 默认断网；可单独启用与限域 · 条件：原生 Windows 沙箱用防火墙规则或环境级断网，MXC 只放行回环 |
 | 入口与切换 | `/permissions` 与权限选择器控制当前会话；CLI 可传 `--sandbox`、`--ask-for-approval`，持久配置写入 `config.toml`。 |
 | 默认状态 | 版本库目录通常采用 `workspace-write` + `on-request`，非版本库目录通常采用 `read-only`；具体启动状态还受目录信任和配置影响。 |
-| 具体行为 | `workspace-write` 默认 `network_access = false`；开启后可再启用 `network_proxy`，用 allow/deny 域名、私网和 Unix Socket 规则限域。 |
+| 具体行为 | `workspace-write` 默认 `network_access = false`；开启后可再启用 `network_proxy`，用 allow/deny 域名、私网和 Unix Socket 规则限域。原生 Windows 沙箱在同一策略下另加系统级网络边界：`elevated` 用防火墙规则（含专用的 offline-user 规则），`unelevated` 改用环境级断网控制而不是那条专用规则因而网络隔离更弱，`mxc` 在被选为 executor 后端时把受管网络的 `allow_local_binding` 默认置为 `true`，只允许 IPv4 与 IPv6 回环的客户端和服务端（含专用代理监听），拒绝直接的非回环出网与一般入站访问；经代理的流量仍适用代理域名规则，直接 DNS 仍被拒绝。 |
 | 规则能力 | `approval_policy` 支持 `untrusted`、`on-request`、`never` 和 granular 分类策略；命令 Rules、MCP 注解、权限 Profile 与沙箱共同生效。 |
-| 隔离边界 | 本地 CLI/IDE 使用 OS 级沙箱。`read-only`、`workspace-write`、`danger-full-access` 分别提供只读、工作区写入和无沙箱边界；工作区写入默认关闭命令网络。 |
+| 隔离边界 | 本地 CLI/IDE 使用 OS 级沙箱。`read-only`、`workspace-write`、`danger-full-access` 分别提供只读、工作区写入和无沙箱边界；工作区写入默认关闭命令网络。原生 Windows 沙箱按 `[windows] sandbox` 选出的实现给出系统级网络边界：`elevated` 走防火墙规则，`unelevated` 走环境级断网控制，`mxc` 只放行回环。MXC 下 Win32k 调用与桌面句柄仍可用于 PowerShell 启动，剪贴板、输入注入与桌面/系统控制限制保留。 |
 | 保存与作用域 | 用户配置位于 `~/.codex/config.toml`；受信任项目可加载 `.codex/config.toml`、Hooks 和 Rules；系统与管理员 Requirements 可进一步收紧。 |
 | 非交互行为 | 非交互流程无法展示新审批时，需要审批的动作失败并把错误返回给 Agent；可在启动前固定审批策略、沙箱和 Rules。 |
-| 条件与边界 | 审批决定何时停下来询问，沙箱决定技术边界；`approval_policy = "never"` 不会自动移除仍在生效的沙箱。 |
-| 证据状态 | 官方确认 |
-| 来源 | [Codex Agent approvals and security](https://learn.chatgpt.com/docs/agent-approvals-security)、[Codex Advanced Configuration](https://learn.chatgpt.com/docs/config-file/config-advanced) |
+| 条件与边界 | 审批决定何时停下来询问，沙箱决定技术边界；`approval_policy = "never"` 不会自动移除仍在生效的沙箱。原生 Windows 的网络边界只在 Windows 上生效，强度随所选实现不同；MXC 被选为后端时 `allow_local_binding` 生效为 `false` 属于配置错误（原生宿主回环访问是双向的，MXC 的 proxy-peer 身份模式未接入），该默认值同样适用于远程 Windows executor 且不会启用已被禁用的网络。企业可用 `requirements.toml` 的 `[windows] allowed_sandbox_implementations` 限定允许的实现，从而间接决定网络边界强度。 |
+| 证据状态 | 条件项 |
+| 来源 | [Codex Agent approvals and security](https://learn.chatgpt.com/docs/agent-approvals-security)、[Codex Advanced Configuration](https://learn.chatgpt.com/docs/config-file/config-advanced)、[Codex Windows sandbox](https://learn.chatgpt.com/docs/windows/windows-sandbox)、[Codex Managed configuration（requirements.toml）](https://learn.chatgpt.com/docs/enterprise/managed-configuration)、[Codex MXC 沙箱说明（`codex-rs/mxc-sandbox/README.md`）](https://github.com/openai/codex/blob/e95abcdf4939f37f11f00f984efdbbf8b088346e/codex-rs/mxc-sandbox/README.md)、[Codex Windows 沙箱后端解析源码](https://github.com/openai/codex/blob/e95abcdf4939f37f11f00f984efdbbf8b088346e/codex-rs/core/src/config/windows_sandbox_config.rs) |
 
 ### Qwen Code
 
@@ -129,6 +130,10 @@
 - [Claude Code v2.1.219 changelog](https://github.com/anthropics/claude-code/blob/0c188278cdf9/CHANGELOG.md)
 - [Codex Agent approvals and security](https://learn.chatgpt.com/docs/agent-approvals-security)
 - [Codex Advanced Configuration](https://learn.chatgpt.com/docs/config-file/config-advanced)
+- [Codex Windows sandbox](https://learn.chatgpt.com/docs/windows/windows-sandbox)
+- [Codex Managed configuration（requirements.toml）](https://learn.chatgpt.com/docs/enterprise/managed-configuration)
+- [Codex MXC 沙箱说明（`codex-rs/mxc-sandbox/README.md`）](https://github.com/openai/codex/blob/e95abcdf4939f37f11f00f984efdbbf8b088346e/codex-rs/mxc-sandbox/README.md)
+- [Codex Windows 沙箱后端解析源码](https://github.com/openai/codex/blob/e95abcdf4939f37f11f00f984efdbbf8b088346e/codex-rs/core/src/config/windows_sandbox_config.rs)
 - [Qwen Code Approval Mode](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/approval-mode.md)
 - [Qwen Code Sandbox](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/sandbox.md)
 - [Qwen Code Settings](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/configuration/settings.md)

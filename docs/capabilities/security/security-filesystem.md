@@ -2,7 +2,7 @@
 
 [返回权限与沙箱详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=security-filesystem)
 
-> 核对日期：2026-10-06
+> 核对日期：2026-10-07
 
 ## 定义
 
@@ -13,7 +13,7 @@
 | 产品 | 结论 | 证据状态 |
 | --- | --- | --- |
 | Claude Code | Bash OS 沙箱 + 文件权限规则 | 官方确认 |
-| Codex | `read-only` · `workspace-write` · `danger-full-access` | 官方确认 |
+| Codex | `read-only` · `workspace-write` · `danger-full-access`；条件：原生 Windows 另有 `[windows] sandbox` 的 `elevated`/`unelevated`/`mxc` 后端 | 条件项 |
 | Qwen Code | Seatbelt 或容器 Sandbox；默认关闭 | 条件项 |
 | Kimi Code | 文件工具权限；OS 沙箱未确认 | 未确认 |
 | Qoder CLI | 路径权限规则；SDK 条件 Sandbox | 条件项 |
@@ -35,7 +35,8 @@
 ## 跨产品事实
 
 1. Claude Code 与 Codex 都公开了本地 OS 级文件系统沙箱；Qwen Code 提供可选 Seatbelt 或容器沙箱。
-2. Kimi Code 当前公开的是工具权限规则；Qoder CLI SDK 暴露可选 Sandbox Settings，但主 CLI 权限页主要描述路径规则。
+2. Codex 在 macOS 用 Seatbelt、Linux 用 Landlock，原生 Windows 另有 `elevated`、`unelevated` 与 `mxc` 三种沙箱实现，由 `[windows] sandbox` 选择；`codex sandbox` 是 Stable 子命令，可用同一套策略手动跑一条命令。
+3. Kimi Code 当前公开的是工具权限规则；Qoder CLI SDK 暴露可选 Sandbox Settings，但主 CLI 权限页主要描述路径规则。
 
 ## 逐产品记录
 
@@ -59,17 +60,17 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 矩阵结论 | `read-only` · `workspace-write` · `danger-full-access` |
-| 入口与切换 | `/permissions` 与权限选择器控制当前会话；CLI 可传 `--sandbox`、`--ask-for-approval`，持久配置写入 `config.toml`。 |
-| 默认状态 | 版本库目录通常采用 `workspace-write` + `on-request`，非版本库目录通常采用 `read-only`；具体启动状态还受目录信任和配置影响。 |
-| 具体行为 | `read-only` 禁止一般写入，`workspace-write` 只写工作区与附加 writable roots，`danger-full-access` 移除沙箱；`.git`、`.agents`、`.codex` 等路径仍受保护。 |
-| 规则能力 | `approval_policy` 支持 `untrusted`、`on-request`、`never` 和 granular 分类策略；命令 Rules、MCP 注解、权限 Profile 与沙箱共同生效。 |
-| 隔离边界 | 本地 CLI/IDE 使用 OS 级沙箱。`read-only`、`workspace-write`、`danger-full-access` 分别提供只读、工作区写入和无沙箱边界；工作区写入默认关闭命令网络。 |
-| 保存与作用域 | 用户配置位于 `~/.codex/config.toml`；受信任项目可加载 `.codex/config.toml`、Hooks 和 Rules；系统与管理员 Requirements 可进一步收紧。 |
-| 非交互行为 | 非交互流程无法展示新审批时，需要审批的动作失败并把错误返回给 Agent；可在启动前固定审批策略、沙箱和 Rules。 |
-| 条件与边界 | 审批决定何时停下来询问，沙箱决定技术边界；`approval_policy = "never"` 不会自动移除仍在生效的沙箱。 |
-| 证据状态 | 官方确认 |
-| 来源 | [Codex Agent approvals and security](https://learn.chatgpt.com/docs/agent-approvals-security)、[Codex Advanced Configuration](https://learn.chatgpt.com/docs/config-file/config-advanced) |
+| 矩阵结论 | `read-only` · `workspace-write` · `danger-full-access`；条件：原生 Windows 另有 `[windows] sandbox` 的 `elevated`/`unelevated`/`mxc` 后端 |
+| 入口与切换 | `/permissions` 与权限选择器控制当前会话；CLI 可传 `--sandbox`、`--ask-for-approval`，持久配置写入 `config.toml`。原生 Windows 沙箱实现由 `config.toml` 的 `[windows] sandbox = "elevated"` 或 `"unelevated"` 选择，TUI 的 `/setup-default-sandbox`（源码描述 “set up elevated agent sandbox”）负责 elevated 安装；`codex sandbox` 子命令（官方标注 Stable，Windows 形式的 `COMMAND...` 说明为 “Command to execute under the native Windows sandbox. Provide the executable after `--`.”）可用 `-P/--permission-profile`、`-C/--cd`、`-c/--config`、`-p/--profile`、`--include-managed-config` 以真实执行相同的策略跑一条命令，MXC 也走同一准备路径。官方 Windows sandbox 页要求用 `/sandbox-add-read-dir C:\absolute\directory\path` 给沙箱授予某个已存在绝对目录的读权限（仅当前会话），但 CLI TUI 的 Slash 命令枚举在 rust-v0.154.0（提交 `6b9826e3aa83`）仍有该命令、自 rust-v0.155.0（提交 `f0a1b8f0849d`）起已无，官方 Slash 命令参考页也未列出，CLI 侧入口记为未确认。 |
+| 默认状态 | 版本库目录通常采用 `workspace-write` + `on-request`，非版本库目录通常采用 `read-only`；具体启动状态还受目录信任和配置影响。原生 Windows 上 agent 模式默认就用 Windows 沙箱阻止工作目录外写入；未选择模式时 Codex 优先 `elevated`，`elevated` 安装没完成会退回 `unelevated`。MXC 不自动启用：`features.prefer_mxc` 在功能登记册里是 `Stage::UnderDevelopment` 且 `default_enabled: false`，`windows.sandbox = "mxc"` 则是严格选择。 |
+| 具体行为 | `read-only` 禁止一般写入，`workspace-write` 只写工作区与附加 writable roots，`danger-full-access` 移除沙箱；`.git`、`.agents`、`.codex` 等路径仍受保护。原生 Windows 上再由 `[windows] sandbox` 选实现：`elevated` 用专用低权限沙箱用户加文件系统权限边界，`unelevated` 用当前用户派生的受限 Windows 令牌加 ACL 边界，`mxc` 经 Microsoft MXC `BaseContainerRunner` 直接包裹命令，不改主机 ACL、不创建沙箱用户、不跑安装也不请求提权。MXC 的文件系统权限取自规范化的 Codex 权限 Profile（含受保护元数据豁免），deny glob 沿用既有 Windows 沙箱解析器在启动前展开为具体路径并保持相同的快照语义与扫描上限；Windows 卷根授权不递归，只授卷根与其直接子项，命令运行中新建或新挂载的目录不自动获得授权。 |
+| 规则能力 | `approval_policy` 支持 `untrusted`、`on-request`、`never` 和 granular 分类策略；命令 Rules、MCP 注解、权限 Profile 与沙箱共同生效。企业可用 `requirements.toml` 的 `[windows] allowed_sandbox_implementations = ["elevated"]` 限定允许的原生沙箱实现，写两个值即两者都允许；配置与强制规则冲突时本地客户端回退到兼容值并通知用户。 |
+| 隔离边界 | 本地 CLI/IDE 使用 OS 级沙箱。`read-only`、`workspace-write`、`danger-full-access` 分别提供只读、工作区写入和无沙箱边界。原生 Windows 沙箱还做 UI 隔离：官方文档写两种模式默认使用私有桌面，并给出 `windows.sandbox_private_desktop = false` 退回旧的 `Winsta0\Default`，但固定到的 `WindowsToml` JSON schema 是 `additionalProperties: false` 且只有 `sandbox` 与 `allow_mxc` 两个键，该键的实际可用性记为未确认。MXC 后端另有限制：路径与环境变量值以 Unicode 字符串表示，非 Unicode 值直接失败而不做有损转换；显式为空的子进程环境被拒绝；请求 deny 路径还要求原生 `PSE_SUPPORT_FS_DENY` 能力，否则命令在启动前失败。 |
+| 保存与作用域 | 用户配置位于 `~/.codex/config.toml`；受信任项目可加载 `.codex/config.toml`、Hooks 和 Rules；系统与管理员 Requirements 可进一步收紧。`[windows]` 表同属 `config.toml`，也可用 `-c key=value` 覆盖。Windows 沙箱的安装与运行诊断写在 `CODEX_HOME/.sandbox/sandbox.log`，官方同时要求不要把 `CODEX_HOME/.sandbox-secrets/` 的内容发给 OpenAI。 |
+| 非交互行为 | 非交互流程无法展示新审批时，需要审批的动作失败并把错误返回给 Agent；可在启动前固定审批策略、沙箱和 Rules。远程 executor 继承 `config.toml` 里配置的后端，不跟随本机 `features.prefer_mxc` 的解析结果；MXC 下命令失败不触发后端回退，且前台进程退出或取消时上游 runner 会终止其余子孙进程，因此分离式后台服务在 MXC 下失去既有两个 Windows 后端保留子孙进程的行为。 |
+| 条件与边界 | 审批决定何时停下来询问，沙箱决定技术边界；`approval_policy = "never"` 不会自动移除仍在生效的沙箱。原生 Windows 沙箱只在 Windows 上生效：官方推荐 Windows 11，完整更新的 Windows 10 为尽力支持（依赖 ConPTY，实践中需 1809 及以上），更旧的 Windows 10 构建不推荐；`winget` 应可用，`elevated` 依赖管理员批准的安装（本机用户或组创建、防火墙规则修改与沙箱用户登录权限），企业策略可能阻断这些步骤，沙箱内命令报 Windows 错误 `1385` 表示 Windows 拒绝沙箱用户启动命令所需的登录类型，Codex 也会在文件夹对 `Everyone` 可写时告警。MXC 需要可用的 Windows 进程安全环境（PSEC），可用性由 MXC 自身的 create/close 探测判断而不是 OS 构建号或 SDK 的 `platform_support()`，Windows executor 每进程记录一次 `codex.windows_mxc.available`，不支持的 Windows executor 在执行前拒绝 MXC 请求；受管网络要求把 `allow_local_binding` 生效为 `false` 时 MXC 判定为不可用（MXC 被选中时该值默认 `true`）。main 分支提交 `e95abcdf4939`（PR #51547，2026-10-07）新增 `windows.allow_mxc`：设为 `false` 时即使开启 `features.prefer_mxc` 也不自动选择 MXC，并让显式 `windows.sandbox = "mxc"` 直接报错，不写该键保持原行为；该键只在 main 分支，rust-v0.160.1（提交 `d27764b82f71`）的 `WindowsToml` 只有 `sandbox` 一个字段，官方配置参考与 Windows sandbox 页也未列出。需要 Linux 原生工具链时官方建议改用 WSL。 |
+| 证据状态 | 条件项 |
+| 来源 | [Codex Agent approvals and security](https://learn.chatgpt.com/docs/agent-approvals-security)、[Codex Advanced Configuration](https://learn.chatgpt.com/docs/config-file/config-advanced)、[Codex Windows sandbox](https://learn.chatgpt.com/docs/windows/windows-sandbox)、[Codex configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference)、[Codex CLI commands](https://developers.openai.com/codex/cli/slash-commands)、[Codex Managed configuration（requirements.toml）](https://learn.chatgpt.com/docs/enterprise/managed-configuration)、[Codex MXC 沙箱说明（`codex-rs/mxc-sandbox/README.md`）](https://github.com/openai/codex/blob/e95abcdf4939f37f11f00f984efdbbf8b088346e/codex-rs/mxc-sandbox/README.md)、[Codex Windows 沙箱后端解析源码](https://github.com/openai/codex/blob/e95abcdf4939f37f11f00f984efdbbf8b088346e/codex-rs/core/src/config/windows_sandbox_config.rs)、[Codex rust-v0.160.1 `windows` 配置类型源码](https://github.com/openai/codex/blob/d27764b82f7118f674371e6d6e76271d9d606edb/codex-rs/config/src/types.rs)、[Codex 功能登记册（`prefer_mxc` 默认关闭）](https://github.com/openai/codex/blob/e95abcdf4939f37f11f00f984efdbbf8b088346e/codex-rs/features/src/lib.rs)、[Codex `windows.allow_mxc` 退出开关提交](https://github.com/openai/codex/commit/e95abcdf4939f37f11f00f984efdbbf8b088346e)、[Codex rust-v0.154.0 Slash 命令源码（含 `/sandbox-add-read-dir`）](https://github.com/openai/codex/blob/6b9826e3aa83b1a5947db50f4332cb9c65f1b340/codex-rs/tui/src/slash_command.rs)、[Codex rust-v0.155.0 Slash 命令源码（已无 `/sandbox-add-read-dir`）](https://github.com/openai/codex/blob/f0a1b8f0849d90960bc406b848f32e5a129b0457/codex-rs/tui/src/slash_command.rs) |
 
 ### Qwen Code
 
@@ -127,6 +128,17 @@
 - [Claude Code Headless Mode](https://code.claude.com/docs/en/headless)
 - [Codex Agent approvals and security](https://learn.chatgpt.com/docs/agent-approvals-security)
 - [Codex Advanced Configuration](https://learn.chatgpt.com/docs/config-file/config-advanced)
+- [Codex Windows sandbox](https://learn.chatgpt.com/docs/windows/windows-sandbox)
+- [Codex configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference)
+- [Codex CLI commands](https://developers.openai.com/codex/cli/slash-commands)
+- [Codex Managed configuration（requirements.toml）](https://learn.chatgpt.com/docs/enterprise/managed-configuration)
+- [Codex MXC 沙箱说明（`codex-rs/mxc-sandbox/README.md`）](https://github.com/openai/codex/blob/e95abcdf4939f37f11f00f984efdbbf8b088346e/codex-rs/mxc-sandbox/README.md)
+- [Codex Windows 沙箱后端解析源码](https://github.com/openai/codex/blob/e95abcdf4939f37f11f00f984efdbbf8b088346e/codex-rs/core/src/config/windows_sandbox_config.rs)
+- [Codex rust-v0.160.1 `windows` 配置类型源码](https://github.com/openai/codex/blob/d27764b82f7118f674371e6d6e76271d9d606edb/codex-rs/config/src/types.rs)
+- [Codex 功能登记册（`prefer_mxc` 默认关闭）](https://github.com/openai/codex/blob/e95abcdf4939f37f11f00f984efdbbf8b088346e/codex-rs/features/src/lib.rs)
+- [Codex `windows.allow_mxc` 退出开关提交](https://github.com/openai/codex/commit/e95abcdf4939f37f11f00f984efdbbf8b088346e)
+- [Codex rust-v0.154.0 Slash 命令源码（含 `/sandbox-add-read-dir`）](https://github.com/openai/codex/blob/6b9826e3aa83b1a5947db50f4332cb9c65f1b340/codex-rs/tui/src/slash_command.rs)
+- [Codex rust-v0.155.0 Slash 命令源码（已无 `/sandbox-add-read-dir`）](https://github.com/openai/codex/blob/f0a1b8f0849d90960bc406b848f32e5a129b0457/codex-rs/tui/src/slash_command.rs)
 - [Qwen Code Approval Mode](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/approval-mode.md)
 - [Qwen Code Sandbox](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/sandbox.md)
 - [Qwen Code Settings](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/configuration/settings.md)
