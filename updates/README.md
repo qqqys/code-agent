@@ -4,6 +4,7 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-10-07 | [MCP 命令：Codex rust-v0.161.0 的 `/mcp login <name>`、Qoder `/mcp-config` 与五家会话内 OAuth 入口核对](./2026-10-07-Slash命令-MCP命令子命令与会话内OAuth登录.md) |
 | 2026-10-07 | [文件系统与网络隔离：Codex 原生 Windows 沙箱的 `elevated`/`unelevated`/`mxc` 三种实现，以及 main 分支 `windows.allow_mxc` 退出开关与 `/sandbox-add-read-dir` 移除](./2026-10-07-权限与沙箱-Codex原生Windows沙箱.md) |
 | 2026-10-06 | [Agent 推理强度：Claude Code v2.1.292 Agent 工具新增 `effort` 参数，并补录 effort 上限与优先级、Codex main 分支 activity 记录](./2026-10-06-Subagent-Agent推理强度-Claude-Agent工具effort参数.md) |
 | 2026-10-06 | [代码 Review：Claude Code `/code-review --max-findings` findings 上限参数（v2.1.288），并补录 `--post` 与 GitLab `--comment`](./2026-10-06-执行与Git-Claude-code-review-max-findings.md) |

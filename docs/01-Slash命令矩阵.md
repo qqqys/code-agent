@@ -41,7 +41,7 @@
 | 用量统计 | `/stats`、`/usage` | `/usage` | `/stats`、`/usage` | `/usage` | `/usage` |
 | 诊断 | `/doctor`、`/debug` | `/debug-config` | `/doctor`、`/stuck` | `/export-debug-zip` | `/feedback` |
 | 初始化项目指令 | `/init` | `/init` | `/init` | `/init` | `/init` |
-| MCP | `/mcp` | `/mcp` | `/mcp` | `/mcp`、`/mcp-config` | `/mcp` |
+| MCP | `/mcp [reconnect\|enable\|disable]` | `/mcp [verbose]`、`/mcp login <name>`（rust-v0.161.0 起） | `/mcp [desc\|nodesc\|schema]`，OAuth 在 `/mcp` 对话框内 | `/mcp`、`/mcp-config login <server-name>` | `/mcp`、`/mcp reload`、`/mcp-config` |
 | Skills | `/skills`、`/reload-skills` | `/skills` | `/skills`、`/<skill-name>` | 内置 Skill 命令与 Skills 目录 | `/skills` |
 | Hooks | `/hooks` | `/hooks` | `/hooks` | — | Agent 配置支持 Hooks；无独立 Slash 命令 |
 | 插件或扩展 | `/plugin`、`/reload-plugins` | `/plugins`、`/apps` | `/extensions`、`/extension-creator`、`/reload-plugins` | `/plugins` | — |
@@ -78,6 +78,8 @@ v2.1.222（2026-08-04 发布）移除了 ultraplan 功能，官方命令表不�
 `/export`（会话 Markdown 导出）于 2026-08-07 合入 main 分支（提交 `2801d12661be`，PR #37358），尚未进入 Release，官方命令文档也尚未列出；不带参数时可在复制到剪贴板与保存文件之间选择。
 
 `/sandbox-add-read-dir <absolute_path>`（给原生 Windows 沙箱授予某个已存在绝对目录的读权限，仅当前会话）于 2026-10-07 从本目录移除：CLI TUI 的 Slash 命令枚举在 rust-v0.154.0（提交 `6b9826e3aa83`）仍有该命令，自 rust-v0.155.0（提交 `f0a1b8f0849d`）起已无，官方 Slash 命令参考页也没有列出，而官方 Windows sandbox 页正文仍要求使用它。`/setup-default-sandbox`（源码描述 “set up elevated agent sandbox”）仍在枚举中，官方 Slash 命令参考页同样没有列出。两者的沙箱含义见[文件系统隔离](./capabilities/security/security-filesystem.md)。
+
+`/mcp` 自 rust-v0.161.0（2026-10-07 发布，PR #49290）起接受 `login <name>` 参数，在活动会话内启动某个 streamable HTTP MCP Server 的 OAuth 登录；同一版本的 Slash 命令枚举把该命令描述为 “list MCP tools; use /mcp verbose or /mcp login <name>”。官方 Slash 命令参考页核对时仍只写 “Open MCP status to view connected servers.”，不列 `verbose` 与 `login`。参数解析、报错文案与凭据边界见 [MCP 命令详情](./capabilities/commands/cmd-mcp.md)。
 
 ### Qwen Code
 
@@ -166,7 +168,9 @@ Web Shell 还固定提供 4 个不属于 CLI/TUI 硬编码加载器的本地命�
 
 ### Qoder CLI
 
-`/agents`、`/batch`、`/clear`、`/commands`、`/compact`、`/config`、`/context-window`、`/effort`、`/export`、`/fast`、`/feedback`、`/goal`、`/help`、`/init`、`/login`、`/logout`、`/mcp`、`/memory`、`/model`、`/plan`、`/quest`、`/quit`、`/release-notes`、`/resume`、`/review`、`/setup-github`、`/skills`、`/status`、`/tasks`、`/upgrade`、`/usage`、`/vim`、`/workflows`。
+`/agents`、`/batch`、`/clear`、`/commands`、`/compact`、`/config`、`/context-window`、`/effort`、`/export`、`/fast`、`/feedback`、`/goal`、`/help`、`/init`、`/login`、`/logout`、`/mcp`、`/mcp-config`、`/memory`、`/model`、`/plan`、`/quest`、`/quit`、`/release-notes`、`/resume`、`/review`、`/setup-github`、`/skills`、`/status`、`/tasks`、`/upgrade`、`/usage`、`/vim`、`/workflows`。
+
+`/mcp-config`（描述 “Manage MCP server configurations.”）于 2026-10-07 核对时补入本目录：官方 Slash 命令参考把它列在 “Built-in Skills” 分组，与列在 “Extensions and Tools” 分组、描述为 “Manage MCP servers.” 的 `/mcp` 并列，两者都没有给出 synopsis 或子命令。同一分组还列出条件命令说明 “/mcp: Displays a disabled prompt when MCP is disabled.”。MCP Servers 页另记录 `/mcp reload` 用于在 CLI 已运行时重新发现 Server 与工具，官方 Slash 命令参考没有把 `reload` 当作子命令列出。
 
 官方文档站于 2026-08-13 核对时已改版，原 `en/cli/command` 页面迁移为 `cli/slash-reference`（旧地址返回 404）。`/batch` 为改版后命令参考“Built-in Skills”一节列出的内置 Skill：在隔离 git worktree 中派出并行工作 Agent 对多个文件应用批量修改，要求当前目录为 Git 仓库；官方发行说明（最近至 1.1.20，2026-08-12）未写明该命令的引入版本。`/goal`（目标管理）于 2026-08-23 核对时补入本目录：命令参考“Work Modes”一节列出 `/goal`，并有独立 Goal Command Reference 页，详见对照表目标行。改版后的命令参考还列出更多未在本目录中的命令，属于其他能力字段，另行核对。
 
@@ -177,8 +181,15 @@ Web Shell 还固定提供 4 个不属于 CLI/TUI 硬编码加载器的本地命�
 - [Claude Code v2.1.222 更新日志](https://github.com/anthropics/claude-code/blob/3b272769d0c8/CHANGELOG.md)
 - [Claude Code v2.1.223 更新日志](https://github.com/anthropics/claude-code/blob/5cf69b18c86d/CHANGELOG.md)
 - [Claude Code ultrareview](https://code.claude.com/docs/en/ultrareview)
+- [Claude Code MCP（`/mcp` 面板动作与 OAuth）](https://code.claude.com/docs/en/mcp)
 - [Codex CLI 命令](https://developers.openai.com/codex/cli/slash-commands)
 - [Codex 双键快捷键 chord 提交](https://github.com/openai/codex/commit/1e85ca099e4265bf89f4016772d299816e231bb3)
+- [Codex rust-v0.161.0 发布说明（`/mcp login <name>`）](https://github.com/openai/codex/releases/tag/rust-v0.161.0)
+- [Codex PR #49290（Add `/mcp login <name>` to the TUI）](https://github.com/openai/codex/pull/49290)
+- [Codex rust-v0.161.0 Slash 命令源码](https://github.com/openai/codex/blob/979011409de0a60b52f179721948e65531d26144/codex-rs/tui/src/slash_command.rs)
+- [Codex rust-v0.161.0 `/mcp` 参数解析源码](https://github.com/openai/codex/blob/979011409de0a60b52f179721948e65531d26144/codex-rs/tui/src/chatwidget/slash_dispatch.rs)
+- [Codex CLI 命令参考（`codex mcp login` 与 `logout`）](https://learn.chatgpt.com/docs/developer-commands?surface=cli)
+- [Codex Slash 命令参考页（`/mcp` 未列子命令）](https://learn.chatgpt.com/docs/reference/slash-commands)
 - [Qwen Code 硬编码命令加载器](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/BuiltinCommandLoader.ts)
 - [Qwen Code bundled Skill 加载器](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/BundledSkillLoader.ts)
 - [Qwen Code 用户、项目与扩展 Skill 加载器](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/SkillCommandLoader.ts)
@@ -205,6 +216,9 @@ Web Shell 还固定提供 4 个不属于 CLI/TUI 硬编码加载器的本地命�
 - [Qwen Code v0.22.2 硬编码命令加载器（/peers）](https://github.com/QwenLM/qwen-code/blob/f9470f570a215616aa364aa174a565d3373df7b8/packages/cli/src/services/BuiltinCommandLoader.ts)
 - [Qwen Code v0.22.2 发布说明](https://github.com/QwenLM/qwen-code/releases/tag/v0.22.2)
 - [Qwen Code Web Shell 本地命令](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/web-shell/client/constants/localCommands.ts)
+- [Qwen Code v0.25.1-preview.0 `/mcp` 命令源码](https://github.com/QwenLM/qwen-code/blob/304df378b562b82e371b4eae86610a83548d2e39/packages/cli/src/ui/commands/mcpCommand.ts)
+- [Qwen Code v0.25.1-preview.0 命令文档（`/mcp` 行）](https://github.com/QwenLM/qwen-code/blob/304df378b562b82e371b4eae86610a83548d2e39/docs/users/features/commands.md)
+- [Qwen Code v0.25.1-preview.0 MCP 文档（`/mcp` 对话框与 OAuth）](https://github.com/QwenLM/qwen-code/blob/304df378b562b82e371b4eae86610a83548d2e39/docs/users/features/mcp.md)
 - [Kimi Code Slash 命令](https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/reference/slash-commands.md)
 - [Kimi Code `/bug` 别名提交](https://github.com/MoonshotAI/kimi-code/commit/8db7d42f23472a692eb389a0e0e5a3e18aa1b94d)
 - [Kimi Code `/fork` 不再切换会话提交](https://github.com/MoonshotAI/kimi-code/commit/54c04bf03ddbeb46d02b2edb460ea091ae194509)
@@ -228,5 +242,11 @@ Web Shell 还固定提供 4 个不属于 CLI/TUI 硬编码加载器的本地命�
 - [Kimi Code `/remote-control` TUI 命令源码](https://github.com/MoonshotAI/kimi-code/blob/f0a609487fb835371c608cde101a6ff544c3c33e/apps/kimi-code/src/tui/commands/web.ts)
 - [Kimi Code TUI 命令注册表（/remote-control）](https://github.com/MoonshotAI/kimi-code/blob/f0a609487fb835371c608cde101a6ff544c3c33e/apps/kimi-code/src/tui/commands/registry.ts)
 - [Kimi Code `kimi web` Remote Control 选项源码](https://github.com/MoonshotAI/kimi-code/blob/f0a609487fb835371c608cde101a6ff544c3c33e/apps/kimi-code/src/cli/sub/web/run.ts)
+- [Kimi Code 斜杠命令表（`/mcp` 与 `/mcp-config` 行）](https://github.com/MoonshotAI/kimi-code/blob/21406fb4c805cc8c715e6d1f16ad3fb5f25f4fe3/docs/zh/reference/slash-commands.md)
+- [Kimi Code MCP 文档（`/mcp-config login <server-name>`）](https://github.com/MoonshotAI/kimi-code/blob/21406fb4c805cc8c715e6d1f16ad3fb5f25f4fe3/docs/zh/customization/mcp.md)
+- [Kimi Code 2.0.0 发布说明（401 工具调用触发 MCP OAuth 登录）](https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai%2Fkimi-code%402.0.0)
+- [Kimi Code 2.1.0 发布说明（MCP OAuth offline_access 修复）](https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai%2Fkimi-code%402.1.0)
 - [Qoder CLI Slash 命令参考](https://docs.qoder.com/cli/slash-reference)
 - [Qoder CLI Goal Command Reference](https://docs.qoder.com/cli/goal-reference)
+- [Qoder CLI MCP Servers（`/mcp reload` 与 `qoder mcp` 子命令）](https://docs.qoder.com/cli/mcp-servers)
+- [Qoder CLI Release Notes（最新至 CLI 1.1.63）](https://docs.qoder.com/release-notes/qoder-cli)
