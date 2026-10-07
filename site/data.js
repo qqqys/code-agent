@@ -1978,6 +1978,66 @@ window.matrixData = {
       label: 'Qwen Code PR #12891（bundle Mem0 with the main CLI）',
       url: 'https://github.com/QwenLM/qwen-code/pull/12891',
     },
+    'codex-v0161-release': {
+      label: 'Codex rust-v0.161.0 发布说明（`/mcp login <name>`）',
+      url: 'https://github.com/openai/codex/releases/tag/rust-v0.161.0',
+    },
+    'codex-mcp-login-pr': {
+      label: 'Codex PR #49290（Add `/mcp login <name>` to the TUI）',
+      url: 'https://github.com/openai/codex/pull/49290',
+    },
+    'codex-slash-command-v0161': {
+      label: 'Codex rust-v0.161.0 Slash 命令源码（`/mcp` 描述含 login）',
+      url: 'https://github.com/openai/codex/blob/979011409de0a60b52f179721948e65531d26144/codex-rs/tui/src/slash_command.rs',
+    },
+    'codex-mcp-login-dispatch': {
+      label: 'Codex rust-v0.161.0 `/mcp` 参数解析与报错源码',
+      url: 'https://github.com/openai/codex/blob/979011409de0a60b52f179721948e65531d26144/codex-rs/tui/src/chatwidget/slash_dispatch.rs',
+    },
+    'codex-mcp-login-snapshot': {
+      label: 'Codex rust-v0.161.0 `/mcp login` 重叠启动与结果保留测试快照',
+      url: 'https://github.com/openai/codex/blob/979011409de0a60b52f179721948e65531d26144/codex-rs/tui/src/app/tests/snapshots/codex_tui__app__tests__mcp_login_tests__overlapping_mcp_login.snap',
+    },
+    'codex-cli-command-reference': {
+      label: 'Codex CLI 命令参考（`codex mcp login` 与 `logout`，OAuth 仅限 streamable HTTP）',
+      url: 'https://learn.chatgpt.com/docs/developer-commands?surface=cli',
+    },
+    'codex-slash-command-reference': {
+      label: 'Codex Slash 命令参考页（`/mcp` 未列子命令）',
+      url: 'https://learn.chatgpt.com/docs/reference/slash-commands',
+    },
+    'qwen-mcp-command-source': {
+      label: 'Qwen Code v0.25.1-preview.0 `/mcp` 命令源码',
+      url: 'https://github.com/QwenLM/qwen-code/blob/304df378b562b82e371b4eae86610a83548d2e39/packages/cli/src/ui/commands/mcpCommand.ts',
+    },
+    'qwen-mcp-v0251': {
+      label: 'Qwen Code v0.25.1-preview.0 MCP 文档（`/mcp` 对话框、OAuth 与令牌存储）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/304df378b562b82e371b4eae86610a83548d2e39/docs/users/features/mcp.md',
+    },
+    'qwen-commands-v0251': {
+      label: 'Qwen Code v0.25.1-preview.0 命令文档（`/mcp` 行）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/304df378b562b82e371b4eae86610a83548d2e39/docs/users/features/commands.md',
+    },
+    'qwen-mcp-command-v0247': {
+      label: 'Qwen Code v0.24.7 `/mcp` 命令源码（与 v0.25.1-preview.0 逐字节相同）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/v0.24.7/packages/cli/src/ui/commands/mcpCommand.ts',
+    },
+    'kimi-slash-commands-mcp': {
+      label: 'Kimi Code 斜杠命令表（`/mcp` 与 `/mcp-config` 行）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/21406fb4c805cc8c715e6d1f16ad3fb5f25f4fe3/docs/zh/reference/slash-commands.md',
+    },
+    'kimi-mcp-21406f': {
+      label: 'Kimi Code MCP 文档（`/mcp-config login <server-name>`）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/21406fb4c805cc8c715e6d1f16ad3fb5f25f4fe3/docs/zh/customization/mcp.md',
+    },
+    'kimi-mcp-oauth-210': {
+      label: 'Kimi Code 2.1.0 发布说明（MCP OAuth offline_access 修复）',
+      url: 'https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai%2Fkimi-code%402.1.0',
+    },
+    'kimi-mcp-oauth-200': {
+      label: 'Kimi Code 2.0.0 发布说明（401 工具调用触发 MCP OAuth 登录）',
+      url: 'https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai%2Fkimi-code%402.0.0',
+    },
   },
   rows: [
     {
@@ -2118,7 +2178,7 @@ window.matrixData = {
       category: 'commands',
       capability: 'MCP',
       description: '查看或管理 Model Context Protocol 连接。',
-      values: { claude: '`/mcp`', codex: '`/mcp`', qwen: '`/mcp`', kimi: '`/mcp` · `/mcp-config`', qoder: '`/mcp`' },
+      values: { claude: '`/mcp [reconnect|enable|disable]`', codex: '`/mcp [verbose]` · `/mcp login <name>`（rust-v0.161.0 起）', qwen: '`/mcp [desc|nodesc|schema]` · OAuth 在 `/mcp` 对话框内', kimi: '`/mcp` · `/mcp-config login <server-name>`', qoder: '`/mcp` · `/mcp reload` · `/mcp-config`' },
     },
     {
       id: 'cmd-skills',
