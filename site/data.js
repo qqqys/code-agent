@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-10-06',
+  updatedAt: '2026-10-07',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -581,6 +581,42 @@ window.matrixData = {
     'codex-slack': {
       label: 'Codex Slack 集成（委派给 Codex Cloud）',
       url: 'https://learn.chatgpt.com/docs/third-party/slack',
+    },
+    'codex-windows-sandbox': {
+      label: 'Codex Windows sandbox',
+      url: 'https://learn.chatgpt.com/docs/windows/windows-sandbox',
+    },
+    'codex-managed-configuration': {
+      label: 'Codex Managed configuration（requirements.toml）',
+      url: 'https://learn.chatgpt.com/docs/enterprise/managed-configuration',
+    },
+    'codex-mxc-readme': {
+      label: 'Codex MXC 沙箱说明（`codex-rs/mxc-sandbox/README.md`）',
+      url: 'https://github.com/openai/codex/blob/e95abcdf4939f37f11f00f984efdbbf8b088346e/codex-rs/mxc-sandbox/README.md',
+    },
+    'codex-windows-sandbox-config': {
+      label: 'Codex Windows 沙箱后端解析源码',
+      url: 'https://github.com/openai/codex/blob/e95abcdf4939f37f11f00f984efdbbf8b088346e/codex-rs/core/src/config/windows_sandbox_config.rs',
+    },
+    'codex-windows-config-types': {
+      label: 'Codex rust-v0.160.1 `windows` 配置类型源码',
+      url: 'https://github.com/openai/codex/blob/d27764b82f7118f674371e6d6e76271d9d606edb/codex-rs/config/src/types.rs',
+    },
+    'codex-windows-features': {
+      label: 'Codex 功能登记册（`prefer_mxc` 默认关闭）',
+      url: 'https://github.com/openai/codex/blob/e95abcdf4939f37f11f00f984efdbbf8b088346e/codex-rs/features/src/lib.rs',
+    },
+    'codex-windows-allow-mxc-commit': {
+      label: 'Codex `windows.allow_mxc` 退出开关提交',
+      url: 'https://github.com/openai/codex/commit/e95abcdf4939f37f11f00f984efdbbf8b088346e',
+    },
+    'codex-slash-command-v0154': {
+      label: 'Codex rust-v0.154.0 Slash 命令源码（含 `/sandbox-add-read-dir`）',
+      url: 'https://github.com/openai/codex/blob/6b9826e3aa83b1a5947db50f4332cb9c65f1b340/codex-rs/tui/src/slash_command.rs',
+    },
+    'codex-slash-command-v0155': {
+      label: 'Codex rust-v0.155.0 Slash 命令源码（已无 `/sandbox-add-read-dir`）',
+      url: 'https://github.com/openai/codex/blob/f0a1b8f0849d90960bc406b848f32e5a129b0457/codex-rs/tui/src/slash_command.rs',
     },
     'qwen-commands': {
       label: 'Qwen Code commands documentation',
@@ -2341,14 +2377,14 @@ window.matrixData = {
       category: 'security',
       capability: '文件系统隔离',
       description: '在操作系统或进程边界限制可读写路径。',
-      values: { claude: 'Bash OS 沙箱 + 文件权限规则', codex: '`read-only` · `workspace-write` · `danger-full-access`', qwen: 'Seatbelt 或容器 Sandbox；默认关闭', kimi: '文件工具权限；OS 沙箱未确认', qoder: '路径权限规则；SDK 条件 Sandbox' },
+      values: { claude: 'Bash OS 沙箱 + 文件权限规则', codex: '`read-only` · `workspace-write` · `danger-full-access`；条件：原生 Windows 另有 `[windows] sandbox` 的 `elevated`/`unelevated`/`mxc` 后端', qwen: 'Seatbelt 或容器 Sandbox；默认关闭', kimi: '文件工具权限；OS 沙箱未确认', qoder: '路径权限规则；SDK 条件 Sandbox' },
     },
     {
       id: 'security-network',
       category: 'security',
       capability: '网络隔离',
       description: '单独限制 Agent 进程访问网络。',
-      values: { claude: 'Sandbox 域名代理与 Allow/Deny；`strictAllowlist` 直接拒绝未列主机', codex: '`workspace-write` 默认断网；可单独启用与限域', qwen: 'Seatbelt Profile 与代理；依配置', kimi: '网络工具权限；OS 网络隔离未确认', qoder: 'Web 工具规则；SDK 条件网络 Sandbox' },
+      values: { claude: 'Sandbox 域名代理与 Allow/Deny；`strictAllowlist` 直接拒绝未列主机', codex: '`workspace-write` 默认断网；可单独启用与限域 · 条件：原生 Windows 沙箱用防火墙规则或环境级断网，MXC 只放行回环', qwen: 'Seatbelt Profile 与代理；依配置', kimi: '网络工具权限；OS 网络隔离未确认', qoder: 'Web 工具规则；SDK 条件网络 Sandbox' },
     },
     {
       id: 'security-credentials',

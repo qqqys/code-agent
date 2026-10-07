@@ -73,9 +73,11 @@ v2.1.222（2026-08-04 发布）移除了 ultraplan 功能，官方命令表不�
 
 ### Codex
 
-`/agent`、`/apps`、`/approve`、`/archive`、`/clear`、`/compact`、`/copy`、`/debug-config`、`/delete`、`/diff`、`/exit`、`/experimental`、`/export`、`/fast`、`/feedback`、`/fork`、`/goal`、`/hooks`、`/ide`、`/import`、`/init`、`/keymap`、`/logout`、`/mcp`、`/memories`、`/mention`、`/model`、`/new`、`/permissions`、`/personality`、`/pet`、`/pets`、`/plan`、`/plugins`、`/ps`、`/raw`、`/rename`、`/resume`、`/review`、`/sandbox-add-read-dir`、`/setup-default-sandbox`、`/side`、`/skills`、`/status`、`/statusline`、`/stop`、`/theme`、`/title`、`/usage`、`/vim`。
+`/agent`、`/apps`、`/approve`、`/archive`、`/clear`、`/compact`、`/copy`、`/debug-config`、`/delete`、`/diff`、`/exit`、`/experimental`、`/export`、`/fast`、`/feedback`、`/fork`、`/goal`、`/hooks`、`/ide`、`/import`、`/init`、`/keymap`、`/logout`、`/mcp`、`/memories`、`/mention`、`/model`、`/new`、`/permissions`、`/personality`、`/pet`、`/pets`、`/plan`、`/plugins`、`/ps`、`/raw`、`/rename`、`/resume`、`/review`、`/setup-default-sandbox`、`/side`、`/skills`、`/status`、`/statusline`、`/stop`、`/theme`、`/title`、`/usage`、`/vim`。
 
 `/export`（会话 Markdown 导出）于 2026-08-07 合入 main 分支（提交 `2801d12661be`，PR #37358），尚未进入 Release，官方命令文档也尚未列出；不带参数时可在复制到剪贴板与保存文件之间选择。
+
+`/sandbox-add-read-dir <absolute_path>`（给原生 Windows 沙箱授予某个已存在绝对目录的读权限，仅当前会话）于 2026-10-07 从本目录移除：CLI TUI 的 Slash 命令枚举在 rust-v0.154.0（提交 `6b9826e3aa83`）仍有该命令，自 rust-v0.155.0（提交 `f0a1b8f0849d`）起已无，官方 Slash 命令参考页也没有列出，而官方 Windows sandbox 页正文仍要求使用它。`/setup-default-sandbox`（源码描述 “set up elevated agent sandbox”）仍在枚举中，官方 Slash 命令参考页同样没有列出。两者的沙箱含义见[文件系统隔离](./capabilities/security/security-filesystem.md)。
 
 ### Qwen Code
 

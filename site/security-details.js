@@ -393,19 +393,53 @@
       excludes: ['只针对文件工具的 Allow/Deny', 'Git Worktree 隔离', '网络访问策略'],
       facts: [
         'Claude Code 与 Codex 都公开了本地 OS 级文件系统沙箱；Qwen Code 提供可选 Seatbelt 或容器沙箱。',
+        'Codex 在 macOS 用 Seatbelt、Linux 用 Landlock，原生 Windows 另有 `elevated`、`unelevated` 与 `mxc` 三种沙箱实现，由 `[windows] sandbox` 选择；`codex sandbox` 是 Stable 子命令，可用同一套策略手动跑一条命令。',
         'Kimi Code 当前公开的是工具权限规则；Qoder CLI SDK 暴露可选 Sandbox Settings，但主 CLI 权限页主要描述路径规则。',
       ],
       behavior: {
         claude:
           'Bash 沙箱使用 Seatbelt 或 bubblewrap，默认只向工作目录与会话临时目录写入；Read/Edit deny 与 Sandbox 路径合并。',
         codex:
-          '`read-only` 禁止一般写入，`workspace-write` 只写工作区与附加 writable roots，`danger-full-access` 移除沙箱；`.git`、`.agents`、`.codex` 等路径仍受保护。',
+          '`read-only` 禁止一般写入，`workspace-write` 只写工作区与附加 writable roots，`danger-full-access` 移除沙箱；`.git`、`.agents`、`.codex` 等路径仍受保护。原生 Windows 上再由 `[windows] sandbox` 选实现：`elevated` 用专用低权限沙箱用户加文件系统权限边界，`unelevated` 用当前用户派生的受限 Windows 令牌加 ACL 边界，`mxc` 经 Microsoft MXC `BaseContainerRunner` 直接包裹命令，不改主机 ACL、不创建沙箱用户、不跑安装也不请求提权。MXC 的文件系统权限取自规范化的 Codex 权限 Profile（含受保护元数据豁免），deny glob 沿用既有 Windows 沙箱解析器在启动前展开为具体路径并保持相同的快照语义与扫描上限；Windows 卷根授权不递归，只授卷根与其直接子项，命令运行中新建或新挂载的目录不自动获得授权。',
         qwen:
           'Sandbox 默认关闭；macOS 可用 Seatbelt，跨平台可用 Docker/Podman。容器挂载工作区和 `~/.qwen`，Seatbelt Profile 限制工作区外写入。',
         kimi:
           'Read、Bash 等可用 permission rules 控制，工具也有 enabled/disabled 列表；当前 CLI 文档未确认 OS 或容器级文件系统沙箱。',
         qoder:
           '主 CLI 提供 Read/Edit 路径规则、受信目录与受保护路径；SDK 的 `sandbox.filesystem` 可设置 allow/deny read/write，且 Sandbox 默认关闭。',
+      },
+      overrides: {
+        codex: {
+          entry:
+            '`/permissions` 与权限选择器控制当前会话；CLI 可传 `--sandbox`、`--ask-for-approval`，持久配置写入 `config.toml`。原生 Windows 沙箱实现由 `config.toml` 的 `[windows] sandbox = "elevated"` 或 `"unelevated"` 选择，TUI 的 `/setup-default-sandbox`（源码描述 “set up elevated agent sandbox”）负责 elevated 安装；`codex sandbox` 子命令（官方标注 Stable，Windows 形式的 `COMMAND...` 说明为 “Command to execute under the native Windows sandbox. Provide the executable after `--`.”）可用 `-P/--permission-profile`、`-C/--cd`、`-c/--config`、`-p/--profile`、`--include-managed-config` 以真实执行相同的策略跑一条命令，MXC 也走同一准备路径。官方 Windows sandbox 页要求用 `/sandbox-add-read-dir C:\\absolute\\directory\\path` 给沙箱授予某个已存在绝对目录的读权限（仅当前会话），但 CLI TUI 的 Slash 命令枚举在 rust-v0.154.0（提交 `6b9826e3aa83`）仍有该命令、自 rust-v0.155.0（提交 `f0a1b8f0849d`）起已无，官方 Slash 命令参考页也未列出，CLI 侧入口记为未确认。',
+          defaults:
+            '版本库目录通常采用 `workspace-write` + `on-request`，非版本库目录通常采用 `read-only`；具体启动状态还受目录信任和配置影响。原生 Windows 上 agent 模式默认就用 Windows 沙箱阻止工作目录外写入；未选择模式时 Codex 优先 `elevated`，`elevated` 安装没完成会退回 `unelevated`。MXC 不自动启用：`features.prefer_mxc` 在功能登记册里是 `Stage::UnderDevelopment` 且 `default_enabled: false`，`windows.sandbox = "mxc"` 则是严格选择。',
+          rules:
+            '`approval_policy` 支持 `untrusted`、`on-request`、`never` 和 granular 分类策略；命令 Rules、MCP 注解、权限 Profile 与沙箱共同生效。企业可用 `requirements.toml` 的 `[windows] allowed_sandbox_implementations = ["elevated"]` 限定允许的原生沙箱实现，写两个值即两者都允许；配置与强制规则冲突时本地客户端回退到兼容值并通知用户。',
+          boundary:
+            '本地 CLI/IDE 使用 OS 级沙箱。`read-only`、`workspace-write`、`danger-full-access` 分别提供只读、工作区写入和无沙箱边界。原生 Windows 沙箱还做 UI 隔离：官方文档写两种模式默认使用私有桌面，并给出 `windows.sandbox_private_desktop = false` 退回旧的 `Winsta0\\Default`，但固定到的 `WindowsToml` JSON schema 是 `additionalProperties: false` 且只有 `sandbox` 与 `allow_mxc` 两个键，该键的实际可用性记为未确认。MXC 后端另有限制：路径与环境变量值以 Unicode 字符串表示，非 Unicode 值直接失败而不做有损转换；显式为空的子进程环境被拒绝；请求 deny 路径还要求原生 `PSE_SUPPORT_FS_DENY` 能力，否则命令在启动前失败。',
+          persistence:
+            '用户配置位于 `~/.codex/config.toml`；受信任项目可加载 `.codex/config.toml`、Hooks 和 Rules；系统与管理员 Requirements 可进一步收紧。`[windows]` 表同属 `config.toml`，也可用 `-c key=value` 覆盖。Windows 沙箱的安装与运行诊断写在 `CODEX_HOME/.sandbox/sandbox.log`，官方同时要求不要把 `CODEX_HOME/.sandbox-secrets/` 的内容发给 OpenAI。',
+          noninteractive:
+            '非交互流程无法展示新审批时，需要审批的动作失败并把错误返回给 Agent；可在启动前固定审批策略、沙箱和 Rules。远程 executor 继承 `config.toml` 里配置的后端，不跟随本机 `features.prefer_mxc` 的解析结果；MXC 下命令失败不触发后端回退，且前台进程退出或取消时上游 runner 会终止其余子孙进程，因此分离式后台服务在 MXC 下失去既有两个 Windows 后端保留子孙进程的行为。',
+          conditions:
+            '审批决定何时停下来询问，沙箱决定技术边界；`approval_policy = "never"` 不会自动移除仍在生效的沙箱。原生 Windows 沙箱只在 Windows 上生效：官方推荐 Windows 11，完整更新的 Windows 10 为尽力支持（依赖 ConPTY，实践中需 1809 及以上），更旧的 Windows 10 构建不推荐；`winget` 应可用，`elevated` 依赖管理员批准的安装（本机用户或组创建、防火墙规则修改与沙箱用户登录权限），企业策略可能阻断这些步骤，沙箱内命令报 Windows 错误 `1385` 表示 Windows 拒绝沙箱用户启动命令所需的登录类型，Codex 也会在文件夹对 `Everyone` 可写时告警。MXC 需要可用的 Windows 进程安全环境（PSEC），可用性由 MXC 自身的 create/close 探测判断而不是 OS 构建号或 SDK 的 `platform_support()`，Windows executor 每进程记录一次 `codex.windows_mxc.available`，不支持的 Windows executor 在执行前拒绝 MXC 请求；受管网络要求把 `allow_local_binding` 生效为 `false` 时 MXC 判定为不可用（MXC 被选中时该值默认 `true`）。main 分支提交 `e95abcdf4939`（PR #51547，2026-10-07）新增 `windows.allow_mxc`：设为 `false` 时即使开启 `features.prefer_mxc` 也不自动选择 MXC，并让显式 `windows.sandbox = "mxc"` 直接报错，不写该键保持原行为；该键只在 main 分支，rust-v0.160.1（提交 `d27764b82f71`）的 `WindowsToml` 只有 `sandbox` 一个字段，官方配置参考与 Windows sandbox 页也未列出。需要 Linux 原生工具链时官方建议改用 WSL。',
+          sources: [
+            'codex-approvals',
+            'codex-config',
+            'codex-windows-sandbox',
+            'codex-config-reference',
+            'codex-commands',
+            'codex-managed-configuration',
+            'codex-mxc-readme',
+            'codex-windows-sandbox-config',
+            'codex-windows-config-types',
+            'codex-windows-features',
+            'codex-windows-allow-mxc-commit',
+            'codex-slash-command-v0154',
+            'codex-slash-command-v0155',
+          ],
+        },
       },
       related: ['security-network', 'security-trust', 'security-approval'],
     }),
@@ -419,13 +453,14 @@
       facts: [
         '网络工具 Allow/Deny 与命令子进程的 OS 网络隔离不是同一层。',
         'Codex 的 `workspace-write` 默认关闭命令网络；Claude Code 和 Qwen Code 可在启用 Sandbox 时按域名或 Profile 控制。',
+        'Codex 的原生 Windows 沙箱按实现给出不同网络边界：`elevated` 用防火墙规则，`unelevated` 用环境级断网控制，`mxc` 只放行回环。',
         'Claude Code 对未列域名默认逐次审批，`sandbox.network.strictAllowlist` 或 Managed `allowManagedDomainsOnly` 可改为直接阻断。',
       ],
       behavior: {
         claude:
           'Sandbox 通过外部代理限制 Bash 及子进程域名，默认不预允许任何域名，首次使用新域名触发审批；`sandbox.network.strictAllowlist` 开启后直接拒绝 Allowlist 之外主机，Managed 的 `allowManagedDomainsOnly` 同样自动阻断未列域名且只认 Managed 来源的 Allow 规则。严格名单只约束沙箱内命令，WebFetch 等进程内工具仍按自身权限规则判断；WebFetch 规则与 Sandbox allow/deny domains 合并。',
         codex:
-          '`workspace-write` 默认 `network_access = false`；开启后可再启用 `network_proxy`，用 allow/deny 域名、私网和 Unix Socket 规则限域。',
+          '`workspace-write` 默认 `network_access = false`；开启后可再启用 `network_proxy`，用 allow/deny 域名、私网和 Unix Socket 规则限域。原生 Windows 沙箱在同一策略下另加系统级网络边界：`elevated` 用防火墙规则（含专用的 offline-user 规则），`unelevated` 改用环境级断网控制而不是那条专用规则因而网络隔离更弱，`mxc` 在被选为 executor 后端时把受管网络的 `allow_local_binding` 默认置为 `true`，只允许 IPv4 与 IPv6 回环的客户端和服务端（含专用代理监听），拒绝直接的非回环出网与一般入站访问；经代理的流量仍适用代理域名规则，直接 DNS 仍被拒绝。',
         qwen:
           'Seatbelt 提供 open、closed、proxied Profile；代理模式可通过 `QWEN_SANDBOX_PROXY_COMMAND` 接入域名 Allowlist。',
         kimi:
@@ -443,6 +478,20 @@
             'claude-sandboxing',
             'claude-headless',
             'claude-sandbox-strict-allowlist',
+          ],
+        },
+        codex: {
+          boundary:
+            '本地 CLI/IDE 使用 OS 级沙箱。`read-only`、`workspace-write`、`danger-full-access` 分别提供只读、工作区写入和无沙箱边界；工作区写入默认关闭命令网络。原生 Windows 沙箱按 `[windows] sandbox` 选出的实现给出系统级网络边界：`elevated` 走防火墙规则，`unelevated` 走环境级断网控制，`mxc` 只放行回环。MXC 下 Win32k 调用与桌面句柄仍可用于 PowerShell 启动，剪贴板、输入注入与桌面/系统控制限制保留。',
+          conditions:
+            '审批决定何时停下来询问，沙箱决定技术边界；`approval_policy = "never"` 不会自动移除仍在生效的沙箱。原生 Windows 的网络边界只在 Windows 上生效，强度随所选实现不同；MXC 被选为后端时 `allow_local_binding` 生效为 `false` 属于配置错误（原生宿主回环访问是双向的，MXC 的 proxy-peer 身份模式未接入），该默认值同样适用于远程 Windows executor 且不会启用已被禁用的网络。企业可用 `requirements.toml` 的 `[windows] allowed_sandbox_implementations` 限定允许的实现，从而间接决定网络边界强度。',
+          sources: [
+            'codex-approvals',
+            'codex-config',
+            'codex-windows-sandbox',
+            'codex-managed-configuration',
+            'codex-mxc-readme',
+            'codex-windows-sandbox-config',
           ],
         },
       },
