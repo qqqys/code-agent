@@ -112,7 +112,7 @@
 | 保存范围 | Server 配置由 `qoder mcp add <name> -s user\|local\|project` 决定落盘位置：`user` 写 `~/.qoder/settings.json`，`local`（默认）写 `${project}/.qoder/settings.local.json`，`project` 写 `${project}/.mcp.json`。`/mcp reload` 只重新发现，不改配置 |
 | 条件与边界 | MCP 被禁用时 `/mcp` 显示禁用提示（官方 Slash 命令参考 Conditional Commands 逐字为 “/mcp: Displays a disabled prompt when MCP is disabled.”）。官方 MCP Servers 页与 Slash 命令参考都没有记录 MCP Server 的 OAuth 或其他认证入口，只说明 MCP 工具仍要过 Qoder CLI 权限检查、工具名形如 `mcp__<server>__<tool>`；截至 CLI 1.1.63（2026-09-24）的公开 Release Notes 也没有 MCP 认证相关条目 |
 | 证据状态 | 官方确认 |
-| 来源 | [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)、[Qoder CLI MCP servers](https://docs.qoder.com/en/cli/mcp-servers)、[Qoder CLI Release Notes（跨会话消息、`/loop`、`/crontab` 与任务预算的版本时间线）](https://docs.qoder.com/release-notes/qoder-cli) |
+| 来源 | [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)、[Qoder CLI MCP servers](https://docs.qoder.com/en/cli/mcp-servers)、[Qoder CLI Release Notes（跨会话消息、`/loop`、`/crontab`、任务预算与 Hook 失败、`/hooks` GA 条目的版本时间线）](https://docs.qoder.com/release-notes/qoder-cli) |
 
 ## 官方来源
 
@@ -135,7 +135,7 @@
 - [Kimi Code 2.1.0 发布说明（MCP OAuth offline_access 修复）](https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai%2Fkimi-code%402.1.0)
 - [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)
 - [Qoder CLI MCP servers](https://docs.qoder.com/en/cli/mcp-servers)
-- [Qoder CLI Release Notes（跨会话消息、`/loop`、`/crontab` 与任务预算的版本时间线）](https://docs.qoder.com/release-notes/qoder-cli)
+- [Qoder CLI Release Notes（跨会话消息、`/loop`、`/crontab`、任务预算与 Hook 失败、`/hooks` GA 条目的版本时间线）](https://docs.qoder.com/release-notes/qoder-cli)
 
 ## 关联能力
 

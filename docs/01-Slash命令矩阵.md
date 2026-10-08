@@ -43,7 +43,7 @@
 | 初始化项目指令 | `/init` | `/init` | `/init` | `/init` | `/init` |
 | MCP | `/mcp [reconnect\|enable\|disable]` | `/mcp [verbose]`、`/mcp login <name>`（rust-v0.161.0 起） | `/mcp [desc\|nodesc\|schema]`，OAuth 在 `/mcp` 对话框内 | `/mcp`、`/mcp-config login <server-name>` | `/mcp`、`/mcp reload`、`/mcp-config` |
 | Skills | `/skills`、`/reload-skills` | `/skills` | `/skills`、`/<skill-name>` | 内置 Skill 命令与 Skills 目录 | `/skills` |
-| Hooks | `/hooks` | `/hooks` | `/hooks` | — | Agent 配置支持 Hooks；无独立 Slash 命令 |
+| Hooks | `/hooks` | `/hooks` | `/hooks` | — | `/hooks` |
 | 插件或扩展 | `/plugin`、`/reload-plugins` | `/plugins`、`/apps` | `/extensions`、`/extension-creator`、`/reload-plugins` | `/plugins` | — |
 | 自定义命令 | Skills 可作为命令调用 | Skills 可作为命令调用 | Skills、Markdown/TOML 命令和保存的 Workflow | Skills 可作为命令调用 | `/commands`、`/workflows` |
 | 工具列表 | — | — | `/tools` | — | — |
@@ -168,7 +168,9 @@ Web Shell 还固定提供 4 个不属于 CLI/TUI 硬编码加载器的本地命�
 
 ### Qoder CLI
 
-`/agents`、`/batch`、`/clear`、`/commands`、`/compact`、`/config`、`/context-window`、`/effort`、`/export`、`/fast`、`/feedback`、`/goal`、`/help`、`/init`、`/login`、`/logout`、`/mcp`、`/mcp-config`、`/memory`、`/model`、`/plan`、`/quest`、`/quit`、`/release-notes`、`/resume`、`/review`、`/setup-github`、`/skills`、`/status`、`/tasks`、`/upgrade`、`/usage`、`/vim`、`/workflows`。
+`/agents`、`/batch`、`/clear`、`/commands`、`/compact`、`/config`、`/context-window`、`/effort`、`/export`、`/fast`、`/feedback`、`/goal`、`/help`、`/hooks`、`/init`、`/login`、`/logout`、`/mcp`、`/mcp-config`、`/memory`、`/model`、`/plan`、`/quest`、`/quit`、`/release-notes`、`/resume`、`/review`、`/setup-github`、`/skills`、`/status`、`/tasks`、`/upgrade`、`/usage`、`/vim`、`/workflows`。
+
+`/hooks`（描述逐字为 “Manage Hooks.”）于 2026-10-08 核对时补入本目录：官方 Slash 命令参考一直列出该行但没有给出 synopsis 或子命令，Release Notes 记 CLI 1.0.8（2026-05-28）“Made /hooks command generally available for all users”，官方 Hooks 页本身没有描述这个命令。此前对照表把 Qoder CLI 的 Hooks 行写成“Agent 配置支持 Hooks；无独立 Slash 命令”，属漏记而非产品新增，本次一并改正；该命令是只读展示还是改写设置文件，两处官方页面都没有说明，记为未确认。
 
 `/mcp-config`（描述 “Manage MCP server configurations.”）于 2026-10-07 核对时补入本目录：官方 Slash 命令参考把它列在 “Built-in Skills” 分组，与列在 “Extensions and Tools” 分组、描述为 “Manage MCP servers.” 的 `/mcp` 并列，两者都没有给出 synopsis 或子命令。同一分组还列出条件命令说明 “/mcp: Displays a disabled prompt when MCP is disabled.”。MCP Servers 页另记录 `/mcp reload` 用于在 CLI 已运行时重新发现 Server 与工具，官方 Slash 命令参考没有把 `reload` 当作子命令列出。
 
