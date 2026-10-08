@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-10-07',
+  updatedAt: '2026-10-08',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -1646,6 +1646,14 @@ window.matrixData = {
       label: 'Qoder CLI Agent Teams',
       url: 'https://docs.qoder.com/cli/agent-teams',
     },
+    'qoder-cross-session-messaging': {
+      label: 'Qoder CLI Cross-Session Messaging（`QODER_FEATURE_CROSS_SESSION`、`/peers`、入站策略与批准框）',
+      url: 'https://docs.qoder.com/cli/cross-session-messaging',
+    },
+    'qoder-settings-reference': {
+      label: 'Qoder CLI 设置、环境变量与文件路径参考（未列出 `security.crossSessionInbound` 与 `general.dialogExpiry`）',
+      url: 'https://docs.qoder.com/cli/settings-reference',
+    },
     'qoder-mcp': {
       label: 'Qoder CLI MCP servers',
       url: 'https://docs.qoder.com/en/cli/mcp-servers',
@@ -1927,11 +1935,11 @@ window.matrixData = {
       url: 'https://docs.qoder.com/cli/loop-reference',
     },
     'qoder-release-notes': {
-      label: 'Qoder CLI Release Notes（`/loop`、`/crontab` 与任务预算的版本时间线）',
+      label: 'Qoder CLI Release Notes（跨会话消息、`/loop`、`/crontab` 与任务预算的版本时间线）',
       url: 'https://docs.qoder.com/release-notes/qoder-cli',
     },
     'qoder-tools-delegate': {
-      label: 'Qoder CLI Tools（Delegate and Automate 分组的 Scheduled work 行）',
+      label: 'Qoder CLI Tools（Delegate and Automate 分组的 Scheduled work 行；未列出 `SendMessage`/`ListAgents`）',
       url: 'https://docs.qoder.com/cli/tools',
     },
     'qoder-ide-automations': {
@@ -2535,7 +2543,7 @@ window.matrixData = {
       category: 'sessions',
       capability: '跨会话消息',
       description: '发现其他会话、后台 Agent 或队友并互相发送消息。',
-      values: { claude: '`/list-agents` · `/peers` · `SendMessage`/`ListAgents` · `@` 会话名提及 · `crossSessionInbound` · 原生 Windows（v2.1.239 宣布可用）', codex: '`codex queue --thread <UUID|精确会话名> --message <文本>` · 经 app-server `thread/queue/add` 投递 · `--remote` 指向远程 app server（rust-v0.149.0 引入）；条件：`codex_tui` 任务工具列出、读取、等待、发消息、创建、派生其他任务（合入 main 尚未发布）；条件：TUI 输入框 `@` 任务提及提交为其他任务的实时引用、模型经 `read_thread` 读取（合入 main 尚未发布）', qwen: '`send_message` · `list_agents`（限当前会话后台 Agent）· 条件：同机会话入站消息（`agents.crossSessionMessaging` 默认关闭、`/peers` 审查保留消息，v0.22.2 起）', kimi: '官方命令表未列出会话间消息', qoder: '条件：`QODER_AGENT_TEAMS=1` Agent Teams `SendMessage`（beta，单会话内）' },
+      values: { claude: '`/list-agents` · `/peers` · `SendMessage`/`ListAgents` · `@` 会话名提及 · `crossSessionInbound` · 原生 Windows（v2.1.239 宣布可用）', codex: '`codex queue --thread <UUID|精确会话名> --message <文本>` · 经 app-server `thread/queue/add` 投递 · `--remote` 指向远程 app server（rust-v0.149.0 引入）；条件：`codex_tui` 任务工具列出、读取、等待、发消息、创建、派生其他任务（合入 main 尚未发布）；条件：TUI 输入框 `@` 任务提及提交为其他任务的实时引用、模型经 `read_thread` 读取（合入 main 尚未发布）', qwen: '`send_message` · `list_agents`（限当前会话后台 Agent）· 条件：同机会话入站消息（`agents.crossSessionMessaging` 默认关闭、`/peers` 审查保留消息，v0.22.2 起）', kimi: '官方命令表未列出会话间消息', qoder: '条件：`QODER_FEATURE_CROSS_SESSION=1` 同机会话互发消息（beta，仅 macOS 与 Linux，CLI 1.1.19 起）· `ListAgents`/`SendMessage` · `/peers` 与 `/peers approve|deny <id>` · `@` 对等会话提及（CLI 1.1.25 起）· `security.crossSessionInbound` · `general.dialogExpiry`；条件：`QODER_AGENT_TEAMS=1` Agent Teams `SendMessage`（beta，单会话内）' },
     },
     {
       id: 'session-schedule',

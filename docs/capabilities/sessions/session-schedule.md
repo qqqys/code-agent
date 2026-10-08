@@ -2,7 +2,7 @@
 
 [返回会话与上下文详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=session-schedule)
 
-> 核对日期：2026-10-07
+> 核对日期：2026-10-08
 
 ## 定义
 
@@ -126,7 +126,7 @@
 | 适用界面 | 本页以 Qoder CLI 为准，`/loop` 与 `/crontab` 都在 CLI 的 Slash 命令参考中。`/crontab` 面板的 `USAGE` 列在两个上限都设置时显示 `3/10 turns · 12.5/50 credits`，没有上限时显示 `2 turns · 8.25 credits`，花费尚未计量时用短横线占位（`1/5 turns · —/50 credits`），从未运行且无上限的任务该列为空；任务详情页显示 `Turns 3 / 10 (stops at the limit)` 与 `Credits 12.5 / 50 (stops at the limit)`，按 `t` 编辑轮数上限、按 `b` 编辑积分上限，输入空值清除该上限、非正数不接受、`Esc` 取消，因此无需重建循环即可改上限。Cloud Mode（`--remote`）把任务跑在 Qoder 托管的云端 VM 上、本地终端只是入口，官方 Cloud Mode 页没有出现定时任务或 cron。官方文档站有公开的 CLI Release Notes 页（`docs.qoder.com/release-notes/qoder-cli`），据此可定位版本时间线：CLI 1.0.8（2026-05-28）的 “Loop & Hooks GA” 写明 “Made /loop command and cron scheduling tools generally available for all users”，CLI 1.1.8（2026-07-29）升级 `/loop` 让 Agent 自行决定唤醒间隔并支持任务持久化、同时新增 `/crontab` 面板，CLI 1.1.11 修复持久任务被无关会话激活并让归属会话可在 `/crontab` 管理，CLI 1.1.13 改进 `/crontab` 面板表头与间隔描述，CLI 1.1.19 新增任务预算（按参数或面板设置轮数与积分上限），CLI 1.1.42（2026-09-03）修复会话切换或同项目多会话时持久任务不运行并在 `OWNER` 列标注属于当前会话的任务；CLI 内的 `/release-notes` 命令查看同一份变更日志。 |
 | 条件与边界 | 官方把定时任务与 `/loop` 记在 CLI 文档树下（`cli/scheduled-tasks`、`cli/scheduled-reference`、`cli/loop`、`cli/loop-reference`），Slash 命令参考也列出 `/loop` 与 `/crontab`，因此属于 CLI Surface 而不是 IDE 或 QoderWork 能力。任务分两类：一次性任务（`recurring` 为 `false` 或省略）在下次匹配时刻触发一次后自动删除；周期任务（`recurring: true`）按周期反复触发直到被删除或自动过期。定时任务的提示词可以是 Slash 命令，`/loop 5m /babysit-prs` 会把 `/babysit-prs` 原样传递并在每次触发时像手动输入一样运行。`/crontab` 是管理面板而不是创建入口，创建仍走自然语言或 `/loop`。最小排程粒度受 cron 无秒字段限制为 1 分钟。定时任务适合定期巡检、周期报表与计划性自动化，官方把它与需要固定间隔重复同一动作的 `/loop` 场景区分开。官方 CLI Tools 页在 “Delegate and Automate” 分组下列出一行 “Scheduled work \| Create or manage scheduled tasks when scheduling is enabled.”，并注明 “Availability depends on product configuration, feature flags, and the current session.”，但没有公布该工具的标识符，也没有给出 “scheduling is enabled” 对应的配置键或功能开关名，因此工具名记为未确认；官方 CLI 设置参考与命令行参考中都没有任何调度相关的配置键、环境变量或启动参数。Surface 边界：Qoder IDE 另有独立的 Automations 机制（侧栏 **Automations**，入口为 **Create with Qoder** 与 **New automation**，可选 local 或 cloud execution，结果收在 **Run history**），它不使用 cron 字符串也不写 `.qoder/scheduled_tasks.json`，与本页的 CLI 定时任务是两套东西；QoderWake 是另一个产品、有自己的 CLI 与守护进程，其自动任务能力不计入 Qoder CLI。 |
 | 证据状态 | 官方确认 |
-| 来源 | [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)、[Qoder CLI Scheduled Execution Task](https://docs.qoder.com/cli/scheduled-tasks)、[Qoder CLI Scheduled Task Reference](https://docs.qoder.com/cli/scheduled-reference)、[Qoder CLI Loop Tasks](https://docs.qoder.com/cli/loop)、[Qoder CLI Loop Command Reference](https://docs.qoder.com/cli/loop-reference)、[Qoder CLI Cloud Mode](https://docs.qoder.com/en/cli/cloud-mode)、[Qoder CLI Release Notes（`/loop`、`/crontab` 与任务预算的版本时间线）](https://docs.qoder.com/release-notes/qoder-cli)、[Qoder CLI Tools（Delegate and Automate 分组的 Scheduled work 行）](https://docs.qoder.com/cli/tools)、[Qoder IDE Automations（与 CLI 定时任务不同的独立机制）](https://docs.qoder.com/qoder/automations)、[Qoder CLI Configuration Files and Application Order](https://docs.qoder.com/cli/settings) |
+| 来源 | [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)、[Qoder CLI Scheduled Execution Task](https://docs.qoder.com/cli/scheduled-tasks)、[Qoder CLI Scheduled Task Reference](https://docs.qoder.com/cli/scheduled-reference)、[Qoder CLI Loop Tasks](https://docs.qoder.com/cli/loop)、[Qoder CLI Loop Command Reference](https://docs.qoder.com/cli/loop-reference)、[Qoder CLI Cloud Mode](https://docs.qoder.com/en/cli/cloud-mode)、[Qoder CLI Release Notes（跨会话消息、`/loop`、`/crontab` 与任务预算的版本时间线）](https://docs.qoder.com/release-notes/qoder-cli)、[Qoder CLI Tools（Delegate and Automate 分组的 Scheduled work 行；未列出 `SendMessage`/`ListAgents`）](https://docs.qoder.com/cli/tools)、[Qoder IDE Automations（与 CLI 定时任务不同的独立机制）](https://docs.qoder.com/qoder/automations)、[Qoder CLI Configuration Files and Application Order](https://docs.qoder.com/cli/settings) |
 
 ## 官方来源
 
@@ -185,8 +185,8 @@
 - [Qoder CLI Loop Tasks](https://docs.qoder.com/cli/loop)
 - [Qoder CLI Loop Command Reference](https://docs.qoder.com/cli/loop-reference)
 - [Qoder CLI Cloud Mode](https://docs.qoder.com/en/cli/cloud-mode)
-- [Qoder CLI Release Notes（`/loop`、`/crontab` 与任务预算的版本时间线）](https://docs.qoder.com/release-notes/qoder-cli)
-- [Qoder CLI Tools（Delegate and Automate 分组的 Scheduled work 行）](https://docs.qoder.com/cli/tools)
+- [Qoder CLI Release Notes（跨会话消息、`/loop`、`/crontab` 与任务预算的版本时间线）](https://docs.qoder.com/release-notes/qoder-cli)
+- [Qoder CLI Tools（Delegate and Automate 分组的 Scheduled work 行；未列出 `SendMessage`/`ListAgents`）](https://docs.qoder.com/cli/tools)
 - [Qoder IDE Automations（与 CLI 定时任务不同的独立机制）](https://docs.qoder.com/qoder/automations)
 - [Qoder CLI Configuration Files and Application Order](https://docs.qoder.com/cli/settings)
 
