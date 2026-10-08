@@ -16,7 +16,7 @@
 | Codex | `/hooks` | 官方确认 |
 | Qwen Code | `/hooks` | 源码确认 |
 | Kimi Code | 无对应命令 | 未确认 |
-| Qoder CLI | 无对应命令 | 未确认 |
+| Qoder CLI | `/hooks` | 官方确认 |
 
 ## 比较边界
 
@@ -35,9 +35,9 @@
 
 ## 跨产品事实
 
-1. Claude Code、Codex 和 Qwen Code 提供独立 `/hooks`。
-2. Qoder CLI 支持 Agent Hooks，但当前命令目录没有独立 `/hooks`。
-3. Kimi Code 当前 Slash 命令目录未列出 Hook 管理命令。
+1. Claude Code、Codex、Qwen Code 与 Qoder CLI 都提供独立 `/hooks`。
+2. Qoder CLI 的 `/hooks` 此前被本矩阵记为“无独立命令”，属漏记：官方 Slash 命令参考列出该行、描述逐字为 “Manage Hooks.”，Release Notes 记 CLI 1.0.8（2026-05-28）“Made /hooks command generally available for all users”。
+3. Kimi Code 当前 Slash 命令目录未列出 Hook 管理命令；入口是 `~/.kimi-code/config.toml` 的 `[[hooks]]`。
 
 ## 逐产品记录
 
@@ -101,15 +101,15 @@
 
 | 字段 | 记录 |
 | --- | --- |
-| 主命令 | 无对应命令 |
+| 主命令 | `/hooks` |
 | 别名 | 无公开别名 |
-| 参数 | — |
-| 执行行为 | Agent 配置支持 `hooks` 字段，但当前官方 Slash 命令目录没有独立 Hook 管理命令。 |
+| 参数 | 官方 Slash 命令参考没有给出 synopsis 或子命令 |
+| 执行行为 | 管理 Hooks。官方 Slash 命令参考对该行的描述逐字为 “Manage Hooks.”，没有给出 synopsis 或子命令。 |
 | 可用模式 | 交互式 CLI |
-| 保存范围 | — |
-| 条件与边界 | 不据此推断底层能力不存在 |
-| 证据状态 | 未确认 |
-| 来源 | [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference) |
+| 保存范围 | 未确认：官方 Slash 命令参考与 Hooks 页都没有说明该命令是只读展示还是改写设置文件 |
+| 条件与边界 | CLI 1.0.8（2026-05-28）Release Notes 逐字为 “Made /hooks command generally available for all users”；官方 Hooks 页在核对日期没有描述该命令，配置入口仍以 User、Project 与 Local settings 的 `hooks` 字段与插件 `hooks/hooks.json` 为主 |
+| 证据状态 | 官方确认 |
+| 来源 | [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)、[Qoder CLI Release Notes（跨会话消息、`/loop`、`/crontab`、任务预算与 Hook 失败、`/hooks` GA 条目的版本时间线）](https://docs.qoder.com/release-notes/qoder-cli)、[Qoder CLI Hooks](https://docs.qoder.com/en/cli/hooks) |
 
 ## 官方来源
 
@@ -118,6 +118,8 @@
 - [Qwen Code commands documentation](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/commands.md)
 - [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/reference/slash-commands.md)
 - [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)
+- [Qoder CLI Release Notes（跨会话消息、`/loop`、`/crontab`、任务预算与 Hook 失败、`/hooks` GA 条目的版本时间线）](https://docs.qoder.com/release-notes/qoder-cli)
+- [Qoder CLI Hooks](https://docs.qoder.com/en/cli/hooks)
 
 ## 关联能力
 

@@ -94,6 +94,10 @@ window.matrixData = {
       label: 'Claude Code Hooks',
       url: 'https://code.claude.com/docs/en/hooks',
     },
+    'claude-hooks-guide': {
+      label: 'Claude Code Hooks guide',
+      url: 'https://code.claude.com/docs/en/hooks-guide',
+    },
     'claude-plugins': {
       label: 'Claude Code Plugins',
       url: 'https://code.claude.com/docs/en/plugins',
@@ -117,6 +121,10 @@ window.matrixData = {
     'claude-v21288-mods-changelog': {
       label: 'Claude Code v2.1.288 mods `$.ui.selection()` 更新日志',
       url: 'https://github.com/anthropics/claude-code/blob/1c229fcd1e1e/CHANGELOG.md',
+    },
+    'claude-v21295-hooks-changelog': {
+      label: 'Claude Code v2.1.295 Hook `onFailure: "block"` 更新日志',
+      url: 'https://github.com/anthropics/claude-code/blob/602df92bf481ed904533e95c09f740f40aab5aed/CHANGELOG.md',
     },
     'claude-ide': {
       label: 'Claude Code IDE integrations',
@@ -934,6 +942,10 @@ window.matrixData = {
       label: 'Qwen Code current Hooks',
       url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/hooks.md',
     },
+    'qwen-hooks-failure-current': {
+      label: 'Qwen Code current Hooks（失败与超时语义复核）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/d13ff87407d673c547726b43928dedba0465ffa1/docs/users/features/hooks.md',
+    },
     'qwen-extensions-current': {
       label: 'Qwen Code current Extensions',
       url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/extension/introduction.md',
@@ -1285,6 +1297,10 @@ window.matrixData = {
     'kimi-hooks-current': {
       label: 'Kimi Code current Hooks',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/customization/hooks.md',
+    },
+    'kimi-hooks-failure-current': {
+      label: 'Kimi Code current Hooks（fail-open 与超时语义复核）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/494df61ce9858c70a9f37a996614534bc9b1cd12/docs/zh/customization/hooks.md',
     },
     'kimi-plugins-current': {
       label: 'Kimi Code current Plugins',
@@ -1935,7 +1951,7 @@ window.matrixData = {
       url: 'https://docs.qoder.com/cli/loop-reference',
     },
     'qoder-release-notes': {
-      label: 'Qoder CLI Release Notes（跨会话消息、`/loop`、`/crontab` 与任务预算的版本时间线）',
+      label: 'Qoder CLI Release Notes（跨会话消息、`/loop`、`/crontab`、任务预算与 Hook 失败、`/hooks` GA 条目的版本时间线）',
       url: 'https://docs.qoder.com/release-notes/qoder-cli',
     },
     'qoder-tools-delegate': {
@@ -2200,7 +2216,7 @@ window.matrixData = {
       category: 'commands',
       capability: 'Hooks',
       description: '查看或配置生命周期钩子。',
-      values: { claude: '`/hooks`', codex: '`/hooks`', qwen: '`/hooks`', kimi: '—', qoder: 'Agent 配置支持；无独立命令' },
+      values: { claude: '`/hooks`', codex: '`/hooks`', qwen: '`/hooks`', kimi: '—', qoder: '`/hooks`' },
     },
     {
       id: 'cmd-plugins',
@@ -2578,7 +2594,7 @@ window.matrixData = {
       category: 'extensions',
       capability: '生命周期 Hooks',
       description: '在工具调用、会话或 Agent 生命周期节点运行自定义逻辑。',
-      values: { claude: '`/hooks` · 多类 Handler · v2.1.287 起插件 `hooks/hooks.json` 的 `modules` 注册进程内 JS/TS 函数 Hook（mod），可改写事件并绘制界面', codex: '`/hooks` · command 同步或 `async: true` 后台执行 · 条件：`mcp_tool` Handler 引擎执行随 rust-v0.148.0 发布，会话运行时接入仍在 main 分支（提交 `87070a77925c`，尚未发布）', qwen: '`/hooks` · command/HTTP/prompt', kimi: '`config.toml` · command', qoder: '`settings.json` · command/HTTP/prompt/agent' },
+      values: { claude: '`/hooks` · 多类 Handler · v2.1.287 起插件 `hooks/hooks.json` 的 `modules` 注册进程内 JS/TS 函数 Hook（mod），可改写事件并绘制界面 · v2.1.295 起 command 与 HTTP Hook 可设 `onFailure: "block"`，启动失败、超时或意外退出码改为阻断', codex: '`/hooks` · command 同步或 `async: true` 后台执行 · 条件：`mcp_tool` Handler 引擎执行随 rust-v0.148.0 发布，会话运行时接入仍在 main 分支（提交 `87070a77925c`，尚未发布）· 失败、超时与畸形响应默认放行，只有 `PermissionRequest` 保留字段 fail closed', qwen: '`/hooks` · command/HTTP/prompt · 退出码 2 阻断，其他非零、HTTP 非 2xx 与超时放行；无 `onFailure` 一类失败开关', kimi: '`config.toml` · command · 退出码 2 阻断，其他非零、超时与崩溃按 fail-open 放行；无 `onFailure` 一类失败开关', qoder: '`/hooks` · `settings.json` · command/HTTP/prompt/agent · 退出码 2 阻断，其他非零放行；无 `onFailure` 一类失败开关' },
     },
     {
       id: 'extension-plugins',

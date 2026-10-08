@@ -810,9 +810,9 @@
       includes: ['Hook 列表', '信任状态', '启用与禁用', '命令级管理入口'],
       excludes: ['每种 Hook 事件的完整参数 schema', 'CI Hook', 'Git Hook'],
       facts: [
-        'Claude Code、Codex 和 Qwen Code 提供独立 `/hooks`。',
-        'Qoder CLI 支持 Agent Hooks，但当前命令目录没有独立 `/hooks`。',
-        'Kimi Code 当前 Slash 命令目录未列出 Hook 管理命令。',
+        'Claude Code、Codex、Qwen Code 与 Qoder CLI 都提供独立 `/hooks`。',
+        'Qoder CLI 的 `/hooks` 此前被本矩阵记为“无独立命令”，属漏记：官方 Slash 命令参考列出该行、描述逐字为 “Manage Hooks.”，Release Notes 记 CLI 1.0.8（2026-05-28）“Made /hooks command generally available for all users”。',
+        'Kimi Code 当前 Slash 命令目录未列出 Hook 管理命令；入口是 `~/.kimi-code/config.toml` 的 `[[hooks]]`。',
       ],
       products: {
         claude: command('claude', ['/hooks'], '查看工具事件等生命周期 Hook 配置。', {
@@ -826,7 +826,12 @@
           persistence: 'Hook 配置跨会话生效',
         }),
         kimi: unconfirmed('kimi'),
-        qoder: unconfirmed('qoder', 'Agent 配置支持 `hooks` 字段，但当前官方 Slash 命令目录没有独立 Hook 管理命令。'),
+        qoder: command('qoder', ['/hooks'], '管理 Hooks。官方 Slash 命令参考对该行的描述逐字为 “Manage Hooks.”，没有给出 synopsis 或子命令。', {
+          parameters: '官方 Slash 命令参考没有给出 synopsis 或子命令',
+          persistence: '未确认：官方 Slash 命令参考与 Hooks 页都没有说明该命令是只读展示还是改写设置文件',
+          conditions: 'CLI 1.0.8（2026-05-28）Release Notes 逐字为 “Made /hooks command generally available for all users”；官方 Hooks 页在核对日期没有描述该命令，配置入口仍以 User、Project 与 Local settings 的 `hooks` 字段与插件 `hooks/hooks.json` 为主',
+          sources: ['qoder-commands', 'qoder-release-notes', 'qoder-hooks'],
+        }),
       },
       related: ['cmd-plugins', 'agent-hooks', 'extension-hooks'],
     },

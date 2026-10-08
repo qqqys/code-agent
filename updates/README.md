@@ -4,6 +4,7 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-10-08 | [生命周期 Hooks：Claude Code v2.1.295 的 `onFailure: "block"`，五家失败与超时语义补齐，并改正 Qoder CLI `/hooks` 漏记](./2026-10-08-扩展系统-Hook失败语义与Claude-onFailure阻断.md) |
 | 2026-10-08 | [跨会话消息：Qoder CLI 官方 Cross-Session Messaging（`QODER_FEATURE_CROSS_SESSION`、`/peers`、`security.crossSessionInbound` 与 `general.dialogExpiry`）](./2026-10-08-会话与上下文-Qoder跨会话消息.md) |
 | 2026-10-07 | [MCP 命令：Codex rust-v0.161.0 的 `/mcp login <name>`、Qoder `/mcp-config` 与五家会话内 OAuth 入口核对](./2026-10-07-Slash命令-MCP命令子命令与会话内OAuth登录.md) |
 | 2026-10-07 | [文件系统与网络隔离：Codex 原生 Windows 沙箱的 `elevated`/`unelevated`/`mxc` 三种实现，以及 main 分支 `windows.allow_mxc` 退出开关与 `/sandbox-add-read-dir` 移除](./2026-10-07-权限与沙箱-Codex原生Windows沙箱.md) |
