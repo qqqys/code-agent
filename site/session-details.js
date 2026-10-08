@@ -1060,10 +1060,12 @@
         'Claude Code 用 `ListAgents`/`/list-agents` 发现本地会话、Subagent 与 Remote Control 会话，`SendMessage` 按名称投递；v2.1.224 引入，v2.1.225 支持按名称主动发起对其他机器 Remote Control 会话的对话，v2.1.229 为列表增加 `offline`/`cloud` 状态标签，v2.1.232 增加提示词 `@` 会话名提及、`SendMessage` 裸名投递与同机唯一会话名，v2.1.239 宣布原生 Windows 可用、`ListAgents` 告知会话自身名称并列出在世队友。',
         'Claude Code 的收件箱在 macOS、Linux（含 WSL 2）是每会话 Unix socket，在原生 Windows 是命名管道；同一台机器上 WSL 2 会话与原生 Windows 会话互不可达。',
         'Qwen Code 的 `send_message`/`list_agents` 面向当前会话内的后台 Agent（含随会话恢复还原的 Agent）。v0.22.2（2026-08-26 发布）起同机会话之间另有入站消息：`agents.crossSessionMessaging` 开启后会话绑定本地 UNIX socket 收件箱，其他会话经实时会话登记表的 `ipcPath` 发现并投递，入站消息按 `agents.crossSessionInbound` 或审批模式对等裁决，保留消息由 `/peers` 审查；发送侧未接入，本会话只能收不能发。',
-        'Qoder CLI 的 Agent Teams 用 `SendMessage` 在主 Agent 与队友、队友与队友之间通信，但团队只存在于单个 TUI 会话内，且当前需要 `QODER_AGENT_TEAMS=1` beta 开关。',
+        'Qoder CLI 有两个都叫 `SendMessage` 但作用范围不同的机制：Agent Teams 的 `SendMessage` 只在单个 TUI 会话内的主 Agent 与队友之间通信（需 `QODER_AGENT_TEAMS=1`）；跨会话消息则让同一台机器、同一用户账号下的两个 Qoder CLI 会话互相发现并投递（需 `QODER_FEATURE_CROSS_SESSION=1`，beta，官方页面写明需要 UNIX domain socket、仅 macOS 与 Linux）。',
+        'Qoder CLI 与 Qwen Code 的入站门禁都用 `accept`/`hold`/`refuse` 三值加一个权限模式回退，但回退方向相反：Qoder 让绕过权限检查的会话保留消息、仍会逐次确认的会话直接接受；Qwen 让逐动作仍需人工审查的会话直接投递、免逐动作审查的会话只在发送方也自述免审查时才投递。两家都记未验证的发送方自述身份，也都把仓库或项目级设置限制为只能收紧。',
+        'Qoder CLI 与 Claude Code 都用 `/peers` 审查保留消息、都按 `dialogExpiry` 类设置为批准框设定期限并在到期时向发送方回报 expired 而不是 refused；差别是 Claude Code 的 `/peers` 是 `/list-agents` 的别名且 `crossSessionInbound`/`dialogExpiry` 列在官方设置参考里，Qoder CLI 的 `/peers` 用 `approve`/`deny <id>` 子命令裁决，且 `security.crossSessionInbound`、`general.dialogExpiry` 与 `QODER_FEATURE_CROSS_SESSION` 在核对日期只出现在跨会话消息专页，Slash 命令参考、设置参考与 Tools 参考都没有列出。',
+        'Claude Code 的消息是纯文本：不携带历史或文件，文本中的命令不会被执行，接收会话自身的权限审批仍然适用。Qoder CLI 的 `SendMessage` 相反，可按绝对路径附带文件，附件到达时复制给接收方、消息被拒绝时再删除。',
         'Codex 自 rust-v0.149.0（2026-08-20 发布）提供启动级命令 `codex queue --thread <UUID|精确会话名> --message <文本>`，经 app-server `thread/queue/add` 把文本作为用户输入排队投递给本地或远程的现有活跃会话；这是用户到会话的单向投递。条件：2026-08-24 PR #40308 合入 main（尚未发布）后，TUI 会为模型注册 `codex_tui` 工具命名空间，模型可在 TUI 会话内列出、读取、等待、发消息、创建、派生、重命名、归档其他 Codex 任务，委派类工具须经审批门控的本地 MCP 服务器逐次批准。同日提交（PR #40315，合入 main 尚未发布）让 TUI 输入框的 `@` 提及弹窗在当前会话支持任务工具时列出匹配的 Codex 任务，选中的任务以实时线程引用提交，模型须用 `read_thread` 读取被引用任务。',
         'Kimi Code 的官方命令与文档仍未列出会话间消息；`/swarm` 是多 Agent 任务模式，`/btw` 是与派生子 Agent 的旁路对话，都不等于会话间消息。',
-        'Claude Code 的消息是纯文本：不携带历史或文件，文本中的命令不会被执行，接收会话自身的权限审批仍然适用。',
       ],
       products: {
         claude: {
@@ -1165,22 +1167,29 @@
         },
         qoder: {
           entry:
-            'Agent Teams：主 Agent 按需创建命名队友（如 `@researcher`），`SendMessage` 在主 Agent 与队友、队友与队友之间通信；用户以 `QODER_AGENT_TEAMS=1` 启动并在对话中显式要求使用 Agent Teams。',
+            '跨会话消息：`QODER_FEATURE_CROSS_SESSION=1 qoder` 启动，或把 `QODER_FEATURE_CROSS_SESSION=1` 写进用户级 `.env`（默认路径 `$HOME/.qoder/.env`，改后需重启 Qoder CLI）让后续会话自动开启；beta，默认不开启。开启后 Agent 用 `ListAgents` 发现可达对象、用 `SendMessage` 以对等会话标签或 handle 为收件人投递。`ListAgents` 输出分两组：`Agents in this session (address by name)` 与 `Peer sessions (other Qoder sessions on this machine)`，对等会话行形如 `api-service — interactive, idle, started 12m ago, cwd /home/dev/api, handle -3f`。用户在提示词输入 `@` 加至少一个字符即可在文件与 Agent 之外补全对等会话，对等会话行以 `@` 开头、类型标为 `session` 并附状态与已运行时长（例如 `@reviewer    session · idle · started 3m ago`），接受补全插入寻址该会话的标签，含空格的标签像文件路径一样把空格转义。`/peers` 列出当前生效的入站策略及其来源、可达对等会话（含本会话自己被寻址的 handle）与待审查消息；`/peers approve <id>` 放行、`/peers deny <id>` 丢弃，官方示例为 `/peers approve ab12cd34` 与 `/peers deny ab12cd34`。Agent Teams：主 Agent 按需创建命名队友（如 `@researcher`），`SendMessage` 在主 Agent 与队友、队友与队友之间通信；用户以 `QODER_AGENT_TEAMS=1` 启动并在对话中显式要求使用 Agent Teams。',
           storage:
-            '团队与队友状态只存在于当前 TUI 会话运行期，文档未列出磁盘保存位置；`resume` 只恢复对话历史。',
+            '跨会话消息：每个开启该功能的会话监听一个私有 socket 并把它登记进每用户注册表，其他会话读该注册表发现对等会话后直连投递；官方页面写明 socket 与其所在目录都只对本人用户账号可读，但没有给出注册表与 socket 的具体路径，路径记为未确认。附件按绝对路径随消息发送，到达时复制给接收方以便其读取，消息被拒绝时再删除。被保留的消息不进入模型上下文，只能在 `/peers` 里看到 id、发送方、被保留原因与预览。Agent Teams：团队与队友状态只存在于当前 TUI 会话运行期，文档未列出磁盘保存位置；`resume` 只恢复对话历史。',
           behavior:
-            '普通输出文本不会自动发给队友，只有 `SendMessage` 内容被共享，界面显示 “Message from @[name]”；共享任务列表记录负责人、状态和依赖；完成任务不终止队友，队友在 running/idle 间循环，可被新消息或任务唤醒。',
+            '跨会话消息：消息被投递进接收会话的下一回合，CLI 1.1.21 起在会话内内联显示发送方与正文。发送如实回报——对等会话在列出与发送之间退出时，结果说明这一情况并建议重新列出，而不是静默成功。入站裁决由 `security.crossSessionInbound` 逐会话自定：`accept` 投递进下一回合，`hold` 停下等你审查、在你批准前 Agent 看不到，`refuse` 全部拒绝、不投递也不把附件写盘。该设置未配置时按本会话处理权限的方式回退：绕过权限检查的会话保留入站对等消息等待批准（否则对等会话请求的任何东西都会不再提示就执行），仍会逐次确认的会话直接接受（对等会话无法借它跳过自己也要面对的检查），无人可审查的会话（拿到显式 socket 路径的非交互运行）把这条回退本该保留的消息改为拒绝，以便立刻告知发送方而不是等一场不会发生的审查；这类会话若要接收对等指令必须显式设 `accept`，自己配置的值即使在那里也总被尊重。项目级设置只能更严：仓库内设置可把 `accept` 收紧为 `hold`，但绝不能把 `hold` 放宽为 `accept`；因为这等于仓库能覆盖你自己的选择，`/peers` 总是写明生效取值与它来自哪个文件。因信任问题无法自动裁决而保留的消息会弹批准框，框内给出发送方名称与 handle、名称与地址均由发送方提供且未验证的声明、本会话绕过权限检查因而对方请求会不再提示就执行的说明、消息摘录（显示用摘录被截短，批准后投递整条消息）与两个选项 `Deliver it to this session`、`Decline — drop it and tell the sender`；附件只按数量列出。该提示永远是本会话最后才上屏的东西，不会打断权限确认或你正在进行到一半的对话框，只在没有其他东西在向你询问时出现；一次只问一条，且只在屏幕空闲时问。在提示或对话框打开期间到达的消息仍被保留、改由 `/peers` 审查；已经打开的提示被别的东西抢占屏幕时回到队列，而不是在替代物后面耗到过期。等待时长由 `general.dialogExpiry` 决定，默认 5 分钟，到期后消息被丢弃并告知发送方是 expired 而不是 refused——发送方 Agent 可以据此区别处理；`never` 去掉其他对话框的期限但不去掉这一个，以免一条无人回答的提示挡住之后所有消息。你自己配置 `hold` 而保留的消息不弹框（自己的常设指令不是问题），只由 `/peers` 审查；来自仓库设置文件的同一个 `hold` 会弹框，因为那是仓库的决定而不是你的。对等消息被当作同事的请求而不是你的指令：它永远不算你对待处理权限提示的批准，开头的 `/` 是纯文本而绝不会被当作 Slash 命令，权限边界按会话各自计算——对等会话被拒的动作改问另一个会话去做时，接收方 Agent 被指示拒绝并上报给你。Agent Teams：普通输出文本不会自动发给队友，只有 `SendMessage` 内容被共享，界面显示 “Message from @[name]”；共享任务列表记录负责人、状态和依赖；完成任务不终止队友，队友在 running/idle 间循环，可被新消息或任务唤醒。',
           scope:
-            '单个交互式 TUI 会话；每个会话自动拥有一个当前团队，无手动建队命令；队友视图在单窗口内切换，不支持分栏。',
+            '跨会话消息：同一台机器、同一用户账号下的两个 Qoder CLI 会话，官方页面逐字写明 “two Qoder CLI sessions running on the same machine, under the same user account”，典型用法是一个终端做后端、另一个做前端，或从第二个窗口把东西交给一个长期运行的会话。同机上属于其他用户的会话看不到也够不到你的会话。隔离只依赖文件权限：在本人账号边界内，发送方自述的名称没有密码学验证，任何已经以你的身份运行的进程都能把自己呈现为任意对等会话，因此官方要求把跨会话消息的可信程度限定在“你账号下运行的一切都可信”的范围内，并建议在以更高权限运行的会话上优先用 `hold`。官方页面没有描述跨机器传输。Agent Teams：单个交互式 TUI 会话；每个会话自动拥有一个当前团队，无手动建队命令；队友视图在单窗口内切换，不支持分栏。',
           automation:
-            '主 Agent 根据任务需要动态创建队友；官方建议用户在提示词中明确要求 Agent Teams 并指定角色，否则可能使用普通 Subagent。',
+            '跨会话消息：可以让 Agent 自己调用 `ListAgents`，也可以直接请它列出可达对象。会话名就是当前标题，`/rename` 与 Agent 自行改标题都会改变它；状态列同样跟随会话：Agent 工作时为 `busy`、正在请求确认时为 `waiting`、用户在 shell 提示符时为 `shell`、其余为 `idle`。没有标题的会话按工作目录名加 handle 命名，因此同在 `/home/dev/api` 的两个会话显示为 `api-7c` 与 `api-3f` 而不是两个 `api`；有标题的会话名里不含 handle，其行内另行标注一个。handle 由该会话监听的 socket 派生，在所有会话的列表里都相同，且不随改名变化，可单独用 handle 寻址。名称匹配到多个在世会话时，Agent 拿到的是各自唯一寻址的标签并询问你指哪一个而不是猜；名称由各方自选且未验证，因此有歧义时没有任何寻址只凭名称成立。提及只是告诉 Agent 你指哪一个，本身不发送任何东西——要在同一条消息里说出你要什么（例如 “ask @reviewer to rerun CI”）Agent 才会去发消息，只提及不提要求的消息不会投递；单独输入 `@` 不列出对等会话，匹配不到任何对象的提及原样留在文本里。Agent Teams：主 Agent 根据任务需要动态创建队友；官方建议用户在提示词中明确要求 Agent Teams 并指定角色，否则可能使用普通 Subagent。',
           persistence:
-            'beta 功能，需 `QODER_AGENT_TEAMS=1`（CLI 环境变量或用户级 `.env`：macOS/Linux 为 `$HOME/.qoder/.env`，Windows 为 `%USERPROFILE%\\.qoder\\.env`，修改后需重启）；团队不随 TUI 退出保留，`resume` 恢复历史但不恢复队友及其状态。',
+            '跨会话消息：官方页面没有记录独立的磁盘消息队列或保留时长。被保留的消息等待 `general.dialogExpiry`（默认 5 分钟）后过期丢弃并向发送方回报 expired；`general.dialogExpiry` 只从你自己的设置读取，永不从仓库设置读取，取值 `60s`/`5m`/`10m`/`never`。`security.crossSessionInbound` 取 `accept`/`hold`/`refuse`，默认未设置，仓库内设置只能收紧。`QODER_FEATURE_CROSS_SESSION=1` 可写进用户级 `.env` 跨会话保留，改 `.env` 后需重启。附件到达即复制、被拒即删。Agent Teams：beta，需 `QODER_AGENT_TEAMS=1`（CLI 环境变量或用户级 `.env`：macOS/Linux 为 `$HOME/.qoder/.env`，Windows 为 `%USERPROFILE%\\.qoder\\.env`，修改后需重启）；团队不随 TUI 退出保留，`resume` 恢复历史但不恢复队友及其状态。',
           surfaces:
-            '交互式 TUI；官方文档未说明 Headless 或 SDK Surface 支持 Agent Teams。',
+            '跨会话消息：CLI，官方页面把适用范围写为在同一台机器上运行的两个 Qoder CLI 会话，并位于文档站 CLI → Using Qoder CLI → Parallel Collaboration 分组下（与 Process Tasks in Parallel、Agent Teams、Dynamic workflows 并列）。非交互运行只有在拿到显式 socket 路径时才涉及该功能，且其入站回退把本该保留的消息改为拒绝。官方 Slash 命令参考（`cli/slash-reference`）、设置参考（`cli/settings-reference`）与 Tools 参考（`cli/tools`）在核对日期都没有列出 `/peers`、`SendMessage`、`ListAgents`、`security.crossSessionInbound`、`general.dialogExpiry` 或 `QODER_FEATURE_CROSS_SESSION`；`SendMessage` 只出现在 Agent Teams 页。不从 IDE、JetBrains Plugin、Cloud Agents、Mobile & Web、QoderWake 或 Agent SDK Surface 推断同一能力。Agent Teams：交互式 TUI；官方文档未说明 Headless 或 SDK Surface 支持 Agent Teams。',
           conditions:
-            'beta；队友 stdout 相互隔离；固定多阶段流程官方建议用 Workflows，单个独立子任务建议用 Subagents。',
-          sources: ['qoder-agent-teams'],
+            '跨会话消息：beta，默认不开启，需 `QODER_FEATURE_CROSS_SESSION=1`；官方页面写明该功能需要 UNIX domain socket 且仅在 macOS 与 Linux 可用，Windows 不在范围内。官方页面没有给出生效的最低 CLI 版本，只标 Beta；CLI Release Notes 的时间线为 CLI 1.1.19（2026-08-11）“Added cross-session messaging, so sessions can discover each other and send messages”、CLI 1.1.21（2026-08-13）“Cross-session messages now show the sender and the message body inline”、CLI 1.1.25（2026-08-18）“Added @-mention of other live sessions in the composer, so you can reference a peer session alongside files and agents”，公开 Release Notes 最新条目为 CLI 1.1.64（2026-09-25），其中没有 `/peers`、`security.crossSessionInbound`、`general.dialogExpiry` 或 `QODER_FEATURE_CROSS_SESSION` 的条目。仓库内设置只能收紧入站策略；`general.dialogExpiry` 永不从仓库读取。本页不把 Agent Teams 的队内 `SendMessage` 算作跨会话消息：两者共用同一个工具名，但 Agent Teams 只在单个 TUI 会话内、需 `QODER_AGENT_TEAMS=1`，队友 stdout 相互隔离，固定多阶段流程官方建议用 Workflows、单个独立子任务建议用 Subagents。',
+          sources: [
+            'qoder-cross-session-messaging',
+            'qoder-release-notes',
+            'qoder-agent-teams',
+            'qoder-commands',
+            'qoder-settings-reference',
+            'qoder-tools-delegate',
+          ],
         },
       },
       related: ['session-resume', 'agent-background', 'surface-remote-control'],
