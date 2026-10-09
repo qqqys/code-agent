@@ -98,7 +98,7 @@
         '五家都提供模型可直接调用的文件读写能力，不需要先拼接 Shell 命令。',
         'Claude Code、Qwen Code 和 Qoder CLI 单独提供 Notebook 编辑工具；Kimi Code 的当前工具表把媒体读取与文本读取分开。',
         '工具名称相近不代表审批相同：只读工具通常可直接运行，写入和编辑仍受各自权限模式、工作区边界与沙箱约束。',
-        '换行处理不同：Codex `apply_patch` 默认把更新文件归一为 LF，`apply_patch_preserve_line_endings` 开关（已合入 main，尚未发布）启用后才保留原换行；Qwen Code `edit` 默认检测并保留原换行风格。Claude Code、Kimi Code 与 Qoder CLI 的官方工具文档未列同类换行保留或规范化配置。',
+        '换行处理不同：Codex `apply_patch` 自 rust-v0.162.0 起无条件保留原换行（旧的归一为 LF 模式与 `apply_patch_preserve_line_endings` opt-in 开关已移除）；Qwen Code `edit` 默认检测并保留原换行风格。Claude Code、Kimi Code 与 Qoder CLI 的官方工具文档未列同类换行保留或规范化配置。',
         '写前读与过期写入保护不同：Claude Code 官方工具参考记录读后再改要求——当前会话先读取才能编辑，Claude Opus 4.6、Haiku 4.5 及更早模型始终要求先读，较新模型在读取无需权限提示且 Read 工具可用时可编辑未读文件；Kimi Code main 分支新增 staleGuard（尚未发布），Edit/Write 拒绝修改未经本 Agent 读取或读取后磁盘 mtime 已变的已有文件；Qwen Code `edit` 以 `checkPriorRead` 强制读后再改并在写入前复核过期；Codex 与 Qoder CLI 的官方工具文档未列同类写前读强制要求。',
       ],
       products: {
@@ -125,7 +125,7 @@
           entry:
             '模型使用内置文件读取与补丁编辑能力；需要整文件或批量机械操作时也可通过 Shell 完成。',
           primitives:
-            '核心路径是读取文件后提交结构化补丁；`apply_patch` 默认 `NormalizeToLf`（把更新文件归一为 LF），main 分支新增 `PreserveLineEndings` 模式：未改动行保留原换行，插入行采用文件首个已有换行风格，文件无换行时用 LF。当前公开文档不要求用户记住内部工具名。',
+            '核心路径是读取文件后提交结构化补丁；自 rust-v0.162.0 起 `apply_patch` 无条件保留原换行——旧的 `NormalizeToLf`（把更新文件归一为 LF）模式已移除，未改动行保留各自原有结尾（混合换行也能存活），插入行采用文件首个已有换行风格，文件无换行时用 LF。当前公开文档不要求用户记住内部工具名。',
           behavior:
             '补丁在应用前后仍受当前审批预设和文件系统沙箱控制；只读模式不会允许持久修改。官方 Apply Patch 指南（Responses API harness 说明）列出 `create_file`/`update_file`/`delete_file` 三种 V4A diff 操作并由 harness 应用，未设写前读强制要求；`update_file` 上下文与文件内容不匹配时应用失败并返回如 `Error: Invalid Context` 的错误，模型据此重读文件或简化改动后重试。',
           scope:
@@ -137,15 +137,17 @@
           artifacts:
             '结果是工作区文件修改和可审阅 Diff；不会因为生成补丁自动创建提交。',
           conditions:
-            '实际可写范围取决于 Read Only、Auto 等权限预设以及运行时沙箱；Cloud 任务使用远端环境。条件：`config.toml` 的 `[features]` 下 `apply_patch_preserve_line_endings` 开关（默认关闭、UnderDevelopment 阶段）启用换行保留；启用后进程内 apply_patch 直接读取该 Feature，Core 同时清除继承值并向子进程环境注入 `CODEX_APPLY_PATCH_PRESERVE_LINE_ENDINGS=1`，独立 `apply_patch` 可执行文件按该环境变量选择模式。该开关 2026-08-10 合入 main 分支，尚未进入 Release，官方配置参考未列出。',
-          status: '源码确认',
+            '实际可写范围取决于 Read Only、Auto 等权限预设以及运行时沙箱；Cloud 任务使用远端环境。换行保留自 rust-v0.162.0（2026-10-08 发布，PR #51203 合并提交 `685270a56a96`）起为默认且唯一行为，不再需要任何开关：功能登记册把 `apply_patch_preserve_line_endings` 标记为 `Stage::Removed`（doc comment 逐字为 "Removed compatibility flag. Patches always preserve existing line endings."），旧的 LF 归一模式连同该 opt-in 一并删除。为兼容仍按环境变量选择模式的旧版独立 `apply_patch` 可执行文件（含远程 executor 提供的），Core 在子进程环境里总是注入 `CODEX_APPLY_PATCH_PRESERVE_LINE_ENDINGS=1`，并先按大小写不敏感清除继承来的同名值再写入，官方注释逐字为 "Override inherited values so they cannot restore the legacy normalization behavior."。',
           sources: [
             'codex-docs',
             'codex-approvals',
             'codex-review',
-            'codex-apply-patch-mode',
-            'codex-apply-patch-preserve-flag',
             'codex-apply-patch-guide',
+            'codex-v0162-release',
+            'codex-apply-patch-unconditional',
+            'codex-apply-patch-text-file',
+            'codex-apply-patch-exec-env',
+            'codex-apply-patch-features',
           ],
         },
         qwen: {
