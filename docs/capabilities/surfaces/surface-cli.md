@@ -100,7 +100,7 @@
 | 工具与能力 | 权限模式、Plan、YOLO、工具规则和自定义 Agent 控制执行。 |
 | 认证与权限 | Kimi OAuth 或自定义兼容 Provider。 |
 | 运行位置 | 本机终端，官方安装脚本或 npm/native 包。 |
-| 条件与边界 | 当前没有独立 Kimi Code 桌面应用；VS Code 与 Web UI 是另外的客户端。 |
+| 条件与边界 | 官方另有桌面端（`kimi install-desktop` 与 `/desktop` 打开下载页、`kimi app [path]` 唤起，见桌面端字段），但不从桌面端反推 CLI 能力；VS Code 与 Web UI 是另外的客户端。 |
 | 证据状态 | 源码确认 |
 | 来源 | [Kimi Code current CLI, Headless and Web reference](https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/reference/kimi-command.md)、[Kimi Code current built-in tools](https://github.com/MoonshotAI/kimi-code/blob/%40moonshot-ai/kimi-code%400.38.0/docs/zh/reference/tools.md) |
 
