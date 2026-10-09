@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-10-08',
+  updatedAt: '2026-10-09',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -438,13 +438,25 @@ window.matrixData = {
       label: 'Codex exec session fork',
       url: 'https://github.com/openai/codex/commit/80858a8cce7f3ba0aaf6a76ad9462dca1604daeb',
     },
-    'codex-apply-patch-mode': {
-      label: 'Codex apply_patch line-ending preservation mode',
-      url: 'https://github.com/openai/codex/commit/21aa552e8727c03189d0f7d18bbd6e7583e88f88',
+    'codex-v0162-release': {
+      label: 'Codex rust-v0.162.0 发布说明（apply_patch 无条件保留换行）',
+      url: 'https://github.com/openai/codex/releases/tag/rust-v0.162.0',
     },
-    'codex-apply-patch-preserve-flag': {
-      label: 'Codex apply_patch_preserve_line_endings feature flag',
-      url: 'https://github.com/openai/codex/commit/c9c6c0daa994109cec50fddcb57d076fdf9e738c',
+    'codex-apply-patch-unconditional': {
+      label: 'Codex PR #51203（Make apply_patch preserve line endings unconditionally）合并提交',
+      url: 'https://github.com/openai/codex/commit/685270a56a96c76ae5b0853373a19d6ed5bc6fd4',
+    },
+    'codex-apply-patch-text-file': {
+      label: 'Codex apply_patch 换行保留机制源码（text_file.rs SourceFile）',
+      url: 'https://github.com/openai/codex/blob/685270a56a96c76ae5b0853373a19d6ed5bc6fd4/codex-rs/apply-patch/src/text_file.rs',
+    },
+    'codex-apply-patch-exec-env': {
+      label: 'Codex apply_patch 子进程环境注入源码（exec_env.rs）',
+      url: 'https://github.com/openai/codex/blob/685270a56a96c76ae5b0853373a19d6ed5bc6fd4/codex-rs/core/src/exec_env.rs',
+    },
+    'codex-apply-patch-features': {
+      label: 'Codex 功能登记册（apply_patch_preserve_line_endings 标记 Removed）',
+      url: 'https://github.com/openai/codex/blob/685270a56a96c76ae5b0853373a19d6ed5bc6fd4/codex-rs/features/src/lib.rs',
     },
     'codex-apply-patch-guide': {
       label: 'Codex Apply Patch tool guide',
@@ -2636,7 +2648,7 @@ window.matrixData = {
       category: 'execution',
       capability: '文件读写',
       description: '读取、创建和修改工作区文件。',
-      values: { claude: '`Read` · `Edit` · `Write` · 官方工具参考记录读后再改要求与模型差异', codex: '内置读取 · 补丁编辑 · `apply_patch_preserve_line_endings` 换行保留（条件：main 分支，尚未发布）', qwen: '`read_file` · `edit` · `write_file`', kimi: '`Read` · `Edit` · `Write` · 条件：Edit/Write 拒绝未读取或读取后磁盘已变的已有文件（main 分支，尚未发布）', qoder: '`Read` · `Edit` · `Write`' },
+      values: { claude: '`Read` · `Edit` · `Write` · 官方工具参考记录读后再改要求与模型差异', codex: '内置读取 · 补丁编辑 · `apply_patch` 无条件保留原换行（rust-v0.162.0 起，旧 LF 归一模式与 opt-in 开关已移除）', qwen: '`read_file` · `edit` · `write_file`', kimi: '`Read` · `Edit` · `Write` · 条件：Edit/Write 拒绝未读取或读取后磁盘已变的已有文件（main 分支，尚未发布）', qoder: '`Read` · `Edit` · `Write`' },
     },
     {
       id: 'execution-shell',
