@@ -130,6 +130,10 @@ window.matrixData = {
       label: 'Claude Code v2.1.295 Hook `onFailure: "block"` 更新日志',
       url: 'https://github.com/anthropics/claude-code/blob/602df92bf481ed904533e95c09f740f40aab5aed/CHANGELOG.md',
     },
+    'claude-v21296-subagent-autocompact-changelog': {
+      label: 'Claude Code v2.1.296 Subagent `autoCompactWindow` 更新日志',
+      url: 'https://github.com/anthropics/claude-code/blob/2301018b1f61073c501a8e7a4813ef48c239163b/CHANGELOG.md',
+    },
     'claude-ide': {
       label: 'Claude Code IDE integrations',
       url: 'https://code.claude.com/docs/en/ide-integrations',
@@ -177,6 +181,10 @@ window.matrixData = {
     'claude-env-vars': {
       label: 'Claude Code environment variables',
       url: 'https://code.claude.com/docs/en/env-vars',
+    },
+    'claude-cli-reference': {
+      label: 'Claude Code CLI reference（`--autocompact` 与 `--agents`）',
+      url: 'https://code.claude.com/docs/en/cli-reference',
     },
     'claude-keybindings': {
       label: 'Claude Code keybindings',
@@ -862,6 +870,18 @@ window.matrixData = {
       label: 'Qwen Code current settings',
       url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/configuration/settings.md',
     },
+    'qwen-compress-commands-v0251preview1': {
+      label: 'Qwen Code v0.25.1-preview.1 命令文档（`/compress`、`/compress-fast` 与 `/model --compaction`）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/683f3f063aa05c67c339a70fbc740f08c006f9de/docs/users/features/commands.md',
+    },
+    'qwen-autocompact-settings-v0251preview1': {
+      label: 'Qwen Code v0.25.1-preview.1 设置文档（`context.autoCompactThreshold`、`compactionModel` 与 `model.chatCompression.*`）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/683f3f063aa05c67c339a70fbc740f08c006f9de/docs/users/configuration/settings.md',
+    },
+    'qwen-subagents-v0251preview1': {
+      label: 'Qwen Code v0.25.1-preview.1 Subagent 文档（未描述 Subagent 压缩阈值）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/683f3f063aa05c67c339a70fbc740f08c006f9de/docs/users/features/sub-agents.md',
+    },
     'qwen-session-headless': {
       label: 'Qwen Code current headless mode',
       url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/headless.md',
@@ -1285,6 +1305,10 @@ window.matrixData = {
     'kimi-config-current': {
       label: 'Kimi Code current configuration',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/configuration/config-files.md',
+    },
+    'kimi-compaction-config': {
+      label: 'Kimi Code 自动压缩配置（`loop_control.reserved_context_size`、`compaction_max_attempts` 与只有 `timeout_ms` 的 `[subagent]`）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/c7dd84124a00d2dc1a68fbbc3e54b1095ee9ac23/docs/zh/configuration/config-files.md',
     },
     'kimi-subagent-config': {
       label: 'Kimi Code subagent and secondary model configuration',
@@ -1721,6 +1745,14 @@ window.matrixData = {
     'qoder-agents': {
       label: 'Qoder CLI Subagent',
       url: 'https://docs.qoder.com/en/cli/subagent',
+    },
+    'qoder-glossary': {
+      label: 'Qoder CLI Glossary（Compaction 定义）',
+      url: 'https://docs.qoder.com/cli/glossary',
+    },
+    'qoder-how-it-works': {
+      label: 'Qoder CLI How Task Execution Works（上下文窗口与 Compact 机制）',
+      url: 'https://docs.qoder.com/cli/how-it-works',
     },
     'qoder-permissions': {
       label: 'Qoder CLI Permissions',
@@ -2624,7 +2656,7 @@ window.matrixData = {
       category: 'sessions',
       capability: '手动压缩',
       description: '主动总结当前上下文以释放窗口。',
-      values: { claude: '`/compact [instructions]`', codex: '`/compact`', qwen: '`/compress [instructions]` · `/compress-fast`', kimi: '`/compact [instruction]`', qoder: '`/compact [instructions]`' },
+      values: { claude: '`/compact [instructions]`；自动窗口 `/autocompact <tokens 或 auto>` · `autoCompactWindow`（v2.1.296 起 Subagent 定义可单独设）', codex: '`/compact`；阈值 `model_auto_compact_token_limit` 与统计口径 `model_auto_compact_token_limit_scope`', qwen: '`/compress [instructions]` · `/compress-fast`；阈值 `context.autoCompactThreshold`（默认 0.85）', kimi: '`/compact [instruction]`；`loop_control.reserved_context_size` 触发自动压缩', qoder: '`/compact [instructions]`；自动压缩阈值未公开' },
     },
     {
       id: 'session-context-usage',

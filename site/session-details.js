@@ -544,92 +544,119 @@
       id: 'session-compress',
       definition:
         '把较长的会话历史替换或折叠为摘要，使后续模型请求释放更多上下文窗口。',
-      includes: ['手动压缩命令', '自定义压缩指令', '自动压缩触发'],
+      includes: ['手动压缩命令', '自定义压缩指令', '自动压缩触发与阈值配置'],
       excludes: ['清空会话', '删除磁盘上的原始记录', '仅裁剪一条工具结果'],
       facts: [
-        '五家都提供手动压缩；Claude Code、Qwen Code 和 Kimi Code 还公开说明自动压缩行为。',
+        '五家都提供手动压缩；自动压缩的可配置项只有 Claude Code、Codex、Qwen Code 和 Kimi Code 公布，Qoder CLI 只在术语表定义 Compaction 而没有公开阈值或开关。',
+        '阈值语义分三类：Claude Code 与 Codex 配置绝对 token 数（压缩窗口或触发阈值），Qwen Code 配置上下文窗口占比（`context.autoCompactThreshold`，默认 0.85），Kimi Code 配置为模型输出预留的 token 数（`loop_control.reserved_context_size`，窗口剩余量低于它即压缩）。',
+        'Claude Code v2.1.296 起 Subagent frontmatter 与 `--agents` 定义可写自己的 `autoCompactWindow`，使该 Subagent 比主会话窗口更早压缩；其余四家已固定的一手资料没有 Subagent 级压缩阈值配置。',
         'Qwen Code 另有 `/compress-fast`，它不调用模型，只移除旧工具输出和思考内容，因此与摘要压缩不是同一种处理。',
         '压缩通常是有损的上下文变换；磁盘会话记录是否保留原始消息由各产品的会话格式决定。',
       ],
       products: {
         claude: {
-          entry: '`/compact [instructions]`，可附加希望摘要优先保留的内容。',
+          entry:
+            '`/compact [instructions]`，可附加希望摘要优先保留的内容；`/autocompact [auto|<tokens>]`（v2.1.221 起）设置自动压缩窗口，传 `500k` 一类尺寸或 `auto` 回到该模型的调优窗口，不带参数打开显示当前窗口的对话框；启动时 `--autocompact <auto|tokens>` 只对当次会话生效且不改已保存设置。',
           behavior:
-            '用摘要替换当前历史，减少后续请求的上下文占用；Checkpoint 菜单还支持从指定消息前后做定向摘要。',
+            '用摘要替换当前历史，减少后续请求的上下文占用；Checkpoint 菜单还支持从指定消息前后做定向摘要。`/autocompact` 与 `--autocompact` 只改窗口，不立即压缩。',
           scope:
-            '作用于当前会话的模型上下文，不删除项目文件；根级 `CLAUDE.md` 会在压缩后重新注入。',
+            '作用于当前会话的模型上下文，不删除项目文件；根级 `CLAUDE.md` 会在压缩后重新注入。窗口按模型保存在用户设置的 `modelSettings`（`/autocompact` 写入，v2.1.288 起）或对所有模型生效的顶层 `autoCompactWindow`，同一文件里每模型取值优先于顶层键。',
           automation:
-            '上下文接近容量时自动压缩；具体触发受模型窗口与当前上下文组成影响。',
+            '未设窗口时在会话达到模型上下文上限处压缩，例外为：Cloud 会话在接近上限时压缩，Sonnet 4.6 与 Opus 4.6 未开扩展上下文时在 200K 边界，`CLAUDE_CODE_DISABLE_1M_CONTEXT=1` 时原生 1M 窗口模型按 200K，原生 1M 窗口模型默认约 967K。窗口取值 100000–1000000 并被截断到模型上下文窗口。优先级为 `CLAUDE_CODE_AUTO_COMPACT_WINDOW` > `--autocompact` > `/autocompact` 保存的每模型窗口 > 同一文件的顶层 `autoCompactWindow`；更高优先级设置作用域（如 managed settings）已为该模型或所有模型设窗口时，`/autocompact` 仍保存取值但会话沿用该作用域的窗口并说明。`autoCompactEnabled`（默认 `true`，`/config` 的 **Auto-compact** 开关）或 `DISABLE_AUTO_COMPACT=1` 关闭自动压缩而保留手动 `/compact`，`DISABLE_COMPACT=1` 连手动压缩一起关闭。`CLAUDE_AUTOCOMPACT_PCT_OVERRIDE`（1–100）按窗口百分比提前触发，只在早于模型上限就压缩的会话生效、不能抬高阈值，主会话与 Subagent 都适用。v2.1.296 起 Subagent frontmatter 与 `--agents` 定义可写 `autoCompactWindow`，让该 Subagent 比主会话窗口更早自动压缩。',
           persistence:
-            '压缩后的会话可继续保存和恢复；Checkpoint 的原始消息仍保留在会话记录中供需要时参考。',
+            '压缩后的会话可继续保存和恢复；Checkpoint 的原始消息仍保留在会话记录中供需要时参考。`/autocompact` 把窗口写进用户设置，跨会话保留。Subagent transcript 不受主会话压缩影响，其压缩事件写进 `~/.claude/projects/<project>/<sessionId>/subagents/agent-<agentId>.jsonl`，形如 `subtype: "compact_boundary"` 加 `compactMetadata` 的 `trigger: "auto"` 与压缩前 token 数 `preTokens`。',
           conditions:
-            '嵌套目录的指令文件不是全部一次性重注入，而是在后续访问对应路径时重新加载。',
+            '命令与旗标接受纯 token 数（`200000`）、`k`/`M` 后缀（`500k`、`1M`）与 100–1000 的裸数字（按千计），环境变量只接受纯 token 数——`500k` 会被读成 `500` 并夹到 100K 下限；设置 `CLAUDE_CODE_AUTO_COMPACT_WINDOW` 后状态行的 `used_percentage` 仍按模型完整窗口计算，不再指示何时压缩。v2.1.288 前 `/autocompact` 保存的是对所有模型生效的顶层 `autoCompactWindow`。官方 Subagents 页在核对日期仍写 Subagent 用与主会话相同的压缩逻辑、`CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` 同样适用，其 frontmatter 字段表尚未列出 `autoCompactWindow`，该键的取值范围与它同每模型窗口之间的优先级记为未确认。嵌套目录的指令文件不是全部一次性重注入，而是在后续访问对应路径时重新加载。',
           sources: [
             'claude-sessions',
             'claude-context-window',
             'claude-checkpointing',
+            'claude-commands',
+            'claude-model-config',
+            'claude-settings-reference',
+            'claude-env-vars',
+            'claude-cli-reference',
+            'claude-agents',
+            'claude-v21296-subagent-autocompact-changelog',
           ],
         },
         codex: {
-          entry: '`/compact` 压缩当前聊天上下文。',
+          entry:
+            '`/compact` 压缩当前聊天上下文；官方命令表说明为总结可见聊天以释放 token，长时间运行后使用以便保留要点而不撑爆上下文窗口。',
           behavior:
             '把可见聊天历史总结为更短上下文，以释放后续模型请求的 token 空间。',
           scope:
             '作用于当前聊天的上下文，不修改工作区文件或创建新会话。',
           automation:
-            'Codex 可按模型默认值或 `model_auto_compact_token_limit` 在达到阈值时自动压缩。',
+            '`model_auto_compact_token_limit` 设定触发自动历史压缩的 token 阈值，未设置时用模型默认值；`model_auto_compact_token_limit_scope` 决定阈值的统计口径——`total`（默认）统计整个活动上下文，`body_after_prefix` 只统计所携带压缩窗口前缀之后的增长。官方配置参考的 `[agents]` 段只列 `enabled`、`max_concurrent_threads_per_session`（及旧别名 `max_threads`）、`default_subagent_model`、`default_subagent_reasoning_effort`、`interrupt_message` 与每角色的 `description`/`config_file`，没有 Subagent 级压缩阈值键；角色可用 `agents.<name>.config_file` 挂一层 TOML 配置，但该层能否覆盖压缩阈值官方没有说明，记为未确认。',
           persistence:
-            '摘要进入当前会话；本地会话记录仍由 Codex 会话存储维护。',
+            '摘要进入当前会话；本地会话记录仍由 Codex 会话存储维护。OpenTelemetry 计数器 `task.compact` 按 `type`（`remote` 或 `local`）统计压缩次数，含手动与自动。',
           conditions:
-            '可用 `compact_prompt` 或实验性提示文件覆盖压缩提示；自定义会改变摘要内容而非上下文窗口大小。',
-          sources: ['codex-commands', 'codex-config'],
+            '可用 `compact_prompt` 内联覆盖压缩提示词，或用实验性 `experimental_compact_prompt_file` 从文件加载覆盖；自定义会改变摘要内容而非上下文窗口大小。',
+          sources: ['codex-commands', 'codex-config', 'codex-config-reference'],
         },
         qwen: {
           entry:
-            '`/compress [instructions]`（别名 `/summarize`）生成摘要；`/compress-fast` 执行无模型快速压缩。',
+            '`/compress [instructions]`（别名 `/summarize`）用摘要替换聊天历史以节省 token；`/compress-fast` 执行无模型快速压缩；`/model --compaction <model-id>`（`/model --compaction clear` 清除）设置执行压缩的模型。',
           behavior:
-            '`/compress` 用模型摘要替换历史；`/compress-fast` 保留消息骨架并剥离旧工具输出和思考内容。',
+            '`/compress` 用模型摘要替换历史；`/compress-fast` 保留消息骨架并剥离旧工具输出和思考内容。`compactionModel` 留空时回退主模型，指定更小或更快的模型可降低压缩延迟与成本。',
           scope:
             '作用于当前聊天历史。自动压缩后可按配置恢复最近文件和图片引用，避免重要工作集完全丢失。',
           automation:
-            '`context.autoCompactThreshold` 上限默认 0.85；较小窗口可能提前触发，截图数量也可单独触发自动压缩。',
+            '`context.autoCompactThreshold` 是触发自动压缩的上下文窗口占比，取值须大于 0 且不超过 1，默认 0.85；它是上限语义——大窗口时约 85% 就是实际触发点，较小窗口可能提前触发以留出摘要空间。内部按模型窗口用 `computeThresholds()` 算 warn/auto/hard 三级阈值，旧键 `model.chatCompression.contextPercentageThreshold` 已移除并被静默忽略。另有截图触发：`model.chatCompression.enableScreenshotTrigger`（默认 `true`）开启后，历史中工具返回的图片数达到 `screenshotTriggerThreshold`（默认 20）即触发一次自动压缩，与 token 占用无关，压缩会重置该计数因而不会立刻再次触发。官方设置文档没有 Subagent 级压缩阈值键，同版本 Subagent 文档也未描述 Subagent 的压缩行为。',
           persistence:
-            '压缩检查点写入会话记录，恢复会话时一并加载。',
+            '压缩检查点写入会话记录，恢复会话时一并加载。自动压缩后恢复的最近文件数由 `model.chatCompression.maxRecentFilesToRetain`（默认 5，环境变量 `QWEN_COMPACT_MAX_RECENT_FILES`）、最近图片数由 `maxRecentImagesToRetain`（默认 3，`QWEN_COMPACT_MAX_RECENT_IMAGES`）控制，`0` 表示不恢复。',
           conditions:
-            '手动摘要指令有长度限制；`/compress-fast` 不等价于 AI 摘要，可能直接丢弃旧工具细节。',
-          sources: ['qwen-session-commands', 'qwen-session-settings'],
+            '手动摘要指令有长度限制；`/compress-fast` 不等价于 AI 摘要，可能直接丢弃旧工具细节。截图触发只统计工具结果里返回的图片，不含用户粘贴的图片，`QWEN_COMPACT_SCREENSHOT_TRIGGER` 与 `QWEN_COMPACT_SCREENSHOT_THRESHOLD` 可分别覆盖开关与阈值。`context.clearContextOnIdle.*` 是空闲时清理旧工具结果的另一种机制，不属于摘要压缩。',
+          status: '官方确认',
+          sources: [
+            'qwen-compress-commands-v0251preview1',
+            'qwen-autocompact-settings-v0251preview1',
+            'qwen-subagents-v0251preview1',
+          ],
         },
         kimi: {
-          entry: '`/compact [instruction]`，可说明摘要应保留的主题。',
+          entry:
+            '`/compact [instruction]`，可说明摘要应保留的主题；官方命令表把它标为非「随时可用」——会话正在流式输出或压缩上下文时执行会被拦截，需先按 `Esc` 或 `Ctrl-C` 中断。',
           behavior:
             '总结并压缩当前对话历史，释放 token 空间后继续同一会话。',
           scope:
             '作用于当前会话上下文；不创建新会话，也不回滚代码。',
           automation:
-            '上下文接近窗口上限时自动压缩；配置中的 `loop_control.reserved_context_size` 为后续响应预留空间。',
+            '官方会话指南写明对话变长时在上下文接近窗口上限时自动压缩历史消息。`[loop_control] reserved_context_size` 指定为模型输出预留的 token 数，上下文窗口剩余量低于该值即触发自动压缩（文档未给默认值，示例配置写 `50000`）；`compaction_max_attempts`（默认 5）是压缩请求失败后的最大总尝试次数，含首次尝试。`[subagent]` 段只有 `timeout_ms`，官方配置文档没有 Subagent 级压缩阈值。',
           persistence:
             '压缩结果进入会话事件流，恢复时按压缩后的上下文继续。',
           conditions:
-            '最后一次压缩之前的提示词不能再通过 `/undo` 撤销。',
+            '最后一次压缩之前的提示词不能再通过 `/undo` 撤销。`loop_control` 只有 `max_steps_per_turn`（`KIMI_LOOP_MAX_STEPS_PER_TURN`）与 `max_attempts_per_step`（`KIMI_LOOP_MAX_ATTEMPTS_PER_STEP`）有环境变量覆盖，`reserved_context_size` 与 `compaction_max_attempts` 没有；`[experimental] micro_compaction`（清理较旧的大型工具结果）在当前官方配置文档里整段被注释掉，不按已公布能力记录。',
           sources: [
             'kimi-sessions-current',
             'kimi-commands-current',
             'kimi-config-current',
+            'kimi-compaction-config',
           ],
         },
         qoder: {
-          entry: '`/compact [instructions]` 是可在 TUI 和 Headless 使用的 Prompt 命令。',
+          entry:
+            '`/compact [instructions]` 是可在 TUI 和 Headless 使用的 Prompt 命令，官方说明逐字为 “Compress context to free up space.”；`/context-window`（说明为 “Set the context window.”）与 `/model` 面板调整的是模型上下文窗口大小，不是压缩阈值。',
           behavior:
             '总结当前会话以压缩上下文；附加文字作为摘要指令。',
           scope:
-            '作用于当前会话上下文，不等同于 `/clear` 新建空上下文。',
+            '作用于当前会话上下文，不等同于 `/clear` 新建空上下文。官方 Subagent 页写每个 Subagent 有自己的对话上下文、系统提示词、工具注册表、transcript 与压缩流程，中间搜索和推理不直接进入主会话。',
           automation:
-            '当前 CLI 命令页确认压缩机制，但未公开 CLI 自动压缩的具体阈值。',
+            '官方术语表把 Compaction 定义为对话过长时自动压缩历史消息以留在上下文窗口内，How Task Execution Works 页写明上下文窗口有限、对话很长时用 Compact 一类机制管理上下文；公开设置参考没有自动压缩阈值或开关配置键（只有控制工具输出显示的 `ui.compactToolOutput`），具体触发阈值记为未确认。Release Notes 记 CLI 1.1.31（2026-08-26）修复 “Fixed auto-compaction not being triggered”、CLI 1.1.66（2026-10-08）修复压缩后使用 `/btw` 影响 TUI 状态栏上下文占用计算，两条都没有公布阈值数值。',
           persistence:
-            '压缩后的会话仍可通过 `/resume` 继续；公开命令页未说明原始消息保留格式。',
+            '压缩后的会话仍可通过 `/resume` 继续；公开命令页未说明原始消息保留格式。Release Notes 记 CLI 1.1.29（2026-08-24）修复压缩后无法 fork 与回退历史消息。',
           conditions:
-            'Qoder 桌面端另有 Smart Context Control 阈值提示；本页不把桌面端阈值直接套用到 CLI。',
-          sources: ['qoder-commands'],
+            'Qoder 桌面端另有 Smart Context Control 阈值提示；本页不把桌面端阈值直接套用到 CLI。Subagent 页只说明各 Subagent 有独立压缩流程，没有给出 Subagent 级阈值配置。',
+          sources: [
+            'qoder-commands',
+            'qoder-glossary',
+            'qoder-how-it-works',
+            'qoder-agents',
+            'qoder-model',
+            'qoder-settings-reference',
+            'qoder-release-notes',
+          ],
         },
       },
       related: ['session-context-usage', 'session-checkpoint', 'cmd-new'],
