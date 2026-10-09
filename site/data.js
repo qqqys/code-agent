@@ -54,6 +54,10 @@ window.matrixData = {
       label: 'Claude Code Desktop',
       url: 'https://code.claude.com/docs/en/desktop',
     },
+    'claude-desktop-linux': {
+      label: 'Claude Desktop on Linux (beta)',
+      url: 'https://code.claude.com/docs/en/desktop-linux',
+    },
     'claude-web': {
       label: 'Claude Code on the web',
       url: 'https://code.claude.com/docs/en/claude-code-on-the-web',
@@ -345,6 +349,10 @@ window.matrixData = {
     'codex-app': {
       label: 'ChatGPT desktop app',
       url: 'https://learn.chatgpt.com/docs/app',
+    },
+    'codex-app-linux': {
+      label: 'ChatGPT desktop app for Linux（preview）',
+      url: 'https://learn.chatgpt.com/docs/linux/linux-app',
     },
     'codex-cloud': {
       label: 'Codex cloud',
@@ -919,8 +927,28 @@ window.matrixData = {
       url: 'https://github.com/QwenLM/qwen-code/releases/tag/v0.21.12-preview.5',
     },
     'qwen-desktop-current': {
-      label: 'Qwen Code current Desktop',
-      url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/packages/desktop/README.md',
+      label: 'Qwen Code Desktop 壳 README（Tauri 2）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/e3c5360e5a718549f7ace9be61ef830ed097a81a/packages/desktop/README.md',
+    },
+    'qwen-desktop-tauri-conf': {
+      label: 'Qwen Code Desktop Tauri 配置（bundle 目标、平台要求与 updater 端点）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/e3c5360e5a718549f7ace9be61ef830ed097a81a/packages/desktop/src-tauri/tauri.conf.json',
+    },
+    'qwen-desktop-v0250-release': {
+      label: 'Qwen Code Desktop v0.25.0 Release 与安装包',
+      url: 'https://github.com/QwenLM/qwen-code/releases/tag/desktop-v0.25.0',
+    },
+    'qwen-desktop-tauri-rename': {
+      label: 'Qwen Code desktop-shell 改名为 desktop 提交（PR #12653）',
+      url: 'https://github.com/QwenLM/qwen-code/commit/73aa65a4b41e674e8729011a648e8f0a577902f2',
+    },
+    'qwen-desktop-electron-removal': {
+      label: 'Qwen Code 移除 Electron 桌面包提交（PR #9085）',
+      url: 'https://github.com/QwenLM/qwen-code/commit/ce72ddbe6cfe3c10fe51a0f7cd0116320b690529',
+    },
+    'qwen-desktop-update-bridge': {
+      label: 'Qwen Code Electron→Tauri 更新桥设计文档',
+      url: 'https://github.com/QwenLM/qwen-code/blob/e3c5360e5a718549f7ace9be61ef830ed097a81a/docs/design/desktop-electron-to-tauri-update-bridge.md',
     },
     'qwen-acp-current': {
       label: 'Qwen Code current ACP integration',
@@ -1374,6 +1402,62 @@ window.matrixData = {
       label: 'Kimi Code current VS Code extension',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/apps/vscode/README.md',
     },
+    'kimi-desktop-cli-doc': {
+      label: 'Kimi Code CLI 参考（`kimi app` 与 `kimi install-desktop` 章节）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/242ac230006447f8601e1678c49182bfbae89fe9/docs/zh/reference/kimi-command.md',
+    },
+    'kimi-desktop-slash-doc': {
+      label: 'Kimi Code 斜杠命令表（`/desktop` 与 `/install-desktop` 行）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/242ac230006447f8601e1678c49182bfbae89fe9/docs/zh/reference/slash-commands.md',
+    },
+    'kimi-desktop-changelog': {
+      label: 'Kimi Code 中文更新日志（2.0.0 新增 `/desktop`、2.0.1 改名 `install-desktop`）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/242ac230006447f8601e1678c49182bfbae89fe9/docs/zh/release-notes/changelog.md',
+    },
+    'kimi-app-source': {
+      label: 'Kimi Code `kimi app` 子命令源码',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/242ac230006447f8601e1678c49182bfbae89fe9/apps/kimi-code/src/cli/sub/app.ts',
+    },
+    'kimi-install-desktop-source': {
+      label: 'Kimi Code `kimi install-desktop` 子命令源码',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/242ac230006447f8601e1678c49182bfbae89fe9/apps/kimi-code/src/cli/sub/install-desktop.ts',
+    },
+    'kimi-desktop-tui-source': {
+      label: 'Kimi Code `/desktop` TUI 命令源码',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/242ac230006447f8601e1678c49182bfbae89fe9/apps/kimi-code/src/tui/commands/desktop.ts',
+    },
+    'kimi-open-url-source': {
+      label: 'Kimi Code 系统 URL 打开器源码（open/Start-Process/xdg-open）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/242ac230006447f8601e1678c49182bfbae89fe9/apps/kimi-code/src/utils/open-url.ts',
+    },
+    'kimi-resolve-command-source': {
+      label: 'Kimi Code PATH 可执行文件解析源码（跳过 cwd 内命中）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/242ac230006447f8601e1678c49182bfbae89fe9/apps/kimi-code/src/utils/process/resolve-command.ts',
+    },
+    'kimi-app-changeset': {
+      label: 'Kimi Code `kimi app` changeset（minor）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/242ac230006447f8601e1678c49182bfbae89fe9/.changeset/open-desktop-app.md',
+    },
+    'kimi-app-pr': {
+      label: 'Kimi Code PR #4145（`kimi app [path]` 合入 main）',
+      url: 'https://github.com/MoonshotAI/kimi-code/pull/4145',
+    },
+    'kimi-v200-release': {
+      label: 'Kimi Code 2.0.0 发布说明（新增 `/desktop` 与 `kimi install-app`）',
+      url: 'https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai%2Fkimi-code%402.0.0',
+    },
+    'kimi-v201-release': {
+      label: 'Kimi Code 2.0.1 发布说明（`install-app` 改名 `install-desktop`）',
+      url: 'https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai%2Fkimi-code%402.0.1',
+    },
+    'kimi-v211-release': {
+      label: 'Kimi Code 2.1.1 发布说明（核对日期最新 Release，不含 `kimi app`）',
+      url: 'https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai%2Fkimi-code%402.1.1',
+    },
+    'kimi-desktop-page': {
+      label: 'Kimi Code 官方产品页（Desktop / Terminal / IDE 入口）',
+      url: 'https://www.kimi.ai/code',
+    },
     'kimi-model-providers-current': {
       label: 'Kimi Code current model providers',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/configuration/providers.md',
@@ -1733,6 +1817,10 @@ window.matrixData = {
     'qoder-desktop': {
       label: 'Qoder IDE quick start',
       url: 'https://docs.qoder.com/quick-start',
+    },
+    'qoder-download-page': {
+      label: 'Qoder 官方下载页（IDE、JetBrains Plugin、CLI、QoderWake 与 QoderWork 下载项）',
+      url: 'https://qoder.com/download',
     },
     'qoder-web': {
       label: 'Qoder Web remote and cloud tasks',
@@ -2767,7 +2855,7 @@ window.matrixData = {
       category: 'surfaces',
       capability: '桌面端',
       description: '独立桌面应用或桌面产品集成。',
-      values: { claude: 'Claude Desktop Code', codex: 'ChatGPT Desktop Codex', qwen: 'Qwen Code Desktop', kimi: '无独立桌面端；提供 VS Code/Web', qoder: 'Qoder IDE' },
+      values: { claude: 'Claude Desktop Code 页签（macOS · Windows x64/ARM64 · Linux beta）', codex: 'ChatGPT Desktop Codex（macOS · Windows · Linux 预览）', qwen: 'Qwen Code Desktop（Tauri 2 壳 + 打包 CLI runtime，官方 Release 提供 macOS/Windows/Linux 安装包）', kimi: '官方桌面端 · `kimi install-desktop`（别名 `install-app`）与 `/desktop` 打开下载页 · 条件：`kimi app [path]` 唤起桌面端新会话（main 分支，尚未发布）', qoder: 'Qoder IDE（macOS 12+ · Windows 10+ · Linux `.deb`/`.rpm`）' },
     },
     {
       id: 'surface-cloud',
