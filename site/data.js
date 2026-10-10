@@ -380,6 +380,10 @@ window.matrixData = {
       label: 'Codex Troubleshooting',
       url: 'https://learn.chatgpt.com/docs/reference/troubleshooting',
     },
+    'codex-cli-customization': {
+      label: 'Codex CLI customization（无检查点或回退命令，只记 `Ctrl+G` 外部编辑器）',
+      url: 'https://learn.chatgpt.com/docs/cli-customization',
+    },
     'codex-mcp': {
       label: 'Codex MCP',
       url: 'https://learn.chatgpt.com/docs/extend/mcp',
@@ -467,6 +471,10 @@ window.matrixData = {
     'codex-v0162-release': {
       label: 'Codex rust-v0.162.0 发布说明（apply_patch 无条件保留换行）',
       url: 'https://github.com/openai/codex/releases/tag/rust-v0.162.0',
+    },
+    'codex-v01621-release': {
+      label: 'Codex rust-v0.162.1 发布说明（New Features 与 Bug Fixes 都没有检查点或回退条目）',
+      url: 'https://github.com/openai/codex/releases/tag/rust-v0.162.1',
     },
     'codex-apply-patch-unconditional': {
       label: 'Codex PR #51203（Make apply_patch preserve line endings unconditionally）合并提交',
@@ -879,6 +887,18 @@ window.matrixData = {
     'qwen-session-settings': {
       label: 'Qwen Code current settings',
       url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/configuration/settings.md',
+    },
+    'qwen-rewind-restore-commands': {
+      label: 'Qwen Code main 命令文档（`/rewind`、`/restore`、`/doctor rollback` 与文件检查点交互模式默认开启，提交 e39567eb564c）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/e39567eb564cf5473dc703b25b219c66059fcb1b/docs/users/features/commands.md',
+    },
+    'qwen-file-history-settings': {
+      label: 'Qwen Code main 设置文档（`general.cleanupPeriodDays` 与 `~/.qwen/file-history/`，提交 86b9f13395bd）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/86b9f13395bd77938f5096011f8fb02986b7facf/docs/users/configuration/settings.md',
+    },
+    'qwen-checkpointing-docs-site': {
+      label: 'Qwen Code 文档站 Checkpointing 页（影子 Git 快照、`--checkpointing` 与 `general.checkpointing.enabled`）',
+      url: 'https://qwenlm.github.io/qwen-code-docs/en/users/features/checkpointing/',
     },
     'qwen-compress-commands-v0251preview1': {
       label: 'Qwen Code v0.25.1-preview.1 命令文档（`/compress`、`/compress-fast` 与 `/model --compaction`）',
@@ -1299,6 +1319,10 @@ window.matrixData = {
     'kimi-commands-current': {
       label: 'Kimi Code current slash commands',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/7c919f0376c0331d0d057ef3643c7adcc2c55802/docs/zh/reference/slash-commands.md',
+    },
+    'kimi-undo-commands-25dd4ce': {
+      label: 'Kimi Code Slash 命令表（`/undo [<count>]` 行、「随时可用」列为「否」与空闲限制提示，提交 25dd4ce97345）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/25dd4ce97345c7ebfd9c036898e5eef955c45ea8/docs/zh/reference/slash-commands.md',
     },
     'kimi-commands-messaging-current': {
       label: 'Kimi Code current slash commands (no messaging command)',
@@ -1795,6 +1819,10 @@ window.matrixData = {
     'qoder-checkpoint': {
       label: 'Qoder CLI SDK Checkpoint',
       url: 'https://docs.qoder.com/en/cli/sdk/checkpoint',
+    },
+    'qoder-undo-restore': {
+      label: 'Qoder CLI Undo and Restore（`/rewind` 检查点、三种恢复范围与影响预览）',
+      url: 'https://docs.qoder.com/cli/undo-restore',
     },
     'qoder-agent-teams': {
       label: 'Qoder CLI Agent Teams',
@@ -2322,7 +2350,7 @@ window.matrixData = {
       category: 'commands',
       capability: '回退或检查点',
       description: '回到较早的对话或代码状态。',
-      values: { claude: '`/rewind` · `/checkpoint` · `/undo`', codex: '—', qwen: '`/rewind` · `/restore`', kimi: '`/undo [count]`', qoder: '—' },
+      values: { claude: '`/rewind` · `/checkpoint` · `/undo`', codex: '—', qwen: '`/rewind` · `/restore`', kimi: '`/undo [count]`', qoder: '`/rewind`' },
     },
     {
       id: 'cmd-diff',
@@ -2707,7 +2735,7 @@ window.matrixData = {
       category: 'sessions',
       capability: '检查点与回退',
       description: '恢复到早先的对话或代码状态。',
-      values: { claude: '`/rewind` · `/checkpoint` · `/undo`', codex: 'CLI 命令表未列出', qwen: '`/rewind`；条件：`/restore`', kimi: '`/undo`（不回滚代码）', qoder: 'SDK 条件：`rewindFiles()`' },
+      values: { claude: '`/rewind` · `/checkpoint` · `/undo`', codex: 'CLI 命令表未列出', qwen: '`/rewind`（别名 `/rollback`）· `/restore`（条件：文件检查点启用，交互模式默认开启）', kimi: '`/undo [count]`（不回滚代码，仅空闲可用）', qoder: '`/rewind`（对话、文件或两者）· `general.fileCheckpointing.enabled` 默认 `true` · SDK `rewindFiles()`' },
     },
     {
       id: 'session-memory',
