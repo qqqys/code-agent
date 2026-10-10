@@ -29,7 +29,7 @@
 | 压缩上下文 | `/compact [instructions]` | `/compact` | `/compress`、`/compress-fast` | `/compact [instruction]` | `/compact` |
 | 查看上下文 | `/context [all]` | `/status`、`/usage` | `/context detail` | `/status`、`/usage` | `/context-window`、`/status`、`/usage` |
 | 记忆管理 | `/memory` | `/memories` | `/memory`、`/remember`、`/forget`、`/learn` | — | `/memory` |
-| 回退或检查点 | `/rewind`、`/checkpoint`、`/undo` | — | `/rewind`、`/restore` | `/undo [count]` | — |
+| 回退或检查点 | `/rewind`、`/checkpoint`、`/undo` | — | `/rewind`、`/restore` | `/undo [count]` | `/rewind` |
 | 查看 Diff | `/diff` | `/diff` | `/diff` | — | — |
 | 代码审查 | `/review`、`/code-review`、`/security-review` | `/review` | `/review` | — | `/review` |
 | 复制回答 | `/copy` | `/copy` | `/copy` | `/copy` | — |
@@ -168,7 +168,9 @@ Web Shell 还固定提供 4 个不属于 CLI/TUI 硬编码加载器的本地命�
 
 ### Qoder CLI
 
-`/agents`、`/batch`、`/clear`、`/commands`、`/compact`、`/config`、`/context-window`、`/effort`、`/export`、`/fast`、`/feedback`、`/goal`、`/help`、`/hooks`、`/init`、`/login`、`/logout`、`/mcp`、`/mcp-config`、`/memory`、`/model`、`/plan`、`/quest`、`/quit`、`/release-notes`、`/resume`、`/review`、`/setup-github`、`/skills`、`/status`、`/tasks`、`/upgrade`、`/usage`、`/vim`、`/workflows`。
+`/agents`、`/batch`、`/clear`、`/commands`、`/compact`、`/config`、`/context-window`、`/effort`、`/export`、`/fast`、`/feedback`、`/goal`、`/help`、`/hooks`、`/init`、`/login`、`/logout`、`/mcp`、`/mcp-config`、`/memory`、`/model`、`/plan`、`/quest`、`/quit`、`/release-notes`、`/resume`、`/review`、`/rewind`、`/setup-github`、`/skills`、`/status`、`/tasks`、`/upgrade`、`/usage`、`/vim`、`/workflows`。
+
+`/rewind`（官方 Slash 命令参考列在 “Sessions and Conversations” 分组，描述逐字为 “Roll back to a specific checkpoint.”，不在条件命令说明中）于 2026-10-10 核对时补入本目录：官方 Undo and Restore 页记录该命令打开 Rewind 界面、以对话中发送过的用户消息为检查点，选中后先显示影响再要求确认，恢复范围可选“恢复对话与文件”（默认）、“只恢复对话”与“只恢复文件”，界面给出 “Rewinding now will revert 3 files (+42 -17)” 一类提示，没有可回退文件改动时显示 “Will restore conversation, no file changes involved.”；文件检查点由 `general.fileCheckpointing.enabled` 控制，类型 boolean、默认 `true`、描述逐字为 “Enable file checkpoints (code rollback).”、改动需重启。此前对照表把 Qoder CLI 的回退行写成 `—`、会话字段只记 Agent SDK 的 `rewindFiles()`，属漏记而非产品新增：Release Notes 的 CLI 1.1.23（2026-08-15）小节标题已含 “Session Resume, Rewind, and Tool-Call Fixes”、CLI 1.1.29（2026-08-24）记 “Fixed being unable to fork and rewind history messages after compaction”，但都没有写明 `/rewind` 的引入版本；关闭 `general.fileCheckpointing.enabled` 后该命令是否只剩对话恢复，官方没有说明，记为未确认。子命令 `qoder rollback`（“Roll back to a previous version.”）是回滚 CLI 二进制版本，与本命令无关。回退范围、锚点与边界见[检查点与回退详情](./capabilities/sessions/session-checkpoint.md)。
 
 `/hooks`（描述逐字为 “Manage Hooks.”）于 2026-10-08 核对时补入本目录：官方 Slash 命令参考一直列出该行但没有给出 synopsis 或子命令，Release Notes 记 CLI 1.0.8（2026-05-28）“Made /hooks command generally available for all users”，官方 Hooks 页本身没有描述这个命令。此前对照表把 Qoder CLI 的 Hooks 行写成“Agent 配置支持 Hooks；无独立 Slash 命令”，属漏记而非产品新增，本次一并改正；该命令是只读展示还是改写设置文件，两处官方页面都没有说明，记为未确认。
 
@@ -251,4 +253,10 @@ Web Shell 还固定提供 4 个不属于 CLI/TUI 硬编码加载器的本地命�
 - [Qoder CLI Slash 命令参考](https://docs.qoder.com/cli/slash-reference)
 - [Qoder CLI Goal Command Reference](https://docs.qoder.com/cli/goal-reference)
 - [Qoder CLI MCP Servers（`/mcp reload` 与 `qoder mcp` 子命令）](https://docs.qoder.com/cli/mcp-servers)
-- [Qoder CLI Release Notes（最新至 CLI 1.1.63）](https://docs.qoder.com/release-notes/qoder-cli)
+- [Qoder CLI Release Notes（最新至 CLI 1.1.67）](https://docs.qoder.com/release-notes/qoder-cli)
+- [Qoder CLI Undo and Restore（`/rewind` 检查点与三种恢复范围）](https://docs.qoder.com/cli/undo-restore)
+- [Qoder CLI 设置参考（`general.fileCheckpointing.enabled` 默认 `true`）](https://docs.qoder.com/cli/settings-reference)
+- [Qoder CLI 命令行参考（`qoder rollback` 为版本回滚）](https://docs.qoder.com/cli/cli-reference)
+- [Qwen Code 命令文档（`/rewind`、`/restore` 与 `/doctor rollback`，提交 `e39567eb564c`）](https://github.com/QwenLM/qwen-code/blob/e39567eb564cf5473dc703b25b219c66059fcb1b/docs/users/features/commands.md)
+- [Qwen Code 文档站 Checkpointing 页（影子 Git 快照与 `--checkpointing`）](https://qwenlm.github.io/qwen-code-docs/en/users/features/checkpointing/)
+- [Kimi Code 斜杠命令表（`/undo [<count>]` 行与「随时可用」列，提交 `25dd4ce97345`）](https://github.com/MoonshotAI/kimi-code/blob/25dd4ce97345c7ebfd9c036898e5eef955c45ea8/docs/zh/reference/slash-commands.md)
