@@ -33,8 +33,8 @@
 
 | 能力 | Claude Code | Codex | Qwen Code | Kimi Code | Qoder CLI |
 | --- | --- | --- | --- | --- | --- |
-| Agent 单独选模型 | `model` | `model` | `model`：inherit、fast、modelId、authType:modelId 或 `modelGrades` 名称 | `model`：`[secondary_model]` 池别名、`primary`（实验性） | `model` |
-| Agent 单独设推理强度 | `effort`；Agent 工具调用参数 `effort`（v2.1.292） | `model_reasoning_effort`、`[agents] default_subagent_reasoning_effort` 全局默认 | 未确认独立字段 | 未确认独立 `effort` 字段 | `effort` |
+| Agent 单独选模型 | `model`：`sonnet`/`opus`/`haiku`/`fable`、完整模型 ID 或 `inherit`；顺序为每次调用 `model` → frontmatter → `CLAUDE_CODE_SUBAGENT_MODEL` → 主会话模型；`CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1` 强制统一（v2.1.257）；v2.1.296 另加只统一 workflow agent 的 `CLAUDE_CODE_WORKFLOW_SUBAGENT_MODEL` | `model`；顺序为显式 spawn 值 → `agents.default_subagent_model` → 父会话值，Agent 文件写了 `model` 时文件值最后覆盖 | `model`：inherit、fast、modelId、authType:modelId 或 `modelGrades` 名称；`agents.builtin.exploreModel` 单独覆盖内置 Explore | `[secondary_model]` 池别名、保留值 `"primary"`、`force = true` 固定到 `default_model`；模型池自 0.42.0 起始终开启，无需开关 | `model`：任意模型名或 `inherit`、`auto`、`lite`、`efficient`、`performance` 别名；省略即 `inherit` |
+| Agent 单独设推理强度 | `effort`；Agent 工具调用参数 `effort`（v2.1.292） | `model_reasoning_effort`、`[agents] default_subagent_reasoning_effort` 全局默认 | 未确认独立字段 | `[secondary_model] default_effort` 节级档位、`[models.<alias>.overrides] default_effort` 变体；Agent 文件 frontmatter 无 effort 字段 | `effort` |
 | 工具白名单 | `tools` | 由 Agent 配置和沙箱控制 | `tools`；Fork 可用 `fork_tools` 限制执行 | `tools` | `tools` |
 | 工具黑名单 | `disallowedTools` | 未确认独立 `disallowedTools` 字段 | `disallowedTools` | `disallowedTools` | `disallowedTools` |
 | MCP 范围 | `mcpServers`；工具规则可继续收窄 | `mcp_servers` | `mcpServers`；工具规则可继续收窄 | 通过工具列表控制 | `mcpServers` |
@@ -42,7 +42,7 @@
 | Agent Hooks | `hooks` | 未确认独立字段；Hooks 为全局 `/hooks` | `hooks`；v1 在 Agent 运行期按会话注册 | 无独立字段；Hooks 在全局 `config.toml` | `hooks` |
 | Agent 持久记忆 | `memory` | 主产品 Memories；Agent 独立记忆字段未确认 | 未确认独立字段 | 未确认独立字段 | `memory` |
 | 最大轮数 | `maxTurns` | 未确认独立字段 | `maxTurns` | Agent 定义无独立字段 | `maxTurns` |
-| 超时 | 未确认独立字段 | 未确认独立字段 | 未确认独立字段 | 全局 `[subagent] timeout_ms`（默认 2 h）；AgentSwarm 改用独立 `[swarm] timeout_ms`（main 分支，尚未发布） | `timeoutMins` |
+| 超时 | 未确认独立字段 | 未确认独立字段 | 未确认独立字段 | `[subagent] timeout_ms`（默认 2 h）；AgentSwarm 自 0.39.0 起用相互独立的 `[swarm] timeout_ms`（默认同为 2 h） | `timeoutMins` |
 | 全局并发与嵌套 | 并发 20 · 会话 200 · 嵌套 3 层 | `max_concurrent_threads_per_session` | 未确认独立全局并发字段 | 未确认独立全局并发字段 | 未确认独立全局并发字段 |
 
 ## 权限、嵌套与工作区
@@ -66,13 +66,20 @@
 - [Claude Code settings reference](https://code.claude.com/docs/en/settings-reference)
 - [Claude Code environment variables](https://code.claude.com/docs/en/env-vars)
 - [Claude Code v2.1.292 更新日志（Agent 工具 `effort` 参数）](https://github.com/anthropics/claude-code/blob/fbe20e00e285/CHANGELOG.md)
+- [Claude Code Workflows（workflow agent 的模型解析）](https://code.claude.com/docs/en/workflows)
+- [Claude Code v2.1.296 更新日志（`CLAUDE_CODE_WORKFLOW_SUBAGENT_MODEL`）](https://github.com/anthropics/claude-code/blob/2301018b1f61073c501a8e7a4813ef48c239163b/CHANGELOG.md)
 - [Codex Subagents](https://learn.chatgpt.com/docs/agent-configuration/subagents)
 - [Codex configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference)
 - [Codex Subagent activity 记录解析后模型与推理强度的提交](https://github.com/openai/codex/commit/b0a6b8d86f455d3db9dd869fc1178a5fbd865e7f)
 - [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/412eae24b48ff16f54166c2b17eb4d4a9cdcdd1e/docs/users/features/sub-agents.md)
+- [Qwen Code v0.25.1-preview.2 Subagents 的 Model Selection 小节](https://github.com/QwenLM/qwen-code/blob/d381509d32e62a992a344de33207d54f436bcefc/docs/users/features/sub-agents.md)
 - [Qwen Code Worktree](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/worktree.md)
-- [Kimi Code Agents](https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/customization/agents.md)
-- [Kimi Code subagent and secondary model configuration](https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/configuration/config-files.md)
+- [Kimi Code Agents](https://github.com/MoonshotAI/kimi-code/blob/c9f01f07388abc2cdca40c9c5267f58c65086710/docs/zh/customization/agents.md)
+- [Kimi Code subagent and secondary model configuration](https://github.com/MoonshotAI/kimi-code/blob/c9f01f07388abc2cdca40c9c5267f58c65086710/docs/zh/configuration/config-files.md)
+- [Kimi Code Slash 命令参考（`/secondary-model`）](https://github.com/MoonshotAI/kimi-code/blob/c9f01f07388abc2cdca40c9c5267f58c65086710/docs/zh/reference/slash-commands.md)
+- [Kimi Code 官方变更记录](https://github.com/MoonshotAI/kimi-code/blob/c9f01f07388abc2cdca40c9c5267f58c65086710/docs/zh/release-notes/changelog.md)
+- [Kimi Code 移除 Subagent 模型池实验开关的提交](https://github.com/MoonshotAI/kimi-code/commit/e831fd1ea9488ad5192bcc9d96579470cf0c4442)
+- [Kimi Code 删除旧版 agent-core v1 包的提交](https://github.com/MoonshotAI/kimi-code/commit/bb16383aa15f72954224d37ee0b9babb807e03b3)
 - [Kimi Code swarm 超时提交](https://github.com/MoonshotAI/kimi-code/commit/496bb6ce4e555c11304074c31312c01edf4d773a)
 - [Kimi Code swarm 超时配置文档](https://github.com/MoonshotAI/kimi-code/blob/496bb6ce4e555c11304074c31312c01edf4d773a/docs/zh/configuration/config-files.md)
 - [Kimi Code swarm 超时 changeset](https://github.com/MoonshotAI/kimi-code/blob/496bb6ce4e555c11304074c31312c01edf4d773a/.changeset/swarm-timeout-config.md)

@@ -144,6 +144,16 @@ window.matrixData = {
       label: 'Claude Code v2.1.296 Subagent `autoCompactWindow` 更新日志',
       url: 'https://github.com/anthropics/claude-code/blob/2301018b1f61073c501a8e7a4813ef48c239163b/CHANGELOG.md',
     },
+    'claude-v21296-workflow-subagent-model-changelog': {
+      label:
+        'Claude Code v2.1.296 `CLAUDE_CODE_WORKFLOW_SUBAGENT_MODEL` 更新日志（官方环境变量页与 Workflows 页尚未收录该变量）',
+      url: 'https://github.com/anthropics/claude-code/blob/2301018b1f61073c501a8e7a4813ef48c239163b/CHANGELOG.md',
+    },
+    'claude-workflows': {
+      label:
+        'Claude Code Workflows（workflow agent 复用 Subagent 模型解析顺序、脚本为某个 stage 指定的模型算作每次调用值、`availableModels` 拦截时按同一替换规则改跑替代模型）',
+      url: 'https://code.claude.com/docs/en/workflows',
+    },
     'claude-ide': {
       label: 'Claude Code IDE integrations',
       url: 'https://code.claude.com/docs/en/ide-integrations',
@@ -912,6 +922,11 @@ window.matrixData = {
       label: 'Qwen Code v0.25.1-preview.1 Subagent 文档（未描述 Subagent 压缩阈值）',
       url: 'https://github.com/QwenLM/qwen-code/blob/683f3f063aa05c67c339a70fbc740f08c006f9de/docs/users/features/sub-agents.md',
     },
+    'qwen-subagents-v0251preview2': {
+      label:
+        'Qwen Code v0.25.1-preview.2 Subagent 文档（Model Selection 小节：`model` 四种选择器、省略等同 `inherit`、`agents.builtin.exploreModel`、`agents.modelGrades` 与 `agents.allowedGrades`、外部 executor 不支持模型覆盖）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/d381509d32e62a992a344de33207d54f436bcefc/docs/users/features/sub-agents.md',
+    },
     'qwen-session-headless': {
       label: 'Qwen Code current headless mode',
       url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/headless.md',
@@ -1345,8 +1360,34 @@ window.matrixData = {
       url: 'https://github.com/MoonshotAI/kimi-code/blob/c7dd84124a00d2dc1a68fbbc3e54b1095ee9ac23/docs/zh/configuration/config-files.md',
     },
     'kimi-subagent-config': {
-      label: 'Kimi Code subagent and secondary model configuration',
-      url: 'https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/configuration/config-files.md',
+      label:
+        'Kimi Code subagent and secondary model configuration（`[secondary_model]` 模型池已始终开启、`default_effort`、`force` 约束、`/secondary-model` 写入 `default_model`、配置错误直接启动失败）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/c9f01f07388abc2cdca40c9c5267f58c65086710/docs/zh/configuration/config-files.md',
+    },
+    'kimi-secondary-model-ga-commit': {
+      label:
+        'Kimi Code 移除 Subagent 模型池实验开关的提交（`feat(secondary-model): drop the experimental flag from the subagent model pool (#3634)`，随 0.42.0 发布）',
+      url: 'https://github.com/MoonshotAI/kimi-code/commit/e831fd1ea9488ad5192bcc9d96579470cf0c4442',
+    },
+    'kimi-legacy-engine-removal-commit': {
+      label:
+        'Kimi Code 删除旧版 agent-core v1 包的提交（`refactor: remove the legacy agent-core v1 package (#3542)`，随 0.42.0 发布）',
+      url: 'https://github.com/MoonshotAI/kimi-code/commit/bb16383aa15f72954224d37ee0b9babb807e03b3',
+    },
+    'kimi-changelog-c9f01f0': {
+      label:
+        'Kimi Code 官方变更记录（0.36.0 引入模型池为实验性、0.40.0 “子代理设置（`[secondary_model]`）功能由实验性转为正式”、0.42.0 “子 Agent 模型池（`[secondary_model]`）现已始终开启，实验开关与 `KIMI_CODE_EXPERIMENTAL_SECONDARY_MODEL` 退出选项已移除”、0.39.0 新增 `[swarm] timeout_ms`）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/c9f01f07388abc2cdca40c9c5267f58c65086710/docs/zh/release-notes/changelog.md',
+    },
+    'kimi-slash-commands-c9f01f0': {
+      label:
+        'Kimi Code Slash 命令参考（`/secondary-model`，别名 `/subagent-model`，写入 `[secondary_model] default_model`，流式输出期间也可用）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/c9f01f07388abc2cdca40c9c5267f58c65086710/docs/zh/reference/slash-commands.md',
+    },
+    'kimi-agents-c9f01f0': {
+      label:
+        'Kimi Code Agents 文档（Agent 文件字段表没有 `model`，逐字写 “其他 Agent 工具的字段（如 Claude Code 的 `model`、OpenCode 的 `mode`）同样会被忽略”）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/c9f01f07388abc2cdca40c9c5267f58c65086710/docs/zh/customization/agents.md',
     },
     'kimi-swarm-timeout-commit': {
       label: 'Kimi Code swarm timeout commit',
@@ -2532,14 +2573,14 @@ window.matrixData = {
       category: 'subagents',
       capability: 'Agent 单独选模型',
       description: '单个 Agent 能否覆盖主会话模型。',
-      values: { claude: '`model`', codex: '`model`', qwen: '`model`: inherit · fast · modelId · authType:modelId · `modelGrades` 名称', kimi: '`model`：`[secondary_model]` 池别名 · `primary`（实验性）', qoder: '`model`' },
+      values: { claude: '`model`：`sonnet`/`opus`/`haiku`/`fable` · 完整模型 ID · `inherit`；解析顺序为每次调用 `model` 参数 → frontmatter → `CLAUDE_CODE_SUBAGENT_MODEL` → 主会话模型；`CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1` 强制统一（v2.1.257）；v2.1.296 另加只统一 workflow agent 的 `CLAUDE_CODE_WORKFLOW_SUBAGENT_MODEL`', codex: '`model`；解析顺序为显式 spawn 值 → `agents.default_subagent_model` → 父会话值，Agent 文件里写了 `model` 时文件值最后覆盖', qwen: '`model`: inherit · fast · modelId · authType:modelId · `modelGrades` 名称；`agents.builtin.exploreModel` 单独覆盖内置 Explore', kimi: '`[secondary_model]` 池别名 · 保留值 `"primary"` · `force = true` 固定到 `default_model`；模型池自 0.42.0 起始终开启，无需开关', qoder: '`model`：任意模型名或 `inherit`/`auto`/`lite`/`efficient`/`performance` 别名；省略即 `inherit`' },
     },
     {
       id: 'agent-effort',
       category: 'subagents',
       capability: 'Agent 推理强度',
       description: '单个 Agent 能否设置独立的推理预算。',
-      values: { claude: '`effort`；Agent 工具调用参数 `effort`（v2.1.292）', codex: '`model_reasoning_effort` · `[agents] default_subagent_reasoning_effort` 全局默认', qwen: '未确认独立字段', kimi: '未确认独立 effort 字段', qoder: '`effort`' },
+      values: { claude: '`effort`；Agent 工具调用参数 `effort`（v2.1.292）', codex: '`model_reasoning_effort` · `[agents] default_subagent_reasoning_effort` 全局默认', qwen: '未确认独立字段', kimi: '`[secondary_model] default_effort` 节级档位 · `[models.<alias>.overrides] default_effort` 变体；Agent 文件 frontmatter 无 effort 字段', qoder: '`effort`' },
     },
     {
       id: 'agent-tools',
