@@ -2,7 +2,7 @@
 
 [返回 Slash 命令详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=cmd-hooks)
 
-> 核对日期：2026-10-09
+> 核对日期：2026-10-10
 
 ## 定义
 
@@ -109,7 +109,7 @@
 | 保存范围 | 未确认：官方 Slash 命令参考与 Hooks 页都没有说明该命令是只读展示还是改写设置文件 |
 | 条件与边界 | CLI 1.0.8（2026-05-28）Release Notes 逐字为 “Made /hooks command generally available for all users”；官方 Hooks 页在核对日期没有描述该命令，配置入口仍以 User、Project 与 Local settings 的 `hooks` 字段与插件 `hooks/hooks.json` 为主 |
 | 证据状态 | 官方确认 |
-| 来源 | [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)、[Qoder CLI Release Notes（跨会话消息、`/loop`、`/crontab`、任务预算与 Hook 失败、`/hooks` GA 条目的版本时间线）](https://docs.qoder.com/release-notes/qoder-cli)、[Qoder CLI Hooks](https://docs.qoder.com/en/cli/hooks) |
+| 来源 | [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)、[Qoder CLI Release Notes（跨会话消息、`/loop`、`/crontab`、任务预算、Hook 失败、`/hooks` GA 与插件市场条目的版本时间线）](https://docs.qoder.com/release-notes/qoder-cli)、[Qoder CLI Hooks](https://docs.qoder.com/en/cli/hooks) |
 
 ## 官方来源
 
@@ -118,7 +118,7 @@
 - [Qwen Code commands documentation](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/commands.md)
 - [Kimi Code Slash commands](https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/reference/slash-commands.md)
 - [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)
-- [Qoder CLI Release Notes（跨会话消息、`/loop`、`/crontab`、任务预算与 Hook 失败、`/hooks` GA 条目的版本时间线）](https://docs.qoder.com/release-notes/qoder-cli)
+- [Qoder CLI Release Notes（跨会话消息、`/loop`、`/crontab`、任务预算、Hook 失败、`/hooks` GA 与插件市场条目的版本时间线）](https://docs.qoder.com/release-notes/qoder-cli)
 - [Qoder CLI Hooks](https://docs.qoder.com/en/cli/hooks)
 
 ## 关联能力

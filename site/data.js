@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-10-09',
+  updatedAt: '2026-10-10',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -109,6 +109,16 @@ window.matrixData = {
     'claude-plugins-components': {
       label: 'Claude Code Plugin components',
       url: 'https://code.claude.com/docs/en/plugins/components',
+    },
+    'claude-plugins-org': {
+      label:
+        'Claude Code Plugins for organizations（官方市场 `claude-plugins-official` 自动注册条件、`strictKnownMarketplaces`/`blockedMarketplaces`/`extraKnownMarketplaces`/`enabledPlugins`/`disableSideloadFlags`）',
+      url: 'https://code.claude.com/docs/en/plugins/org',
+    },
+    'claude-plugins-cli-reference': {
+      label:
+        'Claude Code plugin 命令参考（`claude plugin marketplace add|list|remove|update`、`/plugin` 别名与 `/reload-plugins`）',
+      url: 'https://code.claude.com/docs/en/plugins/cli-reference',
     },
     'claude-mods-overview': {
       label: 'Claude Code Mods overview',
@@ -1827,7 +1837,7 @@ window.matrixData = {
       url: 'https://docs.qoder.com/en/cli/using-cli',
     },
     'qoder-cli-reference': {
-      label: 'Qoder CLI 命令行参考（`--worktree` 与子命令表）',
+      label: 'Qoder CLI 命令行参考（`--worktree`、子命令表与 `plugins`/`skills`/`hooks`/`agents` 子命令组）',
       url: 'https://docs.qoder.com/cli/cli-reference',
     },
     'qoder-builtins-reference': {
@@ -2083,7 +2093,7 @@ window.matrixData = {
       url: 'https://docs.qoder.com/cli/loop-reference',
     },
     'qoder-release-notes': {
-      label: 'Qoder CLI Release Notes（跨会话消息、`/loop`、`/crontab`、任务预算与 Hook 失败、`/hooks` GA 条目的版本时间线）',
+      label: 'Qoder CLI Release Notes（跨会话消息、`/loop`、`/crontab`、任务预算、Hook 失败、`/hooks` GA 与插件市场条目的版本时间线）',
       url: 'https://docs.qoder.com/release-notes/qoder-cli',
     },
     'qoder-tools-delegate': {
@@ -2193,6 +2203,26 @@ window.matrixData = {
     'kimi-mcp-oauth-200': {
       label: 'Kimi Code 2.0.0 发布说明（401 工具调用触发 MCP OAuth 登录）',
       url: 'https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai%2Fkimi-code%402.0.0',
+    },
+    'codex-plugin-cli-reference': {
+      label:
+        'Codex CLI 命令参考（`codex plugin` 与 `codex plugin marketplace` 子命令、旗标与 JSON 输出字段）',
+      url: 'https://learn.chatgpt.com/docs/developer-commands?surface=cli',
+    },
+    'qwen-extensions-v0251preview1': {
+      label:
+        'Qwen Code v0.25.1-preview.1 Extensions 文档（`qwen extensions sources`、`/extensions manage` 三页签与安装来源）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/683f3f063aa05c67c339a70fbc740f08c006f9de/docs/users/extension/introduction.md',
+    },
+    'kimi-plugins-7ad0c46': {
+      label:
+        'Kimi Code Plugins 文档（Installed/Official/Curated/Custom 四页签、`/plugins marketplace [source]` 与默认 marketplace）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/7ad0c46682ec735559a12c6a410c406b9d6cb709/docs/zh/customization/plugins.md',
+    },
+    'qoder-plugins-detail': {
+      label:
+        'Qoder CLI Plugins 页（`qoder plugins` 子命令组、marketplace 四种来源、三种 scope、`enabledPlugins` 与 `QODER_PLUGIN_ROOT`/`QODER_PLUGIN_DATA`）',
+      url: 'https://docs.qoder.com/cli/plugins',
     },
   },
   rows: [
@@ -2733,7 +2763,7 @@ window.matrixData = {
       category: 'extensions',
       capability: '插件分发',
       description: '把 Skills、Agents、Hooks 或 MCP 配置作为一个包分发。',
-      values: { claude: '`/plugin`', codex: '`/plugins`', qwen: '`/extensions` · `qwen extensions` · 可安装 Qoder 插件 · Agent Plugins v1 原生加载（条件：v0.21.11-preview.0 预览通道）', kimi: '`/plugins`', qoder: '`qodercli plugins` · `/plugins reload`' },
+      values: { claude: '`/plugin`（别名 `/plugins` · `/marketplace`）· `claude plugin marketplace add|list|update|remove` · 内置官方市场 `claude-plugins-official`', codex: '`/plugins` 按市场分页签 · `codex plugin add|list|remove` · `codex plugin marketplace add|list|upgrade|remove` · 与 ChatGPT 共用同一公开插件目录', qwen: '`/extensions manage` 的 Discover/Installed/Sources 三页签 · `qwen extensions sources add|list|update|remove` · `install <marketplace>:<plugin>` · 可安装 Qoder 插件 · Agent Plugins v1 原生加载（条件：v0.21.11-preview.0 预览通道）', kimi: '`/plugins` 的 Installed/Official/Curated/Custom 四页签 · `/plugins marketplace [source]` · 内置默认市场 · `KIMI_CODE_PLUGIN_MARKETPLACE_URL` 覆盖', qoder: '`qoder plugins`（别名 `plugin`）· `qoder plugins marketplace add|list|update|remove` · `/plugins`（别名 `/plugin`）· `/marketplace`（别名 `/market`，受功能开关限制）· CLI 1.1.66 起内置 `qoder-plugins` 市场' },
     },
     {
       id: 'extension-custom-commands',

@@ -4,6 +4,7 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-10-10 | [插件分发：Qoder CLI 1.1.66 内置 `qoder-plugins` 插件市场，五家市场入口、市场管理命令与内置默认市场补齐](./2026-10-10-扩展系统-插件市场入口与Qoder内置qoder-plugins市场.md) |
 | 2026-10-09 | [手动压缩：Claude Code v2.1.296 给 Subagent 定义加 `autoCompactWindow`，五家自动压缩阈值与开关补齐](./2026-10-09-会话与上下文-自动压缩阈值与Claude-Subagent-autoCompactWindow.md) |
 | 2026-10-09 | [桌面端：Kimi Code 官方桌面端与 `kimi app`/`kimi install-desktop` 入口，Claude 与 Codex 桌面端 Linux 版，Qwen 桌面壳改为 Tauri 2](./2026-10-09-Headless与多端-桌面端平台范围与Kimi桌面端入口.md) |
 | 2026-10-09 | [文件读写：Codex `apply_patch` 自 rust-v0.162.0 起无条件保留原换行，opt-in 开关与 LF 归一模式移除](./2026-10-09-执行与Git-Codex-apply_patch无条件保留换行.md) |
