@@ -2,7 +2,7 @@
 
 [返回会话与上下文详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=session-compress)
 
-> 核对日期：2026-10-09
+> 核对日期：2026-10-10
 
 ## 定义
 
@@ -120,7 +120,7 @@
 | 适用界面 | 本页以 Qoder CLI TUI 为主；只在 Agent SDK 提供的能力会明确标为 SDK 条件项。 |
 | 条件与边界 | Qoder 桌面端另有 Smart Context Control 阈值提示；本页不把桌面端阈值直接套用到 CLI。Subagent 页只说明各 Subagent 有独立压缩流程，没有给出 Subagent 级阈值配置。 |
 | 证据状态 | 官方确认 |
-| 来源 | [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)、[Qoder CLI Glossary（Compaction 定义）](https://docs.qoder.com/cli/glossary)、[Qoder CLI How Task Execution Works（上下文窗口与 Compact 机制）](https://docs.qoder.com/cli/how-it-works)、[Qoder CLI Subagent](https://docs.qoder.com/en/cli/subagent)、[Qoder CLI model configuration](https://docs.qoder.com/en/cli/model)、[Qoder CLI 设置、环境变量与文件路径参考（未列出 `security.crossSessionInbound` 与 `general.dialogExpiry`）](https://docs.qoder.com/cli/settings-reference)、[Qoder CLI Release Notes（跨会话消息、`/loop`、`/crontab`、任务预算与 Hook 失败、`/hooks` GA 条目的版本时间线）](https://docs.qoder.com/release-notes/qoder-cli) |
+| 来源 | [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)、[Qoder CLI Glossary（Compaction 定义）](https://docs.qoder.com/cli/glossary)、[Qoder CLI How Task Execution Works（上下文窗口与 Compact 机制）](https://docs.qoder.com/cli/how-it-works)、[Qoder CLI Subagent](https://docs.qoder.com/en/cli/subagent)、[Qoder CLI model configuration](https://docs.qoder.com/en/cli/model)、[Qoder CLI 设置、环境变量与文件路径参考（未列出 `security.crossSessionInbound` 与 `general.dialogExpiry`）](https://docs.qoder.com/cli/settings-reference)、[Qoder CLI Release Notes（跨会话消息、`/loop`、`/crontab`、任务预算、Hook 失败、`/hooks` GA 与插件市场条目的版本时间线）](https://docs.qoder.com/release-notes/qoder-cli) |
 
 ## 官方来源
 
@@ -150,7 +150,7 @@
 - [Qoder CLI Subagent](https://docs.qoder.com/en/cli/subagent)
 - [Qoder CLI model configuration](https://docs.qoder.com/en/cli/model)
 - [Qoder CLI 设置、环境变量与文件路径参考（未列出 `security.crossSessionInbound` 与 `general.dialogExpiry`）](https://docs.qoder.com/cli/settings-reference)
-- [Qoder CLI Release Notes（跨会话消息、`/loop`、`/crontab`、任务预算与 Hook 失败、`/hooks` GA 条目的版本时间线）](https://docs.qoder.com/release-notes/qoder-cli)
+- [Qoder CLI Release Notes（跨会话消息、`/loop`、`/crontab`、任务预算、Hook 失败、`/hooks` GA 与插件市场条目的版本时间线）](https://docs.qoder.com/release-notes/qoder-cli)
 
 ## 关联能力
 

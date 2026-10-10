@@ -2,7 +2,7 @@
 
 [返回任务执行与 Git 详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=execution-worktree)
 
-> 核对日期：2026-10-09
+> 核对日期：2026-10-10
 
 ## 定义
 
@@ -120,7 +120,7 @@
 | 状态与产物 | Worktree 目录 `<repo>/.qoder/worktrees/<sanitized-name>`、临时分支 `worktree-<processed-name>`、自动生成的名字与其中改动；手工清理命令为 `git worktree remove <worktree-path>` 与 `git branch -d worktree-<processed-name>`。 |
 | 条件与边界 | 现行 CLI 参考的可执行名是 `qoder`，子命令表为 `mcp`、`plugins`（别名 `plugin`）、`skills`（别名 `skill`）、`hooks`（别名 `hook`）、`agents`（别名 `agent`）、`login`、`commit`、`rollback`、`update`、`remote-control`、`status`、`feedback`、`wiki`，不含 `jobs`、`rm`、`worktree` 或 `parallel-tasks`；此前记录的 `qodercli jobs --worktree` 与 `qodercli rm <job-id>` 在现行文档中无对应命令。 |
 | 证据状态 | 官方确认 |
-| 来源 | [Qoder CLI 命令行参考（`--worktree` 与子命令表）](https://docs.qoder.com/cli/cli-reference)、[Qoder CLI Parallel Tasks（Worktree 目录、临时分支与清理）](https://docs.qoder.com/cli/parallel-tasks)、[Qoder CLI Subagent](https://docs.qoder.com/en/cli/subagent)、[Qoder CLI 内置能力参考（`batch` Skill）](https://docs.qoder.com/cli/builtins-reference) |
+| 来源 | [Qoder CLI 命令行参考（`--worktree`、子命令表与 `plugins`/`skills`/`hooks`/`agents` 子命令组）](https://docs.qoder.com/cli/cli-reference)、[Qoder CLI Parallel Tasks（Worktree 目录、临时分支与清理）](https://docs.qoder.com/cli/parallel-tasks)、[Qoder CLI Subagent](https://docs.qoder.com/en/cli/subagent)、[Qoder CLI 内置能力参考（`batch` Skill）](https://docs.qoder.com/cli/builtins-reference) |
 
 ## 官方来源
 
@@ -147,7 +147,7 @@
 - [Kimi Code 2.1.1 Agents 文档（无 Worktree 隔离字段）](https://github.com/MoonshotAI/kimi-code/blob/f67e6398fb3210ad8ace970e2dfd5bcc984ed61f/docs/zh/customization/agents.md)
 - [Kimi Code 2.1.1 tower 目录常量源码（`.tower/worktrees`）](https://github.com/MoonshotAI/kimi-code/blob/f67e6398fb3210ad8ace970e2dfd5bcc984ed61f/packages/agent-core-v2/src/features/tower/protocol/paths.ts)
 - [Kimi Code 2.1.1 tower worker Worktree 写隔离源码](https://github.com/MoonshotAI/kimi-code/blob/f67e6398fb3210ad8ace970e2dfd5bcc984ed61f/packages/agent-core-v2/src/features/tower/towerService.ts)
-- [Qoder CLI 命令行参考（`--worktree` 与子命令表）](https://docs.qoder.com/cli/cli-reference)
+- [Qoder CLI 命令行参考（`--worktree`、子命令表与 `plugins`/`skills`/`hooks`/`agents` 子命令组）](https://docs.qoder.com/cli/cli-reference)
 - [Qoder CLI Parallel Tasks（Worktree 目录、临时分支与清理）](https://docs.qoder.com/cli/parallel-tasks)
 - [Qoder CLI Subagent](https://docs.qoder.com/en/cli/subagent)
 - [Qoder CLI 内置能力参考（`batch` Skill）](https://docs.qoder.com/cli/builtins-reference)

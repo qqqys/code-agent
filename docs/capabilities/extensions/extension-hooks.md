@@ -2,7 +2,7 @@
 
 [返回扩展系统详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=extension-hooks)
 
-> 核对日期：2026-10-09
+> 核对日期：2026-10-10
 
 ## 定义
 
@@ -130,7 +130,7 @@
 | 权限与信任 | 项目 Hook 只应在可信工作区启用；Hook 能阻断关键操作，但自身仍是本机可执行配置。`ConfigChange` 是唯一记录了强制生效例外的事件：`source` 为 `policy_settings` 时 Hook 仍会为审计目的触发，但改动强制执行、不能阻断。 |
 | 条件与边界 | 不同 Handler 的超时、响应字段和阻断条件不同，需要按事件文档逐项设置。`timeout` 按秒配置且默认值随 Handler 变化：command 600 秒、http 600 秒、prompt 30 秒、agent 60 秒。没有 `onFailure` 一类把失败改成阻断的配置键，Hooks 页也没有描述 Hook 命令启动不了（例如可执行文件缺失）或超过 `timeout` 之后的具体后果，这两点记为未确认。按事件另有硬编码例外：`WorktreeCreate` 任何非零退出码都算失败，`StopFailure` 与 `InstructionsLoaded` 只是通知、输出与退出码被忽略，`WorktreeRemove` 也只是通知、失败通过 stderr 呈现。`async: true` 让同组 Hook 全部在后台运行、不阻断当前操作，结果作为额外上下文注入下一个模型回合；`asyncRewake: true` 在后台运行且退出码为 2 时由 CLI 用 stderr/stdout/error 拼一条 system reminder 唤醒模型（官方说明为 “useful for long-running checks”），配套字段 `rewakeMessage` 覆盖注入的 system 消息前缀、`rewakeSummary` 覆盖一行摘要（最多 300 字符）；`continue: false` 请求停止后续执行。Release Notes 另有几条只在发行说明出现、Hooks 页没有展开的失败与超时相关记录：CLI 1.0.29（2026-06-25）“Aligned SessionEnd hook timeout and PreToolUse fail-closed behavior with strict semantics” 与 “Tightened hook validation: hookEventName is now required in hookSpecificOutput”，其中 `PreToolUse` 的 fail-closed 具体覆盖哪些失败形态、与 Hooks 页“其他退出码为非阻断错误”的关系，页面没有说明，记为未确认；CLI 1.0.14（2026-06-04）“Fixed session freeze when a hook subprocess hangs on timeout or abort”；CLI 0.2.5（2026-04-29）“Fixed hook process hangs with exit event and tree-kill” 与 “Fixed hook permission decisions discarded on partial failure”；CLI 1.0.17（2026-06-10）“Enhanced asyncRewake hooks with custom messages, non-interactive downgrade, and prefix matching” 与 “Allowed plugin hooks to bypass the --setting-sources filter”；CLI 1.0.47（2026-07-16）“Fixed an issue where the PreToolUse hook did not take effect in headless and SDK modes”，说明该事件在 Print Mode 与 SDK 下也应生效；CLI 0.1.32（2026-03-18）“Updated Windows hook execution to run via Git Bash”，是 Hooks 页没有记录的平台条件。 |
 | 证据状态 | 官方确认 |
-| 来源 | [Qoder CLI Hooks](https://docs.qoder.com/en/cli/hooks)、[Qoder CLI Plugins](https://docs.qoder.com/en/cli/plugins)、[Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)、[Qoder CLI Release Notes（跨会话消息、`/loop`、`/crontab`、任务预算与 Hook 失败、`/hooks` GA 条目的版本时间线）](https://docs.qoder.com/release-notes/qoder-cli) |
+| 来源 | [Qoder CLI Hooks](https://docs.qoder.com/en/cli/hooks)、[Qoder CLI Plugins](https://docs.qoder.com/en/cli/plugins)、[Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)、[Qoder CLI Release Notes（跨会话消息、`/loop`、`/crontab`、任务预算、Hook 失败、`/hooks` GA 与插件市场条目的版本时间线）](https://docs.qoder.com/release-notes/qoder-cli) |
 
 ## 官方来源
 
@@ -157,7 +157,7 @@
 - [Qoder CLI Hooks](https://docs.qoder.com/en/cli/hooks)
 - [Qoder CLI Plugins](https://docs.qoder.com/en/cli/plugins)
 - [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)
-- [Qoder CLI Release Notes（跨会话消息、`/loop`、`/crontab`、任务预算与 Hook 失败、`/hooks` GA 条目的版本时间线）](https://docs.qoder.com/release-notes/qoder-cli)
+- [Qoder CLI Release Notes（跨会话消息、`/loop`、`/crontab`、任务预算、Hook 失败、`/hooks` GA 与插件市场条目的版本时间线）](https://docs.qoder.com/release-notes/qoder-cli)
 
 ## 关联能力
 
