@@ -4,6 +4,7 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-10-11 | [配置：Codex main 分支新增 `/config` 可搜索偏好面板（PR #52990，19 个条目、五个分组、`tui.*` 键映射与新键 `tui.copy_on_select_clear_selection`），并改正 Qoder 主命令为 `/settings`、Qwen `/config` 只写用户设置](./2026-10-11-Slash命令-Codex-config偏好面板与五家配置命令.md) |
 | 2026-10-10 | [Agent 单独选模型：Claude Code v2.1.296 的 `CLAUDE_CODE_WORKFLOW_SUBAGENT_MODEL` 与完整解析顺序，Kimi Code Subagent 模型池 0.42.0 起始终开启并移除 `model_preference`](./2026-10-10-Subagent-Agent单独选模型-Claude-workflow-subagent-model与Kimi模型池转正.md) |
 | 2026-10-10 | [检查点与回退：Qoder CLI `/rewind` 的三种恢复范围与 `general.fileCheckpointing.enabled` 默认 `true`，五家回退锚点、保留期与 Shell 边界补齐](./2026-10-10-会话与上下文-Qoder-rewind检查点与五家回退范围.md) |
 | 2026-10-10 | [插件分发：Qoder CLI 1.1.66 内置 `qoder-plugins` 插件市场，五家市场入口、市场管理命令与内置默认市场补齐](./2026-10-10-扩展系统-插件市场入口与Qoder内置qoder-plugins市场.md) |
