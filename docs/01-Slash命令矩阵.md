@@ -36,7 +36,7 @@
 | 导出会话 | `/export` | `/export`（条件：main 分支，尚未发布） | `/export html`、`/export md`、`/export json`、`/export jsonl` | `/export-md`、`/export`、`/export-debug-zip` | `/export` |
 | 添加工作目录 | `/add-dir` | `/mention` | `/directory`、`/dir` | `/add-dir` | — |
 | 切换目录 | `/cd` | — | `/cd` | — | — |
-| 配置 | `/config`、`/settings` | `/debug-config` | `/config`、`/settings`、`/import-config` | `/settings`、`/config`、`/update-config` | `/config` |
+| 配置 | `/config [key=value ...]`（别名 `/settings`） | `/config`（条件：main 分支 `cc7ba3360128`，尚未发布）、`/debug-config` | `/config <key>[=<value>]`、`/settings`、`/import-config` | `/settings`（别名 `/config`）、`/update-config` | `/settings`（别名 `/config`） |
 | 状态 | `/status` | `/status` | `/status`、`/about` | `/status`、`/version` | `/status` |
 | 用量统计 | `/stats`、`/usage` | `/usage` | `/stats`、`/usage` | `/usage` | `/usage` |
 | 诊断 | `/doctor`、`/debug` | `/debug-config` | `/doctor`、`/stuck` | `/export-debug-zip` | `/feedback` |
@@ -73,13 +73,15 @@ v2.1.222（2026-08-04 发布）移除了 ultraplan 功能，官方命令表不�
 
 ### Codex
 
-`/agent`、`/apps`、`/approve`、`/archive`、`/clear`、`/compact`、`/copy`、`/debug-config`、`/delete`、`/diff`、`/exit`、`/experimental`、`/export`、`/fast`、`/feedback`、`/fork`、`/goal`、`/hooks`、`/ide`、`/import`、`/init`、`/keymap`、`/logout`、`/mcp`、`/memories`、`/mention`、`/model`、`/new`、`/permissions`、`/personality`、`/pet`、`/pets`、`/plan`、`/plugins`、`/ps`、`/raw`、`/rename`、`/resume`、`/review`、`/setup-default-sandbox`、`/side`、`/skills`、`/status`、`/statusline`、`/stop`、`/theme`、`/title`、`/usage`、`/vim`。
+`/agent`、`/apps`、`/approve`、`/archive`、`/clear`、`/compact`、`/config`、`/copy`、`/debug-config`、`/delete`、`/diff`、`/exit`、`/experimental`、`/export`、`/fast`、`/feedback`、`/fork`、`/goal`、`/hooks`、`/ide`、`/import`、`/init`、`/keymap`、`/logout`、`/mcp`、`/memories`、`/mention`、`/model`、`/new`、`/permissions`、`/personality`、`/pet`、`/pets`、`/plan`、`/plugins`、`/ps`、`/raw`、`/rename`、`/resume`、`/review`、`/setup-default-sandbox`、`/side`、`/skills`、`/status`、`/statusline`、`/stop`、`/theme`、`/title`、`/usage`、`/vim`。
 
 `/export`（会话 Markdown 导出）于 2026-08-07 合入 main 分支（提交 `2801d12661be`，PR #37358），尚未进入 Release，官方命令文档也尚未列出；不带参数时可在复制到剪贴板与保存文件之间选择。
 
 `/sandbox-add-read-dir <absolute_path>`（给原生 Windows 沙箱授予某个已存在绝对目录的读权限，仅当前会话）于 2026-10-07 从本目录移除：CLI TUI 的 Slash 命令枚举在 rust-v0.154.0（提交 `6b9826e3aa83`）仍有该命令，自 rust-v0.155.0（提交 `f0a1b8f0849d`）起已无，官方 Slash 命令参考页也没有列出，而官方 Windows sandbox 页正文仍要求使用它。`/setup-default-sandbox`（源码描述 “set up elevated agent sandbox”）仍在枚举中，官方 Slash 命令参考页同样没有列出。两者的沙箱含义见[文件系统隔离](./capabilities/security/security-filesystem.md)。
 
 `/mcp` 自 rust-v0.161.0（2026-10-07 发布，PR #49290）起接受 `login <name>` 参数，在活动会话内启动某个 streamable HTTP MCP Server 的 OAuth 登录；同一版本的 Slash 命令枚举把该命令描述为 “list MCP tools; use /mcp verbose or /mcp login <name>”。官方 Slash 命令参考页核对时仍只写 “Open MCP status to view connected servers.”，不列 `verbose` 与 `login`。参数解析、报错文案与凭据边界见 [MCP 命令详情](./capabilities/commands/cmd-mcp.md)。
+
+`/config`（源码描述 “configure Codex preferences”）于 2026-10-10 合入 main 分支（提交 `cc7ba33601286a751477832b01de7b6f8de0dd9c`，PR #52990），尚未进入 Release：核对日期最新 Release 为 rust-v0.163.0-alpha.5（2026-10-10T00:26:59Z），早于该提交，官方 Slash 命令表列出的 54 个命令里也没有 `/config`。前一个提交 `de8fab6d7adf` 的 `SlashCommand` 枚举只有 `DebugConfig`、没有 `Config`，因此这是新增命令而不是既有命令改行为。命令不带参数，打开标题为 “Configuration” 的可搜索偏好面板，19 个条目分 Appearance、Notifications、Input、Sessions、Text selection 五组，Theme、Status line fields、Terminal title fields、Keyboard shortcuts 四项移交给既有 `/theme`、`/statusline`、`/title`、`/keymap` 编辑器，其余各项直接写 `config.toml` 的 `tui.*` 键并新增 `tui.copy_on_select_clear_selection`（默认 `false`）。枚举没有功能开关或平台门禁，但 `available_during_task`、`available_in_side_conversation` 与 `available_when_thread_unavailable` 三个判定都不含 `Config`，即回合运行中、side conversation 内与线程不可用时不能执行；`/debug-config` 仍是独立的只读诊断命令。分组、键映射、保存提示与依赖置灰文案见[配置详情](./capabilities/commands/cmd-config.md)。
 
 ### Qwen Code
 
@@ -168,7 +170,9 @@ Web Shell 还固定提供 4 个不属于 CLI/TUI 硬编码加载器的本地命�
 
 ### Qoder CLI
 
-`/agents`、`/batch`、`/clear`、`/commands`、`/compact`、`/config`、`/context-window`、`/effort`、`/export`、`/fast`、`/feedback`、`/goal`、`/help`、`/hooks`、`/init`、`/login`、`/logout`、`/mcp`、`/mcp-config`、`/memory`、`/model`、`/plan`、`/quest`、`/quit`、`/release-notes`、`/resume`、`/review`、`/rewind`、`/setup-github`、`/skills`、`/status`、`/tasks`、`/upgrade`、`/usage`、`/vim`、`/workflows`。
+`/agents`、`/batch`、`/clear`、`/commands`、`/compact`、`/config`、`/context-window`、`/effort`、`/export`、`/fast`、`/feedback`、`/goal`、`/help`、`/hooks`、`/init`、`/login`、`/logout`、`/mcp`、`/mcp-config`、`/memory`、`/model`、`/plan`、`/quest`、`/quit`、`/release-notes`、`/resume`、`/review`、`/rewind`、`/settings`、`/setup-github`、`/skills`、`/status`、`/tasks`、`/upgrade`、`/usage`、`/vim`、`/workflows`。
+
+`/settings`（描述逐字为 “Open the Settings Panel (alias `/config`).”，列在 “Configuration and UI” 分组，不在 Conditional Commands 说明中）于 2026-10-11 核对时补入本目录：官方 Slash 命令参考把 `/settings` 当主命令、`/config` 当别名，本目录与对照表此前只记 `/config`，属主别名记反，本次一并改正。官方 Settings 页写 “In the Interactive interface: Run `/settings` to open the Settings Panel to directly view and adjust common configuration items.”，并给出三层设置文件（用户 `~/.qoder/settings.json`、项目 `<project>/.qoder/settings.json`、本地 `<project>/.qoder/settings.local.json`）、`--settings` 最高优先级与合并顺序（内置默认 → 用户 → 项目 → 本地 → `--settings`）、`QODER_CONFIG_DIR` 改默认配置目录，以及一批标注“需要重启”的键；页面没有写明面板本身写入哪一层。同一分组另有 `/security-settings`、`/theme` 与 `/statusline`，`/shortcuts` 只查看快捷键列表，官方没有 `/keymap` 或 `/debug-config`。保存位置与重启条件见[配置详情](./capabilities/commands/cmd-config.md)。
 
 `/rewind`（官方 Slash 命令参考列在 “Sessions and Conversations” 分组，描述逐字为 “Roll back to a specific checkpoint.”，不在条件命令说明中）于 2026-10-10 核对时补入本目录：官方 Undo and Restore 页记录该命令打开 Rewind 界面、以对话中发送过的用户消息为检查点，选中后先显示影响再要求确认，恢复范围可选“恢复对话与文件”（默认）、“只恢复对话”与“只恢复文件”，界面给出 “Rewinding now will revert 3 files (+42 -17)” 一类提示，没有可回退文件改动时显示 “Will restore conversation, no file changes involved.”；文件检查点由 `general.fileCheckpointing.enabled` 控制，类型 boolean、默认 `true`、描述逐字为 “Enable file checkpoints (code rollback).”、改动需重启。此前对照表把 Qoder CLI 的回退行写成 `—`、会话字段只记 Agent SDK 的 `rewindFiles()`，属漏记而非产品新增：Release Notes 的 CLI 1.1.23（2026-08-15）小节标题已含 “Session Resume, Rewind, and Tool-Call Fixes”、CLI 1.1.29（2026-08-24）记 “Fixed being unable to fork and rewind history messages after compaction”，但都没有写明 `/rewind` 的引入版本；关闭 `general.fileCheckpointing.enabled` 后该命令是否只剩对话恢复，官方没有说明，记为未确认。子命令 `qoder rollback`（“Roll back to a previous version.”）是回滚 CLI 二进制版本，与本命令无关。回退范围、锚点与边界见[检查点与回退详情](./capabilities/sessions/session-checkpoint.md)。
 
@@ -194,6 +198,17 @@ Web Shell 还固定提供 4 个不属于 CLI/TUI 硬编码加载器的本地命�
 - [Codex rust-v0.161.0 `/mcp` 参数解析源码](https://github.com/openai/codex/blob/979011409de0a60b52f179721948e65531d26144/codex-rs/tui/src/chatwidget/slash_dispatch.rs)
 - [Codex CLI 命令参考（`codex mcp login` 与 `logout`）](https://learn.chatgpt.com/docs/developer-commands?surface=cli)
 - [Codex Slash 命令参考页（`/mcp` 未列子命令）](https://learn.chatgpt.com/docs/reference/slash-commands)
+- [Codex `/config` 偏好面板合并提交 `cc7ba3360128`](https://github.com/openai/codex/commit/cc7ba33601286a751477832b01de7b6f8de0dd9c)
+- [Codex PR #52990（Add a searchable `/config` preferences panel to the TUI）](https://github.com/openai/codex/pull/52990)
+- [Codex `/config` 命令定义与可用性判定源码](https://github.com/openai/codex/blob/cc7ba33601286a751477832b01de7b6f8de0dd9c/codex-rs/tui/src/slash_command.rs)
+- [Codex 上一提交 `de8fab6d7adf` 的 Slash 命令源码（枚举无 `Config` 变体）](https://github.com/openai/codex/blob/de8fab6d7adfcef8b4ce6f02f3b5c8be4092015a/codex-rs/tui/src/slash_command.rs)
+- [Codex `/config` 面板设置目录源码（五个分组与 19 个条目）](https://github.com/openai/codex/blob/cc7ba33601286a751477832b01de7b6f8de0dd9c/codex-rs/tui/src/config_panel/mod.rs)
+- [Codex `/config` 面板渲染源码（标题、搜索占位符与选项标签）](https://github.com/openai/codex/blob/cc7ba33601286a751477832b01de7b6f8de0dd9c/codex-rs/tui/src/config_panel/render.rs)
+- [Codex `/config` 开关项到 `config.toml` 键的映射源码](https://github.com/openai/codex/blob/cc7ba33601286a751477832b01de7b6f8de0dd9c/codex-rs/tui/src/config_panel/toggle.rs)
+- [Codex `/config` 面板保存提示与通知测试源码](https://github.com/openai/codex/blob/cc7ba33601286a751477832b01de7b6f8de0dd9c/codex-rs/tui/src/app/config_panel.rs)
+- [Codex 配置写入源码（`codex_home` 下 `config.toml` 的原子覆写）](https://github.com/openai/codex/blob/cc7ba33601286a751477832b01de7b6f8de0dd9c/codex-rs/core/src/config/edit.rs)
+- [Codex `tui.copy_on_select_clear_selection` 字段定义源码](https://github.com/openai/codex/blob/cc7ba33601286a751477832b01de7b6f8de0dd9c/codex-rs/config/src/types.rs)
+- [Codex Configuration reference（`tui.*` 已收录键集合）](https://learn.chatgpt.com/docs/config-file/config-reference)
 - [Qwen Code 硬编码命令加载器](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/BuiltinCommandLoader.ts)
 - [Qwen Code bundled Skill 加载器](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/BundledSkillLoader.ts)
 - [Qwen Code 用户、项目与扩展 Skill 加载器](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/packages/cli/src/services/SkillCommandLoader.ts)
@@ -223,7 +238,10 @@ Web Shell 还固定提供 4 个不属于 CLI/TUI 硬编码加载器的本地命�
 - [Qwen Code v0.25.1-preview.0 `/mcp` 命令源码](https://github.com/QwenLM/qwen-code/blob/304df378b562b82e371b4eae86610a83548d2e39/packages/cli/src/ui/commands/mcpCommand.ts)
 - [Qwen Code v0.25.1-preview.0 命令文档（`/mcp` 行）](https://github.com/QwenLM/qwen-code/blob/304df378b562b82e371b4eae86610a83548d2e39/docs/users/features/commands.md)
 - [Qwen Code v0.25.1-preview.0 MCP 文档（`/mcp` 对话框与 OAuth）](https://github.com/QwenLM/qwen-code/blob/304df378b562b82e371b4eae86610a83548d2e39/docs/users/features/mcp.md)
+- [Qwen Code v0.25.1-preview.2 命令文档（`/config`、`/settings` 与 `/import-config` 行）](https://github.com/QwenLM/qwen-code/blob/d381509d32e62a992a344de33207d54f436bcefc/docs/users/features/commands.md)
+- [Qwen Code `/config` 命令源码（`supportedModes`、`SettingScope.User`、敏感键打码与 `yolo` 拒绝）](https://github.com/QwenLM/qwen-code/blob/d381509d32e62a992a344de33207d54f436bcefc/packages/cli/src/ui/commands/config-command.ts)
 - [Kimi Code Slash 命令](https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/reference/slash-commands.md)
+- [Kimi Code Slash 命令文档 main `c9f01f07388a`（`/settings` 别名 `/config`、`/update-config`）](https://github.com/MoonshotAI/kimi-code/blob/c9f01f07388abc2cdca40c9c5267f58c65086710/docs/zh/reference/slash-commands.md)
 - [Kimi Code `/bug` 别名提交](https://github.com/MoonshotAI/kimi-code/commit/8db7d42f23472a692eb389a0e0e5a3e18aa1b94d)
 - [Kimi Code `/fork` 不再切换会话提交](https://github.com/MoonshotAI/kimi-code/commit/54c04bf03ddbeb46d02b2edb460ea091ae194509)
 - [Kimi Code `/fork` 恢复命令打印提交](https://github.com/MoonshotAI/kimi-code/commit/6b72345f8bb03487e3bcc05b541e65484818428c)
@@ -256,6 +274,7 @@ Web Shell 还固定提供 4 个不属于 CLI/TUI 硬编码加载器的本地命�
 - [Qoder CLI Release Notes（最新至 CLI 1.1.67）](https://docs.qoder.com/release-notes/qoder-cli)
 - [Qoder CLI Undo and Restore（`/rewind` 检查点与三种恢复范围）](https://docs.qoder.com/cli/undo-restore)
 - [Qoder CLI 设置参考（`general.fileCheckpointing.enabled` 默认 `true`）](https://docs.qoder.com/cli/settings-reference)
+- [Qoder CLI Configuration Files and Application Order（`/settings` 面板、三层设置文件与需重启的键）](https://docs.qoder.com/cli/settings)
 - [Qoder CLI 命令行参考（`qoder rollback` 为版本回滚）](https://docs.qoder.com/cli/cli-reference)
 - [Qwen Code 命令文档（`/rewind`、`/restore` 与 `/doctor rollback`，提交 `e39567eb564c`）](https://github.com/QwenLM/qwen-code/blob/e39567eb564cf5473dc703b25b219c66059fcb1b/docs/users/features/commands.md)
 - [Qwen Code 文档站 Checkpointing 页（影子 Git 快照与 `--checkpointing`）](https://qwenlm.github.io/qwen-code-docs/en/users/features/checkpointing/)

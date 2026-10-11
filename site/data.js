@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-10-10',
+  updatedAt: '2026-10-11',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -337,6 +337,51 @@ window.matrixData = {
     'codex-commands': {
       label: 'Codex CLI commands',
       url: 'https://developers.openai.com/codex/cli/slash-commands',
+    },
+    'codex-config-panel-commit': {
+      label:
+        'Codex `/config` 偏好面板合并提交（`cc7ba33601286a751477832b01de7b6f8de0dd9c`，PR #52990，2026-10-10）',
+      url: 'https://github.com/openai/codex/commit/cc7ba33601286a751477832b01de7b6f8de0dd9c',
+    },
+    'codex-config-panel-pr': {
+      label:
+        'Codex PR #52990（Add a searchable `/config` preferences panel to the TUI）',
+      url: 'https://github.com/openai/codex/pull/52990',
+    },
+    'codex-slash-command-cc7ba33': {
+      label:
+        'Codex `/config` 命令定义与可用性判定源码（`SlashCommand::Config`，描述 “configure Codex preferences”）',
+      url: 'https://github.com/openai/codex/blob/cc7ba33601286a751477832b01de7b6f8de0dd9c/codex-rs/tui/src/slash_command.rs',
+    },
+    'codex-config-panel-catalog': {
+      label:
+        'Codex `/config` 面板设置目录源码（五个 `ConfigSection`、每项 label/description/keywords 与当前值显示）',
+      url: 'https://github.com/openai/codex/blob/cc7ba33601286a751477832b01de7b6f8de0dd9c/codex-rs/tui/src/config_panel/mod.rs',
+    },
+    'codex-config-panel-render': {
+      label:
+        'Codex `/config` 面板渲染源码（标题 “Configuration”、搜索占位符 “Type to search settings”、页脚提示与选项标签）',
+      url: 'https://github.com/openai/codex/blob/cc7ba33601286a751477832b01de7b6f8de0dd9c/codex-rs/tui/src/config_panel/render.rs',
+    },
+    'codex-config-panel-toggle': {
+      label:
+        'Codex `/config` 开关项到 `config.toml` 键的映射源码（`tui.animations`、`tui.auto_recap`、`tui.copy_on_select_clear_selection`、`tui.disable_paste_burst`、`tui.vim_mode_default`、`tui.status_line_use_colors`、`tui.show_tooltips`、`tui.effects.starfield`）',
+      url: 'https://github.com/openai/codex/blob/cc7ba33601286a751477832b01de7b6f8de0dd9c/codex-rs/tui/src/config_panel/toggle.rs',
+    },
+    'codex-config-panel-app': {
+      label:
+        'Codex `/config` 面板保存提示与通知测试源码（`Saved · restart Codex to apply`、`Could not save:` 等）',
+      url: 'https://github.com/openai/codex/blob/cc7ba33601286a751477832b01de7b6f8de0dd9c/codex-rs/tui/src/app/config_panel.rs',
+    },
+    'codex-config-edit': {
+      label:
+        'Codex 配置写入源码（`apply_blocking` 写 `codex_home` 下的 `config.toml`、符号链接解析与原子覆写）',
+      url: 'https://github.com/openai/codex/blob/cc7ba33601286a751477832b01de7b6f8de0dd9c/codex-rs/core/src/config/edit.rs',
+    },
+    'codex-config-types': {
+      label:
+        'Codex `tui.copy_on_select_clear_selection`、`tui.copy_on_select` 与 `tui.right_click_paste` 字段定义源码',
+      url: 'https://github.com/openai/codex/blob/cc7ba33601286a751477832b01de7b6f8de0dd9c/codex-rs/config/src/types.rs',
     },
     'codex-agents': {
       label: 'Codex Subagents',
@@ -685,6 +730,16 @@ window.matrixData = {
     'qwen-commands': {
       label: 'Qwen Code commands documentation',
       url: 'https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/commands.md',
+    },
+    'qwen-commands-v0251preview2': {
+      label:
+        'Qwen Code v0.25.1-preview.2 命令文档（`/config` dot-path 读写、`/settings` 编辑器与 `/import-config` 只导入 Claude 的 MCP Server）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/d381509d32e62a992a344de33207d54f436bcefc/docs/users/features/commands.md',
+    },
+    'qwen-config-command-source': {
+      label:
+        'Qwen Code `/config` 命令源码（`supportedModes` 为 interactive/non_interactive/acp、写 `SettingScope.User`、敏感键打码与拒绝把 `tools.approvalMode` 设为 `yolo`）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/d381509d32e62a992a344de33207d54f436bcefc/packages/cli/src/ui/commands/config-command.ts',
     },
     'qwen-bundled-skills': {
       label: 'Qwen Code bundled Skill loader',
@@ -1286,6 +1341,11 @@ window.matrixData = {
     'kimi-commands': {
       label: 'Kimi Code Slash commands',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/c9bfe8b2c8314ba4ef8806fb3b92ac654c1d1860/docs/zh/reference/slash-commands.md',
+    },
+    'kimi-commands-c9f01f0': {
+      label:
+        'Kimi Code Slash 命令文档（main `c9f01f07388abc2cdca40c9c5267f58c65086710`：`/settings` 别名 `/config`「打开 TUI 内的设置面板」且随时可用，`/update-config` 编辑 `config.toml` 与 `tui.toml` 且仅空闲可用）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/c9f01f07388abc2cdca40c9c5267f58c65086710/docs/zh/reference/slash-commands.md',
     },
     'kimi-fork-stay': {
       label: 'Kimi Code /fork stay-in-session commit',
@@ -2419,7 +2479,7 @@ window.matrixData = {
       category: 'commands',
       capability: '配置',
       description: '打开、查看、导入或诊断配置。',
-      values: { claude: '`/config` · `/settings`', codex: '`/debug-config`', qwen: '`/config` · `/settings` · `/import-config`', kimi: '`/settings` · `/config` · `/update-config`', qoder: '`/config`' },
+      values: { claude: '`/config [key=value ...]`（别名 `/settings`）· `--help` 列出可设置键 · key/value 形式也用于 `-p` 与 Remote Control', codex: '`/config` 五分组可搜索偏好面板（条件：main 分支 `cc7ba3360128`，尚未发布，官方文档未列出）· `/debug-config` 只读配置层诊断', qwen: '`/config <key>[=<value>]` 只写用户设置 · `/settings` 编辑器 · `/import-config` 只导入 Claude 的 MCP Server', kimi: '`/settings`（别名 `/config`）打开 TUI 设置面板 · `/update-config` 编辑 `config.toml` 与 `tui.toml`', qoder: '`/settings`（别名 `/config`）打开 Settings Panel' },
     },
     {
       id: 'cmd-status',
