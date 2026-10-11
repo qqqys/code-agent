@@ -419,6 +419,41 @@ window.matrixData = {
       label: 'Codex as an MCP server',
       url: 'https://learn.chatgpt.com/docs/mcp-server',
     },
+    'codex-developer-commands': {
+      label:
+        'Codex Developer commands（`codex remote-control start` “start the local app-server daemon with remote control enabled”、CLI 子命令表与内置 Slash 命令表）',
+      url: 'https://learn.chatgpt.com/docs/developer-commands?surface=cli',
+    },
+    'codex-daemon-readme': {
+      label:
+        'Codex app-server daemon README（`codex app-server daemon start|restart|update|enable-remote-control|disable-remote-control|stop|version|bootstrap`、`CODEX_HOME/app-server-daemon/settings.json` 的 `remoteControlEnabled`/`shutdownGraceSeconds`/`updater.*`、pid 与 lock 文件、自动更新条件与内嵌服务器回退）',
+      url: 'https://github.com/openai/codex/blob/3b6ab3471a2d4d994c9fad322fca749564bc05e0/codex-rs/app-server-daemon/README.md',
+    },
+    'codex-daemon-menu-commit': {
+      label:
+        'Codex `/daemon` 菜单合并提交（`04581f96044a9fe6062593c4d557036477aee961`，PR #45854，2026-09-16，标题 “Add `/daemon` menu for local background server updates”）',
+      url: 'https://github.com/openai/codex/commit/04581f96044a9fe6062593c4d557036477aee961',
+    },
+    'codex-daemon-restart-commit': {
+      label:
+        'Codex 重启被管理后台服务器的合并提交（`27065a91ccbf5ba8532844be3777fcf83b77820d`，PR #53173，2026-10-11，标题 “Allow restarting managed background servers from the TUI”）',
+      url: 'https://github.com/openai/codex/commit/27065a91ccbf5ba8532844be3777fcf83b77820d',
+    },
+    'codex-daemon-menu-source': {
+      label:
+        'Codex `/daemon` 菜单源码（`daemon_menu.rs`：菜单标题 “Daemon”、三项条目、重启与更新确认文案、远程连接与无 CLI 可执行文件时的禁用原因）',
+      url: 'https://github.com/openai/codex/blob/27065a91ccbf5ba8532844be3777fcf83b77820d/codex-rs/tui/src/app/daemon_menu.rs',
+    },
+    'codex-daemon-startup-tests': {
+      label:
+        'Codex daemon 启动集成测试（`daemon_startup.rs`：`Server: Local background server` 状态行、`--disable daemon_auto_start`、特征设置不兼容时的内嵌/重启/取消三分支与 `featureOverrides` 写入）',
+      url: 'https://github.com/openai/codex/blob/27065a91ccbf5ba8532844be3777fcf83b77820d/codex-rs/cli/tests/daemon_startup.rs',
+    },
+    'codex-slash-command-v01621': {
+      label:
+        'Codex rust-v0.162.1 标签的 Slash 命令枚举（含 `Daemon` 变体与描述 “Manage the local background server”）',
+      url: 'https://github.com/openai/codex/blob/rust-v0.162.1/codex-rs/tui/src/slash_command.rs',
+    },
     'codex-app': {
       label: 'ChatGPT desktop app',
       url: 'https://learn.chatgpt.com/docs/app',
@@ -998,6 +1033,11 @@ window.matrixData = {
       label: 'Qwen Code current daemon and Web Shell',
       url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/qwen-serve.md',
     },
+    'qwen-serve-v0251': {
+      label:
+        'Qwen Code v0.25.1 的 `qwen serve` 文档（“Run Qwen Code as a local HTTP daemon”、默认 `127.0.0.1:4170`、`--max-sessions` 默认 32、`--require-auth`、`QWEN_SERVER_TOKEN`、“Status: Stage 1 (experimental)” 与 “🚧 v0.16-alpha”、systemd/launchd/nohup/tmux 与 Local launch templates）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/c1a8218f38203e272e6e965778ed6a2795cfeed7/docs/users/qwen-serve.md',
+    },
     'qwen-web-shell-image-dnd': {
       label: 'Qwen Code Web Shell image drag and drop commit',
       url: 'https://github.com/QwenLM/qwen-code/commit/e46586782cf8fc85d535051830bcc743bcd6b47a',
@@ -1544,6 +1584,11 @@ window.matrixData = {
     'kimi-cli-surface-current': {
       label: 'Kimi Code current CLI, Headless and Web reference',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/reference/kimi-command.md',
+    },
+    'kimi-web-command-242ac23': {
+      label:
+        'Kimi Code `kimi web` 参考（提交 `242ac230006447f8601e1678c49182bfbae89fe9`：默认端口 58627 与占用时 +1 重试、`--host`/`--allowed-host`/`--web-title`/`--log-level`/`--debug-endpoints`、`~/.kimi-code/server/instances/` 多实例登记、`~/.kimi-code/server.token` 与 `rotate-token`、前台运行到 SIGINT/SIGTERM、已废弃的 `kimi server kill`）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/242ac230006447f8601e1678c49182bfbae89fe9/docs/zh/reference/kimi-command.md',
     },
     'kimi-sdk-current': {
       label: 'Kimi Code current TypeScript SDK package',
@@ -3018,7 +3063,7 @@ window.matrixData = {
       category: 'surfaces',
       capability: '服务端与 Daemon',
       description: '以常驻进程、协议服务器或本地服务承载 Agent 会话。',
-      values: { claude: 'Agent SDK · Remote Control 服务', codex: '`codex app-server` · `mcp-server`', qwen: '`qwen serve` HTTP + SSE', kimi: '`kimi web` REST + WebSocket', qoder: '`qodercli --acp` · `remote-control` Daemon' },
+      values: { claude: 'Agent SDK · Remote Control 服务', codex: '`codex app-server` · `mcp-server` · 本地后台 daemon（`app-server daemon start|restart|update|stop` · TUI `/daemon`）', qwen: '`qwen serve` HTTP + SSE', kimi: '`kimi web` REST + WebSocket', qoder: '`qodercli --acp` · `remote-control` Daemon' },
     },
     {
       id: 'surface-cli',

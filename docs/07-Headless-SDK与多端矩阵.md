@@ -9,7 +9,7 @@
 | [Headless 调用](./capabilities/surfaces/surface-headless.md) | `claude -p` | `codex exec` | `qwen -p` | `kimi -p` | `qodercli -p` |
 | [结构化输出](./capabilities/surfaces/surface-structured-output.md) | `json` · `stream-json` · JSON Schema | `--json` JSONL · `--output-schema` | `json` · `stream-json` · JSON Schema | `stream-json` JSONL | `text` · `json` · `stream-json` |
 | [Agent SDK](./capabilities/surfaces/surface-sdk.md) | Python · TypeScript | TypeScript · Python | `@qwen-code/sdk` TypeScript | 仓库内 TypeScript 包；未公开发布 | TypeScript · Python |
-| [服务端与 Daemon](./capabilities/surfaces/surface-service.md) | Agent SDK · Remote Control 服务 | `codex app-server` · `mcp-server` | `qwen serve` HTTP + SSE | `kimi web` REST + WebSocket | `qodercli --acp` · `remote-control` Daemon |
+| [服务端与 Daemon](./capabilities/surfaces/surface-service.md) | Agent SDK · Remote Control 服务 | `codex app-server` · `mcp-server` · 本地后台 daemon（`app-server daemon start\|restart\|update\|stop` · TUI `/daemon`） | `qwen serve` HTTP + SSE | `kimi web` REST + WebSocket | `qodercli --acp` · `remote-control` Daemon |
 | [CLI](./capabilities/surfaces/surface-cli.md) | `claude` | `codex` | `qwen` | `kimi` | `qodercli` |
 | [IDE 与 ACP](./capabilities/surfaces/surface-ide.md) | VS Code · JetBrains | Codex IDE Extension | VS Code Companion · `qwen --acp` | VS Code · `kimi acp` | Qoder IDE · `qodercli --acp` |
 | [Web 界面](./capabilities/surfaces/surface-web.md) | claude.ai/code · Remote Control | ChatGPT Web · Codex Cloud | `qwen serve` 内置 Web Shell；条件：图片拖拽/粘贴输入（v0.21.9 起）· 工作区文件上传（v0.21.12-preview.3 预览通道）· 文本文件附件（main 分支，尚未发布） | `kimi web` 本地 Web UI | Qoder Web · Cloud Agents Console |
