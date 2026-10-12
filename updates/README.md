@@ -4,6 +4,7 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-10-12 | [工具延迟声明与按需发现能力字段：Qwen Code v0.25.1 起 Agent 与 Goal 工具默认延迟（PR #13033），并核对 Claude `ToolSearch`、Codex `tool_search`、Kimi `select_tools` 与 Qoder `mcp.lazyLoad`](./2026-10-12-扩展系统-工具延迟声明与按需发现能力字段.md) |
 | 2026-10-11 | [服务端与 Daemon：Codex 本地后台 app-server daemon 与 `/daemon` 管理菜单（`codex app-server daemon` 八个子命令、`CODEX_HOME/app-server-daemon/` 状态、2026-10-11 合入 main 的重启动作 PR #53173），并复核其余四家常驻服务](./2026-10-11-Headless与多端-Codex本地后台daemon与daemon菜单.md) |
 | 2026-10-11 | [配置：Codex main 分支新增 `/config` 可搜索偏好面板（PR #52990，19 个条目、五个分组、`tui.*` 键映射与新键 `tui.copy_on_select_clear_selection`），并改正 Qoder 主命令为 `/settings`、Qwen `/config` 只写用户设置](./2026-10-11-Slash命令-Codex-config偏好面板与五家配置命令.md) |
 | 2026-10-10 | [Agent 单独选模型：Claude Code v2.1.296 的 `CLAUDE_CODE_WORKFLOW_SUBAGENT_MODEL` 与完整解析顺序，Kimi Code Subagent 模型池 0.42.0 起始终开启并移除 `model_preference`](./2026-10-10-Subagent-Agent单独选模型-Claude-workflow-subagent-model与Kimi模型池转正.md) |

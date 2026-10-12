@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-10-11',
+  updatedAt: '2026-10-12',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -2398,6 +2398,111 @@ window.matrixData = {
         'Qoder CLI Plugins 页（`qoder plugins` 子命令组、marketplace 四种来源、三种 scope、`enabledPlugins` 与 `QODER_PLUGIN_ROOT`/`QODER_PLUGIN_DATA`）',
       url: 'https://docs.qoder.com/cli/plugins',
     },
+    'claude-tool-search-changelog': {
+      label:
+        'Claude Code 更新日志（工具搜索版本时间线：v2.1.7 auto 模式默认开启并按 10% 上下文阈值延迟、v2.1.9 `auto:N`、v2.1.119 Vertex AI 默认关闭、v2.1.121 Server `alwaysLoad`、v2.1.221 Vertex 对 4.5 代及以上重新启用、v2.1.285 工具级 `_meta` 与 Server 级 `alwaysLoad` 的覆盖关系、v2.1.287 Server `alwaysLoad: false` 延迟该 Server 全部工具、v2.1.293 mods `$.tool.register` 的 `isDeferred`、v2.1.295 经工具搜索加载的描述改为 16,384 字符、v2.1.296 上送描述与 Server instructions 默认上限由 2,048 改为 4,096，固定到 v2.1.296）',
+      url: 'https://github.com/anthropics/claude-code/blob/2301018b1f61073c501a8e7a4813ef48c239163b/CHANGELOG.md',
+    },
+    'codex-tool-search-spec': {
+      label:
+        'Codex `tool_search` 工具声明源码（描述逐字为 “Searches over deferred tool metadata with BM25”、`query` 与 `limit` 两个参数、来源清单渲染与 512 KiB 来源描述预算，main `7c1b64c5df07`）',
+      url: 'https://github.com/openai/codex/blob/7c1b64c5df07ae124c70a9a0094811cd3e23fcb5/codex-rs/core/src/tools/handlers/tool_search_spec.rs',
+    },
+    'codex-tool-search-handler': {
+      label:
+        'Codex `tool_search` 处理器源码（`limit` 缺省取 `TOOL_SEARCH_DEFAULT_LIMIT`、空 query 报 “query must not be empty”、`limit` 为 0 报 “limit must be greater than zero”、code mode 分支与 `{"tools": [...]}` 结果形状）',
+      url: 'https://github.com/openai/codex/blob/7c1b64c5df07ae124c70a9a0094811cd3e23fcb5/codex-rs/core/src/tools/handlers/tool_search.rs',
+    },
+    'codex-tool-search-discovery': {
+      label:
+        'Codex 工具发现常量与可发现项源码（`TOOL_SEARCH_TOOL_NAME = "tool_search"`、`TOOL_SEARCH_DEFAULT_LIMIT = 8`、`list_available_plugins_to_install` 与 `request_plugin_install` 两个发现工具名、Connector 与 Plugin 两类 `DiscoverableTool`）',
+      url: 'https://github.com/openai/codex/blob/7c1b64c5df07ae124c70a9a0094811cd3e23fcb5/codex-rs/tools/src/tool_discovery.rs',
+    },
+    'codex-tool-search-features': {
+      label:
+        'Codex 特性开关源码（`tool_search` 与 `tool_search_always_defer_mcp_tools` 均为 `Stage::Removed` 且注释写明工具搜索始终启用、MCP 工具始终延迟，`code_mode_tool_search` 与 `deferred_tool_world_state` 为 `Stage::UnderDevelopment` 且默认关闭，旧配置解析对这两个键直接跳过）',
+      url: 'https://github.com/openai/codex/blob/7c1b64c5df07ae124c70a9a0094811cd3e23fcb5/codex-rs/features/src/lib.rs',
+    },
+    'codex-tool-search-schema': {
+      label:
+        'Codex `config.schema.json`（`features.tool_search`、`features.tool_search_always_defer_mcp_tools` 与 `features.code_mode_tool_search` 三个 boolean，顶层与 `ConfigProfile` 各一份）',
+      url: 'https://github.com/openai/codex/blob/7c1b64c5df07ae124c70a9a0094811cd3e23fcb5/codex-rs/core/config.schema.json',
+    },
+    'qwen-tool-search-settings': {
+      label:
+        'Qwen Code v0.25.1 设置参考（`tools.toolSearch.enabled` 默认 `true`、`tools.toolSearch.threshold` 默认 `0`、`tools.eager`、`tools.visible`、`tools.disabled`、`tools.discoveryCommand`、`tools.core` 迁移说明与 `permissions.allow` 行，标签 `v0.25.1`，提交 `c1a8218f3820`）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/c1a8218f38203e272e6e965778ed6a2795cfeed7/docs/users/configuration/settings.md',
+    },
+    'qwen-tool-search-context-cost': {
+      label:
+        'Qwen Code v0.25.1 上下文成本文档（`tool_search` → `tool_call` 桥、豁免工具清单、桥缺一半时的回退、Agent 与 Goal 默认延迟、Subagent 不走 ToolSearch、恢复会话与工具集刷新会重新声明）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/c1a8218f38203e272e6e965778ed6a2795cfeed7/docs/users/features/context-cost.md',
+    },
+    'qwen-tool-search-source': {
+      label:
+        'Qwen Code v0.25.1 `tool_search` 源码（`DEFAULT_MAX_RESULTS = 5`、`HARD_MAX_RESULTS = 20`、名字精确命中内置 10 与 MCP 12、子串 5 与 6、`searchHint` 4、动作别名 6、描述 2、停用词表、`select:` 与 `+` 前缀两种查询模式、Code Mode 专用描述）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/c1a8218f38203e272e6e965778ed6a2795cfeed7/packages/core/src/tools/tool-search.ts',
+    },
+    'qwen-tool-names-v0251': {
+      label:
+        'Qwen Code v0.25.1 工具名与显示名映射源码（`tool_search` → `ToolSearch`、`tool_call` → `ToolCall`、`agent`、`list_agents`、`get_goal`、`update_goal`、`propose_goal`）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/c1a8218f38203e272e6e965778ed6a2795cfeed7/packages/core/src/tools/tool-names.ts',
+    },
+    'qwen-deferred-coordination-design': {
+      label:
+        'Qwen Code v0.25.1 设计文档 `default-deferred-coordination.md`（把 `agent`、`list_agents`、`get_goal`、`update_goal`、`propose_goal` 标为原生延迟，不新增设置、不改 schema、不改执行与审批语义）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/c1a8218f38203e272e6e965778ed6a2795cfeed7/docs/design/default-deferred-coordination.md',
+    },
+    'qwen-deferred-coordination-pr': {
+      label:
+        'Qwen Code PR #13033（feat(core): defer agent and goal declarations by default，2026-10-06T04:13:29Z 合入 main，合并提交 `8e3f3923b8c8`）',
+      url: 'https://github.com/QwenLM/qwen-code/pull/13033',
+    },
+    'qwen-v0251-release': {
+      label:
+        'Qwen Code v0.25.1 发布说明（2026-10-11，Features 段逐字为 “Agent and Goal coordination tools are now deferred by default and discovered on demand, reducing unnecessary tool declarations in ordinary tool-call sessions.”）',
+      url: 'https://github.com/QwenLM/qwen-code/releases/tag/v0.25.1',
+    },
+    'qwen-cron-defer-source': {
+      label:
+        'Qwen Code v0.25.1 `cron_create` 工具源码（构造参数里的 `shouldDefer` 为 `true`、注释 “scheduling is infrequent”、`alwaysLoad` 为 `false`、搜索提示词 `cron schedule reminder recurring timer`）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/c1a8218f38203e272e6e965778ed6a2795cfeed7/packages/core/src/tools/cron-create.ts',
+    },
+    'kimi-mcp-deferred': {
+      label:
+        'Kimi Code MCP 文档「按需加载工具」段与 Server `deferred` 字段（main `cbd754049a11`，两个前提、`select_tools` 加载、未标 `deferred` 的 Server 始终内联、OAuth 认证工具同样遵循该字段）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/cbd754049a114ee36d1b27675c82819e4963c692/docs/zh/customization/mcp.md',
+    },
+    'kimi-env-tool-select': {
+      label:
+        'Kimi Code 环境变量文档（`KIMI_CODE_EXPERIMENTAL_TOOL_SELECT` 与总开关 `KIMI_CODE_EXPERIMENTAL_FLAG` 的取值，main `cbd754049a11`）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/cbd754049a114ee36d1b27675c82819e4963c692/docs/zh/configuration/env-vars.md',
+    },
+    'kimi-config-capabilities': {
+      label:
+        'Kimi Code 配置文档（`capabilities` 可追加 `dynamically_loaded_tools` 且只能追加不能移除；`## experimental` 整段被包在 HTML 注释里、站点不渲染，注释内也只列 `micro_compaction`，main `cbd754049a11`）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/cbd754049a114ee36d1b27675c82819e4963c692/docs/zh/configuration/config-files.md',
+    },
+    'kimi-select-tools-source': {
+      label:
+        'Kimi Code `select_tools` 工具源码（`SELECT_TOOLS_TOOL_NAME = "select_tools"`、描述要求名字取自 `<tools_added>`/`<tools_removed>` 公告、`approvalRule` 为工具自身、模型不支持时返回 “select_tools is not available for the current model.”）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/cbd754049a114ee36d1b27675c82819e4963c692/packages/agent-core-v2/src/agent/tools/select-tools/selectToolsTool.ts',
+    },
+    'kimi-select-tools-schema': {
+      label:
+        'Kimi Code `select_tools` 入参 schema 源码（`names` 为字符串数组、`min(1)`、描述 “Exact tool names to load, taken from the latest announced tool list.”、`strict()`）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/cbd754049a114ee36d1b27675c82819e4963c692/packages/agent-core-v2/src/agent/tools/select-tools/select-tools.ts',
+    },
+    'qoder-settings-reference-lazy-load': {
+      label:
+        'Qoder CLI 设置参考（`mcp` 分组的 `mcp.lazyLoad`：boolean、默认 `false`、Restart 列标注 “Yes”、描述逐字为 “Lazy load MCP tools (exposes Meta Tool).”）',
+      url: 'https://docs.qoder.com/cli/settings-reference',
+    },
+    'qoder-mcp-reference-lazy-load': {
+      label:
+        'Qoder CLI MCP reference（“Lazy Loading Mode” 段：默认在启动注册全部 MCP 工具 schema，`mcp.lazyLoad: true` 或 `QODER_MCP_LAZY=1` 开启后只暴露 `mcp_list`／`mcp_get`／`mcp_call` 三个 Meta Tools 并按需加载实际工具；Permissions and Security 段写明 MCP 工具与内置工具一样需要用户确认）',
+      url: 'https://docs.qoder.com/cli/mcp-reference',
+    },
   },
   rows: [
     {
@@ -2966,6 +3071,13 @@ window.matrixData = {
       capability: 'IDE 连接',
       description: '让 CLI 获取当前编辑器文件或选择区上下文。',
       values: { claude: '`/ide` · VS Code IDE MCP', codex: 'IDE 扩展 · `/ide-context`', qwen: '`/ide` · VS Code Companion', kimi: '`kimi acp`', qoder: '`qodercli --acp`' },
+    },
+    {
+      id: 'extension-tool-discovery',
+      category: 'extensions',
+      capability: '工具延迟声明与按需发现',
+      description: '把部分工具的完整声明撤出每轮请求，改由模型用发现工具按需取回。',
+      values: { claude: 'MCP 工具默认全部延迟 · 内置 `ToolSearch` · `ENABLE_TOOL_SEARCH` 取 `true`/`auto`/`auto:N`/`false` · Server `alwaysLoad` 与工具 `_meta["anthropic/alwaysLoad"]` 豁免', codex: 'MCP 工具始终延迟 · 内置 `tool_search`（BM25，`limit` 默认 8）· `tool_search` 与 `tool_search_always_defer_mcp_tools` 开关已移除、没有关闭入口', qwen: '`tools.toolSearch.enabled` 默认 `true` · `tool_search` + `tool_call` 桥 · MCP、`agent`/`list_agents`/Goal、`task_stop`、`monitor`、cron 默认延迟 · `tools.eager`/`tools.visible`/`tools.toolSearch.threshold` 调节', kimi: '条件：Server 条目 `deferred: true` + `tool-select` 实验标志 + 模型声明 `dynamically_loaded_tools` · 内置 `select_tools` 按精确名加载', qoder: '条件：`mcp.lazyLoad` 默认 `false` 且需重启，或 `QODER_MCP_LAZY=1` · 开启后只暴露 `mcp_list`／`mcp_get`／`mcp_call` 三个 Meta Tools · 只覆盖 MCP 工具' },
     },
     {
       id: 'execution-files',
