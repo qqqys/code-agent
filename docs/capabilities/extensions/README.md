@@ -2,7 +2,7 @@
 
 [返回扩展系统矩阵](../../05-扩展系统矩阵.md) · [打开网页矩阵](https://qqqys.github.io/code-agent/#extensions)
 
-> 核对日期：2026-10-11
+> 核对日期：2026-10-12
 
 每一页固定记录能力定义、比较边界、五家结论、入口、文件与目录、具体行为、作用域、扩展构成、加载方式、适用界面、权限边界和官方来源。
 
@@ -17,3 +17,4 @@
 | 输出风格 | [打开](https://qqqys.github.io/code-agent/capability.html?id=extension-output-styles) | [查看](./extension-output-styles.md) |
 | 项目指令文件 | [打开](https://qqqys.github.io/code-agent/capability.html?id=extension-project-instructions) | [查看](./extension-project-instructions.md) |
 | IDE 连接 | [打开](https://qqqys.github.io/code-agent/capability.html?id=extension-ide) | [查看](./extension-ide.md) |
+| 工具延迟声明与按需发现 | [打开](https://qqqys.github.io/code-agent/capability.html?id=extension-tool-discovery) | [查看](./extension-tool-discovery.md) |
