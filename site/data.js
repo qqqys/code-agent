@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-10-12',
+  updatedAt: '2026-10-13',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -2503,6 +2503,96 @@ window.matrixData = {
         'Qoder CLI MCP reference（“Lazy Loading Mode” 段：默认在启动注册全部 MCP 工具 schema，`mcp.lazyLoad: true` 或 `QODER_MCP_LAZY=1` 开启后只暴露 `mcp_list`／`mcp_get`／`mcp_call` 三个 Meta Tools 并按需加载实际工具；Permissions and Security 段写明 MCP 工具与内置工具一样需要用户确认）',
       url: 'https://docs.qoder.com/cli/mcp-reference',
     },
+    'claude-read-large-files': {
+      label:
+        'Claude Code 工具参考 “Read tool behavior” 与 “Large files” 段（默认单次读取至多 25,000 token 或 `CLAUDE_CODE_FILE_READ_MAX_OUTPUT_TOKENS` 的值、整文件超过 256 KB 直接拒绝、v2.1.296 起可传 `allow_large: true` 一次读完整文件或长行范围并按会话剩余上下文窗口计量、图片与 PDF 与 Notebook 保留各自上限、两类超限结果分别是首页加 `PARTIAL view` 提示与要求改用 `offset`/`limit` 或 Grep 的错误）',
+      url: 'https://code.claude.com/docs/en/tools-reference#large-files',
+    },
+    'claude-read-limit-changelog': {
+      label:
+        'Claude Code 更新日志（固定到 v2.1.296，逐字为 “Added an `allow_large` option to the Read tool so Claude can read a text file past the usual size limits in one call when it needs the whole file and the context has room”；核对日期最新条目仍是 v2.1.296）',
+      url: 'https://github.com/anthropics/claude-code/blob/2301018b1f61073c501a8e7a4813ef48c239163b/CHANGELOG.md',
+    },
+    'codex-tool-handlers': {
+      label:
+        'Codex 工具 handler 目录清单（main `f82e36592278`：`apply_patch`、`current_time`、`get_context_remaining`、`list_available_plugins_to_install`、`mcp`、`mcp_resource`、`multi_agents`、`new_context_window`、`plan`、`request_permissions`、`request_plugin_install`、`request_user_input`、`send_message_to_user_async`、`shell`、`sleep`、`test_sync`、`tool_search`、`unified_exec`、`view_image`、`wait_for_environment`，没有任何文本文件读取工具）',
+      url: 'https://github.com/openai/codex/tree/f82e36592278a0a782fb0d0fc97e5fa10e832ac2/codex-rs/core/src/tools/handlers',
+    },
+    'codex-shell-max-output-tokens': {
+      label:
+        'Codex `exec_command` 与 `write_stdin` 工具声明源码（源码文件是 `shell_spec.rs`，两份声明都插入 `max_output_tokens`，参数描述逐字为 “Output token budget. Defaults to 10000 tokens; larger requests may be capped by policy.”；`registry.rs` 另按 `"exec_command" | "shell_command"` 匹配同类调用，main `f82e36592278`）',
+      url: 'https://github.com/openai/codex/blob/f82e36592278a0a782fb0d0fc97e5fa10e832ac2/codex-rs/core/src/tools/handlers/shell_spec.rs',
+    },
+    'codex-exec-output-cap': {
+      label:
+        'Codex exec 输出保留上限源码（`const EXEC_OUTPUT_MAX_BYTES: usize = DEFAULT_OUTPUT_BYTES_CAP;` 与注释 “Hard cap on bytes retained from exec stdout/stderr/aggregated output.”、只有 `ExecCapturePolicy::ShellTool` 返回该上限、超限时对 stdout 与 stderr 各自 `truncate(max_bytes)` 因而保留开头丢弃结尾、`truncated_after_lines` 为 `None`、`MAX_EXEC_OUTPUT_DELTAS_PER_CALL = 10_000` 只限制实时事件流而聚合仍收集完整输出，main `f82e36592278`）',
+      url: 'https://github.com/openai/codex/blob/f82e36592278a0a782fb0d0fc97e5fa10e832ac2/codex-rs/core/src/exec.rs',
+    },
+    'codex-pty-output-cap': {
+      label:
+        'Codex PTY 工具库源码（`pub const DEFAULT_OUTPUT_BYTES_CAP: usize = 1024 * 1024;`，即 1 MiB，main `f82e36592278`）',
+      url: 'https://github.com/openai/codex/blob/f82e36592278a0a782fb0d0fc97e5fa10e832ac2/codex-rs/utils/pty/src/lib.rs',
+    },
+    'codex-view-image-spec': {
+      label:
+        'Codex `view_image` 工具声明源码（描述逐字为 “View a local image file from the filesystem when visual inspection is needed. Use this for images already available on disk.”，`path` 必填、`detail` 只在 `can_request_original_image_detail` 且未启用 `unified_image_budget` 时出现且取 `high` 或 `original`，没有声明字节或像素上限，main `f82e36592278`）',
+      url: 'https://github.com/openai/codex/blob/f82e36592278a0a782fb0d0fc97e5fa10e832ac2/codex-rs/core/src/tools/handlers/view_image_spec.rs',
+    },
+    'qwen-read-file-source': {
+      label:
+        'Qwen Code v0.25.1 `read_file` 工具源码（`override get maxOutputChars()` 返回 `Number.POSITIVE_INFINITY`，注释逐字为 “Self-managed: ReadFile controls its own size via line-based paging (offset/limit, default truncateToolOutputLines setting), so it is exempt from the scheduler’s char-based truncation. Oversized reads are bounded by the per-message batch budget instead.”；四个参数 `file_path`/`offset`/`limit`/`pages` 的描述逐字，`limit` 写明 “If omitted, reads the entire file (if feasible, up to a default limit)”；截断时给模型的内容加前缀 `Showing lines <start>-<end> of <total> total lines.`，行数不精确时 total 写作 `at least <n>`）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/c1a8218f38203e272e6e965778ed6a2795cfeed7/packages/core/src/tools/read-file.ts',
+    },
+    'qwen-truncate-settings': {
+      label:
+        'Qwen Code v0.25.1 设置参考（`tools.truncateToolOutputThreshold`：number、默认 `25000`、描述 “Truncate tool output if it is larger than this many characters. Applies to Shell, Grep, Glob, ReadFile and ReadManyFiles tools.”、Requires restart: Yes；`tools.truncateToolOutputLines`：number、默认 `1000`、描述 “Maximum lines or entries kept when truncating tool output. Applies to Shell, Grep, Glob, ReadFile and ReadManyFiles tools.”、Requires restart: Yes；`tools.toolOutputBatchBudget` 在该页没有任何行）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/c1a8218f38203e272e6e965778ed6a2795cfeed7/docs/users/configuration/settings.md',
+    },
+    'qwen-truncate-schema': {
+      label:
+        'Qwen Code v0.25.1 设置 schema 源码（`truncateToolOutputThreshold` 默认 `DEFAULT_TRUNCATE_TOOL_OUTPUT_THRESHOLD`、描述含 “Set to -1 to disable.”；`truncateToolOutputLines` 默认 `DEFAULT_TRUNCATE_TOOL_OUTPUT_LINES`、描述 “The number of lines to keep when truncating tool output.”；`toolOutputBatchBudget` 默认 `DEFAULT_TOOL_OUTPUT_BATCH_BUDGET`、描述 “Per-message character budget for the combined text output of one batch of tool calls. Oversized batches are reduced deterministically and recoverable output is persisted when possible. Set to -1 to disable.”；三者 `requiresRestart: true`）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/c1a8218f38203e272e6e965778ed6a2795cfeed7/packages/cli/src/config/settingsSchema.ts',
+    },
+    'qwen-truncate-config': {
+      label:
+        'Qwen Code v0.25.1 核心配置源码（`export const DEFAULT_TRUNCATE_TOOL_OUTPUT_THRESHOLD = 25_000;`、`export const DEFAULT_TRUNCATE_TOOL_OUTPUT_LINES = 1000;`、`export const DEFAULT_TOOL_OUTPUT_BATCH_BUDGET = 200_000;`，`getTruncateToolOutputThreshold()` 与 `getTruncateToolOutputLines()` 在配置值 `<= 0` 时返回 `Number.POSITIVE_INFINITY`）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/c1a8218f38203e272e6e965778ed6a2795cfeed7/packages/core/src/config/config.ts',
+    },
+    'qwen-file-utils-truncation': {
+      label:
+        'Qwen Code v0.25.1 `processSingleFileContent` 源码（默认分页上限取 `config.getTruncateToolOutputLines()`、字符上限取 `config.getTruncateToolOutputThreshold()`、超出的那一行被截到剩余额度并追加 `... [truncated]`、`isTruncated` 与 `linesShown` 一起回填、界面显示为 `Read lines <start>-<end> of <total> from <path>` 并在字符截断时追加 ` (truncated)`）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/c1a8218f38203e272e6e965778ed6a2795cfeed7/packages/core/src/utils/fileUtils.ts',
+    },
+    'qwen-read-many-files-source': {
+      label:
+        'Qwen Code v0.25.1 `readManyFiles` 源码注释（`@` 提及不传显式 `offset`/`limit`/`pages`，但 `processSingleFileContent` 会把 `config.getTruncateToolOutputLines()` 当默认上限，因此大附件同样可能被截断；与 `read-file.ts` 保持一致以便 Edit/Write 的写前读判定相同）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/c1a8218f38203e272e6e965778ed6a2795cfeed7/packages/core/src/tools/readManyFiles.ts',
+    },
+    'qwen-tool-output-offload-design': {
+      label:
+        'Qwen Code v0.25.1 官方设计说明 `docs/design/2026-08-10-tool-output-offload-preview.md`（分层预算表：持久化闸门为配置阈值加 3k 余量即默认 28k 且按名豁免 `exec`、`read_file`、`read_mcp_resource`、`enter_plan_mode`，每工具预算为 shell 30k、grep 20k、mcp 500k、agent 32k 尾部、web-search 102k、read-file 自管，全局 25k 字符加 1000 行，合并 pass 为适用预算的 2 倍，每条消息 200k 字符，落盘为单文件 50MB、单会话 500MB；超限输出写进会话临时目录的 `tool-results/<callId>.txt`（mode 0o600）并在历史里留预览加指针，模型可用 `read_file` 取回；截断保留头尾 `keep: both`；每工具预算只按字符，声明了它的工具会关掉全局行数上限以免自管分页被暗中削掉）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/c1a8218f38203e272e6e965778ed6a2795cfeed7/docs/design/2026-08-10-tool-output-offload-preview.md',
+    },
+    'kimi-read-tools-211': {
+      label:
+        'Kimi Code 2.1.1 中文工具文档（`Read` 段：参数 `path`、`line_offset`（负数从末尾倒数）、`column_offset`、`n_lines`、`max_chars`，默认上限 100,000 字符、单次调用可申请到 500,000 字符、两个值都可通过 `read` 配置修改，字符数按显示文本的 JavaScript 字符串长度计算；“`Read` 优先返回完整行，结果不会再被通用工具输出限制缩短”，单行放不下时返回片段并在状态里给出列范围与 `Next Read` 参数，非法列偏移明确报错，尾读优先返回较新的完整行且 `column_offset` 不能与负数 `line_offset` 同用，10 MiB 以内的 UTF-16 LE/BE 先严格解码、失败后有损替换并逐页告警且告警计入额度；同页 `Write` 与 `Edit` 段已记录写前读与磁盘变化拒绝）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/%40moonshot-ai/kimi-code%402.1.1/docs/zh/reference/tools.md',
+    },
+    'kimi-read-config-211': {
+      label:
+        'Kimi Code 2.1.1 中文配置文档 `## read` 段（`read` 控制 `Read` 工具的字符额度、包含文件正文与行号与状态信息、不额外叠加行数或 UTF-8 字节数上限；`default_max_chars` integer 默认 `100000`、`max_chars` integer 默认 `500000`；两个值都必须是正整数，调用中的 `max_chars` 覆盖默认值但不超过配置的最大值，结果会说明实际生效的额度，配置的默认值超过最大值时默认读取也按最大值执行）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/%40moonshot-ai/kimi-code%402.1.1/docs/zh/configuration/config-files.md',
+    },
+    'kimi-read-tools-038': {
+      label:
+        'Kimi Code 0.38.0 中文工具文档（`Read` 段旧记法逐字为 “单次最多返回 1000 行或 100 KB，超出部分会附带截断提示”，参数只有 `path`、`line_offset` 与 `n_lines`；本仓库此前据此记录，2.1.1 起已被字符额度记法取代）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/%40moonshot-ai/kimi-code%400.38.0/docs/zh/reference/tools.md',
+    },
+    'qoder-tools-read-context': {
+      label:
+        'Qoder CLI Tools 页 “Read Project Context” 表（三行逐字为 “View files | Read source files, documentation, configuration, and other text assets.”、“Read large files | Read a focused section when the whole file is too large.”、“Read document-like assets | Inspect supported document formats, such as PDFs, when available.”；“Edit Files” 表另有 “Edit notebooks | Modify notebook content when notebook support is available.”；全页没有给出任何行数、字节或字符上限，也没有一次读完整文件的入口）',
+      url: 'https://docs.qoder.com/cli/tools',
+    },
   },
   rows: [
     {
@@ -3084,7 +3174,7 @@ window.matrixData = {
       category: 'execution',
       capability: '文件读写',
       description: '读取、创建和修改工作区文件。',
-      values: { claude: '`Read` · `Edit` · `Write` · 官方工具参考记录读后再改要求与模型差异', codex: '内置读取 · 补丁编辑 · `apply_patch` 无条件保留原换行（rust-v0.162.0 起，旧 LF 归一模式与 opt-in 开关已移除）', qwen: '`read_file` · `edit` · `write_file`', kimi: '`Read` · `Edit` · `Write` · 条件：Edit/Write 拒绝未读取或读取后磁盘已变的已有文件（main 分支，尚未发布）', qoder: '`Read` · `Edit` · `Write`' },
+      values: { claude: '`Read` · `Edit` · `Write` · 单次读取默认上限 25,000 token、整文件超 256 KB 拒绝 · v2.1.296 起 `allow_large: true` 按剩余上下文窗口一次读完 · 官方工具参考记录读后再改要求与模型差异', codex: '无专用文本读取工具，读取经 `exec_command`/`write_stdin`（`max_output_tokens` 默认 10000 token）· 图片用 `view_image` · 保留输出硬上限 1 MiB · `apply_patch` 无条件保留原换行（rust-v0.162.0 起）', qwen: '`read_file` · `edit` · `write_file` · 默认分页 1000 行加 25000 字符（`tools.truncateToolOutputLines`/`truncateToolOutputThreshold`，设 `-1` 关闭且需重启）· 没有每次调用放大入口 · 超限输出落盘可用 `read_file` 取回', kimi: '`Read` · `Edit` · `Write` · 字符额度默认 100000、单次可申请到 500000（`[read] default_max_chars`/`max_chars`）· 2.1.1 官方文档已记录写前读与磁盘变化拒绝', qoder: '`Read` · `Edit` · `Write` · 官方只写「文件过大时读取聚焦片段」，未公布行数、字节或字符上限，也没有一次读完入口' },
     },
     {
       id: 'execution-shell',
