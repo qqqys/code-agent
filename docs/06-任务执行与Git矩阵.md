@@ -2,11 +2,11 @@
 
 [返回文档目录](./README.md) · [网页矩阵](https://qqqys.github.io/code-agent/#execution) · [详情目录](./capabilities/execution/)
 
-> 核对日期：2026-10-12
+> 核对日期：2026-10-13
 
 | 能力 | Claude Code | Codex | Qwen Code | Kimi Code | Qoder CLI |
 | --- | --- | --- | --- | --- | --- |
-| [文件读写](./capabilities/execution/execution-files.md) | `Read` · `Edit` · `Write` · 官方工具参考记录读后再改要求与模型差异 | 内置读取 · 补丁编辑 · `apply_patch` 无条件保留原换行（rust-v0.162.0 起，旧 LF 归一模式与 opt-in 开关已移除） | `read_file` · `edit` · `write_file` | `Read` · `Edit` · `Write` · 条件：Edit/Write 拒绝未读取或读取后磁盘已变的已有文件（main 分支，尚未发布） | `Read` · `Edit` · `Write` |
+| [文件读写](./capabilities/execution/execution-files.md) | `Read` · `Edit` · `Write` · 单次读取默认上限 25,000 token、整文件超 256 KB 拒绝 · v2.1.296 起 `allow_large: true` 按剩余上下文窗口一次读完 · 官方工具参考记录读后再改要求与模型差异 | 无专用文本读取工具，读取经 `exec_command`/`write_stdin`（`max_output_tokens` 默认 10000 token）· 图片用 `view_image` · 保留输出硬上限 1 MiB · `apply_patch` 无条件保留原换行（rust-v0.162.0 起） | `read_file` · `edit` · `write_file` · 默认分页 1000 行加 25000 字符（`tools.truncateToolOutputLines`/`truncateToolOutputThreshold`，设 `-1` 关闭且需重启）· 没有每次调用放大入口 · 超限输出落盘可用 `read_file` 取回 | `Read` · `Edit` · `Write` · 字符额度默认 100000、单次可申请到 500000（`[read] default_max_chars`/`max_chars`）· 2.1.1 官方文档已记录写前读与磁盘变化拒绝 | `Read` · `Edit` · `Write` · 官方只写「文件过大时读取聚焦片段」，未公布行数、字节或字符上限，也没有一次读完入口 |
 | [Shell 执行](./capabilities/execution/execution-shell.md) | `Bash` · 条件：Linux Bash 命令内存 cgroup 限制（`CLAUDE_CODE_TOOL_MEMORY_LIMIT`，v2.1.233 引入） | 统一 PTY Shell | `run_shell_command` | `Bash` | `Bash` · `!` 模式 |
 | [代码搜索](./capabilities/execution/execution-search.md) | `Glob` · `Grep` · `LSP` | 内置搜索 · Shell/`rg` | `glob` · `grep_search` · `LSP`；条件：`list_directory` 默认关闭，`tools.listDirectory.enabled` 启用（v0.22.0 起） | `Glob` · `Grep` | `Glob` · `Grep` |
 | [后台任务](./capabilities/execution/execution-background.md) | `/background` · `/tasks` · `Monitor` | `/ps` · `/stop` | `is_background` · `Ctrl+B` · `/tasks` | `run_in_background` · `/tasks` · `WaitFor` 回合内等待（0.38.0 起）；条件：main 分支（尚未发布）起 `WaitFor` 上限由 600 秒收紧为 90 秒、新输入立即结束等待；`/tasks` 后台 Agent 实时活动（0.35.0 起） | `/tasks` · `TaskOutput` · `TaskStop` |

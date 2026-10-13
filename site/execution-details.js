@@ -87,10 +87,11 @@
       includes: [
         '文件读取、创建、覆盖和局部修改',
         'Notebook 或媒体文件的专用入口',
+        '单次读取的大小上限、超限结果与一次读完的入口',
         '修改前读取、权限审批与工作区边界',
       ],
       excludes: [
-        '仅由 Shell 命令完成的文件操作',
+        'Shell 工具自身的执行、超时与后台进程管理',
         '代码搜索和符号导航',
         'Git 暂存、提交与回退',
       ],
@@ -99,16 +100,18 @@
         'Claude Code、Qwen Code 和 Qoder CLI 单独提供 Notebook 编辑工具；Kimi Code 的当前工具表把媒体读取与文本读取分开。',
         '工具名称相近不代表审批相同：只读工具通常可直接运行，写入和编辑仍受各自权限模式、工作区边界与沙箱约束。',
         '换行处理不同：Codex `apply_patch` 自 rust-v0.162.0 起无条件保留原换行（旧的归一为 LF 模式与 `apply_patch_preserve_line_endings` opt-in 开关已移除）；Qwen Code `edit` 默认检测并保留原换行风格。Claude Code、Kimi Code 与 Qoder CLI 的官方工具文档未列同类换行保留或规范化配置。',
-        '写前读与过期写入保护不同：Claude Code 官方工具参考记录读后再改要求——当前会话先读取才能编辑，Claude Opus 4.6、Haiku 4.5 及更早模型始终要求先读，较新模型在读取无需权限提示且 Read 工具可用时可编辑未读文件；Kimi Code main 分支新增 staleGuard（尚未发布），Edit/Write 拒绝修改未经本 Agent 读取或读取后磁盘 mtime 已变的已有文件；Qwen Code `edit` 以 `checkPriorRead` 强制读后再改并在写入前复核过期；Codex 与 Qoder CLI 的官方工具文档未列同类写前读强制要求。',
+        '写前读与过期写入保护不同：Claude Code 官方工具参考记录读后再改要求——当前会话先读取才能编辑，Claude Opus 4.6、Haiku 4.5 及更早模型始终要求先读，较新模型在读取无需权限提示且 Read 工具可用时可编辑未读文件；Kimi Code 的 staleGuard 已由 2.1.1 官方中文工具文档记录（`Write` 与 `Edit` 段各写明目标文件必须先在本会话用 `Read` 读过、文件自上次读取后在磁盘上变化即拒绝、新建文件不受限），不再是只存在于 main 分支的未发布行为；Qwen Code `edit` 以 `checkPriorRead` 强制读后再改并在写入前复核过期；Codex 与 Qoder CLI 的官方工具文档未列同类写前读强制要求。',
+        '单次读取的额度口径五家各不相同：Claude Code 按 token 计（默认一次至多 25,000 token，整文件超过 256 KB 直接拒绝），自 v2.1.296 起模型可在单次调用传 `allow_large: true` 改为按会话剩余上下文窗口计量；Kimi Code 按字符计（默认 100,000，单次调用可申请到 500,000，两个值都能在 `[read]` 配置里改）；Qwen Code 按行数加字符计（默认 1000 行、25,000 字符，各自设 `-1` 关闭，都需要重启），没有每次调用的放大入口；Codex 没有专用文本读取工具，文本读取走 `exec_command`/`write_stdin` 的 `max_output_tokens`（默认 10000 token）并另有 1 MiB 的保留输出硬上限；Qoder CLI 官方只写「文件过大时读取聚焦片段」，没有公布任何数值上限。',
+        '超限后的可恢复性也不同：Claude Code 整文件超 token 上限时返回首页并附 `PARTIAL view` 提示、整文件超 256 KB 或分页读超 token 上限时直接报错并要求改用 `offset`/`limit` 或 Grep；Kimi Code 在状态里给出列范围与 `Next Read` 参数，单行放不下时按片段返回；Qwen Code 把超限输出写进会话临时目录并在历史里留预览加指针，模型可用 `read_file` 取回；Codex 对 stdout 与 stderr 各自 `truncate` 到上限，保留开头、丢弃结尾且不报告截断行数。',
       ],
       products: {
         claude: {
           entry:
             '模型调用 `Read`、`Edit`、`Write`；Notebook 使用 `NotebookEdit`，图片和 PDF 可由 `Read` 读取。',
           primitives:
-            '`Read` 支持文本、图片、PDF 与 Notebook；`Edit` 做精确替换；`Write` 创建或覆盖；`NotebookEdit` 修改单元。',
+            '`Read` 支持文本、图片、PDF 与 Notebook，接受文件路径与 `offset`/`limit` 分页参数，PDF 另有 `pages`；`Edit` 做精确替换；`Write` 创建或覆盖；`NotebookEdit` 修改单元。官方工具参考写明 `Read` 返回带行号的内容、Claude 被要求始终传绝对路径、读空文件会得到「文件存在但内容为空」的提示、`offset` 超过最后一行会得到带文件行数的提示（v2.1.208 之前读空文件返回的是越界提示），并且 `Read` 只读文件不读目录、列目录要用 `ls` 一类 Shell 命令。',
           behavior:
-            '`Edit` 与 `Write` 会触发文件修改权限检查；读取和搜索工具默认不要求权限。编辑后 LSP 可自动回报类型错误。官方工具参考记录读后再改要求：当前会话需先读取目标文件，`PARTIAL view` 截断的读取不算；Claude Opus 4.6、Haiku 4.5 及更早模型始终要求先读，较新模型在读取无需权限提示且 Read 工具可用时可编辑未读文件；Bash 用 `cat`、`nl`、`bat`、`batcat`、`head`、`tail`、`sed -n \'X,Yp\'`、`grep`、`egrep`、`fgrep`、`rg` 查看单文件且无管道或重定向也满足要求。`Write` 覆盖已有文件是否必须先读取决于模型与文件；Jupyter Notebook 与部分读取的文件对所有模型都要求先读；新建文件不受限。文件在上次读取后变化时，仅当 `old_string` 与当前内容精确且唯一匹配、读取无需提示才允许直接编辑，其余情况要先重读。',
+            '`Edit` 与 `Write` 会触发文件修改权限检查；读取和搜索工具默认不要求权限，官方工具参考里 `Read` 行的 Permission required 为 “No”。编辑后 LSP 可自动回报类型错误。读取额度按 token 计：默认一次 `Read` 至多返回 25,000 token，或 `CLAUDE_CODE_FILE_READ_MAX_OUTPUT_TOKENS` 设定的值，整文件超过 256 KB 直接拒绝，因此更大的文件要用 `offset` 与 `limit` 分页读；自 v2.1.296 起模型可在单次调用传 `allow_large: true`，改为按会话上下文窗口的剩余空间计量，一次读完整文件或一段很长的行范围，官方给出的典型理由是用户要求看整个文件，图片、PDF 与 Notebook 仍保留各自上限。超过默认上限时分两种结果：整文件超过 token 上限返回首页并附 `PARTIAL view` 提示，说明收到了多少以及怎么用 `offset`/`limit` 继续读；整文件超过 256 KB，或带 `offset`/`limit` 的分页读超过 token 上限，则返回错误，要求改用 `offset`/`limit` 读一段或改用 Grep 搜具体内容。官方工具参考记录读后再改要求：当前会话需先读取目标文件，`PARTIAL view` 截断的读取不算；Claude Opus 4.6、Haiku 4.5 及更早模型始终要求先读，较新模型在读取无需权限提示且 Read 工具可用时可编辑未读文件；Bash 用 `cat`、`nl`、`bat`、`batcat`、`head`、`tail`、`sed -n \'X,Yp\'`、`grep`、`egrep`、`fgrep`、`rg` 查看单文件且无管道或重定向也满足要求。`Write` 覆盖已有文件是否必须先读取决于模型与文件；Jupyter Notebook 与部分读取的文件对所有模型都要求先读；新建文件不受限。文件在上次读取后变化时，仅当 `old_string` 与当前内容精确且唯一匹配、读取无需提示才允许直接编辑，其余情况要先重读。',
           scope:
             '以当前项目目录和已加入的工作目录为主要范围；目录外访问由文件权限规则决定。',
           background:
@@ -118,16 +121,22 @@
           artifacts:
             '修改直接落在当前工作区或当前 Worktree；检查点与 Git 决定后续回退方式。',
           conditions:
-            '工具可被 `permissions.deny`、Subagent 工具列表或 Plugin 配置移除；Plan 模式会限制写入。官方工具参考未列 `Edit`/`Write` 的换行保留或规范化配置。',
-          sources: ['claude-tools', 'claude-permissions'],
+            '工具可被 `permissions.deny`、Subagent 工具列表或 Plugin 配置移除；Plan 模式会限制写入。官方工具参考未列 `Edit`/`Write` 的换行保留或规范化配置。非文本类型的上限各自独立：图片按模型的图片尺寸限制先缩放重压，缩放后仍超过 500KB 的会以降低质量重编码为 JPEG 且不改像素尺寸；PDF 超过 10 页时用 `pages` 按范围读、一次至多 20 页，页面范围读取依赖 poppler-utils 的 `pdftoppm`，缺失时以 `pdftoppm is not installed` 失败；Notebook 返回全部单元与输出，单元合计超过 256 KB 或超过 token 上限时返回错误，超过 100 MB 的 Notebook 拒绝读取并在错误里说明改用 Shell 读一部分。`allow_large` 需要 v2.1.296 及以上；`CLAUDE_CODE_FILE_READ_MAX_OUTPUT_TOKENS` 只改默认 token 上限，官方环境变量页写明带 `allow_large` 的读取在上下文窗口有余量时可以超过它。',
+          sources: [
+            'claude-tools',
+            'claude-read-large-files',
+            'claude-read-limit-changelog',
+            'claude-env-vars',
+            'claude-permissions',
+          ],
         },
         codex: {
           entry:
-            '模型使用内置文件读取与补丁编辑能力；需要整文件或批量机械操作时也可通过 Shell 完成。',
+            '模型用统一执行工具 `exec_command` 与 `write_stdin` 读取文本文件，用 `apply_patch` 提交修改，图片用 `view_image`。固定到 main `f82e36592278` 的工具 handler 目录里没有任何专用文本读取工具，只有 `apply_patch`、`current_time`、`get_context_remaining`、`list_available_plugins_to_install`、`mcp`、`mcp_resource`、`multi_agents`、`new_context_window`、`plan`、`request_permissions`、`request_plugin_install`、`request_user_input`、`send_message_to_user_async`、`shell`、`sleep`、`test_sync`、`tool_search`、`unified_exec`、`view_image` 与 `wait_for_environment`。',
           primitives:
-            '核心路径是读取文件后提交结构化补丁；自 rust-v0.162.0 起 `apply_patch` 无条件保留原换行——旧的 `NormalizeToLf`（把更新文件归一为 LF）模式已移除，未改动行保留各自原有结尾（混合换行也能存活），插入行采用文件首个已有换行风格，文件无换行时用 LF。当前公开文档不要求用户记住内部工具名。',
+            '读取没有独立工具，因此读取额度就是命令输出额度：`shell_spec.rs` 里声明为 `exec_command` 与 `write_stdin` 的两个工具都带 `max_output_tokens` 参数，描述逐字为 “Output token budget. Defaults to 10000 tokens; larger requests may be capped by policy.”，`registry.rs` 另按 `"exec_command" | "shell_command"` 匹配同类调用。写入的核心路径是读取文件后提交结构化补丁；自 rust-v0.162.0 起 `apply_patch` 无条件保留原换行——旧的 `NormalizeToLf`（把更新文件归一为 LF）模式已移除，未改动行保留各自原有结尾（混合换行也能存活），插入行采用文件首个已有换行风格，文件无换行时用 LF。`view_image` 的描述逐字为 “View a local image file from the filesystem when visual inspection is needed. Use this for images already available on disk.”，参数只有必填的 `path`，`detail`（`high` 或 `original`）只在 `can_request_original_image_detail` 为真且未启用 `unified_image_budget` 时才出现。',
           behavior:
-            '补丁在应用前后仍受当前审批预设和文件系统沙箱控制；只读模式不会允许持久修改。官方 Apply Patch 指南（Responses API harness 说明）列出 `create_file`/`update_file`/`delete_file` 三种 V4A diff 操作并由 harness 应用，未设写前读强制要求；`update_file` 上下文与文件内容不匹配时应用失败并返回如 `Error: Invalid Context` 的错误，模型据此重读文件或简化改动后重试。',
+            '补丁在应用前后仍受当前审批预设和文件系统沙箱控制；只读模式不会允许持久修改。官方 Apply Patch 指南（Responses API harness 说明）列出 `create_file`/`update_file`/`delete_file` 三种 V4A diff 操作并由 harness 应用，未设写前读强制要求；`update_file` 上下文与文件内容不匹配时应用失败并返回如 `Error: Invalid Context` 的错误，模型据此重读文件或简化改动后重试。读取超限的行为由 exec 输出保留逻辑决定：`EXEC_OUTPUT_MAX_BYTES` 取 `DEFAULT_OUTPUT_BYTES_CAP`（`1024 * 1024`，即 1 MiB），源码注释逐字为 “Hard cap on bytes retained from exec stdout/stderr/aggregated output.”，且只有 `ExecCapturePolicy::ShellTool` 返回该上限、`FullBuffer` 一类策略返回 `None`；超限时对 stdout 与 stderr 各自调用 `truncate(max_bytes)`，因此保留开头、丢弃结尾，返回结构里的 `truncated_after_lines` 为 `None`，不报告截断发生在第几行。`MAX_EXEC_OUTPUT_DELTAS_PER_CALL = 10_000` 只限制实时增量事件条数，聚合仍收集完整输出。',
           scope:
             '默认受当前工作区、额外可写目录和所选沙箱边界约束；桌面 App Worktree 会把落盘位置切到隔离目录。',
           background:
@@ -137,7 +146,8 @@
           artifacts:
             '结果是工作区文件修改和可审阅 Diff；不会因为生成补丁自动创建提交。',
           conditions:
-            '实际可写范围取决于 Read Only、Auto 等权限预设以及运行时沙箱；Cloud 任务使用远端环境。换行保留自 rust-v0.162.0（2026-10-08 发布，PR #51203 合并提交 `685270a56a96`）起为默认且唯一行为，不再需要任何开关：功能登记册把 `apply_patch_preserve_line_endings` 标记为 `Stage::Removed`（doc comment 逐字为 "Removed compatibility flag. Patches always preserve existing line endings."），旧的 LF 归一模式连同该 opt-in 一并删除。为兼容仍按环境变量选择模式的旧版独立 `apply_patch` 可执行文件（含远程 executor 提供的），Core 在子进程环境里总是注入 `CODEX_APPLY_PATCH_PRESERVE_LINE_ENDINGS=1`，并先按大小写不敏感清除继承来的同名值再写入，官方注释逐字为 "Override inherited values so they cannot restore the legacy normalization behavior."。',
+            '实际可写范围取决于 Read Only、Auto 等权限预设以及运行时沙箱；Cloud 任务使用远端环境。换行保留自 rust-v0.162.0（2026-10-08 发布，PR #51203 合并提交 `685270a56a96`）起为默认且唯一行为，不再需要任何开关：功能登记册把 `apply_patch_preserve_line_endings` 标记为 `Stage::Removed`（doc comment 逐字为 "Removed compatibility flag. Patches always preserve existing line endings."），旧的 LF 归一模式连同该 opt-in 一并删除。为兼容仍按环境变量选择模式的旧版独立 `apply_patch` 可执行文件（含远程 executor 提供的），Core 在子进程环境里总是注入 `CODEX_APPLY_PATCH_PRESERVE_LINE_ENDINGS=1`，并先按大小写不敏感清除继承来的同名值再写入，官方注释逐字为 "Override inherited values so they cannot restore the legacy normalization behavior."。读取侧的边界是：没有专用读取工具因而没有「读完整文件」的开关，`max_output_tokens` 是每次调用可传的预算但官方描述写明更大的请求可能被策略压低，1 MiB 是保留输出的硬上限而非可配置项；官方文档站与配置参考在核对日期都没有给出这两个数值，本次证据取自固定到 main `f82e36592278` 的源码，核对日期最新 Release 是 rust-v0.163.0-alpha.5（2026-10-10T00:26:59Z）。',
+          status: '源码确认',
           sources: [
             'codex-docs',
             'codex-approvals',
@@ -148,15 +158,20 @@
             'codex-apply-patch-text-file',
             'codex-apply-patch-exec-env',
             'codex-apply-patch-features',
+            'codex-tool-handlers',
+            'codex-shell-max-output-tokens',
+            'codex-exec-output-cap',
+            'codex-pty-output-cap',
+            'codex-view-image-spec',
           ],
         },
         qwen: {
           entry:
             '模型调用 `read_file`、`edit`、`write_file` 和 `notebook_edit`。目录浏览工具 `list_directory` 自 v0.22.0 起默认关闭，启用后可用（`tools.listDirectory.enabled`），目录列表通常由 `glob` 完成。',
           primitives:
-            '`read_file` 分页读取；`edit` 做受控替换；`write_file` 写入完整内容；`notebook_edit` 修改 Notebook 单元。',
+            '`read_file` 分页读取，参数为必填的 `file_path`（描述逐字要求绝对路径）与可选的 `offset`（0 基起始行号，描述写明必须同时设 `limit`）、`limit`（最多读多少行，描述逐字为 “If omitted, reads the entire file (if feasible, up to a default limit).”）、`pages`（PDF 页范围，1 基，一次至多 `PDF_MAX_PAGES_PER_READ = 20` 页，不支持 `3-` 这类开区间）；`edit` 做受控替换；`write_file` 写入完整内容；`notebook_edit` 修改 Notebook 单元。',
           behavior:
-            '读取与编辑分别经过路径权限、工作区信任和 approval mode。`edit` 以 `checkPriorRead` 强制读后再改：未经合法读取的已有文件拒绝编辑，按 mtime/文件大小检测过期，并在读取后、写入前各复核一次以收紧 TOCTOU 窗口；工具描述也要求先查看文件当前内容再尝试替换。`edit` 匹配前把 CRLF 归一为 LF，写回已有文件时按检测到的原换行风格恢复。',
+            '读取与编辑分别经过路径权限、工作区信任和 approval mode。`read_file` 的默认分页上限不是硬编码行数，而是取 `config.getTruncateToolOutputLines()`，也就是设置项 `tools.truncateToolOutputLines`（默认 `1000`，官方描述 “Maximum lines or entries kept when truncating tool output. Applies to Shell, Grep, Glob, ReadFile and ReadManyFiles tools.”，Requires restart: Yes）；同时按 `tools.truncateToolOutputThreshold`（默认 `25000` 字符，官方描述同一句适用范围，Requires restart: Yes）做字符截断，超出的那一行被截到剩余额度并追加 `... [truncated]`。两个设置在 schema 里的描述都写明 “Set to -1 to disable.”，源码里 `getTruncateToolOutputThreshold()` 与 `getTruncateToolOutputLines()` 在配置值 `<= 0` 时返回 `Number.POSITIVE_INFINITY`。截断时给模型的内容加前缀 `Showing lines <start>-<end> of <total> total lines.`，行数不精确时 total 写作 `at least <n>`；界面显示为 `Read lines <start>-<end> of <total> from <path>`，字符截断时再追加 ` (truncated)`。`ReadFileTool` 的 `maxOutputChars` 被显式重写为 `Number.POSITIVE_INFINITY`，源码注释逐字为 “Self-managed: ReadFile controls its own size via line-based paging (offset/limit, default truncateToolOutputLines setting), so it is exempt from the scheduler’s char-based truncation. Oversized reads are bounded by the per-message batch budget instead.”，那个每消息预算是 `tools.toolOutputBatchBudget`（默认 `DEFAULT_TOOL_OUTPUT_BATCH_BUDGET = 200_000` 字符，schema 描述 “Per-message character budget for the combined text output of one batch of tool calls. Oversized batches are reduced deterministically and recoverable output is persisted when possible. Set to -1 to disable.”）。官方设计说明给出的分层预算为：持久化闸门是配置阈值加 3k 余量（默认 28k）且按名豁免 `exec`、`read_file`、`read_mcp_resource`、`enter_plan_mode`；每工具预算是 shell 30k、grep 20k、mcp 500k、agent 32k 尾部、web-search 102k、read-file 自管；全局 25k 字符加 1000 行；合并 pass 为适用预算的 2 倍；每条消息 200k 字符；落盘上限单文件 50MB、单会话 500MB。超限输出写进会话临时目录的 `tool-results/<callId>.txt`（mode 0o600），历史里只留预览加指针，模型可以用 `read_file` 把完整内容取回；截断保留头尾（`keep: \'both\'`）。`edit` 以 `checkPriorRead` 强制读后再改：未经合法读取的已有文件拒绝编辑，按 mtime/文件大小检测过期，并在读取后、写入前各复核一次以收紧 TOCTOU 窗口；工具描述也要求先查看文件当前内容再尝试替换。`edit` 匹配前把 CRLF 归一为 LF，写回已有文件时按检测到的原换行风格恢复。',
           scope:
             '默认工作区是启动目录；`--include-directories`、Worktree 或 Daemon workspace 可改变有效路径范围。',
           background:
@@ -166,22 +181,29 @@
           artifacts:
             '修改写入当前工作区、当前 Worktree 或显式 Agent 工作目录；不会自动暂存或提交。',
           conditions:
-            'Plan mode 禁止普通写入；auto-edit、auto、yolo 对审批的处理不同，沙箱仍是独立边界。',
+            'Plan mode 禁止普通写入；auto-edit、auto、yolo 对审批的处理不同，沙箱仍是独立边界。读取侧没有每次调用的放大入口：`limit` 可以传更大的值，但字符阈值仍会截断，要一次拿到更多内容只能改设置并重启（`tools.truncateToolOutputThreshold` 或 `tools.truncateToolOutputLines` 设 `-1` 关闭对应上限，`tools.toolOutputBatchBudget` 同样支持 `-1`）。`tools.toolOutputBatchBudget` 在 v0.25.1 的官方设置参考里没有任何行，只出现在设置 schema 源码与官方设计说明中，属于文档缺口；同一份设计说明的日期是 2026-08-10，其中的分层数值与 v0.25.1 源码常量一致。`@` 文件提及走的是同一条读取路径：`readManyFiles` 的源码注释写明 `@` 提及不传显式 `offset`/`limit`/`pages`，但 `processSingleFileContent` 会把 `config.getTruncateToolOutputLines()` 当默认上限，因此大附件同样可能被截断，这与 `read-file.ts` 保持一致以便 Edit/Write 的写前读判定相同。本次读取额度的证据固定到标签 v0.25.1（标签提交 `c1a8218f38203e272e6e965778ed6a2795cfeed7`）。',
           sources: [
             'qwen-tools-current',
             'qwen-settings',
             'qwen-worktree-current',
             'qwen-edit-tool',
             'qwen-list-directory-settings',
+            'qwen-read-file-source',
+            'qwen-truncate-settings',
+            'qwen-truncate-schema',
+            'qwen-truncate-config',
+            'qwen-file-utils-truncation',
+            'qwen-tool-output-offload-design',
+            'qwen-read-many-files-source',
           ],
         },
         kimi: {
           entry:
-            '模型调用 `Read`、`Write`、`Edit`；图片和视频使用 `ReadMediaFile`。',
+            '模型调用 `Read`、`Write`、`Edit`；图片和视频使用 `ReadMediaFile`（文件大小上限 100 MB）。',
           primitives:
-            '`Read` 最多返回 1000 行或 100 KB；`Write` 支持 overwrite/append；`Edit` 支持唯一匹配或 `replace_all`。',
+            '`Read` 按字符额度返回，参数为必填的 `path` 与可选的 `line_offset`（起始行号，负数从末尾倒数）、`column_offset`（正向读取时起始行内从 0 开始的位置）、`n_lines`（请求读取的源文件行数，省略时向文件末尾读取）与 `max_chars`（结果的字符上限，包含行号与状态信息）；默认上限 100,000 字符，单次调用可申请到 500,000 字符，两个值都能通过 `[read]` 配置修改，字符数与列偏移按显示文本的 JavaScript 字符串长度计算（常见字母与汉字各计 1，许多 emoji 计 2），列偏移不含行号前缀。`Write` 支持 overwrite/append；`Edit` 支持唯一匹配或 `replace_all`。',
           behavior:
-            'Read 默认放行，Write/Edit 默认需审批；Grep/Glob 会过滤敏感文件，写入缺失父目录时会自动创建。v2 引擎的 staleGuard 在工具执行前拦截 Edit/Write：修改已有文件要求本 Agent 此前成功执行过 `Read`（`Read`/`Edit`/`Write` 成功后记录文件 mtimeMs，失败不记录），当前磁盘 mtime 与记录不一致即拒绝；同一批工具调用中已有对同一路径的 `Read` 时放行；新建文件不受影响。拒绝时分别提示 "has not been read by this agent yet" 或 "has been modified on disk since this agent last read it"，要求先（重新）读取；Agent 运行时变化会清空记录。',
+            'Read 默认放行，Write/Edit 默认需审批；Grep/Glob 会过滤敏感文件，写入缺失父目录时会自动创建。读取额度由 `[read]` 配置块控制，官方写明它「控制 `Read` 工具的字符额度，包含文件正文、行号和状态信息，不额外叠加行数或 UTF-8 字节数上限」，字段为 `default_max_chars`（integer，默认 `100000`，工具调用未指定 `max_chars` 时的额度）与 `max_chars`（integer，默认 `500000`，单次调用可申请的最大额度）；两个值都必须是正整数，调用里的 `max_chars` 覆盖默认值但不会超过配置的最大值，结果会说明实际生效的额度，配置的默认值超过最大值时默认读取也按最大值执行，官方还写明想让较大文档默认就一次返回、不用 Agent 主动申请更大额度时可以调高 `default_max_chars`。`Read` 优先返回完整行，官方逐字为「结果不会再被通用工具输出限制缩短」；单独一行也放不下时按片段返回，状态里给出列范围与 `Next Read` 参数因而不需要提高额度即可续读，拼接同一行的片段时不要额外插入换行，一行只返回部分内容时仍计入剩余的 `n_lines` 范围直到行尾返回，非法列偏移明确报错而不跳过内容。尾读优先返回请求范围里较新的完整行，连一条完整行都放不下时给出未读范围的正向 `Next Read` 参数，`column_offset` 不能与负数 `line_offset` 同时使用；续读位置针对文件当前内容，文件变化后要重新读取，尾读若提示读取期间文件发生变化则基于更新后的文件重试。10 MiB 以内的 UTF-16 LE/BE 文件先尝试严格解码，失败后把损坏序列替换掉并返回可读文本、每一页都告警发生了有损解码，告警本身也计入字符额度。v2 引擎的 staleGuard 在工具执行前拦截 Edit/Write：修改已有文件要求本 Agent 此前成功执行过 `Read`（`Read`/`Edit`/`Write` 成功后记录文件 mtimeMs，失败不记录），当前磁盘 mtime 与记录不一致即拒绝；同一批工具调用中已有对同一路径的 `Read` 时放行；新建文件不受影响。拒绝时分别提示 "has not been read by this agent yet" 或 "has been modified on disk since this agent last read it"，要求先（重新）读取；Agent 运行时变化会清空记录。',
           scope:
             '相对路径基于当前工作目录；权限模式和工具策略继续限制路径与写入。',
           background:
@@ -191,9 +213,12 @@
           artifacts:
             '写入直接落盘；会话日志记录工具事件，但不会自动把修改变成 Git 提交。',
           conditions:
-            'Plan 模式下 Write/Edit 只允许写计划文件；YOLO 跳过普通审批但不改变文件系统权限。官方工具文档未列换行保留或规范化配置；`Write` 的 append 模式不自动补换行。staleGuard 于 2026-08-19 合入 main（提交 `67fbcdf1ba7d`，PR #3096），changeset 为 patch 级、尚未发布；无配置开关，仅 agent-core-v2 引擎实现（该提交时点的官方配置文档称 agent-core-v2 为默认引擎，`kimi web` 始终使用 v2），`KIMI_CODE_LEGACY_FLAG=1` 选择的旧版引擎未实现；官方工具文档尚未同步。',
+            'Plan 模式下 Write/Edit 只允许写计划文件；跳过普通审批的模式在 2.1.1 官方工具文档里称为 “Ask When Needed”（0.38.0 时同一句写作 YOLO），它不改变文件系统权限。官方工具文档未列换行保留或规范化配置；`Write` 的 append 模式不自动补换行。读取额度这一项本次改正了两处过期记法：其一，仓库此前记录的「`Read` 最多返回 1000 行或 100 KB」取自 0.38.0 中文工具文档的旧句「单次最多返回 1000 行或 100 KB，超出部分会附带截断提示」，而 2.1.1（2026-09-24 发布，也是核对日期最新的 Release）与 main `afd95f64a544` 的同一页都已改为字符额度记法，参数也从 `path`/`line_offset`/`n_lines` 三个扩到含 `column_offset` 与 `max_chars` 的五个，官方文档没有任何行数上限；其二，staleGuard 此前记为「main 分支、尚未发布、官方工具文档尚未同步」，而 2.1.1 的中文工具文档已在 `Write` 与 `Edit` 段各写明目标文件必须在本会话先用 `Read` 读过、文件自上次读取后在磁盘上变化即拒绝、新建文件不受限，因此该行为已属官方文档记录的已发布能力，实现细节（mtimeMs 记录、同批放行、拒绝文案、Agent 运行时变化清空）仍取自 2026-08-19 合入 main 的提交 `67fbcdf1ba7d`（PR #3096）；`[read]` 配置块在 2.1.1 与 main 的中文配置文档里都存在。',
+          status: '官方确认',
           sources: [
-            'kimi-tools-current',
+            'kimi-read-tools-211',
+            'kimi-read-config-211',
+            'kimi-read-tools-038',
             'kimi-config-current',
             'kimi-stale-guard-commit',
             'kimi-stale-guard-service',
@@ -205,9 +230,9 @@
           entry:
             '模型调用 `Read`、`Edit`、`Write` 与 `NotebookEdit`；SDK 可通过 `tools`、`allowedTools`、`disallowedTools` 控制暴露。',
           primitives:
-            '内置工具覆盖文本读取、局部编辑、整文件写入和 Notebook 编辑，工具输入输出在 SDK Reference 中有类型定义。',
+            '内置工具覆盖文本读取、局部编辑、整文件写入和 Notebook 编辑，工具输入输出在 SDK Reference 中有类型定义。官方 Tools 页只用能力表描述读取：「View files」对应 “Read source files, documentation, configuration, and other text assets.”、「Read large files」对应 “Read a focused section when the whole file is too large.”、「Read document-like assets」对应 “Inspect supported document formats, such as PDFs, when available.”；「Edit Files」表另有 “Edit notebooks | Modify notebook content when notebook support is available.”。',
           behavior:
-            'Edit 权限规则同时覆盖 Edit、Write 和 NotebookEdit；Read 与 Edit 可按路径模式细分 Allow、Ask、Deny。',
+            'Edit 权限规则同时覆盖 Edit、Write 和 NotebookEdit；Read 与 Edit 可按路径模式细分 Allow、Ask、Deny。读取超限的官方说法只有「文件过大时读取聚焦片段」，即由模型改用带范围的读取而不是提高额度。',
           scope:
             '当前 workspace 是主要目录；`--add-dir`、`/add-dir` 或 `permissions.additionalDirectories` 可增加可信目录。',
           background:
@@ -217,8 +242,13 @@
           artifacts:
             '修改写入当前 workspace 或所选 Worktree；是否进入提交由后续 Git 操作决定。',
           conditions:
-            '权限规则、Subagent `tools`/`disallowedTools` 和 SDK query options 都可能缩小可用集合。官方内置工具文档未列换行保留、规范化配置或写前读/过期写入保护。',
-          sources: ['qoder-tools', 'qoder-permissions', 'qoder-sdk-reference'],
+            '权限规则、Subagent `tools`/`disallowedTools` 和 SDK query options 都可能缩小可用集合。官方内置工具文档未列换行保留、规范化配置或写前读/过期写入保护。读取额度同样没有公开数值：Tools 页、SDK tools 页与 SDK References 页在核对日期都没有给出 `Read` 的参数表、最大行数、最大文件字节数或字符上限，也没有类似 `allow_large`、`max_chars`、`max_output_tokens` 的每次调用放大入口，SDK References 页只列出 `tool()`、`@tool()`、`createSdkMcpServer()`、`create_sdk_mcp_server()`、`canUseTool`、`can_use_tool` 与 `toolConfig` 并写明内置工具行为另见 Tools 页；CLI 1.1.66 至 1.1.69（2026-10-08 至 2026-10-12）的发布说明没有任何文件读取、大文件、截断或输出上限相关条目。因此该项的具体数值记为未确认，只记录官方给出的「过大时读聚焦片段」这一行为边界。',
+          sources: [
+            'qoder-tools',
+            'qoder-tools-read-context',
+            'qoder-permissions',
+            'qoder-sdk-reference',
+          ],
         },
       },
       related: ['execution-search', 'execution-git', 'security-filesystem'],
