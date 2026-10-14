@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-10-13',
+  updatedAt: '2026-10-14',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -148,6 +148,21 @@ window.matrixData = {
       label:
         'Claude Code v2.1.296 `CLAUDE_CODE_WORKFLOW_SUBAGENT_MODEL` 更新日志（官方环境变量页与 Workflows 页尚未收录该变量）',
       url: 'https://github.com/anthropics/claude-code/blob/2301018b1f61073c501a8e7a4813ef48c239163b/CHANGELOG.md',
+    },
+    'claude-v21299-idle-compaction-changelog': {
+      label:
+        'Claude Code v2.1.299 空闲压缩更新日志（`idleCompaction` 与 `CLAUDE_CODE_IDLE_COMPACT_MIN_TOKENS`，2026-10-14 发布）',
+      url: 'https://github.com/anthropics/claude-code/blob/db93774d73e8fdbaf315a6f4c175ae99ad3d515a/CHANGELOG.md',
+    },
+    'claude-prompt-caching': {
+      label:
+        'Claude Code Prompt caching（缓存生命周期、一小时 TTL 只给订阅内用量的主会话、压缩对缓存前缀的影响与空闲压缩条件）',
+      url: 'https://code.claude.com/docs/en/prompt-caching',
+    },
+    'claude-idle-compaction-settings': {
+      label:
+        'Claude Code 设置参考 `idleCompaction`（五个生效条件、默认 `true`、`DISABLE_AUTO_COMPACT` 一并关闭、需 v2.1.290 及以上）',
+      url: 'https://code.claude.com/docs/en/settings-reference#idlecompaction',
     },
     'claude-workflows': {
       label:
@@ -1012,6 +1027,21 @@ window.matrixData = {
       label: 'Qwen Code v0.25.1-preview.1 Subagent 文档（未描述 Subagent 压缩阈值）',
       url: 'https://github.com/QwenLM/qwen-code/blob/683f3f063aa05c67c339a70fbc740f08c006f9de/docs/users/features/sub-agents.md',
     },
+    'qwen-clear-context-idle-settings': {
+      label:
+        'Qwen Code v0.25.1 设置文档 `context.clearContextOnIdle.*` 三键（空闲 60 分钟清理旧工具结果、保留最近 5 条、总量 500000 字符软阈值，理由是让后续回合继续复用 Provider 提示词缓存）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/c1a8218f38203e272e6e965778ed6a2795cfeed7/docs/users/configuration/settings.md',
+    },
+    'qwen-clear-context-idle-schema': {
+      label:
+        'Qwen Code v0.25.1 设置 schema 源码（`clearContextOnIdle` 三键默认值、`requiresRestart: false`、`showInDialog: false`）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/c1a8218f38203e272e6e965778ed6a2795cfeed7/packages/cli/src/config/settingsSchema.ts',
+    },
+    'qwen-clear-context-idle-defaults': {
+      label:
+        'Qwen Code v0.25.1 `clearContextDefaults.ts`（`DEFAULT_TOOL_RESULTS_TOTAL_CHARS_THRESHOLD = 500_000`）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/c1a8218f38203e272e6e965778ed6a2795cfeed7/packages/core/src/config/clearContextDefaults.ts',
+    },
     'qwen-subagents-v0251preview2': {
       label:
         'Qwen Code v0.25.1-preview.2 Subagent 文档（Model Selection 小节：`model` 四种选择器、省略等同 `inherit`、`agents.builtin.exploreModel`、`agents.modelGrades` 与 `agents.allowedGrades`、外部 executor 不支持模型覆盖）',
@@ -1456,7 +1486,8 @@ window.matrixData = {
       url: 'https://github.com/MoonshotAI/kimi-code/blob/29783e471afcf7975852e496907646458264d2e6/docs/zh/configuration/config-files.md',
     },
     'kimi-compaction-config': {
-      label: 'Kimi Code 自动压缩配置（`loop_control.reserved_context_size`、`compaction_max_attempts` 与只有 `timeout_ms` 的 `[subagent]`）',
+      label:
+        'Kimi Code 自动压缩与缓存过期配置（`loop_control.reserved_context_size`、`compaction_max_attempts`、只有 `timeout_ms` 的 `[subagent]`，以及 `tui.toml` 的 `cache_expiry_hint`）',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/c7dd84124a00d2dc1a68fbbc3e54b1095ee9ac23/docs/zh/configuration/config-files.md',
     },
     'kimi-subagent-config': {
@@ -1933,6 +1964,11 @@ window.matrixData = {
     'qoder-how-it-works': {
       label: 'Qoder CLI How Task Execution Works（上下文窗口与 Compact 机制）',
       url: 'https://docs.qoder.com/cli/how-it-works',
+    },
+    'qoder-best-practices': {
+      label:
+        'Qoder CLI Best Practices（上下文紧张时用 `/compact` 压缩历史，没有空闲或缓存过期触发）',
+      url: 'https://docs.qoder.com/cli/best-practices',
     },
     'qoder-permissions': {
       label: 'Qoder CLI Permissions',
@@ -3055,7 +3091,7 @@ window.matrixData = {
       category: 'sessions',
       capability: '手动压缩',
       description: '主动总结当前上下文以释放窗口。',
-      values: { claude: '`/compact [instructions]`；自动窗口 `/autocompact <tokens 或 auto>` · `autoCompactWindow`（v2.1.296 起 Subagent 定义可单独设）', codex: '`/compact`；阈值 `model_auto_compact_token_limit` 与统计口径 `model_auto_compact_token_limit_scope`', qwen: '`/compress [instructions]` · `/compress-fast`；阈值 `context.autoCompactThreshold`（默认 0.85）', kimi: '`/compact [instruction]`；`loop_control.reserved_context_size` 触发自动压缩', qoder: '`/compact [instructions]`；自动压缩阈值未公开' },
+      values: { claude: '`/compact [instructions]`；自动窗口 `/autocompact <tokens 或 auto>` · `autoCompactWindow`（v2.1.296 起 Subagent 定义可单独设）· 空闲压缩 `idleCompaction`（200K token 且约 54 分钟空闲，在一小时缓存到期前压缩）', codex: '`/compact`；阈值 `model_auto_compact_token_limit` 与统计口径 `model_auto_compact_token_limit_scope`；无空闲或缓存过期触发', qwen: '`/compress [instructions]` · `/compress-fast`；阈值 `context.autoCompactThreshold`（默认 0.85）· `context.clearContextOnIdle` 空闲 60 分钟清理旧工具结果', kimi: '`/compact [instruction]`；`loop_control.reserved_context_size` 触发自动压缩 · `tui.toml` 的 `cache_expiry_hint` 只提醒、不自动压缩', qoder: '`/compact [instructions]`；自动压缩阈值未公开' },
     },
     {
       id: 'session-context-usage',
