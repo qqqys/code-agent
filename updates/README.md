@@ -4,6 +4,7 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-10-14 | [手动压缩：Claude Code v2.1.299 的空闲压缩 `idleCompaction`（200K token 且约 54 分钟空闲，赶在一小时提示词缓存过期前压缩）与 `CLAUDE_CODE_IDLE_COMPACT_MIN_TOKENS`，并核对 Qwen `context.clearContextOnIdle` 三键、Kimi `tui.toml` 的 `cache_expiry_hint`、Codex 与 Qoder 无空闲触发](./2026-10-14-会话与上下文-Claude空闲压缩与五家缓存过期处理.md) |
 | 2026-10-13 | [文件读写：Claude Code v2.1.296 的 Read 工具 `allow_large` 与 25,000 token／256 KB 默认上限，Kimi Code `[read]` 字符额度（改正 0.38.0 的「1000 行或 100 KB」旧记法与 staleGuard「尚未发布」），Codex 无专用读取工具与 1 MiB 输出硬上限，Qwen 三层截断预算，Qoder 未公布上限](./2026-10-13-执行与Git-文件读取额度与Claude-allow_large.md) |
 | 2026-10-12 | [工具延迟声明与按需发现能力字段：Qwen Code v0.25.1 起 Agent 与 Goal 工具默认延迟（PR #13033），并核对 Claude `ToolSearch`、Codex `tool_search`、Kimi `select_tools` 与 Qoder `mcp.lazyLoad`](./2026-10-12-扩展系统-工具延迟声明与按需发现能力字段.md) |
 | 2026-10-11 | [服务端与 Daemon：Codex 本地后台 app-server daemon 与 `/daemon` 管理菜单（`codex app-server daemon` 八个子命令、`CODEX_HOME/app-server-daemon/` 状态、2026-10-11 合入 main 的重启动作 PR #53173），并复核其余四家常驻服务](./2026-10-11-Headless与多端-Codex本地后台daemon与daemon菜单.md) |
