@@ -2436,8 +2436,8 @@ window.matrixData = {
     },
     'claude-tool-search-changelog': {
       label:
-        'Claude Code 更新日志（工具搜索版本时间线：v2.1.7 auto 模式默认开启并按 10% 上下文阈值延迟、v2.1.9 `auto:N`、v2.1.119 Vertex AI 默认关闭、v2.1.121 Server `alwaysLoad`、v2.1.221 Vertex 对 4.5 代及以上重新启用、v2.1.285 工具级 `_meta` 与 Server 级 `alwaysLoad` 的覆盖关系、v2.1.287 Server `alwaysLoad: false` 延迟该 Server 全部工具、v2.1.293 mods `$.tool.register` 的 `isDeferred`、v2.1.295 经工具搜索加载的描述改为 16,384 字符、v2.1.296 上送描述与 Server instructions 默认上限由 2,048 改为 4,096，固定到 v2.1.296）',
-      url: 'https://github.com/anthropics/claude-code/blob/2301018b1f61073c501a8e7a4813ef48c239163b/CHANGELOG.md',
+        'Claude Code 更新日志（工具搜索版本时间线：v2.1.7 auto 模式默认开启并按 10% 上下文阈值延迟、v2.1.9 `auto:N`、v2.1.119 Vertex AI 默认关闭、v2.1.121 Server `alwaysLoad`、v2.1.221 Vertex 对 4.5 代及以上重新启用、v2.1.285 工具级 `_meta` 与 Server 级 `alwaysLoad` 的覆盖关系、v2.1.287 Server `alwaysLoad: false` 延迟该 Server 全部工具、v2.1.293 mods `$.tool.register` 的 `isDeferred`、v2.1.295 经工具搜索加载的描述改为 16,384 字符、v2.1.296 上送描述与 Server instructions 默认上限由 2,048 改为 4,096、v2.1.299 `api.anthropic.com` 第一方 MCP 服务器的描述与 Server instructions 不再截断在 4,096 字符，固定到 v2.1.299）',
+      url: 'https://github.com/anthropics/claude-code/blob/db93774d73e8fdbaf315a6f4c175ae99ad3d515a/CHANGELOG.md',
     },
     'codex-tool-search-spec': {
       label:
@@ -2506,8 +2506,8 @@ window.matrixData = {
     },
     'kimi-mcp-deferred': {
       label:
-        'Kimi Code MCP 文档「按需加载工具」段与 Server `deferred` 字段（main `cbd754049a11`，两个前提、`select_tools` 加载、未标 `deferred` 的 Server 始终内联、OAuth 认证工具同样遵循该字段）',
-      url: 'https://github.com/MoonshotAI/kimi-code/blob/cbd754049a114ee36d1b27675c82819e4963c692/docs/zh/customization/mcp.md',
+        'Kimi Code MCP 文档「按需加载工具」段与 Server `deferred` 字段（main `f28c51c01f02`，两个前提、`select_tools` 加载、未设 `deferred` 的 server 取全局默认值、`[mcp] default_deferred` 全局默认与 `deferred: false` 逐 server 排除、值在 server 连接时固化、OAuth 认证工具同样遵循该字段）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/f28c51c01f025bba9f0d0f58f6309e7517a8cd02/docs/zh/customization/mcp.md',
     },
     'kimi-env-tool-select': {
       label:
@@ -2516,18 +2516,53 @@ window.matrixData = {
     },
     'kimi-config-capabilities': {
       label:
-        'Kimi Code 配置文档（`capabilities` 可追加 `dynamically_loaded_tools` 且只能追加不能移除；`## experimental` 整段被包在 HTML 注释里、站点不渲染，注释内也只列 `micro_compaction`，main `cbd754049a11`）',
-      url: 'https://github.com/MoonshotAI/kimi-code/blob/cbd754049a114ee36d1b27675c82819e4963c692/docs/zh/configuration/config-files.md',
+        'Kimi Code 配置文档（`[mcp]` 节的 `startup_timeout_ms`、`tool_timeout_ms` 与 `default_deferred` 三行字段表，`default_deferred` 默认 `false` 且「`mcp.json` 中单个 server 的 `deferred` 字段优先于本节」；`capabilities` 可追加 `dynamically_loaded_tools` 且只能追加不能移除；`## experimental` 整段仍被包在 HTML 注释里、站点不渲染，注释内也只列 `micro_compaction`，main `f28c51c01f02`）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/f28c51c01f025bba9f0d0f58f6309e7517a8cd02/docs/zh/configuration/config-files.md',
     },
     'kimi-select-tools-source': {
       label:
-        'Kimi Code `select_tools` 工具源码（`SELECT_TOOLS_TOOL_NAME = "select_tools"`、描述要求名字取自 `<tools_added>`/`<tools_removed>` 公告、`approvalRule` 为工具自身、模型不支持时返回 “select_tools is not available for the current model.”）',
-      url: 'https://github.com/MoonshotAI/kimi-code/blob/cbd754049a114ee36d1b27675c82819e4963c692/packages/agent-core-v2/src/agent/tools/select-tools/selectToolsTool.ts',
+        'Kimi Code `select_tools` 工具源码（描述新增 “If you have not seen a <tools_added> announcement in this session, no tools are currently loadable — do not call select_tools.”、六类命中各自的返回文案、`isError` 条件为 `toLoad.length === 0 && alreadyAvailable.length === 0 && alreadyCallable.length === 0`、`approvalRule` 为工具自身、模型不支持时返回 “select_tools is not available for the current model.”，main `f28c51c01f02`）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/f28c51c01f025bba9f0d0f58f6309e7517a8cd02/packages/agent-core-v2/src/agent/tools/select-tools/selectToolsTool.ts',
     },
     'kimi-select-tools-schema': {
       label:
-        'Kimi Code `select_tools` 入参 schema 源码（`names` 为字符串数组、`min(1)`、描述 “Exact tool names to load, taken from the latest announced tool list.”、`strict()`）',
-      url: 'https://github.com/MoonshotAI/kimi-code/blob/cbd754049a114ee36d1b27675c82819e4963c692/packages/agent-core-v2/src/agent/tools/select-tools/select-tools.ts',
+        'Kimi Code `select_tools` 入参 schema 源码（`names` 为字符串数组、`min(1)`、描述 “Exact tool names to load, taken from the latest announced tool list.”、`strict()`，main `f28c51c01f02`）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/f28c51c01f025bba9f0d0f58f6309e7517a8cd02/packages/agent-core-v2/src/agent/tools/select-tools/select-tools.ts',
+    },
+    'kimi-default-deferred-commit': {
+      label:
+        'Kimi Code PR #4210 提交 `f28c51c01f025bba9f0d0f58f6309e7517a8cd02`（2026-10-14T09:19:29Z，`feat(agent-core-v2): add global default for deferred MCP tool disclosure`；changeset 逐字为 “Add the [mcp] default_deferred config key: when the experimental tool-select flag is on, set default_deferred = true in config.toml to load every MCP server\'s tools on demand by default; a server can opt out with deferred: false.”，并把 Server `deferred` 字段说明由 “Defaults to `false` (always exposed inline).” 改为 “Defaults to the global `default_deferred` value (`false` when unset).”）',
+      url: 'https://github.com/MoonshotAI/kimi-code/commit/f28c51c01f025bba9f0d0f58f6309e7517a8cd02',
+    },
+    'kimi-mcp-connection-manager': {
+      label:
+        'Kimi Code MCP 连接管理器源码（`McpDefaults` 接口含 `defaultDeferred`、`resolveDeferred` 为 `config.deferred ?? this.options.resolveDefaults?.().defaultDeferred ?? false`、`entry.deferred` 在 `connect`/`connectAllNow` 建条目时赋值并在 `connectOne` 开头重算、`deferredOf(name)` 回落到 `false`，main `f28c51c01f02`）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/f28c51c01f025bba9f0d0f58f6309e7517a8cd02/packages/agent-core-v2/src/mcpCore/connection-manager.ts',
+    },
+    'kimi-mcp-config-section': {
+      label:
+        'Kimi Code `[mcp]` 配置节 schema 源码（`MCP_SECTION = \'mcp\'`、`McpSectionSchema` 只有 `startupTimeoutMs`、`toolTimeoutMs`、`defaultDeferred` 三个可选键，环境变量绑定只导出 `MCP_STARTUP_TIMEOUT_ENV` 与 `MCP_TOOL_TIMEOUT_ENV`，没有 `defaultDeferred` 的环境变量覆盖，main `f28c51c01f02`）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/f28c51c01f025bba9f0d0f58f6309e7517a8cd02/packages/agent-core-v2/src/app/mcpConfig/configSection.ts',
+    },
+    'kimi-workspace-mcp-tunables': {
+      label:
+        'Kimi Code 工作区 MCP 可调项源码（`McpTunables` 含 `defaultDeferred`，`tunables()` 从配置服务的 `mcp` 节读 `section?.defaultDeferred` 后交给连接管理器的 `resolveDefaults`；`mergedConnectionView.deferredOf(name)` 转发给拥有该 server 的 base 或 overlay 管理器，main `f28c51c01f02`）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/f28c51c01f025bba9f0d0f58f6309e7517a8cd02/packages/agent-core-v2/src/workspace/workspaceMcpConfig/workspaceMcpConfigService.ts',
+    },
+    'kimi-select-tools-service': {
+      label:
+        'Kimi Code `select_tools` 服务源码（`STOP_RETRY_THRESHOLD = 2`、`failedSelectionAttempts` 按名字小写计数、`consecutiveFailures >= 3` 触发警告、名字分类顺序为 policyDenied → alreadyAvailable/toLoad → alreadyCallable → staleLoaded → unknown、`resetFailuresIfToolsChanged` 按策略指纹加排序后的注册表 `[name, source, disclosure]` 判定环境变化后清空两个计数、建议候选 `.slice(0, 3)`，main `f28c51c01f02`）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/f28c51c01f025bba9f0d0f58f6309e7517a8cd02/packages/agent-core-v2/src/agent/toolSelect/toolSelectService.ts',
+    },
+    'kimi-select-tools-failure-commit': {
+      label:
+        'Kimi Code PR #4190 提交 `e4c99a3bad19b00bd1939b1cf254f427b50061f0`（2026-10-13T11:39:31Z，`feat(agent-core-v2): distinguish session-unavailable tools and explain select_tools failures`；changeset 逐字为 “Clarify unavailable tools, announce when no tools can be loaded, and discourage repeated failed tool selections.”，提交说明另记「成功的名字只重置连续失败计数并清掉自己的失败记录，同批失败的名字继续累计次数而不被兄弟成功项掩盖」与「按注册工具的真实来源评估 deny glob，只有未注册的名字才回落到 `mcp__` 前缀推断」）',
+      url: 'https://github.com/MoonshotAI/kimi-code/commit/e4c99a3bad19b00bd1939b1cf254f427b50061f0',
+    },
+    'kimi-dynamic-tools-announcement': {
+      label:
+        'Kimi Code 动态工具公告源码（`<tools_added>`/`<tools_removed>` 块的拼装与解析正则，以及 `hasLoadableTools` 为 `false`（默认 `true`）时发出的空可加载集公告 “No tools are currently available for dynamic loading in this session. Do not call select_tools or guess tool names; use the tools you already have. Only a later <tools_added> announcement can make new tools loadable.”，main `f28c51c01f02`）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/f28c51c01f025bba9f0d0f58f6309e7517a8cd02/packages/agent-core-v2/src/agent/toolSelect/dynamicTools.ts',
     },
     'qoder-settings-reference-lazy-load': {
       label:
@@ -3203,7 +3238,7 @@ window.matrixData = {
       category: 'extensions',
       capability: '工具延迟声明与按需发现',
       description: '把部分工具的完整声明撤出每轮请求，改由模型用发现工具按需取回。',
-      values: { claude: 'MCP 工具默认全部延迟 · 内置 `ToolSearch` · `ENABLE_TOOL_SEARCH` 取 `true`/`auto`/`auto:N`/`false` · Server `alwaysLoad` 与工具 `_meta["anthropic/alwaysLoad"]` 豁免', codex: 'MCP 工具始终延迟 · 内置 `tool_search`（BM25，`limit` 默认 8）· `tool_search` 与 `tool_search_always_defer_mcp_tools` 开关已移除、没有关闭入口', qwen: '`tools.toolSearch.enabled` 默认 `true` · `tool_search` + `tool_call` 桥 · MCP、`agent`/`list_agents`/Goal、`task_stop`、`monitor`、cron 默认延迟 · `tools.eager`/`tools.visible`/`tools.toolSearch.threshold` 调节', kimi: '条件：Server 条目 `deferred: true` + `tool-select` 实验标志 + 模型声明 `dynamically_loaded_tools` · 内置 `select_tools` 按精确名加载', qoder: '条件：`mcp.lazyLoad` 默认 `false` 且需重启，或 `QODER_MCP_LAZY=1` · 开启后只暴露 `mcp_list`／`mcp_get`／`mcp_call` 三个 Meta Tools · 只覆盖 MCP 工具' },
+      values: { claude: 'MCP 工具默认全部延迟 · 内置 `ToolSearch` · `ENABLE_TOOL_SEARCH` 取 `true`/`auto`/`auto:N`/`false` · Server `alwaysLoad` 与工具 `_meta["anthropic/alwaysLoad"]` 豁免', codex: 'MCP 工具始终延迟 · 内置 `tool_search`（BM25，`limit` 默认 8）· `tool_search` 与 `tool_search_always_defer_mcp_tools` 开关已移除、没有关闭入口', qwen: '`tools.toolSearch.enabled` 默认 `true` · `tool_search` + `tool_call` 桥 · MCP、`agent`/`list_agents`/Goal、`task_stop`、`monitor`、cron 默认延迟 · `tools.eager`/`tools.visible`/`tools.toolSearch.threshold` 调节', kimi: '条件：`tool-select` 实验标志 + 模型声明 `dynamically_loaded_tools` · Server 条目 `deferred` 或全局 `[mcp] default_deferred`（默认 `false`、Server 字段优先、连接时固化）· 内置 `select_tools` 按精确名加载', qoder: '条件：`mcp.lazyLoad` 默认 `false` 且需重启，或 `QODER_MCP_LAZY=1` · 开启后只暴露 `mcp_list`／`mcp_get`／`mcp_call` 三个 Meta Tools · 只覆盖 MCP 工具' },
     },
     {
       id: 'execution-files',
