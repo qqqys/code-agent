@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-10-14',
+  updatedAt: '2026-10-15',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -91,8 +91,14 @@ window.matrixData = {
       url: 'https://code.claude.com/docs/en/mcp',
     },
     'claude-skills': {
-      label: 'Claude Code Skills',
+      label:
+        'Claude Code Skills（自定义命令已并入 Skills：`.claude/commands/deploy.md` 与 `.claude/skills/deploy/SKILL.md` 都生成 `/deploy`，命令文件是 “the older format” 且仍可用、frontmatter 除 `name` 与 `paths` 外与 Skill 相同；子目录按 `:` 命名空间、`$ARGUMENTS[N]` 与 `$N` 为 0 基、`arguments` 命名参数、`!` 行内 Shell 与 `disableSkillShellExecution`、同名时 Enterprise over personal 与 personal over project）',
       url: 'https://code.claude.com/docs/en/skills',
+    },
+    'claude-interactive-mode': {
+      label:
+        'Claude Code Interactive mode（输入历史按工作目录保存、`Up` 可召回本项目往次会话的提示词、`Ctrl+R` 反向搜索历史并在全屏渲染下用 `Ctrl+S` 在 this session／this project／all projects 之间切换范围、双按 `Esc` 清空输入并把草稿存进历史；全页没有数字槽位或保存提示词模板一类的机制）',
+      url: 'https://code.claude.com/docs/en/interactive-mode',
     },
     'claude-hooks': {
       label: 'Claude Code Hooks',
@@ -153,6 +159,11 @@ window.matrixData = {
       label:
         'Claude Code v2.1.299 空闲压缩更新日志（`idleCompaction` 与 `CLAUDE_CODE_IDLE_COMPACT_MIN_TOKENS`，2026-10-14 发布）',
       url: 'https://github.com/anthropics/claude-code/blob/db93774d73e8fdbaf315a6f4c175ae99ad3d515a/CHANGELOG.md',
+    },
+    'claude-v21301-commands-changelog': {
+      label:
+        'Claude Code 更新日志（main 分支，固定到提交 `03b5892ee77de289bcd5dfa39f541525ade74aff`，1,036,155 字节，最新段为 `## 2.1.301`）：全文没有 preset、presets 或 quick dial 字样；与自定义命令相关的条目有 v2.1.299 的 “Fixed a custom slash command’s embedded shell line running twice when a newer message interrupted the command while its prompt was being checked”、“Changed `UserPromptSubmit` hooks to run before a skill or custom slash command expands, so a hook that blocks the prompt now also stops its embedded shell commands”、“Changed a skill’s own front-matter `UserPromptSubmit` hook to first run on the prompt after the one that invokes the skill”、“Changed skill and command loading: one whose file or folder name has hidden, direction-changing or blank-like characters, `<` or `>` is no longer offered until renamed; such a `name:` is ignored”，以及 v2.1.301 的 “Fixed skills and commands with very many or very long argument names stalling for seconds when invoked; only the first 64 names, each up to 64 characters, are now filled in”、“Fixed skills, commands and hooks using very large amounts of memory when their arguments fill many placeholders”、“Fixed skills no longer being listed to the model after using `/rewind`”、“Improved `/reload-skills` to say it re-sends the full skill list to Claude, which is how to get skills back after compaction”',
+      url: 'https://github.com/anthropics/claude-code/blob/03b5892ee77de289bcd5dfa39f541525ade74aff/CHANGELOG.md',
     },
     'claude-prompt-caching': {
       label:
@@ -524,6 +535,61 @@ window.matrixData = {
     'codex-custom-prompts': {
       label: 'Codex Custom prompts',
       url: 'https://learn.chatgpt.com/docs/custom-prompts',
+    },
+    'codex-presets-commit': {
+      label:
+        'Codex `/presets` 合并提交（`dcd9e954598cd5e9f80570204896d779c60c1ecd`，PR #54380 “Add `/presets` for reusable prompts and slash commands”，2026-10-15T18:51:21Z 合入 main；提交说明逐字含 “Add a TUI picker with ten numbered preset slots, an editor, and confirmation before replacement or deletion.”、“Create presets from composer text or current model, reasoning effort, and speed settings. Run saved inputs through the normal queued submission path while preserving the composer draft.” 与 “Persist presets under `tui.presets` in the active user configuration, respecting configuration layer ownership and leaving in-memory settings unchanged when writes fail.”）',
+      url: 'https://github.com/openai/codex/commit/dcd9e954598cd5e9f80570204896d779c60c1ecd',
+    },
+    'codex-presets-slash-command': {
+      label:
+        'Codex `/presets` 命令定义源码（`SlashCommand::Presets`，`description` 分支逐字为 “run or save reusable prompts and slash commands”，无别名，`is_visible` 走 `_ => true`，在 `available_during_task` 的 `=> true` 分支里，但不在 `supports_inline_args`、`available_in_side_conversation` 与 `available_when_thread_unavailable` 三个 `matches!` 清单中，main HEAD `97ebf2d94d62`）',
+      url: 'https://github.com/openai/codex/blob/97ebf2d94d62e2ff2045f3ea17b6e11eae9a21fb/codex-rs/tui/src/slash_command.rs',
+    },
+    'codex-presets-type': {
+      label:
+        'Codex `QuickDial` 类型与校验源码（结构体注释逐字 “One reusable prompt or slash command submitted through the TUI composer.”，`#[schemars(deny_unknown_fields, rename = "Preset")]`，字段 `pub input: String` 注释 “Plain-text input, limited to 8,000 UTF-8 bytes.” 与 `pub label: Option<String>` 注释 “Optional short name for the picker and shortcut hints.”；`validate()` 注释 “Keep stored inputs nonempty and below the context-item limit even with byte tokenization.”，三条报错逐字为 “Preset input cannot be empty.”、“Presets support prompts and slash commands, not shell commands.”（`trim_start()` 后以 `!` 开头）与 “Preset input cannot exceed 8,000 UTF-8 bytes.”；`Tui` 结构里 `#[serde(default, rename = "presets")] pub quick_dials: BTreeMap<String, QuickDial>` 的注释逐字为 “Saved inputs keyed by a single digit (`0` through `9`).”，该文件没有槽位数量常量，main `f847a4bd3c6c`）',
+      url: 'https://github.com/openai/codex/blob/f847a4bd3c6ca3d8474a6e0dace1ed39f7ec0067/codex-rs/config/src/types.rs',
+    },
+    'codex-presets-persist': {
+      label:
+        'Codex 槽位持久化源码（文件头注释逐字 “Persist numbered prompts and slash commands in the active user configuration. Replace slots owned by the active user config. Clearing must not reveal a shadowed slot from another configuration layer.”；配置路径段为 `vec!["tui", "presets", <slot>]`，写入用 `ConfigEditsBuilder::for_config_path(self.local_settings.user_config_path)`，表内只有 `input` 与 `label` 两键且注释 “An explicit empty label masks labels inherited from lower layers.”，清空走 `ConfigEdit::ClearPath`；层归属判定比较 `ConfigLayerSource::User { file, .. }` 与 `user_config_path`，保存时只查最高层、清空时用 `slot_sources.any(outside_user_config)`；文案逐字为 “Preset {slot} is defined outside your user config. Edit its source configuration instead.”、“Failed to update preset {slot}: {}”、“Saved preset {slot}.” 与 “Deleted preset {slot}.”，失败与只读两条路径都调用 `restore_quick_dial_editor` 回填编辑器，main `dcd9e954598c`）',
+      url: 'https://github.com/openai/codex/blob/dcd9e954598cd5e9f80570204896d779c60c1ecd/codex-rs/tui/src/app/quick_dials.rs',
+    },
+    'codex-presets-recall': {
+      label:
+        'Codex 槽位召回、菜单与设置预填源码（`recall_quick_dial` 先查 `quick_dials_available()`、再 `dial.validate()`（失败报 “Preset {slot}: {reason}”）、发 `AppEvent::FollowTranscript` 后调用 `queue_user_message_with_options(dial.input.into(), QueuedInputAction::ParseSlash, Vec::new())`，全程不触碰 composer 因而保留草稿；数字键分支匹配字符 `0` 到 `9`，槽位已占用时先置 `input_queue.suppress_queue_autosend = true` 再发 `AppEvent::RecallQuickDial`；菜单标题 “Presets”、空态 “No presets saved. Press n to create one.”、页脚五项 `n · new`、`s · from settings`、`e · edit`、`d · delete`、`esc · close`；`QuickDialEditorTarget` 只有 `PickSlot` 与 `Slot(u8)` 两个变体，编辑器标题 “New preset” 与 “Edit preset {slot}”、占位符 “Write a prompt or slash command”、选槽弹层 “Save preset to slot”、确认弹层 “{action} preset {slot}?” 配 `Save`/`Replace`/`Delete` 三个动作与 “{}\\n→ {}” 前后对照；预填弹层 “Start preset from current settings” 的四项为 “Current model”（生成 `/model <name>` 后按可用情况追加 `--reasoning=<effort>` 与 `--speed=<speed>`，缺省速度取 `standard`）、“Current permissions”（生成 `/permissions <profile_id> --approval-policy=<policy> --reviewer=<reviewer>`，profile 名经 `shlex::try_quote`）、“Current terminal title” 与 “Current status line”（共用 `status_surface_quick_dial`，条目为空时生成 `<command> --clear`，状态行另追加 `--colors` 或 `--no-colors`）；八条拒绝文案含 “The current model cannot be recalled with /model.”、“Choose an available reasoning effort with /model before saving.”、“Choose an available speed with /model before saving.”、“The approval policy cannot be recalled.”、“The permission profile name cannot be recalled.”、“Select a named permission profile with /permissions first.”、“Choose available terminal-title items with /title before saving.” 与 “Choose available status-line items with /statusline before saving.”；另有 “Images cannot be copied into a preset. Starting with empty text.”、“Linked mentions cannot be copied into a preset. Starting with empty text.”、“Presets are unavailable in this conversation.” 与 “Presets are available after startup completes.”，main `f847a4bd3c6c`）',
+      url: 'https://github.com/openai/codex/blob/f847a4bd3c6ca3d8474a6e0dace1ed39f7ec0067/codex-rs/tui/src/chatwidget/quick_dials.rs',
+    },
+    'codex-presets-snapshot': {
+      label:
+        'Codex Presets 菜单渲染快照测试（`render_bottom_popup(&chat, 100)` 的输出：标题行 `Presets`，两列只列出已占用槽位如 `1 · coding`、`2 · /permissions workspace-write`、`5 · /skills simplify-code`、`0 · /status`，有 `label` 时显示 label、没有时显示 input 且过长以 `…` 截断，页脚为 `n · new   s · from settings   e · edit   d · delete   esc · close`，main `f847a4bd3c6c`）',
+      url: 'https://github.com/openai/codex/blob/f847a4bd3c6ca3d8474a6e0dace1ed39f7ec0067/codex-rs/tui/src/chatwidget/snapshots/codex_tui__chatwidget__tests__quick_dial_shortcuts.snap',
+    },
+    'codex-presets-keymap-commit': {
+      label:
+        'Codex 快捷键菜单合并提交（`111362a6a0a92d08885b1ae62d3760714907ad94`，PR #54381 “Add a keyboard shortcut menu for presets”，2026-10-15T18:51:22Z 合入 main）：`codex-rs/config/src/tui_keymap.rs` 的 `TuiChatKeymap` 新增 `pub open_presets: Option<KeybindingsSpec>` 且注释逐字为 “Open saved prompts and slash commands.”，`codex-rs/core/config.schema.json` 的 `open_presets` 属性 `description` 同文，`codex-rs/tui/assets/tooltips.txt` 新增逐字 “Use {key:chat.open_presets}, then 0–9 to run a preset; Enter browses, s saves, and d deletes.”；提交说明逐字含 “Replace the `/presets` recall picker with a responsive menu above the composer. Press `0`–`9` to run a saved preset or create one in an empty slot; use `n`, `s`, `e`, and `d` to create, start from current settings, edit, and delete presets.” 与 “Add `tui.keymap.chat.open_presets` with an implicit `leader p` shortcut that yields to existing bindings and explicit configuration. Show the action in `/keymap` and add a shortcut tooltip.”',
+      url: 'https://github.com/openai/codex/commit/111362a6a0a92d08885b1ae62d3760714907ad94',
+    },
+    'codex-presets-chord-defaults': {
+      label:
+        'Codex 隐式 `leader p` chord 安装源码（文件头注释逐字 “Install the implicit preset shortcut only for free leader chords. Explicit bindings, including an explicit unbind, always take priority. Implicit chords fit within the shared leader expansion limit.”；`keymap.chat.open_presets.is_some()` 或 leader 名额 `MAX_LEADER_CHORD_BINDINGS` 已用尽时直接返回，动作 ID 为 `{ context: KeymapContext::Chat, action: "open_presets" }`，绑定 `spec` 为 “leader p”、completion 为字符 `p`，与既有绑定重叠、与任一单键动作重叠或与 `KeymapContext::Pager` 的绑定同前缀时跳过（注释 “Owned transcript navigation also runs beside the composer.”），安装后同步 `resolved.chat.chord_hints`，main `f847a4bd3c6c`）',
+      url: 'https://github.com/openai/codex/blob/f847a4bd3c6ca3d8474a6e0dace1ed39f7ec0067/codex-rs/tui/src/keymap/chords/quick_dial_defaults.rs',
+    },
+    'codex-presets-permissions-commit': {
+      label:
+        'Codex 权限预设合并提交（`36803b180a50e611331b75ff2b4c475c02846b53`，PR #54385 “Allow saving current permission settings as presets”，2026-10-15T18:51:22Z 合入 main）：`permission_discovery.rs` 的 `parse_permission_profile_args` 用 `slash_command_args::parse(args, &["--approval-policy", "--reviewer"], &[])` 解析且缺少位置参数时报错串逐字为 “Usage: /permissions <profile-id> [--approval-policy=<policy>] [--reviewer=user|auto_review]”，`parse_approval_policy` 把 `untrusted`/`on-request`/`never` 映射到 `AskForApproval::UnlessTrusted`/`OnRequest`/`Never`、其余按 `serde_json::from_str` 解析 granular 策略且失败报 “Unknown approval policy `{value}`. Expected `untrusted`, `on-request`, `never`, or a granular policy.”，`parse_reviewer` 只接受 `user` 与 `auto_review`、其余报 “Unknown permission reviewer `{value}`. Expected `user` or `auto_review`.”；提交说明逐字含 “Extend `/permissions` with `--approval-policy` and `--reviewer`, including granular policies and quoted profile names.”、“Share argument parsing between `/model` and `/permissions`, supporting quoted arguments and both `--setting=value` and `--setting value` forms.” 与 “Keep full-access confirmation for every reviewer and reject automatic review when unavailable.”',
+      url: 'https://github.com/openai/codex/commit/36803b180a50e611331b75ff2b4c475c02846b53',
+    },
+    'codex-presets-statusline-commit': {
+      label:
+        'Codex 终端标题与状态行预设合并提交（`f847a4bd3c6ca3d8474a6e0dace1ed39f7ec0067`，PR #54388 “Add quick dial presets for terminal title and status line layouts”，2026-10-15T18:51:23Z 合入 main）：提交说明逐字为 “Add current terminal title and status line options to the preset picker. Generate `/title` and `/statusline` commands that preserve item order and duplicates, normalize item aliases, and retain the status line color setting. Use `--clear` for empty layouts and disable options containing unavailable items.”',
+      url: 'https://github.com/openai/codex/commit/f847a4bd3c6ca3d8474a6e0dace1ed39f7ec0067',
+    },
+    'codex-presets-unreleased': {
+      label:
+        'Codex 标签 `rust-v0.163.0-alpha.10.2`（2026-10-15T18:26:31Z 发布，早于 `/presets` 四个合并提交）的 Slash 命令枚举没有 `Presets` 变体，`Title`、`Statusline`、`Permissions` 与 `Keymap` 都已在该标签中存在，即 `/presets` 尚未进入 Release',
+      url: 'https://github.com/openai/codex/blob/rust-v0.163.0-alpha.10.2/codex-rs/tui/src/slash_command.rs',
     },
     'codex-ide': {
       label: 'Codex IDE extension',
@@ -1328,6 +1394,16 @@ window.matrixData = {
       label: 'Qwen Code current custom commands',
       url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/commands.md',
     },
+    'qwen-commands-v0252': {
+      label:
+        'Qwen Code v0.25.2 自定义命令文档（标签 `v0.25.2` 提交 `8a415cb628db88844e0196bdfdcce83b4f88d812`，`docs/users/features/commands.md` 78,099 字节，与 2026-10-15 的 main 逐字节相同；`## 4. Custom Commands` 一节与本仓库此前固定的 `8a44b1b9f793` 版本逐字节相同。逐字要点：“Custom commands now use Markdown format with optional YAML frontmatter. TOML format is deprecated but still supported for backwards compatibility. When TOML files are detected, an automatic migration prompt will be displayed.”、“**Deprecated:** TOML format is still supported but will be removed in a future version. Please migrate to Markdown format.”；目录表两行为 `~/.qwen/commands/`（Global，Low）与 `<project root directory>/.qwen/commands/`（Project，High）加 “Priority Rules: Project commands > User commands (project command used when names are same)”；映射表为 `~/.qwen/commands/test.md` → `/test`、`<project>/.qwen/commands/git/commit.md` → `/git:commit` 加 “Naming Rules: Path separator (`/` or `\\`) converted to colon (`:`)”；参数机制三行为 `{{args}}` 上下文感知注入并自动 Shell 转义、无标记时原样追加、`!{command}` Shell 注入且执行前需要确认；处理顺序为 `@{file path}` 文件内容最先、`!{command}` Shell 居中、`{{args}}` 参数替换最后；Markdown frontmatter 只有可选的 `description`（在 `/help` 显示）与必填的提示正文，TOML 为必填 `prompt` 与可选 `description`；`/workflows` 行为 “Inspect workflow runs; cooperatively pause/resume a background run”，并写明 “`/workflows`, `/lsp`, and `/trust` are registered only when their feature is enabled — via the user/system-scoped `tools.workflowsEnabled` setting or `QWEN_CODE_ENABLE_WORKFLOWS=1` env var…”；全页只有 `/statusline` 一行含 preset 字样，指状态行布局预设对话框）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/8a415cb628db88844e0196bdfdcce83b4f88d812/docs/users/features/commands.md',
+    },
+    'qwen-saved-workflow-loader': {
+      label:
+        'Qwen Code 保存的 Workflow 加载器源码（main `c24e99e9cb74`，`@fileoverview` 逐字为 “Discovers saved workflow scripts under `.qwen/workflows/` (project) and `~/.qwen/workflows/` (user), plus the workflows active extensions ship, and exposes each as a `/<name>` slash command.” 与 “Typed in the interactive UI, the command dispatches the `workflow` tool with the file’s path; the script is read at execution time (by the tool), so edits take effect on the next invocation.”，即保存的是 JavaScript 编排脚本而不是可复用提示词文本）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/c24e99e9cb74ce616e0b3ff0e0e5b582dbf4b617/packages/cli/src/services/saved-workflow-loader.ts',
+    },
     'qwen-ide-current': {
       label: 'Qwen Code current IDE integration',
       url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/ide-integration/ide-integration.md',
@@ -1575,6 +1651,26 @@ window.matrixData = {
     'kimi-plugins-current': {
       label: 'Kimi Code current Plugins',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/691ec4679ea1/docs/zh/customization/plugins.md',
+    },
+    'kimi-plugin-commands-main': {
+      label:
+        'Kimi Code 插件斜杠命令文档（main `ef727e517923`，`docs/zh/customization/plugins.md` 25,451 字节，`## 插件斜杠命令` 一节自本仓库此前固定的 `691ec4679ea1` 起只有 10 行文字润色、规则未变。逐字要点：manifest 字段表 `commands` 行为 “一个或多个 `./` 路径，指向目录或 `.md` 文件，把其中的 Markdown 文件注册为斜杠命令”；开头句 “斜杠命令把一段常用提示词存成 `/命令`，输入即可触发。”；三条声明规则为指向目录时 “递归收集其中所有 `.md` 文件，每个文件各成为一个命令”、指向单个 `.md` 文件时 “只注册这一个”、指向非 `.md` 或不存在的路径时 “显示为 diagnostics 并被忽略”；frontmatter 只有 `name` 与 `description` 两个可选字段，`name` 省略时 “按文件相对 `commands` 的路径命名，去掉 `.md`、以 `/` 分隔，如 `commands/frontend/component.md` 注册为 `frontend/component`”，`description` 省略时 “取正文首行非空文字，超 240 字符截断；正文也为空则显示 `No description provided.`”；“命令自动以插件 id 作前缀注册成 `<插件名>:<命令名>`，所以上面的命令实际叫 `/kimi-finance:report`，不同插件的同名命令因此不会冲突。”；“命令后输入的文字会替换正文里的 `$ARGUMENTS`。若正文没写 `$ARGUMENTS` 却传了参数，参数不会丢弃，而是以 `ARGUMENTS: <你输入的内容>` 追加到正文末尾。”；全页没有用户级或项目级的非插件 Command 目录，也没有任何 preset 或数字槽位记法）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/ef727e517923cb312cb48d42825c49dfacd528e7/docs/zh/customization/plugins.md',
+    },
+    'kimi-skills-220': {
+      label:
+        'Kimi Code 2.2.0 Skill 文档（标签提交 `472192c34c1efad89a369870eff0da0b708ce9bb`，`docs/zh/customization/skills.md` 7,332 字节，与 2026-10-15 的 main 逐字节相同。逐字要点：调用形式为 `/skill:code-style` 与 `/skill:git-commits 修复登录接口的并发问题`；“Skill 调用最多允许嵌套 3 层，超过后会被终止。”；“Kimi Code CLI 按作用域分四档扫描，越具体的作用域优先级越高：**Project > User > Extra > Built-in**。”，用户级为 `$KIMI_CODE_HOME/skills/`（默认 `~/.kimi-code/skills/`）与 `~/.agents/skills/`，项目级为 `.kimi-code/skills/` 与 `.agents/skills/`，额外目录由 `config.toml` 顶层 `extra_skill_dirs` 声明，内置 Skill 优先级最低并可用顶层 `builtin_product_skills` 关闭；正文占位符为 `$ARGUMENTS`、`$ARGUMENTS[0]`/`$ARGUMENTS[1]` 及简写 `$0`/`$1`（“按空白分词后的位置参数（从 0 开始）”）、`arguments` 声明的 `$<name>` 与 `${KIMI_SKILL_DIR}`；“若正文不含任何参数占位符，调用时附带的文本会以 `\\n\\nARGUMENTS: <文本>` 的形式追加到正文末尾。”；frontmatter 字段为 `name`、`description`、`type`、`whenToUse`、`disableModelInvocation`、`arguments`；全页没有 `.kimi-code/commands` 目录，也没有 preset 或数字槽位记法）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/472192c34c1efad89a369870eff0da0b708ce9bb/docs/zh/customization/skills.md',
+    },
+    'kimi-skill-steering-pr': {
+      label:
+        'Kimi Code PR #4165（`feat(tui): unify skill prompts and steering`，合并提交 `afd95f64a5444b649a4cc33504513bf88e4c54ba`，2026-10-13T04:17:14Z 合入 main、随 2.2.0 发布）：需求段逐字为 “统一 TUI 行首和行中 Skill 的用户消息展示、高亮，并让两种调用都支持 Ctrl-S steer。”；改动要点含 “用户 Skill 不再生成独立激活卡。实时、历史恢复、Fullscreen 和 sticky 显示使用完整用户输入，只高亮解析结果或已保存激活元数据中的 Skill。”、“Enter 与 Ctrl-S 共用参数和命令优先级规则。”、“`steerIfActive` 贯通 SDK、RPC、klient 和 core。Ctrl-S 可发送行首、行中及多 Skill 输入，混合队列按顺序提交；bash 留队。”、“显示输入不代表执行成功，也不保证引擎已持久化。” 与 “VS Code 恢复组合 Skill 时只过滤展开指令，保留用户输入、媒体及 Hook 输出，不修改持久化数据或模型上下文。”；42 个改动文件里没有 `config.toml`、`tui.toml` 或配置 schema，唯一的 schema 变化是 klient 契约里新增可选字段 `steerIfActive`，即这是消息渲染与 steer 投递改动，不保存可复用提示词',
+      url: 'https://github.com/MoonshotAI/kimi-code/pull/4165',
+    },
+    'kimi-release-220': {
+      label:
+        'Kimi Code 2.2.0 Release（2026-10-14T15:31:16Z 发布，标签提交 `472192c34c1efad89a369870eff0da0b708ce9bb`，发布说明 9,042 字节）：与自定义命令相关的唯一条目逐字为 “Replace user skill cards with highlighted prompts and support Ctrl-S for skill prompts.”（PR #4165，提交 `afd95f6`）；全篇没有 preset、数字槽位或保存提示词模板一类条目',
+      url: 'https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%402.2.0',
     },
     'kimi-ide-current': {
       label: 'Kimi Code current IDE integrations',
@@ -1948,6 +2044,11 @@ window.matrixData = {
     'qoder-commands': {
       label: 'Qoder CLI slash commands',
       url: 'https://docs.qoder.com/cli/slash-reference',
+    },
+    'qoder-custom-commands': {
+      label:
+        'Qoder CLI Custom Commands 页（1,203,352 字节；`https://docs.qoder.com/en/cli/commands` 会重定向到本页，`https://docs.qoder.com/cli/custom-commands` 为 404。逐字要点：Storage Locations and Priority 表两行为 Project-Level `.qoder/commands/<command_name>.md`（Current project only，Recommended (team sharing)）与 User-Level `~/.qoder/commands/<command_name>.md`（All projects，Do not commit (personal configuration)）；优先级段为 “**Priority**: If a command with the same name exists at both the project-level and User-Level, the **User-Level** (`~/.qoder/commands/`) command takes precedence and overrides the project-level command with the same name; the overridden definitions are listed under Also defined at in the command details. If Qoder CLI is already running, after adding or modifying a command configuration file, run `/commands` to reload and view the available commands.”；Naming Conventions 含 “Commands in subdirectories use `:` as the namespace separator; for example, `commands/git/commit.md` is registered as `/git:commit`”、“`frontmatter.name` serves only as the display name in the TUI; the command invocation name is always derived from the file path” 与 “If `SKILL.md` exists in the same directory, the directory will be registered as a single command (e.g., `/git`), and other sibling `.md` files within the directory will be ignored”；frontmatter 字段表只有 `name`（Required: No，显示名，调用名由文件路径决定且不受该字段影响）与 `description`（Required: Yes，支持 YAML 多行）；Command Types 表两行为 TUI Type（Applicable Mode: TUI，Extensibility: Built-in, custom extensions not supported）与 Prompt Type（“Submits preset prompts to the conversation to guide the CLI in completing specific tasks”，Applicable Mode: TUI + Headless，Extensibility: Supports user-defined custom extensions）；Headless 一句为 “Headless mode supports the execution of commands that submit prompts. Commands that require opening interactive selectors or dialogs should be used in TUI mode.”，示例为 `qoder -p \'/git-commit\'`；`/commands` 面板 “is used to view the list of currently available commands by category (Built-in, Dynamic, Skill, Plugin, Workflow, etc.) and does not provide an entry point for creation.”，用 Tab 切分类页签、上下键浏览、“Custom commands are categorized under **Dynamic**”、Esc 退出，且 “The panel is for browsing only.”；全页没有任何参数占位符语法（没有 `$ARGUMENTS`、`$1`、`{{args}}`），preset 只作为 Prompt Type 描述里的形容词出现一次，没有数字槽位机制）',
+      url: 'https://docs.qoder.com/cli/commands',
     },
     'qoder-goal-reference': {
       label: 'Qoder CLI Goal Command Reference',
@@ -2832,7 +2933,7 @@ window.matrixData = {
       category: 'commands',
       capability: '自定义命令',
       description: '加载用户或项目定义的命令模板。',
-      values: { claude: 'Skills 可作为命令调用', codex: 'Skills 可作为命令调用', qwen: '`/workflows` · `/<skill-name>`', kimi: 'Skills 可作为命令调用', qoder: '`/commands` · `/workflows`' },
+      values: { claude: 'Skills 可作为命令调用', codex: 'Skills 可作为命令调用 · 条件：`/presets` 十个数字槽位存提示词或 Slash 命令行（合入 main 尚未发布）', qwen: '`/workflows` · `/<skill-name>`', kimi: 'Skills 可作为命令调用', qoder: '`/commands` · `/workflows`' },
     },
     {
       id: 'cmd-ide',
@@ -3210,7 +3311,7 @@ window.matrixData = {
       category: 'extensions',
       capability: '自定义 Slash 命令',
       description: '从文件加载自定义命令提示模板。',
-      values: { claude: '`.claude/commands/*.md` · Skills', codex: 'Skills；`/prompts:*` 已弃用', qwen: '`.qwen/commands/*.md` · Skills', kimi: 'Plugin `commands/*.md` · Skills', qoder: '`.qoder/commands/*.md`' },
+      values: { claude: '`.claude/commands/*.md`（官方称 “the older format”，已并入 Skills）· Skills', codex: 'Skills；`/prompts:*` 已弃用 · 条件：`/presets` 把提示词或 Slash 命令行存进用户配置 `tui.presets.<0-9>` 十个数字槽位，`0`–`9` 直接召回、`leader p` 或 `/presets` 开菜单（合入 main 尚未发布）', qwen: '`.qwen/commands/*.md`（TOML 已弃用、检测到会提示迁移）· Skills', kimi: 'Plugin `commands/*.md` · Skills · 无独立用户或项目 Command 目录', qoder: '`.qoder/commands/*.md` · `~/.qoder/commands/*.md`（用户级覆盖项目级）' },
     },
     {
       id: 'extension-output-styles',

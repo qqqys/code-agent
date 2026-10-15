@@ -45,7 +45,7 @@
 | Skills | `/skills`、`/reload-skills` | `/skills` | `/skills`、`/<skill-name>` | 内置 Skill 命令与 Skills 目录 | `/skills` |
 | Hooks | `/hooks` | `/hooks` | `/hooks` | — | `/hooks` |
 | 插件或扩展 | `/plugin`、`/reload-plugins` | `/plugins`、`/apps` | `/extensions`、`/extension-creator`、`/reload-plugins` | `/plugins` | — |
-| 自定义命令 | Skills 可作为命令调用 | Skills 可作为命令调用 | Skills、Markdown/TOML 命令和保存的 Workflow | Skills 可作为命令调用 | `/commands`、`/workflows` |
+| 自定义命令 | Skills 可作为命令调用 | Skills 可作为命令调用；`/presets` 数字槽位（条件：main 分支，尚未发布） | Skills、Markdown/TOML 命令和保存的 Workflow | Skills 可作为命令调用 | `/commands`、`/workflows` |
 | 工具列表 | — | — | `/tools` | — | — |
 | IDE 或编辑器 | `/ide` | `/ide` | `/ide`、`/editor` | `/editor` | — |
 | 主题 | — | `/theme` | `/theme` | `/theme`、`/custom-theme` | — |
@@ -73,7 +73,7 @@ v2.1.222（2026-08-04 发布）移除了 ultraplan 功能，官方命令表不�
 
 ### Codex
 
-`/agent`、`/apps`、`/approve`、`/archive`、`/clear`、`/compact`、`/config`、`/copy`、`/debug-config`、`/delete`、`/diff`、`/exit`、`/experimental`、`/export`、`/fast`、`/feedback`、`/fork`、`/goal`、`/hooks`、`/ide`、`/import`、`/init`、`/keymap`、`/logout`、`/mcp`、`/memories`、`/mention`、`/model`、`/new`、`/permissions`、`/personality`、`/pet`、`/pets`、`/plan`、`/plugins`、`/ps`、`/raw`、`/rename`、`/resume`、`/review`、`/setup-default-sandbox`、`/side`、`/skills`、`/status`、`/statusline`、`/stop`、`/theme`、`/title`、`/usage`、`/vim`。
+`/agent`、`/apps`、`/approve`、`/archive`、`/clear`、`/compact`、`/config`、`/copy`、`/debug-config`、`/delete`、`/diff`、`/exit`、`/experimental`、`/export`、`/fast`、`/feedback`、`/fork`、`/goal`、`/hooks`、`/ide`、`/import`、`/init`、`/keymap`、`/logout`、`/mcp`、`/memories`、`/mention`、`/model`、`/new`、`/permissions`、`/personality`、`/pet`、`/pets`、`/plan`、`/plugins`、`/presets`、`/ps`、`/raw`、`/rename`、`/resume`、`/review`、`/setup-default-sandbox`、`/side`、`/skills`、`/status`、`/statusline`、`/stop`、`/theme`、`/title`、`/usage`、`/vim`。
 
 `/export`（会话 Markdown 导出）于 2026-08-07 合入 main 分支（提交 `2801d12661be`，PR #37358），尚未进入 Release，官方命令文档也尚未列出；不带参数时可在复制到剪贴板与保存文件之间选择。
 
@@ -82,6 +82,8 @@ v2.1.222（2026-08-04 发布）移除了 ultraplan 功能，官方命令表不�
 `/mcp` 自 rust-v0.161.0（2026-10-07 发布，PR #49290）起接受 `login <name>` 参数，在活动会话内启动某个 streamable HTTP MCP Server 的 OAuth 登录；同一版本的 Slash 命令枚举把该命令描述为 “list MCP tools; use /mcp verbose or /mcp login <name>”。官方 Slash 命令参考页核对时仍只写 “Open MCP status to view connected servers.”，不列 `verbose` 与 `login`。参数解析、报错文案与凭据边界见 [MCP 命令详情](./capabilities/commands/cmd-mcp.md)。
 
 `/config`（源码描述 “configure Codex preferences”）于 2026-10-10 合入 main 分支（提交 `cc7ba33601286a751477832b01de7b6f8de0dd9c`，PR #52990），尚未进入 Release：核对日期最新 Release 为 rust-v0.163.0-alpha.5（2026-10-10T00:26:59Z），早于该提交，官方 Slash 命令表列出的 54 个命令里也没有 `/config`。前一个提交 `de8fab6d7adf` 的 `SlashCommand` 枚举只有 `DebugConfig`、没有 `Config`，因此这是新增命令而不是既有命令改行为。命令不带参数，打开标题为 “Configuration” 的可搜索偏好面板，19 个条目分 Appearance、Notifications、Input、Sessions、Text selection 五组，Theme、Status line fields、Terminal title fields、Keyboard shortcuts 四项移交给既有 `/theme`、`/statusline`、`/title`、`/keymap` 编辑器，其余各项直接写 `config.toml` 的 `tui.*` 键并新增 `tui.copy_on_select_clear_selection`（默认 `false`）。枚举没有功能开关或平台门禁，但 `available_during_task`、`available_in_side_conversation` 与 `available_when_thread_unavailable` 三个判定都不含 `Config`，即回合运行中、side conversation 内与线程不可用时不能执行；`/debug-config` 仍是独立的只读诊断命令。分组、键映射、保存提示与依赖置灰文案见[配置详情](./capabilities/commands/cmd-config.md)。
+
+`/presets`（源码描述 “run or save reusable prompts and slash commands”）于 2026-10-15 由四个提交合入 main 分支（PR #54380 提交 `dcd9e954598cd5e9f80570204896d779c60c1ecd`、PR #54381 提交 `111362a6a0a92d08885b1ae62d3760714907ad94`、PR #54385 提交 `36803b180a50e611331b75ff2b4c475c02846b53`、PR #54388 提交 `f847a4bd3c6ca3d8474a6e0dace1ed39f7ec0067`），尚未进入 Release：2026-10-15 核对时最新 Release 为 rust-v0.163.0-alpha.10.2（2026-10-15T18:26:31Z，早于这四个提交），该标签的 `SlashCommand` 枚举没有 `Presets` 变体，官方 Slash 命令参考页与配置参考也都没有列出它或 `tui.presets`。命令不带内联参数（不在 `supports_inline_args` 清单里），打开输入框上方标题为 “Presets” 的菜单：`0`–`9` 运行已存槽位或在空槽新建，`n` 新建、`s` 从当前设置新建、`e` 编辑、`d` 删除、`Esc` 关闭；另有隐式 chord `leader p`，对应键位动作 `tui.keymap.chat.open_presets`（`config.schema.json` 描述 “Open saved prompts and slash commands.”），只在没有显式绑定且 leader 名额未满时安装并在 `/keymap` 中列出。槽位写进用户配置 `~/.codex/config.toml` 的 `tui.presets.<0-9>`，每槽只有 `input`（提示词或 Slash 命令行，上限 8,000 UTF-8 字节、拒绝 `!` 开头的 Shell 命令）与可选 `label` 两键，召回时按 `QueuedInputAction::ParseSlash` 走常规排队提交路径并保留输入框草稿；`s` 可从当前模型、权限、终端标题与状态行反向生成 `/model`、`/permissions`、`/title`、`/statusline` 命令行。枚举把它列进 `available_during_task`，但没有列进 `available_in_side_conversation` 与 `available_when_thread_unavailable`，即回合运行中可用、side conversation 内与线程不可用时不可用。槽位归属、层遮蔽、报错文案与菜单渲染见[自定义命令详情](./capabilities/commands/cmd-custom.md)与[自定义 Slash 命令详情](./capabilities/extensions/extension-custom-commands.md)。
 
 ### Qwen Code
 

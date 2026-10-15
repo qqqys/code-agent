@@ -912,10 +912,20 @@
           persistence: 'Skill 文件跨会话存在',
           status: '条件项',
         }),
-        codex: command('codex', ['/<skill-name>'], '通过本地 Skills 扩展任务命令。', {
-          parameters: '由 Skill 定义',
-          persistence: 'Skill 文件跨会话存在',
+        codex: command('codex', ['/<skill-name>', '/presets'], '通过本地 Skills 扩展任务命令；main 分支的 `/presets`（源码描述 “run or save reusable prompts and slash commands”）在输入框上方打开标题为 “Presets” 的菜单，`0`–`9` 直接运行已存槽位或在空槽新建，槽位内容是一条提示词或一条 Slash 命令行，召回时按 `QueuedInputAction::ParseSlash` 走常规排队提交路径并且不改写输入框草稿。', {
+          parameters: '由 Skill 定义；`/presets` 不接受内联参数，菜单内 `n` 新建、`s` 从当前模型／权限／终端标题／状态行设置反向生成命令行、`e` 编辑、`d` 删除、`Esc` 关闭',
+          mode: '交互式 CLI；`/presets` 在 `available_during_task` 清单内因而回合运行中可用，不在 `available_in_side_conversation` 与 `available_when_thread_unavailable` 清单内，其他 Surface 未确认',
+          persistence: 'Skill 文件跨会话存在；`/presets` 槽位写进用户配置 `~/.codex/config.toml` 的 `tui.presets.<0-9>`（每槽 `input` 上限 8000 UTF-8 字节、`label` 可选），跨会话生效且只能改写用户配置层拥有的槽位',
+          conditions: '`/presets` 于 2026-10-15 由 PR #54380、#54381、#54385、#54388 合入 main，尚未进入 Release（标签 `rust-v0.163.0-alpha.10.2` 的 Slash 命令枚举没有 `Presets`），官方 Slash 命令页与配置参考都还没有列出；隐式快捷键 `leader p` 对应键位动作 `tui.keymap.chat.open_presets`，显式绑定优先',
           status: '条件项',
+          sources: [
+            'codex-commands',
+            'codex-presets-commit',
+            'codex-presets-slash-command',
+            'codex-presets-persist',
+            'codex-presets-recall',
+            'codex-presets-unreleased',
+          ],
         }),
         qwen: command('qwen', ['/workflows', '/<skill-name>', '/<command-name>', '/<workflow-name>'], '用户、项目和扩展 Skill 按 Skill 名注册；`commands/` 下的 Markdown/TOML 文件按路径注册；启用 Workflows 后，保存的 Workflow 也按名称注册。', {
           parameters: '由 Skill、命令文件或 Workflow 定义；Workflow 可接收 JSON 或纯文本参数',
