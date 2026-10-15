@@ -787,122 +787,167 @@
     'extension-custom-commands': createDetail({
       id: 'extension-custom-commands',
       definition:
-        '把提示模板保存成可输入的 Slash 命令，并区分独立 Command 文件、Skills、Plugin Commands 与已弃用机制。',
+        '把提示模板保存成可输入的 Slash 命令，并区分独立 Command 文件、Skills、Plugin Commands、用户配置里的数字槽位与已弃用机制。',
       includes: [
         'Markdown Prompt Command 的目录与命名',
         '参数、命名空间和加载优先级',
         '与 Skills 或 Plugin Commands 的关系',
+        '用户配置里的数字槽位与召回快捷键',
       ],
       excludes: [
         '产品内置 Slash 命令',
         'MCP Server 动态暴露的 Prompt',
         '只通过自然语言自动触发、没有命令入口的 Skill',
+        '槽位或命令内容所指向的模型、权限、终端标题与状态行设置本身',
       ],
       facts: [
-        'Claude Code、Qwen Code 和 Qoder CLI 都保留独立 Markdown Command 目录；Kimi Code 当前只文档化 Plugin Commands 与 Skills。',
-        'Codex 的 `~/.codex/prompts` 自定义 Prompt 已弃用且只在本机使用，官方建议把可复用内容迁到 Skills。',
+        'Claude Code、Qwen Code 和 Qoder CLI 都保留独立 Markdown Command 目录；Kimi Code 当前只文档化 Plugin Commands 与 Skills，官方 `docs/zh/customization/` 下没有 commands 文档。',
+        'Codex 有旧新两条并存的路：`~/.codex/prompts/*.md` 自定义 Prompt 已弃用（官方逐字为 “Custom prompts are deprecated. Use skills for reusable prompts”）且只在本机使用，2026-10-15 合入 main 的 `/presets` 则把最多十个数字槽位写进用户配置的 `tui.presets.<0-9>`，槽位内容是一条提示词或一条 Slash 命令行，按 `0`–`9` 召回。',
+        '存储位置决定共享范围：Claude Code、Qwen Code 与 Qoder CLI 的项目级 Command 目录可随仓库提交共享，Kimi Code 的插件命令随插件分发，Codex 的旧 Prompt 与 `/presets` 槽位都只属于本机用户——官方对旧 Prompt 的说法是 “they’re not shared through your repository”。',
+        '同名覆盖方向不一致：Claude Code 是 “Enterprise over personal, and personal over project”，Qoder CLI 是用户级覆盖项目级，Qwen Code 相反、官方写 “Project commands > User commands (project command used when names are same)”。',
+        '参数占位符各家不同、位置参数的基底也不同：Claude Code 与 Kimi Code 都从 0 开始（`$0` 是第一个参数），Codex 已弃用的 Prompt 用 `$1` 到 `$9`（没有 `$0`）并另有 `$ARGUMENTS`、大写命名占位符与 `$$` 转义，Qwen Code 只有 `{{args}}` 加 `!{command}` 与 `@{file path}`，Qoder CLI 没有记录任何占位符语法。',
+        '只有 Codex 把可复用提示词存进配置文件的数字槽位；其余四家在核对日期的一手资料里都是文件式命令目录或 Skill。Claude Code 的输入历史（`Up` 召回、`Ctrl+R` 反向搜索）与 Qoder CLI 1.1.20 的 “Added Ctrl+S to stash the current prompt draft and restore it later” 都是历史或草稿机制，不是可命名、可编号的提示词槽位。',
         '同样显示为 `/name` 的入口可能来自内置命令、Skill、Prompt Command、Plugin 或 MCP Prompt，矩阵只比较其公开加载机制。',
       ],
       products: {
         claude: {
           entry:
-            '`.claude/commands/deploy.md` 生成 `/deploy`；Skills 也能生成同名 Slash 入口。',
+            '`.claude/commands/deploy.md` 生成 `/deploy`，官方逐字写明 “**Custom commands have been merged into skills.** A file at `.claude/commands/deploy.md` and a skill at `.claude/skills/deploy/SKILL.md` both create `/deploy` and work the same way.”；Plugin 的 `commands/<file>.md` 生成 `/<plugin>:<file>`，子目录再加一段（`commands/db/migrate.md` → `/my-plugin:db:migrate`）。',
           location:
-            '项目 `.claude/commands/*.md` 与用户 `~/.claude/commands/*.md`；Plugin 可携带 `commands/`。',
+            '项目 `.claude/commands/*.md`；官方 Skills 页把个人级位置写成 `~/.claude/skills/<skill-name>/SKILL.md`，只在同名冲突提示里泛指 “your personal skills or command files in `~/.claude/`”，没有把 `~/.claude/commands/` 单独列为个人命令目录。用 `--add-dir` 或 `/add-dir` 加入的目录会连带加载它的 `.claude/skills/`、`.claude/commands/` 与 `.claude/agents/`；Plugin 可携带 `commands/`。',
           behavior:
-            'Markdown 正文作为提示模板加载，目录层级形成命名空间；参数可插入提示内容。',
+            'Markdown 正文作为提示模板加载。命令名来自文件名去掉扩展名，子目录路径里每个 `/` 换成 `:`（官方示例 `.claude/commands/frontend/component.md` → `/frontend:component`）。可用替换为 `$ARGUMENTS`（没有占位符接收参数时以 `ARGUMENTS: <value>` 追加）、`$ARGUMENTS[N]` 与简写 `$N`，官方明确 0 基——“Access a specific argument by 0-based index, such as `$ARGUMENTS[0]` for the first argument.”、“Shorthand for `$ARGUMENTS[N]`, such as `$0` for the first argument or `$1` for the second.”；`arguments` frontmatter 声明的命名参数按顺序映射到位置（`arguments: [issue, branch]` 时 `$issue` 是第一个、`$branch` 是第二个）；索引参数按 shell 风格引号分词，没有对应参数的索引占位符原样留在正文里，字面 `$` 用 `\\$` 转义。另有 `${CLAUDE_SESSION_ID}`、`${CLAUDE_EFFORT}`、`${CLAUDE_SKILL_DIR}`、`${CLAUDE_PROJECT_DIR}`、`${CLAUDE_PLUGIN_ROOT}` 与 `${CLAUDE_PLUGIN_DATA}`。行首或紧跟空白之后的 ! 反引号形式（以及用 ! 开启的围栏代码块）会在内容送给 Claude 之前执行 Shell 并以其输出替换占位符，“A failed command aborts the entire skill invocation, not just its own placeholder.”；一条消息开头可串联首个 Skill 加至多五个，尾部文字作为 `$ARGUMENTS` 传给每一个。',
           scope:
-            '项目、用户和 Plugin；项目命令可随仓库共享。',
+            '同名时的官方优先级逐字为 “Enterprise over personal, and personal over project. With `deploy` in both `~/.claude/skills/` and the project’s `.claude/skills/`, `/deploy` runs the personal one”；项目命令随仓库共享，Plugin 命令随插件分发。',
           components:
-            'Markdown Prompt、前置配置和参数占位；复杂工作流可迁移为带辅助文件的 Skill。',
+            '命令文件是 Markdown 加 frontmatter，官方写明它 “supports the same [frontmatter] except `name` and `paths`”（`paths` 另注明 “Not supported in `.claude/commands/` files”），其余字段与 Skill 相同，含 `description`、`when_to_use`、`argument-hint`、`arguments`、`disable-model-invocation`、`user-invocable`、`allowed-tools`、`disallowed-tools`、`model`、`effort`、`context`、`agent`、`background`、`hooks`、`shell`、`metadata`、`license` 与 `compatibility`；需要辅助文件时改用带自己目录的 Skill。',
           loading:
-            '旧式 Commands 与 Skills 会合并进入 Slash 菜单；运行时 Skill 变更可被检测。',
+            '命令文件与 Skill 合并进入同一个 Slash 菜单；官方写明 “Live change detection covers `SKILL.md` text only.”，并且不监听 `--add-dir` 目录的 `.claude/commands/` 与 `.claude/agents/`，改完要重启会话。v2.1.299 起 “Changed `UserPromptSubmit` hooks to run before a skill or custom slash command expands, so a hook that blocks the prompt now also stops its embedded shell commands”，同版还改了 Skill 自身 frontmatter 的 `UserPromptSubmit` 首次生效时机，并规定 “Changed skill and command loading: one whose file or folder name has hidden, direction-changing or blank-like characters, `<` or `>` is no longer offered until renamed; such a `name:` is ignored”；v2.1.301 修了参数名过多或过长时的卡顿（“only the first 64 names, each up to 64 characters, are now filled in”）与 `/rewind` 后 Skill 不再列给模型的问题，并让 `/reload-skills` 说明它会重发完整 Skill 列表。',
           permissions:
-            'Command 只是生成提示；提示触发的工具仍受权限规则。',
+            'Command 只是生成提示；提示触发的工具仍受权限规则。! 内嵌 Shell 可以用设置 `"disableSkillShellExecution": true` 关闭，官方写明它作用于 “skills and custom commands from user, project, plugin, or additional-directory sources”，关闭后每条命令被替换成 `[shell command execution disabled by policy]` 而不是执行。',
           conditions:
-            '`.claude/commands` 仍受支持，但新建复杂可复用能力时官方把 Skills 作为统一机制。',
-          sources: ['claude-skills'],
+            '官方对命令文件的措辞是 “the older format” 而不是 deprecated：“**Command files**: a Markdown file in `.claude/commands/` is the older format and still works. … Prefer a skill for new work, since skills also support supporting files.”，插件组件页同样写 “Commands are the older format, and skills supersede them for new work.”。官方命令页 `docs/en/commands` 现在只是内置命令参考，全页不再出现 `.claude/commands`，正文改写成 “To add your own commands, see skills.” 并把 skills 一词链到 `/docs/en/skills`；`docs/en/slash-commands` 也直接返回 Skills 页。更新日志（main 固定到 `03b5892ee77de289bcd5dfa39f541525ade74aff`，1,036,155 字节，最新段 `## 2.1.301`）全文没有 preset、presets 或 quick dial 字样。输入历史是另一套机制：按工作目录保存、`Up` 可召回本项目往次会话的提示词、`Ctrl+R` 反向搜索（全屏渲染下用 `Ctrl+S` 在 this session／this project／all projects 之间切范围）、双按 `Esc` 清空输入并把草稿存进历史，它是历史召回而不是可命名、可编号的提示词槽位。',
+          sources: [
+            'claude-skills',
+            'claude-commands',
+            'claude-plugins-components',
+            'claude-interactive-mode',
+            'claude-v21301-commands-changelog',
+          ],
         },
         codex: {
           entry:
-            '推荐通过 Skill 暴露可复用能力；旧 Prompt 使用 `/prompts:<name>`。',
+            '推荐通过 Skill 暴露可复用能力；旧 Prompt 使用 `/prompts:<name>`。main 分支另有 `/presets`（源码描述逐字为 “run or save reusable prompts and slash commands”，无别名、不在 `supports_inline_args` 清单里因而不接受内联参数），在输入框上方打开标题为 “Presets” 的菜单：`0`–`9` 运行已存槽位或在空槽新建，`n` 新建、`s` 从当前设置新建、`e` 编辑、`d` 删除、`Esc` 关闭；隐式快捷键是 `leader p`，对应键位动作 `tui.keymap.chat.open_presets`（`config.schema.json` 描述逐字为 “Open saved prompts and slash commands.”），该动作在 `/keymap` 中列出。',
           location:
-            '旧 Prompt 只从用户目录 `~/.codex/prompts/*.md` 加载；项目不提供同等 Prompt 目录。',
+            '旧 Prompt 只从用户目录 `~/.codex/prompts/*.md` 加载，官方写明只扫描该目录顶层的 Markdown 文件；项目不提供同等 Prompt 目录。`/presets` 不用目录：槽位写进当前生效的用户配置文件（源码字段 `local_settings.user_config_path`，官方配置参考逐字为 “User-level configuration lives in `~/.codex/config.toml`.”）的 `tui.presets.<slot>`，`slot` 是单个数字 `0`–`9`，每槽是只含 `input` 与 `label` 两键的 TOML 表。',
           behavior:
-            '旧 Prompt 把 Markdown 内容插入对话；Skill 可携带更完整的脚本和资源，并支持显式或自动调用。',
+            '旧 Prompt 把 Markdown 内容插入对话；Skill 可携带更完整的脚本和资源，并支持显式或自动调用。`/presets` 的槽位只存纯文本：`input` 可以是一条提示词，也可以是一条 Slash 命令行，召回时经 `queue_user_message_with_options(input, QueuedInputAction::ParseSlash, …)` 走常规排队提交路径并解析 Slash 命令，全程不改写输入框因而保留草稿。`s` 打开 “Start preset from current settings”，四项分别生成命令行：“Current model” 生成 `/model <name>` 并按可用情况追加 `--reasoning=<effort>` 与 `--speed=<speed>`（服务层级为默认值时速度取 `standard`），“Current permissions” 生成 `/permissions <profile_id> --approval-policy=<policy> --reviewer=<reviewer>`（profile 名经 `shlex::try_quote` 引号化），“Current terminal title” 与 “Current status line” 生成保留条目顺序与重复项、归一化条目别名的 `/title <item…>` 与 `/statusline <item…>` 并给状态行追加 `--colors` 或 `--no-colors`，条目为空时改用 `<command> --clear`。写入前校验：`input` 去空白后为空报 “Preset input cannot be empty.”，去空白后以 `!` 开头报 “Presets support prompts and slash commands, not shell commands.”，超过 8000 UTF-8 字节报 “Preset input cannot exceed 8,000 UTF-8 bytes.”；图片与 linked mention 不能存进槽位（分别提示 “Images cannot be copied into a preset. Starting with empty text.” 与 “Linked mentions cannot be copied into a preset. Starting with empty text.”）。菜单只列出已占用槽位，有 `label` 时显示 label、否则显示 input 且过长以 `…` 截断；编辑与删除都要过 “{action} preset {slot}?” 确认，替换时给出 “{}\\n→ {}” 的旧值新值对照。',
           scope:
-            '旧 Prompt 仅本机用户；Skills 可放项目 `.agents/skills` 或用户目录。',
+            '旧 Prompt 仅本机用户；Skills 可放项目 `.agents/skills` 或用户目录。`/presets` 的槽位按配置层归属：只能替换当前用户配置拥有的槽位，最高层定义落在别的配置层时报 “Preset {slot} is defined outside your user config. Edit its source configuration instead.”；清空时只要有任何非用户配置层定义过该槽位就一并拒绝，源码注释写明 “Clearing must not reveal a shadowed slot from another configuration layer.”；把 `label` 写成空字符串可遮蔽下层继承来的标签（注释 “An explicit empty label masks labels inherited from lower layers.”）。写入失败报 “Failed to update preset {slot}: …” 且内存中的设置保持不变，只读与失败两条路径都会用 `restore_quick_dial_editor` 把编辑器回填。',
           components:
-            '旧机制只有 Markdown Prompt；Skills 使用 SKILL.md 与辅助资源。',
+            '旧机制只有 Markdown Prompt：YAML front matter 里可写 `description:`（显示在弹出菜单的命令名下）与 `argument-hint: KEY=<value>`，正文可用位置占位符 `$1` 到 `$9`（官方逐字为 “`$1` through `$9` expand from space-separated arguments you provide after the command. `$ARGUMENTS` includes them all.”）、大写命名占位符如 `$FILE` 或 `$TICKET_ID`（以 `KEY=value` 传值、含空格的值要加引号，例如 `FOCUS="loading state"`）与字面量 `$$`；Skills 使用 SKILL.md 与辅助资源。`/presets` 槽位是 Rust 类型 `QuickDial`（结构体注释逐字为 “One reusable prompt or slash command submitted through the TUI composer.”，JSON schema 名 `Preset` 且 `deny_unknown_fields`）的两个字段：`input: String`（“Plain-text input, limited to 8,000 UTF-8 bytes.”）与 `label: Option<String>`（“Optional short name for the picker and shortcut hints.”）；在 `Tui` 结构里以 `#[serde(default, rename = "presets")]` 暴露为 `BTreeMap<String, QuickDial>`，字段注释逐字为 “Saved inputs keyed by a single digit (`0` through `9`).”。源码没有槽位数量常量，十个槽位来自“键是单个数字”这一约定与提交说明里的 “ten numbered preset slots”。',
           loading:
-            '旧 Prompt 在客户端发现后以 `/prompts:*` 提供；新内容应使用 Skills。',
+            '旧 Prompt 在客户端发现后以 `/prompts:*` 提供，官方写明 “Codex reads prompt metadata and resolves placeholders the next time the session starts.” 与 “After editing prompt files, restart Codex or open a new chat so the updates load. Codex ignores non-Markdown files in the prompts directory.”，并且只扫描 `~/.codex/prompts/` 顶层的 Markdown；新内容应使用 Skills。`/presets` 的槽位随用户配置加载进 `local_settings.tui.quick_dials`，保存或删除成功后立即同步内存副本并提示 “Saved preset {slot}.” 或 “Deleted preset {slot}.”，不需要重启会话；启动完成前按数字键提示 “Presets are available after startup completes.”，线程不可用时提示 “Presets are unavailable in this conversation.”。',
+          surfaces:
+            '以 Codex CLI 为准；桌面端、IDE 扩展、Cloud 和 `codex exec` 不自动继承全部交互命令。`/presets` 定义在 `codex-rs/tui`，在 `available_during_task` 的 `=> true` 分支里因而回合运行中可用，但不在 `available_in_side_conversation` 与 `available_when_thread_unavailable` 两个 `matches!` 清单中（两者默认返回 `false`），即 side conversation 内与线程不可用时不能执行；官方文档没有记录它在其他 Surface 的可用性，记为未确认。',
           permissions:
-            'Prompt 或 Skill 都不绕过审批与沙箱。',
+            'Prompt 或 Skill 都不绕过审批与沙箱。`/presets` 同样只是提交文本：槽位里的 Slash 命令与提示词走正常解析与权限流程，源码明确拒绝把 `!` 开头的 Shell 命令存成槽位；`s` 生成的 `/permissions <profile-id> --approval-policy=<policy> --reviewer=user|auto_review` 命令行仍要经过 `/permissions` 自己的解析与校验，未知策略报 “Unknown approval policy `{value}`. Expected `untrusted`, `on-request`, `never`, or a granular policy.”，未知审查者报 “Unknown permission reviewer `{value}`. Expected `user` or `auto_review`.”，且每个 reviewer 都保留 full-access 确认、自动审查不可用时拒绝。',
           conditions:
-            '`/prompts:*` 已弃用；不能把它表述成与其他四家同等的现行项目级 Command 系统。',
+            '`/prompts:*` 已弃用（官方 Custom prompts 页逐字为 “Deprecated. Use skills for reusable prompts”），不能把它表述成与其他四家同等的现行项目级 Command 系统。`/presets` 于 2026-10-15 由四个提交合入 main（PR #54380 `dcd9e954598cd5e9f80570204896d779c60c1ecd`、PR #54381 `111362a6a0a92d08885b1ae62d3760714907ad94`、PR #54385 `36803b180a50e611331b75ff2b4c475c02846b53`、PR #54388 `f847a4bd3c6ca3d8474a6e0dace1ed39f7ec0067`），尚未进入 Release：标签 `rust-v0.163.0-alpha.10.2`（2026-10-15T18:26:31Z 发布，早于这四个提交）的 Slash 命令枚举里没有 `Presets` 变体，仓库 `CHANGELOG.md` 在 main 只有一条与 presets 无关的 `## Unreleased` 条目。官方文档也没有跟进：配置参考全文没有 `tui.presets` 与 `tui.keymap.chat.open_presets`，只有通用的 `tui.keymap.<context>.<action>` 记法；官方 Slash 命令页没有 `/presets`；Custom prompts 页没有提到 presets。`leader p` 是隐式绑定，只在该动作没有显式配置（显式解绑也算显式配置）且 leader 展开名额 `MAX_LEADER_CHORD_BINDINGS` 未满时安装，与既有绑定、任一单键动作或 `KeymapContext::Pager` 绑定冲突时跳过。',
           status: '条件项',
-          sources: ['codex-custom-prompts', 'codex-skills'],
+          sources: [
+            'codex-custom-prompts',
+            'codex-skills',
+            'codex-presets-commit',
+            'codex-presets-slash-command',
+            'codex-presets-type',
+            'codex-presets-persist',
+            'codex-presets-recall',
+            'codex-presets-snapshot',
+            'codex-presets-keymap-commit',
+            'codex-presets-chord-defaults',
+            'codex-presets-permissions-commit',
+            'codex-presets-statusline-commit',
+            'codex-presets-unreleased',
+            'codex-config-reference',
+            'codex-developer-commands',
+          ],
         },
         qwen: {
           entry:
             '`.qwen/commands/review.md` 生成 `/review`；Skills 同样可以注册 Slash 入口。',
           location:
-            '项目 `.qwen/commands/*.md` 与用户 `~/.qwen/commands/*.md`；Extension 也可携带 Commands。',
+            '全局 `~/.qwen/commands/`（官方标注 “Available in all projects”、优先级 Low、用途为 “Personal frequently used commands, cross-project use”）与项目 `<project root directory>/.qwen/commands/`（“Project-specific, version-controllable”、优先级 High、用途为 “Team sharing, project-specific commands”）；Extension 也可携带 Commands。',
           behavior:
-            'Markdown 为推荐格式，TOML 为兼容格式；支持参数与 Shell 占位，嵌套目录转成冒号命名空间。',
+            'Markdown 为推荐格式并带可选 YAML frontmatter，TOML 已弃用但仍向后兼容，官方逐字为 “Custom commands now use Markdown format with optional YAML frontmatter. TOML format is deprecated but still supported for backwards compatibility. When TOML files are detected, an automatic migration prompt will be displayed.”，TOML 小节另写 “**Deprecated:** TOML format is still supported but will be removed in a future version. Please migrate to Markdown format.”。文件名到命令名的映射为 `~/.qwen/commands/test.md` → `/test`、`<project>/.qwen/commands/git/commit.md` → `/git:commit`，规则是 “Naming Rules: Path separator (`/` or `\\`) converted to colon (`:`)”。占位符只有 `{{args}}`（“Context-aware Injection”、自动 Shell 转义），没有任何标记时参数 “Append to end of prompt (separated by two line breaks)”；`!{command}` 注入 Shell 执行结果且 “Execution confirmation required before”，`@{file path}` 注入文件内容（文本全量、图片与 PDF 走多模态编码、二进制受限可能跳过或截断、目录按 `.gitignore` 递归）。处理顺序固定为 “File Content … Processed first”、“Shell Commands … Processed in middle”、“Parameter Replacement … Processed last”。',
           scope:
-            '项目命令优先于同名用户命令；Extension 命令进入统一命令注册表。',
+            '官方 Priority Rules 逐字为 “Project commands > User commands (project command used when names are same)”；`FileCommandLoader` 的注释写明 “Returns commands in order: user → project → extensions (alphabetically).” 与 “User/project commands (without extensionName) use "last wins" strategy”、“Extension commands (with extensionName) get renamed if conflicts exist”，代码里第二段目录的注释是 “// 2. Project commands (override user commands)”，因此项目覆盖用户，与 Claude Code 的 personal over project 相反。',
           components:
-            'Markdown/TOML Prompt、参数占位、Shell 结果插值；复杂资源可用 Skill。',
+            'Markdown frontmatter 只有可选的 `description`（“Command description (displayed in /help)”）加必填的提示正文；TOML 为必填 `prompt` 与可选 `description`。没有 `allowed-tools`、`model` 一类字段，也没有位置参数占位符（没有 `$0`、`$1` 或 `$ARGUMENTS`）；需要脚本与资源时改用 Skill。',
           loading:
-            '文件加载器扫描用户和项目目录，Extension manager 注册扩展命令。',
+            '文件加载器用 `**/*.toml` 与 `**/*.md` 两个 glob 同时扫描用户目录、项目目录与扩展（源码注释 “// Markdown commands already ignore a leading BOM; do the same here.”，TOML 解析前先 `stripUtf8Bom`），扩展过滤条件为 `ext.isActive && ext.format !== \'agent-plugins-v1\' && ext.installMetadata?.originSource !== \'AgentPlugins\'`；Extension manager 把扩展命令注册进统一命令注册表。',
           permissions:
-            '命令模板可插入 Shell 结果，实际执行仍受环境与工具权限控制。',
+            '命令模板可插入 Shell 结果，`!{command}` 在执行前有确认对话框，实际执行仍受环境与工具权限控制。',
           conditions:
-            '保存的 Workflow 是另一套运行记录机制，不应在矩阵中当成自定义 Command 的同义词。',
+            '保存的 Workflow 不是提示词模板：`saved-workflow-loader` 的 `@fileoverview` 逐字为 “Discovers saved workflow scripts under `.qwen/workflows/` (project) and `~/.qwen/workflows/` (user), plus the workflows active extensions ship, and exposes each as a `/<name>` slash command.” 与 “Typed in the interactive UI, the command dispatches the `workflow` tool with the file’s path; the script is read at execution time (by the tool), so edits take effect on the next invocation.”，存的是 JavaScript 编排脚本；`/workflows` 本身只是 “Inspect workflow runs; cooperatively pause/resume a background run” 的面板，且与 `/lsp`、`/trust` 一样只在功能开启时注册（`tools.workflowsEnabled` 或 `QWEN_CODE_ENABLE_WORKFLOWS=1`，workspace 值被忽略，未注册时 “will report an unknown command”）。核对日期没有把提示词存成配置槽位的机制：`commands.md` 全页唯一的 preset 字样在 `/statusline` 那一行，描述逐字为 “Open interactive status line preset dialog”（其中 status line 是指向同目录 `status-line.md` 的链接），指状态行布局预设而不是提示词预设。证据坐标为标签 `v0.25.2`（提交 `8a415cb628db88844e0196bdfdcce83b4f88d812`，Release 发布于 2026-10-15T15:41:15Z），该标签的 `commands.md` 为 78,099 字节且与 2026-10-15 的 main 逐字节相同，其 `## 4. Custom Commands` 一节与本仓库此前固定的 `8a44b1b9f793` 版本也逐字节相同；两个加载器源码自 `2e08486b529b` 起有改动（`SkillCommandLoader.ts` 6,328 → 7,645 字节、`FileCommandLoader.ts` 11,509 → 11,820 字节），但都不改变目录、格式、命名与优先级。',
           status: '源码确认',
           sources: [
             'qwen-commands-current',
+            'qwen-commands-v0252',
+            'qwen-saved-workflow-loader',
             'qwen-extension-runtime-current',
           ],
         },
         kimi: {
           entry:
-            'Plugin 的 `commands/deploy.md` 以 `/<plugin>:deploy` 调用；Skills 使用 `/skill:<name>`。',
+            'Plugin 的 `commands/report.md` 以 `/kimi-finance:report` 调用，官方写明 “命令自动以插件 id 作前缀注册成 `<插件名>:<命令名>`，所以上面的命令实际叫 `/kimi-finance:report`，不同插件的同名命令因此不会冲突。”；Skills 使用 `/skill:<name>`，例如 `/skill:code-style` 与 `/skill:git-commits 修复登录接口的并发问题`。',
           location:
-            '当前文档列出 Plugin `commands/*.md` 和各级 Skill 目录，没有独立 `.kimi-code/commands` 目录。',
+            '插件命令由 manifest（`kimi.plugin.json`）的 `commands` 字段声明，官方字段表逐字为 “一个或多个 `./` 路径，指向目录或 `.md` 文件，把其中的 Markdown 文件注册为斜杠命令”，路径必须在插件根目录内。Skill 目录分四档：用户级 `$KIMI_CODE_HOME/skills/`（默认 `~/.kimi-code/skills/`）与 `~/.agents/skills/`，项目级 `.kimi-code/skills/` 与 `.agents/skills/`（项目根为工作目录向上最近的含 `.git` 的目录），额外目录由 `config.toml` 顶层 `extra_skill_dirs` 声明，内置 Skill 随 CLI 分发。官方 `docs/zh/customization/` 只有 agents、datasource、hooks、mcp、plugins、skills 与 themes 七份文档，没有 commands 文档，也没有任何用户级或项目级的独立 `.kimi-code/commands` 目录。',
           behavior:
-            'Plugin Command 将 Markdown 作为提示模板，并用 `$ARGUMENTS` 接收调用参数。',
+            '官方对插件斜杠命令的定义逐字为 “斜杠命令把一段常用提示词存成 `/命令`，输入即可触发。”；`commands` 指向目录时 “递归收集其中所有 `.md` 文件，每个文件各成为一个命令”，指向单个 `.md` 文件时 “只注册这一个”，指向非 `.md` 或不存在的路径时 “显示为 diagnostics 并被忽略”。命令后输入的文字会替换正文里的 `$ARGUMENTS`，“若正文没写 `$ARGUMENTS` 却传了参数，参数不会丢弃，而是以 `ARGUMENTS: <你输入的内容>` 追加到正文末尾”。Skill 正文另支持 `$ARGUMENTS[0]`、`$ARGUMENTS[1]` 及简写 `$0`、`$1`（“按空白分词后的位置参数（从 0 开始）”，支持单双引号包裹，`/skill:commit "fix login" patch` 里 `$0` 展开为 `fix login`）、`arguments` 中声明的命名参数 `$<name>` 与 `${KIMI_SKILL_DIR}`，正文不含任何占位符时以 `\\n\\nARGUMENTS: <文本>` 追加。',
           scope:
-            'Plugin Command 随用户安装的 Plugin 生效；Skills 可来自项目、用户、额外目录或内置来源。',
+            '插件命令只在插件内声明、随用户安装的插件生效，没有项目级或用户级的等价目录；Skill 优先级为 “Kimi Code CLI 按作用域分四档扫描，越具体的作用域优先级越高：**Project > User > Extra > Built-in**”，内置 Skill 可用顶层 `builtin_product_skills` 关闭。“Skill 调用最多允许嵌套 3 层，超过后会被终止。”',
           components:
-            'Plugin Markdown Command，或带 SKILL.md 和辅助文件的 Skill。',
+            '插件命令文件分可选 frontmatter 与正文，frontmatter 只有 `name` 与 `description` 两个字段：`name` 省略时 “按文件相对 `commands` 的路径命名，去掉 `.md`、以 `/` 分隔，如 `commands/frontend/component.md` 注册为 `frontend/component`”，显式写的优先；`description` 省略时 “取正文首行非空文字，超 240 字符截断；正文也为空则显示 `No description provided.`”。Skill 的 frontmatter 为 `name`、`description`、`type`（默认 `prompt`，另有 `inline` 与 `flow`）、`whenToUse`、`disableModelInvocation` 与 `arguments`，且可以是目录形式（子目录加 `SKILL.md`，推荐）或扁平形式（直接放在 Skills 目录下的 `.md`），两者同名时以目录形式为准、扁平文件被忽略。',
           loading:
             '随 Plugin 加载；修改后使用 `/reload` 或新会话。',
           permissions:
             '命令产生的操作继续受 Kimi 工具权限约束。',
           conditions:
-            '未发现公开的独立用户/项目 Command 目录；不要根据 `.kimi-code/skills` 推断 `.kimi-code/commands`。',
-          sources: ['kimi-plugins-current', 'kimi-skills-current'],
+            '未发现公开的独立用户/项目 Command 目录；不要根据 `.kimi-code/skills` 推断 `.kimi-code/commands`。`docs/zh/customization/plugins.md` 在 main（`ef727e517923`，25,451 字节）比 2.2.0 标签（`472192c34c1e`）新，main 多出的 Plugin Skill 全限定名 `<plugin-id>:<skill-name>` 段落与放宽后的插件 `name` 正则还没有进入任何 Release；本字段关心的 `## 插件斜杠命令` 一节自本仓库此前固定的 `691ec4679ea1`（19,577 字节）起只有 10 行文字润色、规则未变。`docs/zh/customization/skills.md` 在 main 与 2.2.0 标签逐字节相同（7,332 字节）。2.2.0 Release（2026-10-14T15:31:16Z）里与自定义命令相关的唯一条目是 “Replace user skill cards with highlighted prompts and support Ctrl-S for skill prompts.”（PR #4165，提交 `afd95f64a544`），该 PR 的需求段为 “统一 TUI 行首和行中 Skill 的用户消息展示、高亮，并让两种调用都支持 Ctrl-S steer。”，42 个改动文件里没有 `config.toml`、`tui.toml` 或配置 schema，唯一的 schema 变化是 klient 契约新增可选字段 `steerIfActive`，PR 正文还写明 “显示输入不代表执行成功，也不保证引擎已持久化”，因此它是消息渲染与 steer 投递改动，不保存可复用提示词、不构成同类机制。`config.toml` 与 `tui.toml` 的字段表里也没有 preset、quick dial 或数字槽位一类键（`tui.toml` 只有 `theme`、`tui_mode`、`render_latex`、`disable_paste_burst`、`cache_expiry_hint`、`disable_feedback_survey`、`auto_session_title`、`[editor].command`、`[notifications].enabled`、`[notifications].notification_condition`、`[upgrade].auto_install`、`[status_line].items` 与 `[status_line].command`），唯一带“槽位”字样的是 `[status_line].items` 的说明 “底部状态栏第一行的内置槽位及顺序：mode、goal、model、tasks、cwd、git、tips，未知 id 跳过并告警”，指状态栏组件位置而不是提示词槽位。',
+          sources: [
+            'kimi-plugins-current',
+            'kimi-plugin-commands-main',
+            'kimi-skills-current',
+            'kimi-skills-220',
+            'kimi-skill-steering-pr',
+            'kimi-release-220',
+            'kimi-compaction-config',
+          ],
         },
         qoder: {
           entry:
-            '`/commands` 查看自定义命令；Markdown 文件名形成 Slash 命令名。',
+            '`/commands` 重新加载并列出可用命令：官方 Slash 命令参考逐字为 “Reload and list all available commands.”，Custom Commands 页写面板 “is used to view the list of currently available commands by category (Built-in, Dynamic, Skill, Plugin, Workflow, etc.) and does not provide an entry point for creation.”，用 Tab 切换分类页签（只显示有命令的分类且页签带数量）、上下键浏览、“Custom commands are categorized under **Dynamic**”、Esc 退出，且 “The panel is for browsing only.”，要看某个自定义命令的完整系统提示词得直接打开对应的 `.md` 文件。命令名由 Markdown 文件路径决定。',
           location:
-            '项目 `.qoder/commands/*.md` 与用户 `~/.qoder/commands/*.md`；Plugin 也可携带 Commands。',
+            '项目 `.qoder/commands/<command_name>.md`（Scope “Current project only”，Commit to Code Repository “Recommended (team sharing)”）与用户 `~/.qoder/commands/<command_name>.md`（Scope “All projects”，“Do not commit (personal configuration)”）；Plugin 也可携带 `commands/`，官方插件页写明 “Register custom slash commands; same structure as `~/.qoder/commands/`”，但没有记录插件命令的命名空间前缀，插件 id 形如 `name@local` 与 `name@marketplace-name`。',
           behavior:
-            'Markdown 正文作为 Prompt Command，可在 TUI 与 Headless 中调用。',
+            'Markdown 正文是该命令的 system prompt，官方示例正文写 “This is the system prompt content for the command. When the user executes this command, this prompt is submitted to the conversation to guide the CLI in completing specific tasks.”。这类命令属 Prompt Type（Description “Submits preset prompts to the conversation to guide the CLI in completing specific tasks”，Applicable Mode “TUI + Headless”，Extensibility “Supports user-defined custom extensions”），与之相对的 TUI Type 只提供交互界面且 “Built-in, custom extensions not supported”。子目录用 `:` 作命名空间分隔符（“Commands in subdirectories use `:` as the namespace separator; for example, `commands/git/commit.md` is registered as `/git:commit`”），命令名各段 “preserved as-is without character replacement”；同目录存在 `SKILL.md` 时 “the directory will be registered as a single command (e.g., `/git`), and other sibling `.md` files within the directory will be ignored”。Headless 侧官方写明 “Headless mode supports the execution of commands that submit prompts. Commands that require opening interactive selectors or dialogs should be used in TUI mode.”，示例为 `qoder -p \'/git-commit\'` 与 `qoder -p \'/review Focus on checking comment coverage\'`。',
           scope:
-            '项目与用户目录按优先级合并；Plugin 命令随其 scope 加载。',
+            '同名命令同时存在于项目级与用户级时，官方逐字为 “the **User-Level** (`~/.qoder/commands/`) command takes precedence and overrides the project-level command with the same name; the overridden definitions are listed under Also defined at in the command details.”，即用户级覆盖项目级——与 Claude Code 的 “personal over project” 同向，与 Qwen Code 的 “Project commands > User commands” 相反。Plugin 命令随其 scope 加载。',
           components:
-            'Markdown Prompt Command；需要脚本和资源时可改用 Skill 或 Plugin。',
+            'frontmatter 只有两个字段：`name`（Required “No”，“The display name of the command in the TUI; the invocation name is determined by the file path and is not affected by this field”）与 `description`（Required “Yes”，“The functional description of the command, supporting multiline text (using YAML syntax)”）。命名约定建议用小写字母与连字符、避免空格与特殊字符、文件名与 `name` 保持一致。官方没有记录任何参数占位符语法（没有 `$ARGUMENTS`、`$1`、`{{args}}`），Headless 里命令后的文字只是尾随附加文本；需要脚本与资源时改用 Skill 或 Plugin。',
           loading:
-            '启动时扫描目录；Plugin Commands 可随 `/plugins reload` 刷新。',
+            '启动时扫描目录；“If Qoder CLI is already running, after adding or modifying a command configuration file, run `/commands` to reload and view the available commands.”；Plugin Commands 可随 `/plugins reload` 刷新。',
           permissions:
             'Headless 或 TUI 中执行命令后，工具仍经过对应权限模式。',
           conditions:
-            'Prompt Command 的 Headless 可用性不代表所有内置交互命令都能在 Headless 中运行。',
-          sources: ['qoder-commands', 'qoder-plugins'],
+            'Prompt Type 命令的 Headless 可用性不代表所有内置交互命令都能在 Headless 中运行；TUI Type 明确不支持自定义扩展。官方 Custom Commands 页的正确地址是 `https://docs.qoder.com/cli/commands`（`https://docs.qoder.com/en/cli/commands` 会重定向到它，`https://docs.qoder.com/cli/custom-commands` 是 404），本仓库此前只固定了 Slash 命令参考页。该页 preset 只作为 Prompt Type 描述里的形容词出现一次（“Submits preset prompts…”），没有 `/presets` 命令、没有 `presets` 配置键、也没有数字槽位。发布说明最新条目为 CLI 1.1.71（October 14, 2026），其前的 1.1.70（October 13）、1.1.69（October 12）、1.1.68（October 10）与 1.1.67（October 9）都没有自定义命令或预设条目；全页与提示词保存相关的只有 CLI 1.1.20（August 12, 2026）的 “Added Ctrl+S to stash the current prompt draft and restore it later”，那是草稿暂存而不是可命名、可编号的提示词槽位。',
+          sources: [
+            'qoder-custom-commands',
+            'qoder-commands',
+            'qoder-plugins',
+            'qoder-release-notes',
+          ],
         },
       },
       related: [

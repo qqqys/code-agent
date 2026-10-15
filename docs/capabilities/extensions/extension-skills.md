@@ -2,7 +2,7 @@
 
 [返回扩展系统详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=extension-skills)
 
-> 核对日期：2026-10-14
+> 核对日期：2026-10-15
 
 ## 定义
 
@@ -57,7 +57,7 @@
 | 权限与信任 | Skill 只是指令与资源包；其中要求调用的工具仍经过 Claude Code 权限规则。 |
 | 条件与边界 | 同名 Skill 与旧式 Command 需要避免冲突。禁用分多层：`skillOverrides` 按名称设 `on`/`name-only`/`user-invocable-only`/`off`（`/skills` 写入 `.claude/settings.local.json`，不影响 Plugin Skill）；`disableBundledSkills` 关闭除 `/doctor` 外的全部内置 Skill；`/permissions` 可用 `Skill`、`Skill(name)`、`Skill(name *)` 拒绝；SKILL.md 可用 `disable-model-invocation`、`user-invocable`、`paths` 收窄。 |
 | 证据状态 | 官方确认 |
-| 来源 | [Claude Code Skills](https://code.claude.com/docs/en/skills)、[Claude Code settings](https://code.claude.com/docs/en/settings) |
+| 来源 | [Claude Code Skills（自定义命令已并入 Skills：`.claude/commands/deploy.md` 与 `.claude/skills/deploy/SKILL.md` 都生成 `/deploy`，命令文件是 “the older format” 且仍可用、frontmatter 除 `name` 与 `paths` 外与 Skill 相同；子目录按 `:` 命名空间、`$ARGUMENTS[N]` 与 `$N` 为 0 基、`arguments` 命名参数、`!` 行内 Shell 与 `disableSkillShellExecution`、同名时 Enterprise over personal 与 personal over project）](https://code.claude.com/docs/en/skills)、[Claude Code settings](https://code.claude.com/docs/en/settings) |
 
 ### Codex
 
@@ -129,7 +129,7 @@
 
 ## 官方来源
 
-- [Claude Code Skills](https://code.claude.com/docs/en/skills)
+- [Claude Code Skills（自定义命令已并入 Skills：`.claude/commands/deploy.md` 与 `.claude/skills/deploy/SKILL.md` 都生成 `/deploy`，命令文件是 “the older format” 且仍可用、frontmatter 除 `name` 与 `paths` 外与 Skill 相同；子目录按 `:` 命名空间、`$ARGUMENTS[N]` 与 `$N` 为 0 基、`arguments` 命名参数、`!` 行内 Shell 与 `disableSkillShellExecution`、同名时 Enterprise over personal 与 personal over project）](https://code.claude.com/docs/en/skills)
 - [Claude Code settings](https://code.claude.com/docs/en/settings)
 - [Codex Agent Skills](https://learn.chatgpt.com/docs/build-skills)
 - [Codex configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference)

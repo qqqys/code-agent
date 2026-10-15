@@ -2,7 +2,7 @@
 
 [返回扩展系统详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=extension-skill-generation)
 
-> 核对日期：2026-10-14
+> 核对日期：2026-10-15
 
 ## 定义
 
@@ -56,7 +56,7 @@
 | 权限与信任 | 生成与调用仍经过 Claude Code 权限规则；`skillOverrides` 可手动隐藏或禁用。 |
 | 条件与边界 | 自动写入只发生在 `/run-skill-generator`、`/verify` 等特定内置工作流；没有从任意 URL 或文本生成 Skill 的通用入口，也没有归档未使用 Skill 的 curator。`skill-creator` 插件用于评测和描述调优，不从用户行为自动生成任意 Skill。 |
 | 证据状态 | 官方确认 |
-| 来源 | [Claude Code Skills](https://code.claude.com/docs/en/skills) |
+| 来源 | [Claude Code Skills（自定义命令已并入 Skills：`.claude/commands/deploy.md` 与 `.claude/skills/deploy/SKILL.md` 都生成 `/deploy`，命令文件是 “the older format” 且仍可用、frontmatter 除 `name` 与 `paths` 外与 Skill 相同；子目录按 `:` 命名空间、`$ARGUMENTS[N]` 与 `$N` 为 0 基、`arguments` 命名参数、`!` 行内 Shell 与 `disableSkillShellExecution`、同名时 Enterprise over personal 与 personal over project）](https://code.claude.com/docs/en/skills) |
 
 ### Codex
 
@@ -128,7 +128,7 @@
 
 ## 官方来源
 
-- [Claude Code Skills](https://code.claude.com/docs/en/skills)
+- [Claude Code Skills（自定义命令已并入 Skills：`.claude/commands/deploy.md` 与 `.claude/skills/deploy/SKILL.md` 都生成 `/deploy`，命令文件是 “the older format” 且仍可用、frontmatter 除 `name` 与 `paths` 外与 Skill 相同；子目录按 `:` 命名空间、`$ARGUMENTS[N]` 与 `$N` 为 0 基、`arguments` 命名参数、`!` 行内 Shell 与 `disableSkillShellExecution`、同名时 Enterprise over personal 与 personal over project）](https://code.claude.com/docs/en/skills)
 - [Codex Agent Skills](https://learn.chatgpt.com/docs/build-skills)
 - [Codex configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference)
 - [Qwen Code skill learning and curation](https://github.com/QwenLM/qwen-code/blob/8673151ebdb1e6a101bc4cb3e2c2beb6e0141b7c/docs/users/features/skills.md)
