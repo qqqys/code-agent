@@ -119,101 +119,173 @@
       id: 'session-resume',
       definition:
         '退出后重新载入已有会话，使历史消息、工具结果和产品明确保存的会话状态继续参与后续对话。',
-      includes: ['交互式选择历史会话', '按最近会话或会话 ID 恢复', '恢复后重新加载的状态'],
+      includes: ['交互式选择历史会话', '按最近会话或会话 ID 恢复', '恢复后重新加载的状态', '恢复时还原或丢弃的权限模式、审批放行与网络授权'],
       excludes: ['跨会话自动记忆', '把当前会话复制成新 ID', '单纯查看终端输入历史'],
       facts: [
         '五家都提供恢复入口，但会话选择范围分别按项目、工作目录、Worktree 或 SDK 参数组织。',
-        '恢复历史不等于恢复所有启动参数；Claude Code 和 Qwen Code 都明确列出需要重新提供或重新加载的状态。',
+        '“恢复时还原哪些权限状态”是本页差异最大的一项，而且同一产品在不同 Surface 上结论可以相反：Claude Code 用五条恢复路径加八行矩阵规定恢复哪种权限模式（`bypassPermissions` 不恢复、`auto` 要账号仍合格、plan 在非交互与 VS Code 路径需 v2.1.246 及以上且受五个条件与 deny 规则约束）；Codex 自 rust-v0.163.0 起从线程自有快照还原 `approval_policy`、`approvals_reviewer`、权限档与网络域名授权，且套用时机提前到网络代理初始化之前，但 `codex exec resume` 因为自己总是显式带上这些字段而不回落保存值；Kimi Code 靠 durable 事件重放全 Surface 还原 `permissionMode` 与会话级放行 pattern，可用 `--auto`/`--yolo`/`--plan` 事后覆盖；Qwen Code 的交互式 `/resume` 与 Headless 路径都不还原审批模式，只有 daemon/ACP 冷加载会用转录里的 `system/session_approval_mode` 记录还原；Qoder CLI 只说明会话内临时放行规则进程退出即丢，冷启动恢复是否读回保存的权限模式记为未确认。',
+        '“会话内批准”与“写盘批准”是两种东西，只有后者天然跨会话：Claude Code 的 Bash 命令、WebFetch 域名与 WebSearch 选 “Yes, and don\'t ask again” 会写进仓库根的 `.claude/settings.local.json`，文件修改批准只到会话结束，`--fork-session` 到新进程不带会话内放行；Qoder CLI 的 Layer 6（`/allow`、`/deny`）写进 `settings.local.json`，Layer 7（“Allow for this session”）进程退出即丢；Codex 记住的网络域名规则写进 `$CODEX_HOME/rules/default.rules` 并在冷恢复时带回代理允许清单；Qwen Code 的会话级 allow 规则是内存态，`startNewSession()` 在 `/resume` 走的同一条路径上直接 `clearSessionAllowRules()`；Kimi Code 是例外——`permission.record_approval_result` 带 `durable` 因而会话级放行 pattern 会被重放回来，但 `permission.rules.add` 不带 `durable`，运行时规则表重放后是空的。',
+        '恢复历史不等于恢复所有启动参数：Claude Code 明列 `--mcp-config`、`--settings`、`--plugin-dir`、`--fallback-model` 与 `--add-dir` 需要重传；Codex 只把本次启动命令行里出现的键当覆盖，`config.toml` 的默认值不阻止还原；Qwen Code 的 Worktree 绑定靠 `<sessionId>.worktree.json` sidecar，且 `--worktree` 与 `--resume` 同用时 Worktree 胜出。',
+        '托管或组织策略在恢复路径上仍然最高：Codex 的 `requirements.toml`（`allowed_permission_profiles`、`allowed_sandbox_modes`、`deny_read`）会否决或收窄还原出来的权限档，Claude Code 的 managed settings 压过自己的设置文件与 `--settings`，Qoder CLI 的 `allowManagedPermissionRulesOnly` 与目录未受信任时的强制 `default` 回落同理。',
         '会话文件通常包含提示词、工具结果和本地路径，分享前需要按敏感数据处理。',
       ],
       products: {
         claude: {
           entry:
-            '`/resume` 在会话内切换；`claude --continue` 恢复当前目录最近会话；`claude --resume [name|id]` 打开选择器或直接恢复。',
+            '`/resume`（可带名称）在会话内切换；`claude --continue`/`-c` 恢复当前目录最近会话；`claude --resume`/`-r` 不带参数打开选择器，带 session ID、会话名或 transcript `.jsonl` 路径直接恢复；`claude --from-pr <number>` 把选择器过滤到关联该 PR 的会话；`claude attach <id>` 附着到仍在运行的后台会话；非交互用 `claude -p --continue` 或 `claude -p --resume <id>`。`--fork-session` 与 `/branch` 是分叉，不是恢复。',
           behavior:
-            '恢复完整对话和工具结果，并尝试恢复模型、Agent、权限模式、活动 Goal 与未过期的定时任务；部分状态受当前账号、模型可用性和安全规则影响。',
+            '官方 “What a resumed session restores” 一节逐项列出恢复内容：完整对话历史（含工具调用与结果；上个进程结束时仍在运行的工具不会补跑，Claude 看到被截断的调用并被告知先核实是否已生效，除非设了 `CLAUDE_CODE_RESUME_INTERRUPTED_TURN`）、模型（沿用转录保存时的模型，被下线或被 `availableModels` 排除时回落到常规优先级；Amazon Bedrock、Google Cloud\'s Agent Platform 与 Microsoft Foundry 这类用部署 ID 的 Provider 完全不恢复转录模型）、Agent（保留其工具限制与模型；先在会话原目录（须已信任该工作区）再在恢复时的目录查找，两处都找不到就按默认工具恢复并给出点名该 Agent 的警告）、权限模式、活动 Goal（条件带过来但回合数、计时器与 token 花费基线重置，已达成或已清除的 Goal 不恢复）、未过期的定时任务（`CronCreate` 的任务除已过期的周期任务与已过时的一次性任务外都恢复，自定节奏 `/loop` 不恢复，后台 Bash 与 monitor 任务从不恢复）与后台工作（上个进程里结束的后台 Subagent、后台 Bash 或 Workflow 只在转录里留一条未完成的 note，Claude Code 不会据此启动回合）。恢复在 Worktree 里结束且未退出的会话时，交互式恢复、`-p` 下的 `--continue`/`--resume` 与 Agent SDK 都会把会话送回那个 Worktree；目录已删则在启动目录恢复、告知 Worktree 已消失并清除该会话的 Worktree 绑定。',
           scope:
-            '默认选择当前 Worktree 的会话；`Ctrl+W` 扩到仓库全部 Worktree，`Ctrl+A` 扩到本机全部项目。按名称可在当前仓库及其 Worktree 精确匹配。',
+            '选择器默认列当前 Worktree 的会话（后台会话标 `bg`）以及在别处启动但用 `/add-dir` 加过当前目录的会话；`Ctrl+W` 扩到仓库全部 Worktree，`Ctrl+A` 扩到本机全部项目。按 ID 恢复先查当前项目目录及其 Git Worktree、再查本机其他项目，跨项目搜索只在恰好一个其他项目持有该 ID 的带消息转录时才解析成功，否则报 `No conversation found with session ID: <session-id>`；按名称在当前仓库及其 Worktree 内精确匹配。首条提示词是 `/loop` 的会话不出现在选择器里、`claude --continue` 也会跳过；`claude -p` 与 Agent SDK 创建的会话既不进选择器也不进 `claude --continue`，只能用 `claude --resume <session-id>`，而 `claude -p --continue` 会把 `-p`、SDK 与 `/loop` 会话一起算进来。选中其他 Worktree 的会话就地恢复，选中无关项目的会话则把 `cd` 加恢复命令复制到剪贴板。',
           automation:
-            '会话在工作过程中持续写入本地记录，不需要显式保存。',
+            '会话在工作过程中持续写入本地记录，不需要显式保存。系统提示在对话第一次请求时构建一次并记进会话，压缩之前后续每次请求都沿用那一份，包括用 `--resume`/`--continue` 回到该对话之后；这次启动传了不同或没传系统提示旗标，也要等对话压缩或另起新对话才生效。',
           persistence:
-            '默认保留 30 天，可用 `cleanupPeriodDays` 调整；`--no-session-persistence` 可让单次 `claude -p` 不落盘。',
+            '默认保留 30 天，可用 `cleanupPeriodDays` 调整；`--no-session-persistence` 可让单次 `claude -p` 不落盘。检查点独立于 Git，恢复对话后仍然可用。',
+          surfaces:
+            '本页以 CLI 为准，并按官方五条路径分别判定恢复后的权限模式。Terminal（`claude --continue`、`claude --resume <session-id>`，或名字唯一匹配一个会话的 `claude --resume <name>`，且不带 `-p`）恢复会话当时所在的权限模式；Non-interactive（`claude -p --resume`/`--continue`）按新 `claude -p` 会用的模式启动，只有以 plan 结束的会话在满足全部五个条件时恢复 plan；VS Code 扩展的会话面板只覆盖以 plan 结束的对话；启动时的 Session picker（`claude --resume` 单独用、`--from-pr`，或名字匹配多个会话）按同一命令行新会话的模式启动、只有 plan 例外，传 `--permission-mode`、`--dangerously-skip-permissions` 或 `--fork-session` 就连 plan 也不恢复，且 “No other stored permission mode is restored.”；会话内 `/resume` 让切过去的对话沿用当前会话的权限模式，但以 plan 结束的对话仍恢复 plan，“even if you launched Claude Code with `--permission-mode` or `--dangerously-skip-permissions`”，而该对话若在本次运行中已经打开过则改用当前模式。打开的是仍在运行的后台会话时，那个会话保持它自己所在的权限模式。桌面端、Web 与 VS Code 各自维护会话历史；`claude -p` 与 Agent SDK 会话可按 ID 恢复但不出现在 CLI 选择器中。',
           conditions:
-            '`--mcp-config`、`--settings`、`--plugin-dir`、`--fallback-model` 和额外目录等启动参数不会全部随会话恢复，需要按需重新传入。',
-          sources: ['claude-sessions'],
+            '八行矩阵给出的例外：以 `bypassPermissions` 结束的会话从终端恢复时回到新会话会用的权限模式，要再次绕过必须在启动时用其启动旗标或在用户/`--settings`/托管设置里写 `permissions.defaultMode: "bypassPermissions"`；`auto` 只在账号仍满足 auto 模式要求时恢复；Manual 在新会话本会以内置默认的 auto 启动时保持 Manual，而有生效的设置文件 `defaultMode` 时改用那个模式；deny 规则移除 `ExitPlanMode` 工具时不恢复 plan。非交互与 VS Code 路径恢复 plan 需 v2.1.246 及以上，`-p` 恢复 plan 的五个条件是：传 `--permission-prompt-tool` 且不传 `--permission-prompts none`、不传 `--permission-mode` 或 `--dangerously-skip-permissions`、不传 `--fork-session`、不经 channels 启动、没有 deny 规则移除 `ExitPlanMode`。启动旗标不全恢复：`--mcp-config`、`--settings`、`--plugin-dir`、`--fallback-model` 与 `--add-dir` 加的目录都要重传，会话中用 `/add-dir` 加的目录也不恢复（选择器仍用它们定位会话），而 `settings.json` 与 `settings.local.json` 在启动时重新读取所以不必重传。写盘的批准天然跨会话（Bash 命令、WebFetch 域名、WebSearch 的 “Yes, and don\'t ask again” 存进仓库根的 `.claude/settings.local.json`），文件修改批准只到会话结束；`--fork-session` 分叉到另一个进程时不带 “Allow for this session” 放行记录，需要在新进程重新批准；hook 或 SDK 以 `session` destination 加的 deny/ask 规则在重启后丢弃并重新询问。托管设置永远压过自己的设置文件与 `--settings`，`disableBypassPermissionsMode` 直接拒绝 `--dangerously-skip-permissions`，managed `disableAutoMode: "disable"` 让 `--permission-mode auto` 改以 Manual 启动。沙箱网络域名批准里选 Yes 只在当前会话有效，选 “Yes, and don\'t ask again” 才把 `WebFetch(domain:...)` allow 规则写进本地设置从而在以后会话仍允许。`--max-budget-usd` 的历史累计不计入本次上限。Pro/Max 上恢复一个不活跃超过约 1 小时且超过 100,000 tokens 的会话时，发第一条消息前先弹对话框，可选 Resume from summary（立即 `/compact`）、Resume full session as-is 或 Don\'t ask me again。恢复后 Claude 可以在 MCP 服务器仍在首次连接时调用旧会话里的工具，Claude Code 最多等 10 秒。恢复到仍在运行的后台会话时走的是另一条路：官方写 “`claude --resume <session>` runs `claude attach` on that session in the same terminal instead of loading the transcript itself.”，命令行带管道或重定向的输入输出、配置会话的旗标（`--permission-mode`、`--model`、`--settings`）、读取输出的旗标（`--output-format json`、`--json-schema`）或限制本次运行的旗标（`--max-turns`、`--max-budget-usd`）时不打开会话，“Claude Code sends nothing and exits with status 1”，改打印 `claude attach <id>`；加 `--fork-session` 可恢复一份副本，或先 `claude stop <id>` 再重跑同一命令以带自己的旗标继续。会话内 `/resume` 命中运行中的后台会话时把当前对话转入后台并附着过去。v2.1.285 之前 Claude Code 直接拒绝并让你改用 `claude attach <id>` 或 `claude stop <id>`。',
+          status: '官方确认',
+          sources: [
+            'claude-sessions',
+            'claude-sessions-resume-matrix',
+            'claude-resume-background-attach',
+            'claude-goal',
+            'claude-scheduled-tasks',
+            'claude-worktrees',
+            'claude-model-config',
+            'claude-cli-reference',
+            'claude-permissions',
+            'claude-permission-modes',
+            'claude-sandboxing',
+            'claude-settings',
+            'claude-mcp',
+            'claude-checkpointing',
+          ],
         },
         codex: {
           entry:
-            '交互式会话使用 `/resume` 选择历史；非交互流程使用 `codex exec resume --last <prompt>` 或 `codex exec resume <SESSION_ID> <prompt>`。',
+            '交互式三处入口：TUI Slash 命令 `/resume`（源码描述 “resume a saved chat”，支持行内参数，在 side conversation、线程不可写与任务进行中都可调用）、启动子命令 `codex resume [SESSION_ID]`（官方标 Stable，“Continue a previous interactive session by ID or resume the most recent chat.”，`SESSION_ID` 接受 UUID 或会话名且 UUID 优先）与 `--last`（跳过选择器直接恢复当前工作目录最近一次会话）、`--all`（关闭 cwd 过滤并在选择器加 CWD 列）、`--include-non-interactive`（把非交互会话纳入选择器与 `--last`）。非交互用 `codex exec resume [SESSION_ID] [--last|--all] [PROMPT]`。',
           behavior:
-            '继续已有线程并把新提示追加到同一会话。非交互恢复保留此前对话上下文，适合分阶段脚本。',
+            '把新提示接在同一线程上继续。自 rust-v0.163.0 起冷恢复还会还原线程自己保存的权限状态：app-server 在 rollout 里倒序找最后一条 `thread_id` 等于被恢复会话的 `ThreadSettingsApplied` 事件作为权威快照（源码注释 “Copied or referenced history can contain another thread\'s settings. Only snapshots explicitly owned by this thread can restore its permissions, cwd, and workspace folders.”），据它还原 `cwd`、`runtime_workspace_roots`、`approval_policy`、`approvals_reviewer`、命名权限档 id 与未命名权限档。未命名权限档在配置加载阶段就套用，早于网络代理初始化与最终校验，所以会话里记住的网络域名授权会随恢复带回代理允许清单。',
           scope:
-            '`--last` 选择最近会话；显式 ID 选择指定会话。交互选择范围由当前 Codex 客户端提供的会话列表决定。',
+            '`codex resume --last` 只在当前工作目录范围内选最近会话，加 `--all` 才跨目录（官方页 “codex resume scopes --last to the current working directory unless you pass --all. It accepts model and sandbox overrides, but not --worktree.”）。恢复后用哪个工作目录由 `tui.resume_cwd` 决定：`session` 用会话记录的目录、`current` 留在当前目录、未设置且两者不同时弹出选择（官方配置参考 “Working directory to use when resuming or forking a session. When unset, Codex asks you to choose if your current directory differs from the session\'s saved directory.”）；`--cd`/`-C` 等价于强制 `current`，`session` 模式下读不到记录目录直接报错。',
           automation:
-            '本地客户端持续维护会话记录；无需单独执行保存命令。',
+            '本地客户端持续维护会话记录，无需单独保存。线程自有的设置检查点在第一个回合的上下文之后与 `TurnContext` 一起落盘，写前取 `thread_settings::acquire_persistence_lock`，源码注释为 “Serialize with settings updates so an older checkpoint cannot supersede a newer one.”，因此只跑过启动步骤、还没完成第一个回合的线程没有可还原的自有快照。',
           persistence:
-            '会话记录保存在 Codex Home；公开故障排查文档给出会话与归档目录，但当前命令页未承诺固定清理周期。',
+            '会话记录保存在 `$CODEX_HOME/sessions`（默认 `~/.codex/sessions`），归档会话在 `$CODEX_HOME/archived_sessions`；官方故障排查页给出这两个目录，但当前命令页未承诺固定清理周期。恢复要还原的权限状态就写在这些 rollout 里的 `ThreadSettingsApplied` 事件中；官方网络授权回归测试把托管域名放在 `$CODEX_HOME/requirements.toml` 的 `[experimental_network]`，把记住的域名规则放在 `$CODEX_HOME/rules/default.rules`，写法为 `network_rule(host="127.0.0.3", protocol="http", decision="allow")`。',
+          surfaces:
+            '本页区分交互式 Codex 与 `codex exec`。交互式 `codex resume`/`/resume` 走 app-server 的 `thread/resume`，上述还原生效；TUI 侧 `resume_permissions.rs` 的模块注释为 “Tracks direct launch permission choices separately from configuration defaults. Omitted choices let app-server restore the destination task\'s saved settings.”，只把本次启动命令行（`ConfigLayerSource::SessionFlags` 层）里出现的键当覆盖，对应维度为假时把 `ThreadResumeParams` 的 `approval_policy`/`approvals_reviewer`/`sandbox`/`permissions`/`runtime_workspace_roots` 置空并从 `config` 覆盖表移除 `default_permissions`/`permissions`/`network`/`sandbox_workspace_write`。`codex exec resume` 也发同一个 `thread/resume` 请求，但它自己构造的参数总是带上 `approval_policy`（headless 默认 `AskForApproval::Never`，源码注释 “Default to never ask for approvals in headless mode.”）、`cwd`、`runtime_workspace_roots` 与按当前配置解析出的 `permissions`/`sandbox`，这些都算显式覆盖，因而不回落到会话保存值。远程模式（`ThreadParamsMode::Remote`）一律省略审批策略、审批审查者、sandbox、permissions 与客户端 workspace roots，注释为 “Client config paths belong to the client host. Let the server resolve its defaults or restore the saved roots, then adopt the roots in its response.”',
           conditions:
-            '`codex exec` 默认要求在 Git 仓库中运行；恢复命令接受后续提示，而不是只打开只读记录。',
+            '还原有明确排除项：请求带 `sandbox_mode`、`permission_profile`、`default_permissions` 覆盖，或 `config` 覆盖表含 `sandbox_mode`/`default_permissions`/`sandbox_workspace_write`（含子键）时不还原未命名权限档；`requirements.toml` 设了 `allowed_permission_profiles` 时也不还原；`PermissionProfile::External`（执行器自有强制）与已物化的文件系统读授权被拒绝，源码注释为 “Executor-owned enforcement and materialized grants are not portable thread defaults.”；托管 `deny_read` 通过 `preserve_deny_read_restrictions_from` 保留，还原后的档还要再过 `permission_profile_satisfies_requirements`（只查 `allowed_sandbox_modes` 与 `deny_read`）。官方 Linux 集成测试 `cold_resume_restores_live_proxy_grants_and_persists_new_approvals` 在把 `default_permissions` 改成 `:danger-full-access` 后恢复只读线程，断言结果仍是 `ReadOnly { network_access: false }` 加 `AskForApproval::OnRequest`、已记住的域名 0 次审批、新域名 1 次审批并经 `ApplyNetworkPolicyAmendment` 持久化后复用 0 次、探测输出含 “proxied request succeeded; direct access blocked”。模型另有三态 `ResumeModelSettings`：`OverrideFromCurrentConfig` 把当前配置的模型、Provider 与推理强度作为显式覆盖发出，`RestoreFromThread` 省略这些覆盖 “so app-server restores the settings saved with the thread”，`PreserveExistingThread` 只重新接上已加载线程。`--worktree` 不能用于恢复，`codex exec resume --worktree` 报 “`--worktree` cannot resume an existing session; use `codex exec fork --worktree`”。',
+          status: '官方确认',
           sources: [
             'codex-commands',
             'codex-noninteractive',
             'codex-troubleshooting',
+            'codex-resume-commands-doc',
+            'codex-resume-cwd-config',
+            'codex-v0163-release',
+            'codex-resume-thread-permissions-commit',
+            'codex-resume-config-loading-commit',
+            'codex-resume-network-grants-commit',
+            'codex-resume-thread-processor',
+            'codex-resume-config-restore',
+            'codex-resume-profile-catalog',
+            'codex-resume-tui-overrides',
+            'codex-resume-tui-params',
+            'codex-resume-cli',
+            'codex-resume-exec',
+            'codex-resume-cwd-source',
+            'codex-resume-network-test',
+            'codex-resume-slash-command',
           ],
         },
         qwen: {
           entry:
-            '`/resume`（别名 `/continue`）打开历史会话；Headless 可用 `qwen --continue -p` 或 `qwen --resume <sessionId> -p`。',
+            '会话内 `/resume`（`altNames: [\'continue\']`、`CommandKind.BUILT_IN`、`supportedModes: [\'interactive\']`、描述 “Resume a previous session”）：不带参数打开 resume 对话框，带参数先按 `isValidSessionId` 当会话 UUID 处理并查 `sessionExists`，找不到报 “No session found with ID …”，否则当自定义标题走 `findSessionsByTitle`——唯一匹配直接打开、多个匹配打开只含匹配项的选择器、零匹配报 “No session found with title …”。启动旗标为 `--continue`/`-c`（“Resume the most recent session for the current project.”）、`--resume [sessionId]`/`-r`（“Resume a specific session by its ID. Use without an ID to show session picker.”，也接受自定义标题）、`--session-id <id>`（“Specify a session ID without session resumption”，即新建而非恢复）与 `--fork-session`（“Create a new forked session from the resumed session. Must be used with --resume or --continue.”）；Headless 用 `qwen --continue -p "<prompt>"` 或 `qwen --resume <sessionId> -p "<prompt>"`。ACP/daemon 侧另有 `session/load` 与 `unstable_resumeSession`（后者为已弃用的兼容别名）。',
           behavior:
-            '恢复对话历史、工具结果和聊天压缩检查点，再发送新的提示词；Worktree 绑定存在时会加载 sidecar 并提示后续工具继续使用对应路径。',
+            '官方 Headless 文档写明恢复“Restores conversation history, tool outputs, and chat-compression checkpoints before sending the new prompt.”。`/resume` 的恢复顺序由 `useResumeCommand.ts` 固定：`loadSession(sessionId)` → `getSessionTitle` 还原自定义标题 → `buildSessionRecoveryPlan({ sessionId, conversation, historyGaps })` → `buildResumedHistoryItems` → 按 `ui.history.collapseOnResume`/`collapsePreviewCount` 折叠 → `startNewSession(sessionId, sessionData)` → `waitForGoalRuntime` → `rebuildTurnBoundaries`（注释 “Rebuild turn boundary tracking so rewind works within resumed sessions.”）→ `getLlmClient()?.initialize?.()` → `loadPausedBackgroundAgents(sessionId)` 并用 `buildRecoveredBackgroundAgentsNotice` 报告恢复的后台 Agent 数；`recoveryPlan.kind` 既不是 `clean` 也不是 `degraded_history` 且有 `visibleNotice` 时追加一条 INFO。Goal 状态随会话保存，可在后续进程里用 `--continue`/`--resume <sessionId>` 查看或控制同一个 Goal。交互式 `/resume` 与 Headless 这两条路径都没有恢复审批模式或 Plan 模式的步骤，审批模式的还原只发生在 daemon/ACP 路径（见「适用界面」）。会话内放行规则不跨恢复：`startNewSession()` 里注释写 “Skill grants belong to the session that loaded the skill; a resumed session re-arms its own from history during `initialize()`.” 后直接调 `this.permissionManager?.clearSessionAllowRules()`，而该规则的注释本身就是 “Add a session-level allow rule (in-memory, cleared when the session ends). Used when the user clicks ‘Always allow for this session’.”；同一处还把 Web search 与 Advisor 配额归零并清空文件读取缓存。',
           scope:
-            '会话按项目和实际工作目录分桶；每个 linked Git Worktree 有独立会话目录，选择器只显示当前作用域的记录。',
+            '会话按项目与实际工作目录分桶，官方文档记为 `~/.qwen/projects/<sanitized-cwd>/chats`。Worktree 是独立的“项目”：`--worktree foo` 起的会话存在该 Worktree 的 chats 目录，之后必须再传 `--worktree foo` 才选得到，会话与 Worktree 由 `projectHash(cwd)` 紧绑定，`qwen --resume <sid> --worktree second` 找不回用 `--worktree first` 创建的会话。',
           automation:
-            '`general.chatRecording` 默认开启并持续保存；关闭后 `/resume` 和 `--continue` 都不可用。',
+            '`general.chatRecording`（boolean，默认 `true`，需重启）持续保存聊天历史，官方说明为 “Save chat history to disk. Disabling this also prevents `--continue` and `--resume` from working.”；Goal 的跨进程续用同样要求它保持开启。',
           persistence:
-            '聊天 JSONL 留在项目会话目录；Worktree 绑定另存为 `<sessionId>.worktree.json`。',
+            '聊天 JSONL 留在项目会话目录，Worktree 绑定另存为 sidecar `<chatsDir>/<sessionId>.worktree.json`。官方文档没有给出自动保留天数或清理周期。',
+          surfaces:
+            '本页以交互式 TUI 与 Headless `-p` 为主。`/resume` 的 `supportedModes` 只有 `interactive`，非交互流程改用 `--continue`/`--resume <sessionId>`。审批模式与模型的还原是 daemon/ACP 专属能力：转录里存一条 last-wins 的 `system/session_approval_mode` 记录（`{ mode, prePlanMode?, planExecutionMode? }`），冷加载在构造运行中的 `Session` 之前由 `applyRestoredSessionApprovalMode` 套用，因此恢复本身不会再写一条新记录；模型走同一套 `session_model` 记录。载荷类型注释直接限定了作用域：“Last-wins approval state a daemon session should restore.” 与 “Last-wins binding of the model a daemon session should restore.”。交互式 TUI 与 Headless 的审批模式由 `packages/cli/src/config/config.ts` 第 1905–1941 行解析（注释 “Determine approval mode with backward compatibility”），只读 `argv.approvalMode`、`argv.yolo`、`settings.tools?.approvalMode`（要求 `!bareMode && !safeMode`）与 bare/safe 回落，完全没有会话数据输入；bare 或 safe 模式取 `ApprovalMode.DEFAULT`，其余默认 `ApprovalMode.AUTO`，随后当前目录未受信任且模式不是 `DEFAULT`/`PLAN` 时强制回落 `DEFAULT` 并向 stderr 打 “Approval mode overridden to \"default\" because the current folder is not trusted.”。`/approval-mode` 命令自身注释也写 “Set the mode for current session only (not persisted)”。Worktree sidecar 的加载、目录校验与提示在 interactive TUI、headless `-p` 与 ACP/Zed 三种模式下行为一致（官方文档 “three things happen consistently across **interactive TUI**, **headless `-p`**, and **ACP/Zed** modes”）。',
           conditions:
-            '从 Worktree 恢复时，CLI 验证目录是否仍存在；目录已删除会清理陈旧 sidecar 并在原作用域继续，而不是重建 Worktree。',
+            '启动旗标互斥由 CLI 直接报错：“Cannot use both --continue and --resume together. Use --continue to resume the latest session, or --resume <sessionId> to resume a specific session.”、“Cannot use --session-id with --continue or --resume. Use --session-id to start a new session with a specific ID, or use --continue/--resume to resume an existing session.”、“--fork-session must be used with --resume or --continue.”，`--continue` 找不到会话又带 `--fork-session` 时报 “Cannot use --fork-session with --continue: no saved session found to fork.”，按 ID 找不到时报 “No saved session found with ID <id>. Run `qwen --resume` without an ID to choose from existing sessions.”。当前会话有阻塞性后台工作时不允许切换，报 “Stop the current session\'s running background tasks before resuming another session.”；遥测 swap 槽被另一次 `/resume` 或 `/branch` 占用时报 “A session switch is already in progress. Try again in a moment.”；core 已切换而 UI 未提交时回滚到旧会话、重新初始化并重新加载旧会话的暂停后台 Agent，失败提示 “Failed to resume session: …”。`general.chatRecording` 关掉后 `--continue` 与 `--resume` 都不生效（源码注释 “If chat recording is disabled, the chat history would not be recorded, so --continue and --resume would not take effect.”）。从 Worktree 恢复时校验目录仍存在并打印 `[Resumed] Active worktree: "<slug>" at <path> (branch: <branch>). Continue using this path for all file operations.`，目录已删则自动清理陈旧 sidecar、不报错也不重建 Worktree；`--worktree` 与 `--resume <session-id>` 同用时 Worktree 胜出并覆盖会话保存的绑定（两者不互斥）。恢复还会触发工具集重新声明（`tools.toolSearch.enabled` 条目写 “a session still re-declares on resume”）。daemon/ACP 路径上还原审批模式另有四条边界：bare 与 safe 启动模式忽略历史审批状态（`if (!recorded || config.getBareMode() || config.isSafeMode()) return;`）；当前工作区信任会经 `Config.setApprovalMode` 重新评估，被拒的特权 Plan 前置模式回落到当前安全模式，且“restoring trust does not automatically resurrect the old privileged mode”；显式的 load/attach 权限覆盖“is applied later and therefore wins”；工作区设置重载以原始的文件派生模式为比较基线，因此未改动的文件不会覆盖已恢复的会话状态。官方设计文档末行给出不持久化清单，逐字为 “Transient grants, pending permission requests, approval revisions, AUTO denial counters, temporary permission-rule changes, and derived config state are not persisted.”；旧版本录制的会话没有审批记录，会一直用当前工作区或 CLI 默认值直到下一次真实操作把它锚定。v0.25.2 的设置文档（380,049 字节）与 `packages/cli/src/config/settingsSchema.ts`（5,456 行）全文都没有 `general.disableSessionResume` 这个键，仓库树里也没有 `packages/cli/src/commands/chat.ts` 即没有 `qwen chat resume`/`chat list` 子命令，两项均不记录。',
+          status: '官方确认',
           sources: [
-            'qwen-session-commands',
-            'qwen-session-headless',
-            'qwen-session-settings',
-            'qwen-worktree-current',
+            'qwen-resume-command-v0252',
+            'qwen-resume-hook-v0252',
+            'qwen-resume-cli-flags-v0252',
+            'qwen-resume-top-level-options-v0252',
+            'qwen-resume-acp-approval-design',
+            'qwen-resume-acp-approval-source',
+            'qwen-resume-session-allow-rules',
+            'qwen-resume-headless-v0252',
+            'qwen-resume-settings-v0252',
+            'qwen-resume-worktree-v0252',
+            'qwen-resume-release-v0252',
           ],
         },
         kimi: {
           entry:
-            '`/sessions`（别名 `/resume`）在 TUI 浏览和切换；`kimi --continue` 恢复当前目录最近会话；`kimi --session [id]` 选择或指定会话。',
+            '`/sessions`（别名 `/resume`，“浏览历史会话并切换/恢复”，与 `/new`、`/fork`、`/title` 同属“仅在 Agent 空闲时可用”的会话切换命令）；`kimi --continue`（短参 `-c`，继续当前工作目录最近一次会话）；`kimi --session [id]`（短参 `-S`，带 ID 直接打开、不带 ID 进入交互式选择器）；`-r`/`--resume` 是 `--session` 的隐藏别名，不在帮助里显示。`/fork` 完成后 CLI 会打印一条可直接运行的 `kimi --resume` 命令并复制到剪贴板。',
           behavior:
-            '从会话目录的元数据和 Agent 事件流恢复历史。会话中的后台任务、定时任务和子 Agent 状态有各自的持久化目录。',
+            '从会话目录的 `state.json` 元数据与 `agents/*/wire.jsonl` 事件流恢复历史——官方文档写明 wire.jsonl 是“Agent 事件流，用于会话恢复和回放”。恢复机制是 durable 事件重放，权限与计划状态随之回来：CLI 参考写“恢复会话时，可以通过 `--auto`、`--yolo` 或 `--plan` 覆盖原会话保存的权限或计划模式”，说明原会话保存了这两项；状态清单把 `permissionMode`、`permissionMode.configured`、`permissionRules`（含 `sessionApprovalRulePatterns`）、`plan` 与 `profile` 都标为 `replayable · durable`，而 `permissionMode.lastMode` 与 `plan.wasActive` 没有这个标记。放行记录的还原比规则表窄：`PermissionRecordApprovalResult` 带 `durable = true` 会写进 wire，`PermissionRulesAdd`（`permission.rules.add`）没有 `durable` 标记因而是 live-only，重放折叠又只在 `decision === \'approved\'` 且 `scope === \'session\'` 时把 pattern 收进 `sessionApprovalRulePatterns`，官方测试用例名直接写成 “only persists approval records (permission.rules.add is live-only)”、“replay rebuilds session approval patterns only (rules are not persisted)”（断言重放后为 `{ rules: [], sessionApprovalRulePatterns: [\'Bash(rm *)\'] }`）与 “ignores non-session approvals for the pattern set”。绑定的 main Agent 也自动还原：“恢复会话时会自动还原已绑定的 Agent”。',
           scope:
-            '会话按工作目录生成的 `workDirKey` 分组；顶层 `session_index.jsonl` 维护会话 ID、目录和工作目录索引。',
+            '会话按工作目录生成的 `workDirKey` 分组，顶层 `session_index.jsonl` 维护索引。`workDirKey` 由 `encodeWorkDirKey` 生成，形状是 `wd_<slug>_<hash12>`：先把反斜杠换成 `/` 并去掉结尾斜杠，取最后一段做 slug（小写、非 `[a-z0-9._-]` 换成 `-`、去首尾 `-`、截到 40 字符，空或 `.`/`..` 回落 `workspace`），再拼上归一化路径 SHA-256 十六进制的前 12 位。会话选择器只按 `readdir(encodeWorkDirKey(workDir))` 定位会话，不查 `session_index.jsonl`。',
           automation:
-            '每次直接运行 `kimi` 创建新会话，并在运行过程中写入 `state.json` 和 `wire.jsonl`。',
+            '每次直接运行 `kimi` 创建新会话，并在运行过程中写入 `state.json` 与 `wire.jsonl`，不需要显式保存命令。',
           persistence:
-            '会话和诊断材料保存在 `KIMI_CODE_HOME`；官方文档未给出自动保留天数。',
+            '会话与诊断材料保存在 `$KIMI_CODE_HOME`（默认 `~/.kimi-code`）下；官方会话文档没有给出自动保留天数，并警告“`sessions/` 目录下的文件请勿手动编辑，否则可能导致会话无法正常恢复”。',
           conditions:
-            '`--continue` 与 `--session` 互斥；TUI 的会话切换命令只在 Agent 空闲时可用。',
+            '`--continue` 与 `--session` 互斥（“两者都表示"恢复历史会话"”）；TUI 的会话切换命令只在 Agent 空闲时可用；`--prompt` 不能与 `--yolo`、`--auto` 或 `--plan` 同用，非交互模式固定使用 `auto` 权限；`--agent` 与 `--agent-file` 只在新建会话时有效、不能与 `--session`/`--continue` 组合，因为 Agent 在会话创建时绑定且绑定后不可切换。`/goal` 已保存的目标不会复制到 `/fork` 派生出的会话。启动旗标覆盖会话保存值的实现顺序是「先重放恢复、后套用旗标」：`kimi-tui.ts` 在 `resumeSession(...)` 之后才调 `applyStartupModesToResumedSession(session)`（`startup.auto` 时 `setPermission(\'auto\')`，否则 `startup.yolo` 时 `setPermission(\'yolo\')`；`startup.plan` 时先 `getStatus()`、只有 `!status.planMode` 才 `setPlanMode(true)`，注释解释重放可能已让会话处于 Plan 模式而重复进入会抛错），随后再调 `applyStartupPermissionAndPlanToAppState()`，其注释为 “syncRuntimeState and session-replay hydration can both read stale persisted values, so this guarantees the footer reflects the CLI intent.”；TUI 内用 `/sessions` 切换会话后走同一对调用。配置默认值不覆盖已还原的模式：`agentLifecycleService.ts` 里 `if (permissionMode !== undefined && !hasRestoredPermissionMode)` 才 `setMode(permissionMode)`，`hasRestoredPermissionMode` 读的是重放出来的 `permissionModeConfiguredKey`，配置文档也把 `default_permission_mode` 的作用域限定为“**新会话**的默认权限模式”。因此优先级链是 CLI 旗标 > 会话保存的 `permission.set_mode` > `default_permission_mode` > 默认 `manual`。跨工作目录不能直接恢复，会写 stderr 并抛错给出 `cd "<workDir>" && kimi -r <sessionId>`。',
           sources: [
-            'kimi-sessions-current',
-            'kimi-cli-current',
-            'kimi-data-current',
+            'kimi-resume-sessions-docs',
+            'kimi-resume-cli-docs',
+            'kimi-resume-slash-docs',
+            'kimi-resume-workdir-slug',
+            'kimi-resume-state-manifest',
+            'kimi-resume-permission-rules',
+            'kimi-resume-rules-ops',
+            'kimi-resume-lifecycle',
+            'kimi-resume-tui-override',
+            'kimi-resume-release-220',
           ],
         },
         qoder: {
           entry:
-            '`/resume` 从历史记录选择会话；SDK 还提供 `continue: true`、`resume: <sessionId>` 和 `resumeSessionAt: <messageUuid>`。',
+            '`qoder -c`/`--continue` 继续当前项目最近一次会话；`qoder -r [id]`/`--resume [id]` 按 ID 恢复，不带 ID 打开 Session Browser；`qoder --resume` 不带 ID 同样打开 Session Browser；会话内 `/resume` 打开 Session Browser、`/continue` 续接最近会话；另有 `--session-id <id>`、`--fork-session`（从被恢复的会话分叉出新分支）、`--list-sessions`、`--delete-session <index>` 与会话内 `/branch`。SDK 侧提供 `resume`、`continue`（Python `continue_conversation`）、`forkSession`、`sessionId`、`resumeSessionAt`、`resumeDropsTurn`、`persistSession` 与 `sessionStore`。',
           behavior:
-            'TUI 恢复历史会话；SDK 可以继续最近会话、指定会话 ID，或从指定消息锚点继续。',
+            '官方 Sessions 页只把会话定义为“records the complete history of the conversation—your inputs, Qoder\'s responses, and tool calls”，并说会话“can be continued, resumed, named, branched, and cleared”；SDK 页把 session 定义为“a persisted conversation history on the CLI side (including context, tool call records, compaction boundaries, etc.), identified by a UUID”。该页没有 “resumed session restores …” 式的恢复清单。可确认的恢复项分散在别处：`state.json` 保存会话状态但字段未公开；自定义会话名“are restored when resuming or branching a session”；会话恢复支持 Worktree 状态持久化与跨 Worktree 发现；Goal 随会话持久化，进程被意外终止时 `active` 的 Goal 下次启动自动降级为 `paused` 并可用 `/goal resume` 重新激活，且 `/goal resume` 在进程重启后还会恢复激活前的 Plan 模式（状态字段 `planWasActive`）；写盘的定时任务与 `/loop --durable` 任务跨进程重启保留。',
           scope:
-            'TUI 命令页只描述“历史记录”；SDK 由宿主传入工作目录、会话 ID 和消息锚点。',
+            '会话按项目隔离存放，Session Browser 从列表里选；SDK 由宿主传入工作目录、会话 ID 与消息锚点。`--add-dir`/`/add-dir` 追加的受信任目录只作用于当前会话，`--mcp-config` 与 `--settings` 提供的 MCP 服务器也“Valid for this session only”。',
+          storage:
+            '官方 Sessions 页给出固定目录：`~/.qoder/projects/<processed-project-path-name>/<session-id>.jsonl` 存对话日志，同名目录下的 `state.json` 存会话状态；用户配置目录默认 `~/.qoder`，可用 `QODER_CONFIG_DIR` 或 `--config-dir` 改。SDK 消息与 Hook 上下文另提供 `session_id` 与 `transcript_path`。（本字段覆盖 `profiles.qoder.storage` 的旧说法“公开 TUI 文档未列出固定的会话存储目录”，其余会话字段仍沿用旧默认值，留待后续研究单元统一订正。）',
           automation:
-            '公开命令页未说明 TUI 的保存频率；SDK 运行时会生成或接收 `sessionId`。',
+            '每次运行 Qoder CLI 都创建一个记录完整对话历史的会话，无需显式保存。`--no-session-persistence` 让会话不落盘，官方说明为 “Do not write the session to disk; it cannot be restored (only valid under `--print`).”',
           persistence:
-            'SDK 可从消息与 Hook 取得 transcript 路径；固定磁盘目录和自动清理周期未在当前 TUI 文档中列出。',
+            '会话日志在用户配置目录（默认 `~/.qoder`，可用 `QODER_CONFIG_DIR` 或 `--config-dir` 改）下按项目组织：`~/.qoder/projects/<processed-project-path-name>/<session-id>.jsonl` 存对话日志，同名目录下的 `state.json` 存会话状态。自动清理由 `general.sessionRetention.enabled`（默认 `true`）、`general.sessionRetention.maxAge`（默认 `30d`，“Automatically delete sessions older than this duration.”）与 `general.sessionRetention.minRetention`（默认 `1d`，安全下限）控制。',
+          surfaces:
+            '本页以 Qoder CLI TUI 为主，只在 Agent SDK 提供的能力会明确标为 SDK 条件项。非交互（`-p`/`--print`）、ACP（`--acp`，供 Zed 等编辑器）、Cloud Mode（`--remote`/`--teleport`/`--remote-session`）与 Remote Control 各有自己的会话入口；`--continue`、`--resume`、`--remote`、`--remote-session`、`--teleport` 与 `--remote-control` 不能同时使用，SDK 侧也不能把 `resume` 与 `continue` 一起传。Hook 的 `SessionStart` 有 `resume` matcher 值，对应“Existing session resumed”。',
           conditions:
-            '`resumeSessionAt` 是 SDK 消息锚点；它不等同于回滚本地文件。',
-          sources: ['qoder-commands', 'qoder-sdk-reference'],
+            '权限状态的分界写在 Permissions 页的八层来源里：Layer 6（`/allow`、`/deny`）“persisted to `settings.local.json`”因而跨会话有效，Layer 7（提示里选 “Allow for this session” 产生的临时规则）“lost when the process exits”。Agent Team 的队友明确不恢复：“Later, `resume` restores the main conversation history, but it does not bring back the teammates created in the previous TUI or their last running or idle state.”，需要继续协作要由主 Agent 重新创建。默认（非 durable）`/loop` 任务只活在当前会话、进程退出即消失且周期任务创建 7 天后自动过期；in-session 定时任务只存内存。`--model`、`--reasoning-effort`、`--context-window` 只作用于当前会话且不持久化；`/clear` 与 `/new` 会重置 Goal 与权限模式。托管策略最高：组织策略开启 `allowManagedPermissionRulesOnly` 后只用策略管理的规则；当前目录未受信任时强制回落到 `default` 模式，且只加载用户级配置、忽略项目里的 `settings.json` 与 `settings.local.json`。SDK 外部 session store “holds session history only. It does not hold authentication state, application configuration, file checkpoints, or retention policy.”，也不能与文件检查点、自定义传输或实验性 Cloud Agent runtime 组合。`resumeSessionAt` 是 SDK 消息锚点，不等同于回滚本地文件。**未确认**：shell 冷启动的 `qoder -c`/`-r <id>` 是否读回 `state.json` 里保存的权限模式（官方只有 Release Note 写 `/resume` “respect the current permission mode”，以及 `/clear`、`/new` 会重置权限模式）；是否恢复模型与推理强度；`state.json` 的字段构成；`--session-id` 的确切语义（`/cli/cli-reference` 写 “Resume the session with the specified ID.”，`/cli/sessions` 写 “Use a specified session ID”，两处表述不一致）；`--add-dir` 目录与 MCP 连接在恢复后的行为；`--fork-session` 是否继承原会话的临时放行记录。Qoder CLI 文档里没有域名级网络授权状态，Web 类工具只能在工具级用 `allow`/`ask`/`deny` 控制。',
+          status: '官方确认',
+          sources: [
+            'qoder-sessions',
+            'qoder-permissions-layers',
+            'qoder-commands',
+            'qoder-cli-reference',
+            'qoder-settings-reference',
+            'qoder-goal-reference',
+            'qoder-agent-teams',
+            'qoder-sdk-reference',
+            'qoder-loop',
+          ],
         },
       },
       related: ['session-live-list', 'session-branch', 'session-naming', 'session-checkpoint'],
