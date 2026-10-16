@@ -4,6 +4,7 @@
 
 | 日期 | 更新 |
 | --- | --- |
+| 2026-10-16 | [交互审批：Kimi Code 三条内置 guard 确认策略（`dangerous-command-ask`、`sensitive-file-access-ask`、`git-control-path-access-ask`）与 `[permission] dangerous_command_guard` 总开关，PR #4250 把它从只关危险命令扩宽为一次关掉全部三条（合入 main 尚未发布），并补录 13 条策略顺序、"Always Ask"/"Ask When Needed"/"Never Ask" 模式展示名与工具层 `PATH_SENSITIVE` 硬阻断](./2026-10-16-权限与沙箱-Kimi内置guard确认策略与dangerous_command_guard.md) |
 | 2026-10-15 | [自定义 Slash 命令：Codex `/presets` 把可复用提示词与 Slash 命令行存进用户配置 `tui.presets.<0-9>` 十个数字槽位（PR #54380、#54381、#54385、#54388，合入 main 尚未发布），并核对 Claude Code 自定义命令已并入 Skills 与 0 基 `$0`/`$1`、Qwen TOML 命令弃用与保存 Workflow 存的是脚本、Kimi 插件命令规则与 PR #4165 不属同类机制、Qoder 用户级覆盖项目级](./2026-10-15-扩展系统-Codex-presets数字槽位与五家自定义命令核对.md) |
 | 2026-10-14 | [工具延迟声明与按需发现：Kimi Code `[mcp] default_deferred` 全局延迟默认（PR #4210，Server 字段优先、连接时固化）与 `select_tools` 六类失败回话加两级劝退计数（PR #4190），Claude Code v2.1.299 第一方 MCP 描述不再截断在 4,096 字符并改正环境变量页的 2,048 旧记录](./2026-10-14-扩展系统-Kimi-default_deferred与select_tools失败语义.md) |
 | 2026-10-14 | [手动压缩：Claude Code v2.1.299 的空闲压缩 `idleCompaction`（200K token 且约 54 分钟空闲，赶在一小时提示词缓存过期前压缩）与 `CLAUDE_CODE_IDLE_COMPACT_MIN_TOKENS`，并核对 Qwen `context.clearContextOnIdle` 三键、Kimi `tui.toml` 的 `cache_expiry_hint`、Codex 与 Qoder 无空闲触发](./2026-10-14-会话与上下文-Claude空闲压缩与五家缓存过期处理.md) |

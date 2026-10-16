@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-10-15',
+  updatedAt: '2026-10-16',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -2765,6 +2765,106 @@ window.matrixData = {
         'Qoder CLI Tools 页 “Read Project Context” 表（三行逐字为 “View files | Read source files, documentation, configuration, and other text assets.”、“Read large files | Read a focused section when the whole file is too large.”、“Read document-like assets | Inspect supported document formats, such as PDFs, when available.”；“Edit Files” 表另有 “Edit notebooks | Modify notebook content when notebook support is available.”；全页没有给出任何行数、字节或字符上限，也没有一次读完整文件的入口）',
       url: 'https://docs.qoder.com/cli/tools',
     },
+    'kimi-guard-widen-commit': {
+      label:
+        'Kimi Code 提交 6e7cc909da90（PR #4250 “feat(agent-core-v2): let dangerous_command_guard=false disable all built-in guard ask policies”，2026-10-16T05:23:18Z 合入 main，只改 6 个文件：新增 changeset、中英文 `docs/*/configuration/config-files.md` 各改一段、`sensitive-file-access-ask.ts` 与 `git-control-path-access-ask.ts` 各注入 `IConfigService` 并在 `evaluate` 首行加 `if (!isDangerousCommandGuardEnabled(this.config)) return undefined;`、测试用例由 “does not load the dangerous command policy when disabled by config” 改名为 “does not load the built-in guard policies when disabled by config” 并补 `Read /workspace/.env`、`Write .git/config`、`Read /workspace/.git/config` 三条断言）',
+      url: 'https://github.com/MoonshotAI/kimi-code/commit/6e7cc909da9084a424f822dd5a9aae5b98070b73',
+    },
+    'kimi-guard-config-docs': {
+      label:
+        'Kimi Code 配置文档 `## permission` 段（提交 6e7cc909da90），逐字为 “也可以在 `[permission]` 下设置 `dangerous_command_guard = false` 完全关闭所有内置 guard 确认策略：危险命令、敏感文件（如 `.env`、`id_rsa`）访问、git 控制路径访问在 "Always Ask" 和 "Ask When Needed" 模式下不再触发审批（"Never Ask" 模式本就不启用这些策略），默认 `true`。环境变量 `KIMI_CODE_DANGEROUS_COMMAND_GUARD=false` 会覆盖文件设置。全部内置 guard 关闭后，"Ask When Needed" 模式下只有你自己配置的 `ask` 规则仍会要求确认；"Always Ask" 模式下未被自动放行的工具照旧逐个询问。`Read`/`Write`/`Edit` 对秘密文件的硬阻断保持不变。此开关只适用于已经在 Agent 之外统一命令限权的环境。”；同段之前的正文写 `permission` 规则用 `[[permission.rules]]` 数组表写出、按顺序匹配、第一条命中即生效',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/6e7cc909da9084a424f822dd5a9aae5b98070b73/docs/zh/configuration/config-files.md',
+    },
+    'kimi-guard-config-docs-en': {
+      label:
+        'Kimi Code 英文配置文档同段（提交 6e7cc909da90），逐字含 “turn off every built-in guard confirmation policy entirely: dangerous commands, access to sensitive files such as `.env` or `id_rsa`, and access to git control paths”、“With all built-in guards off, only `ask` rules you configured yourself can still prompt in Ask When Needed mode; in Always Ask mode, tools that are not auto-approved continue to prompt as before.”、“The hard block that stops `Read`/`Write`/`Edit` from touching secret files stays in effect.” 与 “Use this switch only for environments that already gate commands outside the agent.”',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/6e7cc909da9084a424f822dd5a9aae5b98070b73/docs/en/configuration/config-files.md',
+    },
+    'kimi-guard-config-docs-220': {
+      label:
+        'Kimi Code 2.2.0 tag（提交 472192c34c1e）配置文档同段的旧写法，逐字为 “也可以在 `[permission]` 下设置 `dangerous_command_guard = false` 完全关闭内置危险命令策略（"Always Ask" 和 "Ask When Needed" 模式下不再触发危险命令审批；"Never Ask" 模式本就不启用该策略），默认 `true`。环境变量 `KIMI_CODE_DANGEROUS_COMMAND_GUARD=false` 会覆盖文件设置并恢复策略引入前的行为。此开关只适用于已经在 Agent 之外统一命令限权的环境。”，即发布版只关危险命令一项；2.0.0、2.0.1、2.0.2、2.1.0、2.1.1 各 tag 的同一文件也都已含该键',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/472192c34c1efad89a369870eff0da0b708ce9bb/docs/zh/configuration/config-files.md',
+    },
+    'kimi-guard-changeset': {
+      label:
+        'Kimi Code changeset `.changeset/dangerous-guard-off-allow-all.md`（提交 6e7cc909da90 新增），标 `"@moonshot-ai/kimi-code": patch`，正文逐字为 “Setting `[permission] dangerous_command_guard = false` now turns off every built-in confirmation guard — dangerous commands, sensitive-file access, and git control-path access — instead of only the dangerous-command guard.”',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/6e7cc909da9084a424f822dd5a9aae5b98070b73/.changeset/dangerous-guard-off-allow-all.md',
+    },
+    'kimi-guard-config-section': {
+      label:
+        'Kimi Code `permissionRules/configSection.ts` 源码（提交 6e7cc909da90）：`PermissionConfigSchema` 只有 `rules` 与 `dangerousCommandGuard: z.boolean().optional()` 两个键，`DANGEROUS_COMMAND_GUARD_ENV = \'KIMI_CODE_DANGEROUS_COMMAND_GUARD\'`，`parseDangerousCommandGuardEnv` 只把字面 `true`/`false` 解析成布尔、其他取值返回 `undefined`，`isDangerousCommandGuardEnabled(config)` 逐字为 `config.get(PERMISSION_SECTION)?.dangerousCommandGuard ?? true`（源码里 `config.get` 带 `PermissionConfig` 或 `undefined` 的泛型参数）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/6e7cc909da9084a424f822dd5a9aae5b98070b73/packages/agent-core-v2/src/agent/permissionRules/configSection.ts',
+    },
+    'kimi-guard-policy-chain': {
+      label:
+        'Kimi Code `permissionPolicyService.ts` 源码（提交 6e7cc909da90）：`this.policies` 数组按固定顺序放 13 条策略——`auto-mode-ask-user-question-deny`、`user-configured-deny`、`dangerous-command-ask`（外面包 `...(bootstrap.args.nonInteractive ? [] : [...])`，非交互宿主整条不入链）、`auto-mode-approve`、`session-approval-history`、`user-configured-ask`、`user-configured-allow`、`sensitive-file-access-ask`、`git-control-path-access-ask`、`yolo-mode-approve`、`default-tool-approve`、`git-cwd-write-approve`、`fallback-ask`；`evaluate` 顺序遍历并 `if (result !== undefined) return { policyName: policy.name, result }`，即第一条命中即定案',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/6e7cc909da9084a424f822dd5a9aae5b98070b73/packages/agent-core-v2/src/agent/permissionPolicy/permissionPolicyService.ts',
+    },
+    'kimi-guard-dangerous-command': {
+      label:
+        'Kimi Code `dangerous-command-ask.ts` 源码（提交 6e7cc909da90）：`evaluate` 依次早退于 guard 关闭、`modeService.mode === \'auto\'`、`toolCall.name !== \'Bash\'`；用 `PARSE_OPTIONS = { timeoutMs: 500, maxNodes: 10_000 }` 解析命令，危险时返回 `{ kind: \'ask\', reason: { dangerous_command: verdict.command } }`，unanalyzable 时在 `yolo` 下返回 `undefined`、否则返回 `{ kind: \'ask\', reason: { unanalyzable_command: true } }`；`SIMPLE_DANGEROUS_COMMANDS` 为 shutdown/halt/poweroff/reboot/bcdedit/diskpart/format/restart-computer/stop-computer/mkfs/wipefs 且另判 `name.startsWith(\'mkfs.\')`，`init`/`telinit` 带操作数 `0` 或 `6`，`systemctl` 子命令 poweroff/reboot/halt/kexec，`dd` 的 `of=` 目标以 `/dev/` 开头且不在 8 个安全设备内，`rm` 同时带递归与强制标志（全部操作数为 `/tmp`、`/temp` 或其下且不含 `..` 段时放行）；剥壳 `sudo`/`doas`、`env`/`command`/`exec`/`nohup`/`builtin`/`nice`、`busybox <applet>`，`sh`/`bash`/`dash`/`zsh`/`ksh`/`ash` 的 `-c` 载荷与 `eval` 参数递归解析至 `MAX_NESTED_SHELL_DEPTH = 4`，超层即判 unanalyzable；命令名先去目录、转小写、去 `.exe` 后缀再比对；操作数含美元符、反引号、星号、问号、方括号或波浪号（源码常量 `UNSAFE_OPERAND`）、解析失败、解析超时或结果 `hasError` 都判 unanalyzable',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/6e7cc909da9084a424f822dd5a9aae5b98070b73/packages/agent-core-v2/src/agent/permissionPolicy/policies/dangerous-command-ask.ts',
+    },
+    'kimi-guard-sensitive-file': {
+      label:
+        'Kimi Code `sensitive-file-access-ask.ts` 源码（提交 6e7cc909da90）：`evaluate` 先判 guard 开关，再 `fileAccesses(context).find((fileAccess) => isSensitiveFile(fileAccess.path))`，命中即返回不带 reason 的 `{ kind: \'ask\' }`；`fileAccesses` 取 `context.execution.accesses` 中 `kind === \'file\'` 的项且不过滤 operation，读写都算',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/6e7cc909da9084a424f822dd5a9aae5b98070b73/packages/agent-core-v2/src/agent/permissionPolicy/policies/sensitive-file-access-ask.ts',
+    },
+    'kimi-guard-git-control-path': {
+      label:
+        'Kimi Code `git-control-path-access-ask.ts` 源码（提交 6e7cc909da90）：guard 开关早退后要求 `workspace.workDir` 非空，先对每个 file access 判 `hasGitPathComponent(path, cwd, pathClass)`（相对 cwd 的路径段里有小写 `.git`），命中即 `{ kind: \'ask\' }`；否则 `await this.git.findWorkTree(cwd)` 取 marker，为 `null` 直接放行，再判 `isGitControlPath`（路径落在 `marker.dotGitPath` 或 `marker.controlDirPath` 内），读写访问都覆盖',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/6e7cc909da9084a424f822dd5a9aae5b98070b73/packages/agent-core-v2/src/agent/permissionPolicy/policies/git-control-path-access-ask.ts',
+    },
+    'kimi-guard-path-access': {
+      label:
+        'Kimi Code `tool/path-access.ts` 源码（提交 6e7cc909da90）：`isSensitiveFile` 的 `SENSITIVE_BASENAMES` 为 `.env`、`id_rsa`、`id_ed25519`、`id_ecdsa`、`credentials`，`.env.` 前缀一律敏感但 `.env.example`/`.env.sample`/`.env.template` 豁免，`SENSITIVE_BASENAME_PREFIXES` 四个前缀后接 `-`/`_` 或接 `.` 加 `SENSITIVE_DOT_VARIANT_SUFFIXES`（.bak/.backup/.copy/.disabled/.key/.old/.orig/.pem/.save/.tmp）之一也算，公钥 `id_rsa.pub`/`id_ed25519.pub`/`id_ecdsa.pub` 豁免，`SENSITIVE_PATH_SUFFIXES` 为 `.aws/credentials` 与 `.gcp/credentials`，比较前统一小写；同文件的 `resolvePathAccess` 在 `policy.checkSensitive && isSensitiveFile(canonical)` 时抛 `PathSecurityError(\'PATH_SENSITIVE\', …)`，消息为 “matches a sensitive-file pattern (env / credential / SSH key). Access is blocked to protect secrets.”，`DEFAULT_WORKSPACE_ACCESS_POLICY.checkSensitive` 为 `true`',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/6e7cc909da9084a424f822dd5a9aae5b98070b73/packages/agent-core-v2/src/tool/path-access.ts',
+    },
+    'kimi-guard-default-tool-approve': {
+      label:
+        'Kimi Code `default-tool-approve.ts` 源码（提交 6e7cc909da90）：`DEFAULT_APPROVE_TOOLS` 列出 "Always Ask" 下仍自动放行的 24 个工具名——Read、Grep、Glob、ReadMediaFile、SetTodoList、TodoList、TaskList、TaskOutput、WaitFor、CronList、WebSearch、FetchURL、Agent、AgentSwarm、AskUserQuestion、NotifyUser、Skill、EnterPlanMode、ExitPlanMode、CreateGoal、GetGoal、SetGoalBudget、UpdateGoal、select_tools；链末的 `fallback-ask.ts` 无条件返回 `{ kind: \'ask\' }`',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/6e7cc909da9084a424f822dd5a9aae5b98070b73/packages/agent-core-v2/src/agent/permissionPolicy/policies/default-tool-approve.ts',
+    },
+    'kimi-guard-policy-test': {
+      label:
+        'Kimi Code `permissionPolicyService.test.ts`（提交 6e7cc909da90）用例名逐字含 “does not load the dangerous command policy for non-interactive hosts”（`nonInteractive: true` 时 `rm -rf /tmp/build` 由 `auto-mode-approve` 放行）、“does not load the built-in guard policies when disabled by config”（`dangerousCommandGuardEnabled = false` 且 `mode = \'yolo\'` 时 `shutdown -h now`、`Read /workspace/.env`、`Write .git/config`、`Read /workspace/.git/config` 四例都由 `yolo-mode-approve` 放行）、“does not let session approval history exempt dangerous commands”（`sessionApprovalRulePatterns` 含 `Bash(shutdown -h now)` 时仍由 `dangerous-command-ask` 询问）、“keeps deny rules above dangerous command ask”、“asks for git control files before git-cwd approval” 与 “asks for sensitive files before git-cwd approval”',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/6e7cc909da9084a424f822dd5a9aae5b98070b73/packages/agent-core-v2/test/agent/permissionPolicy/permissionPolicyService.test.ts',
+    },
+    'kimi-guard-introduce-commit': {
+      label:
+        'Kimi Code 提交 4b9888b73db5（PR #3290 “feat(agent-core-v2): require approval for dangerous bash commands in all permission modes”，2026-08-31T12:24:53Z），是 `dangerous-command-ask.ts` 与 `permissionRules/configSection.ts` 中 `dangerousCommandGuard` 键的首次出现；后续 565093f727ee（2026-09-10，PR #3714 放行只针对 `/tmp`、`/temp` 的 `rm -rf`）、b184b3149794（2026-09-04，PR #3529 在 auto 模式撤掉该 guard）与 86e08208e344（2026-09-17，PR #3869 在 yolo 模式放行 unanalyzable 命令）继续收窄其触发面',
+      url: 'https://github.com/MoonshotAI/kimi-code/commit/4b9888b73db5937f86c65d1880c44f5326acd69d',
+    },
+    'kimi-guard-split-switch-pr': {
+      label:
+        'Kimi Code PR #4219 “feat(agent-core-v2): add config switches for file-access guards and skip directory search-root prompts”，2026-10-16T03:16:35Z 关闭且未合并；同日合入的 PR #4250 改为把三条 guard 统一挂到既有的 `dangerous_command_guard` 单开关上，没有新增 `sensitive_file_guard` 或 `git_control_path_guard` 之类的独立键',
+      url: 'https://github.com/MoonshotAI/kimi-code/pull/4219',
+    },
+    'kimi-modes-interaction': {
+      label:
+        'Kimi Code 交互文档「三种权限模式」节（提交 6e7cc909da90）：“Always Ask”（始终询问，原 Manual）是默认模式、只读操作自动放行、其余逐一确认；“Ask When Needed”（必要时询问，原 YOLO）用 `/yolo` 开启、自动批准普通工具调用、访问 `.env` 与 SSH 私钥等敏感文件、执行 `shutdown`/`rm -rf` 这类危险命令或退出 Plan 模式仍会询问；“Never Ask”（完全自动，原 Auto）用 `/auto` 开启、所有工具审批自动处理且 Agent 不再提问，内置危险命令拦截只在前两种模式要求确认、在 “Never Ask” 下这些命令直接执行不再拦截；审批面板支持方向键加 `Enter` 或 `1`/`2`/`3` 数字键确认、`Esc`/`Ctrl-C`/`Ctrl-D` 拒绝、「Approve for this session」会话内放行同类调用',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/6e7cc909da9084a424f822dd5a9aae5b98070b73/docs/zh/guides/interaction.md',
+    },
+    'kimi-guard-cli-reference': {
+      label:
+        'Kimi Code CLI 参考（提交 6e7cc909da90）：`--prompt <prompt>`（`-p`）非交互执行单次 prompt 且不打开 TUI，`--yolo`（`-y`）以 "Ask When Needed" 启动、`--auto` 以 "Never Ask" 启动、`--plan` 以 Plan 模式启动；`--yolo` 与 `--auto` 互斥，`--prompt` 不能与 `--yolo`、`--auto` 或 `--plan` 同时使用因为“非交互模式固定使用 `auto` 权限”，`-r`/`--resume` 是 `--session` 的隐藏别名、`--yes` 与 `--auto-approve` 是 `--yolo` 的隐藏别名；正文写 “`-p` 模式不会请求人工审批，普通工具调用按 `auto` 权限策略处理，静态 deny 规则仍然生效”，且恢复会话时可用 `--auto`、`--yolo` 或 `--plan` 覆盖原会话保存的模式',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/6e7cc909da9084a424f822dd5a9aae5b98070b73/docs/zh/reference/kimi-command.md',
+    },
+    'kimi-guard-slash-commands': {
+      label:
+        'Kimi Code 斜杠命令表（提交 6e7cc909da90）：`/permission` 无别名、作用为“选择权限模式”；`/yolo` 别名 `/yes`，说明为“打开权限模式列表并预选 "Ask When Needed"，按 `Enter` 确认开启。该模式下常规修改和命令自动完成；高危操作、提问和计划仍会问你”；`/auto` 无别名，说明为“打开权限模式列表并预选 "Never Ask"，按 `Enter` 确认开启。该模式下完全不打断，所有操作和判断自动完成”；`/plan` 带可选的 `on` 或 `off` 参数，不带参数时翻转、显式传值时强制设置；表后另写“Plan 模式的退出审批不会被 `/yolo` 跳过”',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/6e7cc909da9084a424f822dd5a9aae5b98070b73/docs/zh/reference/slash-commands.md',
+    },
+    'kimi-guard-config-files-layout': {
+      label:
+        'Kimi Code 配置文档开头与 `[watch]`、`local.toml` 段（提交 6e7cc909da90）：长期偏好写在 `~/.kimi-code/` 下的 TOML，运行时设置放 `config.toml`、界面偏好放 `tui.toml`，`config.toml` 首次运行自动创建，`KIMI_CODE_HOME` 可把数据目录搬到别处且“此时配置文件路径变为 `$KIMI_CODE_HOME/config.toml`”；`watch` 控制 `local.toml`、`AGENTS.md`、skills、MCP 配置以及 `config.toml` 自身的文件系统热更新且默认开启，`/reload` 同时重载 `config.toml` 与 `tui.toml`；项目级 `<项目根目录>/.kimi-code/local.toml` 保存与某个检出相关、通常不与队友共享的设置',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/6e7cc909da9084a424f822dd5a9aae5b98070b73/docs/zh/configuration/config-files.md',
+    },
+    'kimi-guard-release-220': {
+      label:
+        'Kimi Code 核对日期最新 Release 为 `@moonshot-ai/kimi-code@2.2.0`（2026-10-14T15:31:16Z 发布），早于 PR #4250 的 2026-10-16 合并，因此“关掉全部三条内置 guard”的语义只在 main 分支、尚未随任何 Release 发布；该 Release 说明里没有 `dangerous_command_guard` 相关条目',
+      url: 'https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai%2Fkimi-code%402.2.0',
+    },
   },
   rows: [
     {
@@ -3129,7 +3229,7 @@ window.matrixData = {
       category: 'security',
       capability: '交互审批',
       description: '危险或越界操作能否在执行前请求用户确认。',
-      values: { claude: '支持', codex: '支持', qwen: '支持', kimi: '支持', qoder: '支持' },
+      values: { claude: '支持', codex: '支持', qwen: '支持', kimi: '支持 · 三条内置 guard 询问策略可由 `[permission] dangerous_command_guard` 整体关闭', qoder: '支持' },
     },
     {
       id: 'security-plan',
