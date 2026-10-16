@@ -178,6 +178,8 @@
       facts: [
         '五家都具备交互审批，但参与决策的工具范围、规则优先级和宿主回调不同。',
         'Claude Code、Qwen Code、Kimi Code 与 Qoder CLI 都公开了工具级规则；Codex 把审批策略与沙箱边界分开配置。',
+        'Kimi Code 把内置风险询问做成三条具名策略（`dangerous-command-ask`、`sensitive-file-access-ask`、`git-control-path-access-ask`），由 `[permission] dangerous_command_guard` 一个布尔键整体开关；它们只决定要不要问用户，不替代 OS 沙箱，也不影响工具层对秘密文件的 `PATH_SENSITIVE` 硬阻断。',
+        'Kimi Code 的 13 条策略按固定顺序求值、第一条命中即定案，链上位置决定豁免范围：危险命令 guard 排在 `session-approval-history` 与 `user-configured-allow` 之前，会话内放行和用户 allow 规则都不能豁免它；敏感文件与 git 控制路径两条 guard 排在这两者之后，可以被用户 allow 规则或会话内放行覆盖。',
       ],
       behavior: {
         claude:
@@ -187,9 +189,49 @@
         qwen:
           'Ask Permissions 模式要求文件编辑和 Shell 命令确认；Auto 模式由分类器给出允许或阻断，显式 deny 仍优先。',
         kimi:
-          '副作用工具弹出审批面板，可单次允许、拒绝或对同类调用放行当前会话；永久规则写入配置文件。',
+          '副作用工具弹出审批面板，可单次允许、拒绝或选「Approve for this session」放行本会话同类调用。除用户规则外还有三条内置 guard 询问策略：`dangerous-command-ask` 只看 `Bash`，用 bash 解析器（`PARSE_OPTIONS = { timeoutMs: 500, maxNodes: 10_000 }`）识别 shutdown/halt/poweroff/reboot/bcdedit/diskpart/format/restart-computer/stop-computer/mkfs 与 `mkfs.*`/wipefs、`init`/`telinit` 带操作数 `0` 或 `6`、`systemctl poweroff|reboot|halt|kexec`、`dd` 的 `of=` 指向 `/dev/` 且不在 8 个安全设备内、`rm` 同时带递归与强制标志（操作数全为 `/tmp`、`/temp` 或其下且不含 `..` 段时放行），并先剥掉 `sudo`/`doas`、`env`/`command`/`exec`/`nohup`/`builtin`/`nice`、`busybox <applet>` 外壳、再递归解析嵌套 shell 的 `-c` 载荷与 `eval` 参数（上限 `MAX_NESTED_SHELL_DEPTH = 4`）；命令名比对前去目录、转小写、去 `.exe`。解析不出来的命令在 "Always Ask" 下也询问（reason 为 `unanalyzable_command`），在 "Ask When Needed" 下放行。`sensitive-file-access-ask` 对本次调用的每个文件访问跑 `isSensitiveFile`，命中即返回不带 reason 的 ask。`git-control-path-access-ask` 要求工作区 `workDir` 非空，先看相对 cwd 的路径段里有没有小写 `.git`，否则用 `git.findWorkTree(cwd)` 取 marker 后判断路径是否落在 `dotGitPath` 或 `controlDirPath` 内，读写访问都覆盖。',
         qoder:
           '每次工具调用得到 allow、ask 或 deny；TUI 消费 ask 为确认面板，SDK 与 ACP 可转给外部宿主。',
+      },
+      overrides: {
+        kimi: {
+          entry:
+            '`/permission` 选择权限模式；`/yolo`（别名 `/yes`）与 `/auto` 分别打开权限模式列表并预选 "Ask When Needed" 与 "Never Ask"，都要按 `Enter` 确认开启；`/plan [on|off]` 切换 Plan。启动参数提供 `--plan`、`--yolo`/`-y`（隐藏别名 `--yes`、`--auto-approve`）、`--auto`，`--yolo` 与 `--auto` 互斥；恢复会话时可用这三个参数覆盖原会话保存的模式。审批面板用方向键加 `Enter` 或 `1`/`2`/`3` 数字键确认，`Esc`/`Ctrl-C`/`Ctrl-D` 拒绝。',
+          defaults:
+            '`default_permission_mode` 默认 `manual`（展示名 "Always Ask"，原 Manual），可选 `yolo`（"Ask When Needed"，原 YOLO）与 `auto`（"Never Ask"，原 Auto）——配置值没有改名，改的只是展示名；`default_plan_mode` 默认 `false`。`[permission] dangerous_command_guard` 默认 `true`，即三条内置 guard 询问策略默认全部启用；"Always Ask" 下另有 `default-tool-approve` 自动放行 24 个只读或无副作用工具（Read、Grep、Glob、ReadMediaFile、SetTodoList、TodoList、TaskList、TaskOutput、WaitFor、CronList、WebSearch、FetchURL、Agent、AgentSwarm、AskUserQuestion、NotifyUser、Skill、EnterPlanMode、ExitPlanMode、CreateGoal、GetGoal、SetGoalBudget、UpdateGoal、select_tools），其余落到链末 `fallback-ask` 逐个询问。',
+          rules:
+            '`[[permission.rules]]` 按顺序匹配第一条命中即生效，字段为 `decision`（`allow`/`deny`/`ask`）、`scope`（`turn-override`/`session-runtime`/`project`/`user`，默认 `user`）、`pattern`（`工具名` 或 `工具名(参数模式)`，如 `Bash(rm -rf*)`）与可选 `reason`；`AgentSwarm`、MCP 工具和自定义工具只能按工具名匹配。13 条策略顺序为 `auto-mode-ask-user-question-deny`、`user-configured-deny`、`dangerous-command-ask`、`auto-mode-approve`、`session-approval-history`、`user-configured-ask`、`user-configured-allow`、`sensitive-file-access-ask`、`git-control-path-access-ask`、`yolo-mode-approve`、`default-tool-approve`、`git-cwd-write-approve`、`fallback-ask`。`[permission] dangerous_command_guard = false` 或环境变量 `KIMI_CODE_DANGEROUS_COMMAND_GUARD=false` 一次关掉三条 guard；`parseDangerousCommandGuardEnv` 只把字面 `true`/`false` 解析成布尔，其他取值返回 `undefined` 因而回落到文件设置与默认值。三条 guard 都在每次 `evaluate` 时现读 `IConfigService`（`isDangerousCommandGuardEnabled` 逐字为 `config.get(PERMISSION_SECTION)?.dangerousCommandGuard ?? true`），不在会话启动时固化。`[tools].enabled` 与 `disabled` 另行限制模型能看到和调用的工具。',
+          boundary:
+            '权限策略链覆盖文件、Bash、MCP 等工具调用；当前公开 CLI 文档未列出对这些工具子进程提供 OS 级文件系统或网络沙箱。guard 关闭不放开工具层的秘密文件硬阻断：`resolvePathAccess` 在 `policy.checkSensitive`（`DEFAULT_WORKSPACE_ACCESS_POLICY` 里为 `true`）且路径命中 `isSensitiveFile` 时抛 `PathSecurityError(\'PATH_SENSITIVE\')`，消息为 “matches a sensitive-file pattern (env / credential / SSH key). Access is blocked to protect secrets.”，官方文档也逐字写 “`Read`/`Write`/`Edit` 对秘密文件的硬阻断保持不变”。敏感文件判定为 `.env`、`.env.` 前缀（`.env.example`/`.env.sample`/`.env.template` 豁免）、`id_rsa`/`id_ed25519`/`id_ecdsa`/`credentials` 及其后接 `-`/`_` 或接 `.` 加 `.bak`/`.backup`/`.copy`/`.disabled`/`.key`/`.old`/`.orig`/`.pem`/`.save`/`.tmp` 的变体、`.aws/credentials` 与 `.gcp/credentials`，公钥 `id_rsa.pub`/`id_ed25519.pub`/`id_ecdsa.pub` 豁免，比较前统一小写。',
+          persistence:
+            '全局规则与 `dangerous_command_guard` 写在 `~/.kimi-code/config.toml`（首次运行自动创建，`KIMI_CODE_HOME` 可把数据目录整体搬到 `$KIMI_CODE_HOME/config.toml`）；`[watch].enabled` 默认开启，`config.toml` 自身的改动会热更新，也可用 `/reload` 立即重载。审批面板的「Approve for this session」以 `scope = "session-runtime"` 规则进入 `sessionApprovalRulePatterns`，只在本会话生效。项目级 `<项目根>/.kimi-code/local.toml` 当前公开的是额外工作目录等本地设置。',
+          noninteractive:
+            '`--prompt`/`-p` 非交互执行不能与 `--yolo`、`--auto`、`--plan` 同用，固定按 `auto` 权限策略处理、不请求人工审批，静态 deny 规则仍生效。源码层面 `bootstrap.args.nonInteractive` 为真时 `dangerous-command-ask` 整条不进策略链（官方测试 “does not load the dangerous command policy for non-interactive hosts”）；另两条文件 guard 仍在链上，但排在它们前面的 `auto-mode-approve` 会先放行。',
+          conditions:
+            '三条 guard 只在 "Always Ask" 与 "Ask When Needed" 下工作："Never Ask"（`auto`）里 `dangerous-command-ask` 与两条文件 guard 都被前置的 `auto-mode-approve` 或自身早退跳过，官方交互文档写这些命令在该模式下直接执行、不再拦截；退出 Plan 模式的审批不被 `/yolo` 跳过。`dangerous_command_guard` 关掉全部三条 guard 的语义只在 main 分支（提交 `6e7cc909da90`，PR #4250，2026-10-16），最新 Release `@moonshot-ai/kimi-code@2.2.0`（2026-10-14）里该键只关危险命令一项；拆成多个独立开关的 PR #4219 已于 2026-10-16 关闭且未合并。该键自提交 `4b9888b73db5`（PR #3290，2026-08-31）起存在，2.0.0 至 2.2.0 各 tag 的配置文档都有记载。官方对开关的用法建议逐字为“此开关只适用于已经在 Agent 之外统一命令限权的环境”。',
+          sources: [
+            'kimi-modes-interaction',
+            'kimi-guard-slash-commands',
+            'kimi-guard-cli-reference',
+            'kimi-guard-config-docs',
+            'kimi-guard-config-docs-en',
+            'kimi-guard-config-docs-220',
+            'kimi-guard-config-files-layout',
+            'kimi-guard-config-section',
+            'kimi-guard-policy-chain',
+            'kimi-guard-dangerous-command',
+            'kimi-guard-sensitive-file',
+            'kimi-guard-git-control-path',
+            'kimi-guard-path-access',
+            'kimi-guard-default-tool-approve',
+            'kimi-guard-policy-test',
+            'kimi-guard-widen-commit',
+            'kimi-guard-introduce-commit',
+            'kimi-guard-changeset',
+            'kimi-guard-split-switch-pr',
+            'kimi-guard-release-220',
+          ],
+        },
       },
       related: ['cmd-permissions', 'security-bypass', 'security-noninteractive'],
     }),
