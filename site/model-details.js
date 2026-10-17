@@ -284,73 +284,138 @@
         '仅靠外部网关完成的透明转发',
       ],
       facts: [
-        'Qwen Code 和 Kimi Code 都公开多协议 Provider 抽象；Qoder CLI 的 BYOK 是指定厂商目录。',
-        'Codex 的自定义 Provider 当前只接受 Responses wire API，但内置 Provider 可包含 Bedrock、Ollama 和 LM Studio。',
-        'Claude Code 的非 Anthropic Provider 是官方云部署路径，而不是任意协议插件系统。',
+        '五家都区分「厂商托管目录」与「自带 Key」两条路，但入口形状不同：Claude Code 与 Codex 用配置键和环境变量声明 Provider，Qwen Code 与 Kimi Code 用 `/auth`、`/provider` 向导加配置文件，Qoder CLI 只允许从 `/model` 的 Custom 向导添加。',
+        '只有 Qwen Code 与 Kimi Code 把「导入第三方 Provider」做成产品能力：Qwen 在源码里内置 15 个预设（`ALL_PROVIDERS` 的显示顺序，按 `uiGroup` 分 qwencloud、alibaba、third-party 三组），Kimi 从公开 models.dev 目录或自定义 registry `api.json` 导入、目录不可达时回退内置快照。',
+        '协议边界不同：Codex 的自定义 Provider 只接受 `wire_api = "responses"`，官方 Models 页写明当前版本不支持 `wire_api = "chat"` 或仅 Chat Completions 的端点；Qwen 的 `openai` 协议按每条模型的 `wireApi` 在 `chat-completions` 与 `responses` 之间选；Kimi 把两种 OpenAI 协议拆成 `openai` 与 `openai_responses` 两个 `type`；Claude Code 只在 Messages 协议内换部署位置，不做任意协议适配。',
+        '云平台 Provider 的覆盖不同：Claude Code 有 Amazon Bedrock（Invoke API 或 Mantle 端点）、Claude Platform on AWS、Google Cloud\'s Agent Platform（原 Vertex AI）与 Microsoft Foundry 四个云部署；Codex 内置 `amazon-bedrock` 一个云 Provider；Qwen 的 `vertex-ai` 与 Kimi 的 `vertexai` 都走 Google ADC；Qoder 公开文档没有任何云厂商 Provider 入口。',
+        '凭据落盘口径不同：Qwen 的 Model Providers 文档写 “Credentials are never persisted in settings; the runtime reads them from `process.env[envKey]`.”，而认证文档同时把 Key 写进 `settings.json` 的 `env` 字段作为最低优先级兜底并提示明文风险；Kimi 的 `api_key` 与 `api_key_env` 互斥，二者都不存在时才读 `[providers.<name>.env]` 子表；Codex 用 `env_key` 或 `[model_providers.<id>.auth]` 的命令式 token，`experimental_bearer_token` 被官方标注为 discouraged；Qoder 由 BYOK 向导保存并明确要求不要手工编辑 `settings.json`。',
+        '「Provider 目录的事实来源」定义不同：Qwen 的预设、端点与 Key 前缀校验固定写在源码里并随版本发布，QwenCloud 两个预设自 v0.25.3-preview.0 起才存在、stable v0.25.2 没有；Kimi 的第三方目录来自远端 models.dev 或私有 registry，同一 registry 地址下的供应商在后续启动时一起刷新；Qoder 的 Custom 向导以「当前账号可见的实时 BYOK 目录」为准，文档点名的六家厂商只是示例。',
       ],
       products: {
         claude: {
-          entry: '环境变量与 Settings 选择 Anthropic、Amazon Bedrock、Google Vertex AI、Microsoft Foundry 或 AWS 上的 Claude Platform。',
-          mechanism: '同一 Claude Code 客户端针对官方 Claude 部署切换认证和基础端点。',
-          behavior: 'Provider 决定模型目录、凭据链、区域、请求端点和部分功能可用性。',
-          scope: '进程环境、用户/项目 Settings 或组织 Managed settings。',
-          persistence: '长期部署选择通常写入环境管理或 Settings。',
-          automation: 'CI 按 Provider 注入云凭据和模型环境变量。',
-          security: '可复用云平台 IAM、短期凭据与组织网络网关。',
-          conditions: '仅覆盖 Claude 模型的官方部署和兼容 Messages 网关。',
-          sources: ['claude-model-config', 'claude-auth', 'claude-gateway'],
+          entry:
+            '环境变量 `CLAUDE_CODE_USE_BEDROCK`、`CLAUDE_CODE_USE_VERTEX`、`CLAUDE_CODE_USE_FOUNDRY`、`CLAUDE_CODE_USE_ANTHROPIC_AWS`、`CLAUDE_CODE_USE_MANTLE`；Amazon Bedrock 与 Google Vertex AI 还可运行 `claude` 后在登录提示选 **3rd-party platform** 走交互向导；LLM 网关用 `ANTHROPIC_BASE_URL`。',
+          mechanism:
+            '官方部署选项对比表列出六个推理位置：Claude for Teams/Enterprise（claude.ai SSO 或邮箱登录）、Anthropic Console（API Key 或不带 Key 的 Console 登录）、Amazon Bedrock（Invoke API 或 Mantle 端点）、Claude Platform on AWS、Google Cloud\'s Agent Platform（原 Vertex AI，文档路径仍是 `/docs/en/google-vertex-ai`）与 Microsoft Foundry；Claude apps gateway 是自托管网关，在这些 Provider 或 Anthropic API 前加 IdP 登录。同一客户端按部署位置切换认证与端点，不是任意协议插件系统。',
+          behavior:
+            'Provider 决定模型 ID 形状（Bedrock 用 inference profile ARN、Microsoft Foundry 用 deployment name、Google Cloud\'s Agent Platform 用 version name、Mantle 用 `anthropic.` 前缀且不带版本后缀）、凭据链、区域、`default` 的解析结果（Claude Platform on AWS、Bedrock 与 Agent Platform 解析为 Opus 5.5，Foundry 解析为 Sonnet 4.5）、`/model` 里是否显示价格，以及部分功能可用性；`availableModels` 允许清单在 Provider 上的匹配规则也分档不同。',
+          scope:
+            '进程环境、用户或项目 Settings 的 `env` 块、组织 Managed settings；宿主平台设置 `CLAUDE_CODE_PROVIDER_MANAGED_BY_HOST` 时，Claude Code 忽略 `CLAUDE_CODE_USE_BEDROCK`、`ANTHROPIC_BASE_URL`、`ANTHROPIC_API_KEY` 等 Provider 选择、端点与认证变量。',
+          persistence:
+            '部署选择通常固定在环境管理或 Settings 里；Settings 的 `env` 块只能新增变量不能删除，要覆盖 shell profile 里导出的旧值（如失效的 `CLAUDE_CODE_USE_VERTEX`）得把它设为空字符串，Claude Code 按未设置处理。',
+          automation:
+            'CI 按 Provider 注入云凭据与模型环境变量；Mantle 用 `ANTHROPIC_BEDROCK_MANTLE_BASE_URL`、Claude Platform on AWS 用 `ANTHROPIC_AWS_BASE_URL`（默认 `https://aws-external-anthropic.{region}.api.aws`）走自定义端点或网关。',
+          security:
+            '可复用云平台 IAM、短期凭据、组织网络网关与 `awsAuthRefresh`；Mantle 的 IAM 动作在 `bedrock-mantle:` 前缀下（`bedrock-mantle:CreateInference`、`bedrock-mantle:CountTokens`），官方明写 `bedrock:` 动作不覆盖它；Claude Platform on AWS 的 `ANTHROPIC_AWS_API_KEY` 作为 `x-api-key` 发送且优先于 AWS SigV4，`ANTHROPIC_AWS_WORKSPACE_ID` 必填并作为 `anthropic-workspace-id` 头随每次请求发送，`CLAUDE_CODE_SKIP_ANTHROPIC_AWS_AUTH` 供自行签名请求的网关跳过客户端认证。',
+          conditions:
+            '只覆盖 Claude 模型的官方部署与兼容 Messages 网关；第三方 Provider（Bedrock、Agent Platform、Foundry、Claude Platform on AWS）上的会话不接收 server-managed settings，允许清单要靠 MDM 或托管设置文件下发；`/status` 的 provider 行在 Mantle 生效时显示 `Amazon Bedrock (Mantle)`。',
+          sources: [
+            'claude-deployment-options',
+            'claude-bedrock-mantle',
+            'claude-provider-env-vars',
+            'claude-model-config',
+            'claude-gateway',
+          ],
         },
         codex: {
-          entry: '`model_provider`、`model_providers.<id>`、`--oss`、`--local-provider`。',
-          mechanism: '内置 OpenAI、Amazon Bedrock、Ollama、LM Studio；可增加 Responses-compatible Provider。',
-          behavior: 'Provider 决定 base URL、认证来源、请求头、查询参数和模型目录。',
-          scope: '用户配置、项目配置、profile 或本次 CLI 参数。',
-          persistence: '自定义 Provider 写入 `config.toml`。',
-          automation: '用 profile 为不同环境绑定 Provider、模型和认证变量。',
-          security: 'API Key 从 `env_key` 或命令认证读取，避免直接写入 Provider 配置。',
-          conditions: '自定义 wire API 当前仅支持 `responses`。',
-          sources: ['codex-config-reference', 'codex-config', 'codex-models'],
+          entry:
+            '`model_provider`（默认 `openai`）与 `[model_providers.<id>]`；本地开源 Provider 用 `--oss` 加 `--local-provider` 或配置 `oss_provider`；只想改内置 OpenAI Provider 的地址用 `openai_base_url`。',
+          mechanism:
+            '内置保留 ID 为 `openai`、`ollama`、`lmstudio`，自定义 Provider 不能复用；另有内置 `amazon-bedrock` Provider，与自定义 Provider 不同，它只接受嵌套的 `[model_providers.amazon-bedrock.aws]` 里的 `profile` 与 `region`；Azure、Mistral、企业代理与数据驻留端点都按自定义 Provider 写。',
+          behavior:
+            '一个 Provider 定义 base URL、wire API、认证与可选 HTTP 头；`wire_api` 只接受 `responses`，官方 Models 页写 “Current Codex releases don’t support `wire_api = "chat"` or a Chat Completions-only endpoint.”；每个 Provider 还能带 `query_params`、`http_headers`、`env_http_headers`、`request_max_retries`、`stream_max_retries`、`stream_idle_timeout_ms`、`model_catalog_url`、`supports_websockets`、`supports_standalone_web_search` 与 `capabilities.external_web_access`/`capabilities.remote_compaction`。',
+          scope:
+            '用户配置 `~/.codex/config.toml`、`--profile <name>` 对应的 `~/.codex/<name>.config.toml` 层，或 `-c key=value` 的单次覆盖；项目级 `.codex/config.toml` 会忽略 `model_provider`、`model_providers`、`openai_base_url` 等键并在启动时告警，未受信任的项目连整个 `.codex/` 层都不加载。',
+          persistence:
+            '自定义 Provider 写进 `config.toml`；profile 文件是 base 之上、项目与 CLI 配置之下的一层，只需写与 base 不同的键，也能覆盖 `model_catalog_json`。',
+          automation:
+            '用 profile 为不同环境绑定 Provider、模型与认证变量；`--oss` 既没给 `--local-provider` 也没设 `oss_provider` 时，交互式 CLI 提示选择而 `codex exec` 直接报错退出，因此脚本必须显式指定其一。',
+          security:
+            'Key 从 `env_key` 指定的环境变量读取，`experimental_bearer_token` 被官方标注为 discouraged；命令式认证写 `[model_providers.<id>.auth]`（`command`、`args`、`cwd`、`timeout_ms`、`refresh_interval_ms`），命令不接收 stdin、必须把 token 打到 stdout，空 token 视为错误，`refresh_interval_ms = 0` 表示只在认证重试后刷新，且不能与 `env_key`、`experimental_bearer_token` 或 `requires_openai_auth` 同用。',
+          conditions:
+            'Bedrock 省略 `profile` 时走标准 AWS 凭据链，`region` 要填实际处理请求的 Bedrock 区域；`supports_standalone_web_search` 对自定义 Provider 默认 `false`，设为 `true` 也不等于启用（仍需 Provider、模型与运行时都支持，`web_search` 模式与托管搜索限制继续生效）；托管的 Local computer access with Work Cloud 不支持 `model_provider` 与 `model_providers`，自定义推理网关不经这两个键带入云侧。',
+          sources: [
+            'codex-provider-definitions',
+            'codex-provider-keys',
+            'codex-config-reference',
+            'codex-models',
+          ],
+          status: '官方确认',
         },
         qwen: {
-          entry: '`/auth`、`modelProviders`、`providerProtocol`。',
-          mechanism: '内置 `openai`、`anthropic`、`gemini`、`vertex-ai` 协议；可定义自有 Provider ID。',
-          behavior: 'Provider 绑定模型、baseUrl、Key 环境变量和协议能力。',
-          scope: '用户、项目、系统 Settings 与进程环境。',
-          persistence: 'Provider 配置写入 Settings；Key 可单独放 `.env`。',
-          automation: 'Headless 通过 Settings 与环境变量选择 Provider。',
-          security: '推荐把 Key 放 `.env` 或系统环境，而不是提交项目 Settings。',
-          conditions: '旧 `qwen-oauth` 免费层已停止并从可选登录流程移除。',
+          entry:
+            '`/auth` 的四个顶层入口（QwenCloud、Alibaba ModelStudio、Third-party Providers、Custom Provider）；配置文件侧是 `~/.qwen/settings.json` 的 `modelProviders`、`providerProtocol`、`security.auth.selectedType` 与 `model.name`；运行时用 `/model` 切换。',
+          mechanism:
+            '协议层为 `openai`（按每条模型的 `wireApi` 走 Chat Completions 或 Responses）、`anthropic`、`gemini`、`vertex-ai`（用 gemini 协议与 `@google/genai` SDK 的 Vertex 模式，选中即设 `GOOGLE_GENAI_USE_VERTEXAI=true`）与硬编码、不可在 `modelProviders` 覆盖的 `qwen-oauth`；自定义 provider id 必须用顶层 `providerProtocol` 映射到内置协议，未映射的整条被跳过并告警、模型不会出现在 `/model` 里。',
+          behavior:
+            'QwenCloud 入口下有 `qwencloud-token-plan` 与 `qwencloud-standard` 两个预设，各自再显式选平台（China — 千问AI平台 / International — QwenCloud）决定四个端点之一，逐字写 “so the UI language never decides your endpoint”；Alibaba ModelStudio 下有 Coding Plan、Token Plan、Standard API Key；Third-party Providers 是 DeepSeek、Grok、MiniMax、Z.AI、Kimi（moonshot）、Idealab、ModelScope、OpenRouter、Requesty 九家；Custom Provider 手填本地服务、代理或不受支持的厂商。每个预设决定 `envKey`、种子模型目录、`modelNamePrefix`、Key 前缀校验与 `webSearch` 后端，`modelsEditable` 与 `supportsModelDiscovery` 都为真。',
+          scope:
+            '用户、项目与系统 Settings 加进程环境；官方建议把 `modelProviders` 定义在用户级 `~/.qwen/settings.json`，以避免项目与用户设置的合并冲突。',
+          persistence:
+            'Provider 与模型条目写进 Settings；Key 的读取优先级为 CLI 旗标 > shell 环境 > `.env`（`.qwen/.env` → `.env` → `~/.qwen/.env` → `~/.env`，只加载找到的第一个且不跨文件合并）> `settings.json` 的 `env` 字段。Model Providers 文档写凭据不落盘、运行时只读 `process.env[envKey]`，认证文档则把 `env` 字段作为最低优先级兜底并提示明文风险，两处口径不同。',
+          automation:
+            'Headless 用 `QWENCLOUD_API_KEY`、`QWENCLOUD_TOKEN_PLAN_API_KEY`、`BAILIAN_CODING_PLAN_API_KEY`、`BAILIAN_TOKEN_PLAN_API_KEY`、`DASHSCOPE_API_KEY` 等 provider 专属变量加 `OPENAI_BASE_URL` 与 `OPENAI_MODEL`，或在 Settings 里写 `security.auth.selectedType` 免交互启动；provider 专属 Key 只有在存在声明它为 `envKey` 的 Settings 条目时才生效，只靠环境变量选 OpenAI 兼容认证要导出 `OPENAI_API_KEY`。',
+          security:
+            'QwenCloud 与 Alibaba ModelStudio 是两组独立入口、独立 Key 变量与独立端点，选 QwenCloud 不会改写或删除已保存的 ModelStudio 凭据、端点与模型选择；Key 前缀在向导内即校验（按量付费要求以 `sk-` 开头且不是 `sk-sp-`，Token Plan 要求 `sk-sp-`），错误提示会指向另一个入口；官方建议敏感 Key 放 `.env` 或 shell，而不是可能被共享或同步的 `settings.json`；新增读取新环境变量的预设要同步 no-AK CI 门禁的清空列表，否则门禁会泄漏 runner 凭据。',
+          conditions:
+            'QwenCloud 入口自 v0.25.3-preview.0（2026-10-16 发布，GitHub 标记 `prerelease: true`，标签指向提交 `d407c0bb3823118281fbfc178494f4525a2241b8`）起存在，stable v0.25.2 的预设目录里没有 `qwencloud-*`；Qwen OAuth 免费层 2026-04-15 停止且不再是可选对话框入口；`modelProviders` 编辑在运行中的交互会话里热加载（文件监听约 300ms 去抖，重开 `/model` 可见、当前选择保留），而 `providerProtocol` 只在启动读取、改动需重启；QwenCloud 的两种访问方式都自动启用内置 `web_search`，Coding Plan 主机被排除在自动激活之外；手写条目不带 `capabilities` 时 `/effort` 只给通用档位，拿不到 QwenCloud 策划的 `low`/`medium`/`xhigh`；Vertex 条目可用 ADC，任何 API Key 到达该条目会切到忽略 project、location 与 ADC 的 Vertex Express 模式。',
+          status: '条件项',
           sources: [
-            'qwen-model-providers-current',
-            'qwen-model-auth-current',
-            'qwen-model-settings-current',
+            'qwen-auth-qwencloud',
+            'qwen-model-providers-head',
+            'qwen-provider-registry',
+            'qwen-qwencloud-standard-preset',
+            'qwen-qwencloud-token-plan-preset',
+            'qwen-qwencloud-pr',
+            'qwen-v0253-preview0-release',
+            'qwen-websearch-provider-table',
           ],
         },
         kimi: {
-          entry: '`/provider`、`kimi provider`、`config.toml` 的 `[providers]`。',
-          mechanism: 'Provider 类型包括 `kimi`、`anthropic`、`openai`、`openai_responses`、`google-genai`、`vertexai`。',
-          behavior: 'Provider 定义 base URL、API Key、额外环境字段和关联模型。',
-          scope: '用户配置或 `KIMI_MODEL_*` 临时模型通道。',
-          persistence: '长期 Provider 保存在 `~/.kimi-code/config.toml`。',
-          automation: '配置文件预置 Provider；临时通道可完全覆盖一次运行。',
-          security: 'OAuth 凭据与静态 API Key 的存储路径不同。',
-          conditions: '各 Provider 类型支持的请求字段和 thinking 能力不同。',
+          entry:
+            '`config.toml` 的 `[providers.<name>]`（`type` 决定协议）与 `[models.<alias>]`；TUI 里 `/provider` 打开供应商管理器；shell 里 `kimi provider add|remove|list|catalog list|catalog add`；OAuth 托管账号用 `/login` 与 `/logout`。',
+          mechanism:
+            '六类 `type`：`kimi`（OpenAI 兼容，Kimi Code 托管服务与 Kimi Platform API 密钥，默认 `base_url` `https://api.moonshot.ai/v1`）、`anthropic`（Anthropic Messages）、`openai`（Chat Completions）、`openai_responses`（Responses API，始终流式）、`google-genai`、`vertexai`；第三方厂商不是内置预设，而是从公开 models.dev 目录或自定义 registry `api.json` 导入，目录未声明协议的厂商按 OpenAI 兼容导入并标 “guessed”，Amazon Bedrock、Cohere 等专有协议与无法识别的显式协议被拒绝导入。',
+          behavior:
+            '所有供应商默认以流式方式交互，thinking、视觉、工具调用能力按模型名前缀自动匹配；`openai` 协议自动处理 `reasoning_content` 与 `reasoning_effort` 注入，网关用非标准字段名时在模型别名上设 `reasoning_key` 覆盖；`vertexai` 与 `google-genai` 共用实现，`base_url` 只能填主机根地址，否则 SDK 会把路径拼成 `/v1beta/v1beta/…`；registry 模型可声明 `upgrade`、`migration_markdown` 与可选 `retirement_at`，启动时对当前模型显示 Markdown 迁移提示（`Enter` 确认、空格不接受），registry 删除默认模型时若 `upgrade` 目标仍在则自动切换并保留 Thinking 设置、否则连同该设置一起清空。',
+          scope:
+            '用户配置 `~/.kimi-code/config.toml`（`KIMI_CODE_HOME` 可搬移数据目录）；`KIMI_MODEL_*` 临时模型通道可完全覆盖单次运行。',
+          persistence:
+            '长期 Provider 与模型别名写进 `config.toml`；从 registry 导入的条目另存 `source` 元数据（私有 registry 的 Bearer token 存为 `source.apiKey` 供刷新使用），后续启动时同一 registry 地址下的供应商一起刷新；`kimi provider add` 遇到同 id 先删再写且不自动设默认模型，`remove` 连带删除该供应商的全部模型 alias、命中 `default_model` 时同时清空它。',
+          automation:
+            '`kimi provider` 的五个动作面向脚本化部署、CI 初始化与新机器一行配置：`--api-key` 未传时回退环境变量 `KIMI_REGISTRY_API_KEY`，`list --json` 输出原始 `providers` 与 `models` 表，`catalog list` 的 `--url` 可换目录地址、`--filter` 按 id 或 name 子串过滤，`catalog add` 的 `--default-model <modelId>` 把默认模型设为 `<providerId>/<modelId>`；`kimi doctor` 校验配置文件。',
+          security:
+            '凭证优先级为 `api_key` 或 `api_key_env`（互斥替代项，只能设其一）> `[providers.<name>.env]` 子表键（前两者都不存在时才读）> 全部缺失即启动报错；除显式声明的 `api_key_env` 外，CLI 不从 shell 环境变量自动取凭证；registry 条目声明的 `env` 变量名只作提示打印，绑定永不自动发生，因为 registry 同时决定变量名与凭证发往的端点；`vertexai` 的项目 ID 与区域必须写在 `[providers.vertexai.env]` 子表，直接 `export GOOGLE_CLOUD_PROJECT` 不被读取。',
+          conditions:
+            'models.dev 不可达时回退内置目录快照，离线或网络受限环境也能导入；deprecated 与 alpha 状态的模型不出现在导入列表；通过 `/login` 登录的 OAuth 托管账号不在 `/provider` 显示；`api_key_env` 自 2.0.1（2026-09-18）起可用、目录快照回退自 0.32.0（2026-08-04）起、`kimi provider` 子命令自 0.8.0（2026-06-02）起、`/provider` 自 0.7.0 起取代已废弃的 `/connect`；registry 的 `upgrade` 迁移字段是 Kimi 扩展、不属于 models.dev schema，官方变更记录里没有对应版本条目；核对日期最新 Release 2.2.0（2026-10-14）没有 Provider 类型或导入路径变化。',
+          status: '官方确认',
           sources: [
-            'kimi-model-providers-current',
-            'kimi-model-config-current',
-            'kimi-model-commands-current',
+            'kimi-providers-head',
+            'kimi-provider-cli-head',
+            'kimi-changelog-providers',
           ],
         },
         qoder: {
-          entry: '`/model` 的 Custom Model 流程。',
-          mechanism: '托管模型目录外，支持 ModelStudio、DeepSeek、Z.ai、Kimi、MiniMax、Xiaomi MIMO 等指定厂商 BYOK。',
-          behavior: '用户从公开目录选择厂商、模型并输入对应 Key。',
-          scope: 'Individual 账号下的模型设置。',
-          persistence: '模型选择与选项保存在 `~/.qoder/settings.json`。',
-          automation: '公开文档未给出任意 Provider 定义文件或协议插件入口。',
-          security: 'Custom Model 使用用户自己的厂商 Key。',
-          conditions: 'Custom Model 不适用于 Teams；厂商目录会随产品更新。',
-          sources: ['qoder-model'],
+          entry:
+            '`/model` 选择器的三个页签：Default（分档模型池）、New Models（当前可直选的具体模型）、Custom（BYOK）；添加走 Custom 页签的 `Add custom model...` 向导；`qoder --list-models` 不开 TUI 打印当前账号可用模型。',
+          mechanism:
+            '默认服务是 Qoder 托管目录：Default 页签给 Smart Routing (Auto)、Ultimate、Performance、Efficient 四个分档池，New Models 页签给具体模型；托管目录之外只有指定厂商 BYOK，Models 页点名 Alibaba Cloud Model Studio、DeepSeek、Z.ai、Kimi、MiniMax、Xiaomi MIMO，而 Custom Models 页把可用厂商写成 “Refer to the live catalog displayed by the Custom wizard.”。公开文档没有任意 Provider 定义文件或协议插件入口。',
+          behavior:
+            'BYOK 向导按 Provider → Model Type → Model 三步走，输入 API Key 与其余必填项，校验通过后自动保存并立即可选；Custom 页签选中模型按 `d` 删除；BYOK 调用的是用户自己订阅计划内的模型，1.1.63（2026-09-24）起 Auto 权限模式的审批请求也跟随 BYOK 模型。',
+          scope: 'Individual（Personal）计划下的模型设置；Custom Models 页写明 Available edition 为 Individual plan。',
+          persistence:
+            'TUI 里按 `Enter` 选中的模型自动写进 `~/.qoder/settings.json` 并跨会话保留，按 `s` 只对当前会话生效，`--model`、`--reasoning-effort`、`--context-window` 只作用于本次启动；BYOK 条目由向导保存，官方明确要求不要手工在 `settings.json` 里配置 BYOK，可用厂商、模型与凭据字段都由当前账号可见的 BYOK 目录决定。',
+          automation:
+            '`qoder --list-models` 供脚本枚举当前账号可用模型；启动旗标可固定本次运行的模型、推理强度与上下文窗口；公开文档没有给出用环境变量或配置文件预置 BYOK Provider 的方式。',
+          security:
+            'Custom Model 使用用户自己的厂商 Key，Key 在向导里校验通过后才保存；官方把可用厂商范围交给服务端目录而不是本地配置，因此本地设置文件不是 BYOK 的可信入口。',
+          conditions:
+            'BYOK 时间线为 0.1.31（2026-03-13）首次支持自定义模型、0.2.0（2026-04-27）随多模型支持转正、0.2.5（2026-04-29）加入自定义端点、1.1.50（2026-09-11）改为在 `/model` 的 Custom 页集中管理带自定义 URL 端点的 BYOK 模型；1.1.64 至 1.1.72（2026-10-15）没有任何 Provider 或 BYOK 条目；New Models 的可用模型、能力与 `price_factor` 随服务端列表变化，文档只给示例表并要求以 `/model` 与 `--list-models` 为准。',
+          sources: [
+            'qoder-model-tiers',
+            'qoder-custom-models',
+            'qoder-release-notes-byok',
+          ],
           status: '条件项',
         },
       },
