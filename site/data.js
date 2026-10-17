@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-10-16',
+  updatedAt: '2026-10-17',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -227,6 +227,35 @@ window.matrixData = {
     'claude-env-vars': {
       label: 'Claude Code environment variables',
       url: 'https://code.claude.com/docs/en/env-vars',
+    },
+    'claude-auto-mode-config': {
+      label:
+        'Claude Code Configure auto mode（`autoMode` 的 `environment`/`allow`/`soft_deny`/`hard_deny` 四层优先级与 `"$defaults"`、只从用户/Managed/`--settings` 三个作用域读取、`/auto-mode-setup`、`claude auto-mode defaults|config|critique|reset`、`/permissions` 的 Auto mode 页签）',
+      url: 'https://code.claude.com/docs/en/auto-mode-config',
+    },
+    'claude-auto-mode-billing': {
+      label:
+        'Claude Code Auto mode classifier request charges（服务端审查不额外计费、回退到 Claude Code 自己的 classifier 请求按 token 用量计费、`/status` 的 Auto mode server 行、`CLAUDE_CODE_AUTO_MODE_SERVER` 是可能移除的临时设置）',
+      url: 'https://code.claude.com/docs/en/auto-mode-classifier-billing',
+    },
+    'claude-monitoring-usage': {
+      label:
+        'Claude Code Monitoring usage（OpenTelemetry `tool_decision` 事件属性表：`tool_name`、`tool_use_id`、`decision`、`tool_source`、`source` 六个取值与 `OTEL_LOG_TOOL_DETAILS=1` 下的 `tool_parameters`；核对日期没有 `classifier_verdict`、`classifier_category` 或 `permission_mode`）',
+      url: 'https://code.claude.com/docs/en/monitoring-usage',
+    },
+    'claude-v21302-auto-mode-model-changelog': {
+      label:
+        'Claude Code v2.1.302 更新日志（固定到提交 `c017428c8c27e604840435048d5bce6a9a22c040`）：`CLAUDE_CODE_AUTO_MODE_MODEL`、服务端 classifier 遇过长对话改为压缩、`classifier_category` 缺失与 `OTEL_LOGRECORD_ATTRIBUTE_COUNT_LIMIT` 偏低时挤掉旧属性的修复、`claude -p` 与 Agent SDK 无权限模式时的启动模式改动',
+      url: 'https://github.com/anthropics/claude-code/blob/c017428c8c27e604840435048d5bce6a9a22c040/CHANGELOG.md',
+    },
+    'claude-v21301-classifier-telemetry-changelog': {
+      label:
+        'Claude Code v2.1.301 更新日志（固定到提交 `03b5892ee77de289bcd5dfa39f541525ade74aff`）：`tool_decision` 事件新增 `classifier_verdict` 与 `permission_mode`，以及 `OTEL_LOG_TOOL_DETAILS=1` 下新增 `classifier_category`',
+      url: 'https://github.com/anthropics/claude-code/blob/03b5892ee77de289bcd5dfa39f541525ade74aff/CHANGELOG.md',
+    },
+    'claude-v21302-release': {
+      label: 'Claude Code v2.1.302 Release（2026-10-16T20:53:06Z 发布）',
+      url: 'https://github.com/anthropics/claude-code/releases/tag/v2.1.302',
     },
     'claude-cli-reference': {
       label: 'Claude Code CLI reference（`--autocompact` 与 `--agents`）',
@@ -679,6 +708,16 @@ window.matrixData = {
       label: 'Codex --approve-for-me commit',
       url: 'https://github.com/openai/codex/commit/b7a61066081644e0d8b2c0b4dbfd7408ac1514df',
     },
+    'codex-guardian-circuit-breaker': {
+      label:
+        'Codex `circuit_breaker.rs`（rust-v0.163.0 标签指向的提交 `83086188ae0614bd882818ff1aa23f3194962012`，2026-10-15T18:57:08Z 打标签）：五个常量为 `MAX_CONSECUTIVE_GUARDIAN_DENIALS_PER_TURN = 3`、`MAX_RECENT_AUTO_REVIEW_DENIALS_PER_TURN = 10`、`AUTO_REVIEW_DENIAL_WINDOW_SIZE = 50`，以及 Cyber 变体的 `MAX_CONSECUTIVE_CYBER_GUARDIAN_DENIALS_PER_TURN = 1` 与 `MAX_RECENT_CYBER_AUTO_REVIEW_DENIALS_PER_TURN = 1`',
+      url: 'https://github.com/openai/codex/blob/83086188ae0614bd882818ff1aa23f3194962012/codex-rs/ext/guardian-reviewer/src/circuit_breaker.rs',
+    },
+    'codex-guardian-review-model': {
+      label:
+        'Codex `model.rs`（rust-v0.163.0，提交 `83086188ae0614bd882818ff1aa23f3194962012`）：`select_review_model` 先取 `parent_model.auto_review_model_override`、缺省用 `default_review_model_id`，该 id 不在模型目录里时回退父会话模型，并在受支持时把推理强度压到 `Low`；文件头注释逐字为 “Selects the synchronous review model from the parent\'s metadata and provider catalog.”',
+      url: 'https://github.com/openai/codex/blob/83086188ae0614bd882818ff1aa23f3194962012/codex-rs/ext/guardian-reviewer/src/model.rs',
+    },
     'codex-hooks-mcp-tool': {
       label: 'Codex hooks MCP tool handler commit',
       url: 'https://github.com/openai/codex/commit/85fc4def358b7df21883e72ae8dda43a0f572f32',
@@ -1028,6 +1067,21 @@ window.matrixData = {
     'qwen-settings': {
       label: 'Qwen Code Settings',
       url: 'https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/configuration/settings.md',
+    },
+    'qwen-auto-mode': {
+      label:
+        'Qwen Code Auto Mode（v0.25.2，提交 `8a415cb628db88844e0196bdfdcce83b4f88d812`，16,043 字节）：分类器用配置的 fast model、未配置则用主会话模型，Stage 1 只输出 `{ shouldBlock }` 约 300 毫秒、Stage 2 只在 Stage 1 判阻断时运行且可降级为放行，`permissions.autoMode` 的 `hints.allow`/`hints.softDeny`/`hints.hardDeny`（`hints.deny` 向后兼容按 `softDeny` 处理）、`environment`、`classifyAllShell`、`mcp.forwardArguments` 六个键与 200 字符/50 条/20 条上限，连续 3 次阻断或连续 2 次不可用后回退人工审批，进入 Auto 时临时摘掉过宽 allow 规则且不改 `settings.json`，明确写 “Not offline-capable.”',
+      url: 'https://github.com/QwenLM/qwen-code/blob/8a415cb628db88844e0196bdfdcce83b4f88d812/docs/users/features/auto-mode.md',
+    },
+    'qwen-denial-tracking': {
+      label:
+        'Qwen Code `denialTracking.ts`（v0.25.2，提交 `8a415cb628db88844e0196bdfdcce83b4f88d812`）：`AUTO_MODE_DENIAL_LIMITS` 为 `maxConsecutiveBlock: 3`、`maxConsecutiveUnavailable: 2`、`maxTotalDenials: 20`，`shouldFallback` 的 reason 优先级为 `total_denial` → `consecutive_block` → `consecutive_unavailable` → `classifier_blocked_retry`，回退只降级当次调用而会话仍留在 AUTO，切换 ApprovalMode 重置全部计数器',
+      url: 'https://github.com/QwenLM/qwen-code/blob/8a415cb628db88844e0196bdfdcce83b4f88d812/packages/core/src/permissions/denialTracking.ts',
+    },
+    'qwen-escalation-commit': {
+      label:
+        'Qwen Code 提交 `a238b91e7c6fc2b0e36e23436b0e4ced5296617b`（PR #13636，2026-10-10，随 v0.25.2 发布）：破坏性命令的确定性阻断并入同一计数器，升级标记为 `requiresHumanDecision` 因而 Hook 的 allow 不能豁免，非交互 STREAM_JSON 会话改为直接拒绝',
+      url: 'https://github.com/QwenLM/qwen-code/commit/a238b91e7c6fc2b0e36e23436b0e4ced5296617b',
     },
     'qwen-headless': {
       label: 'Qwen Code Headless Mode',
@@ -2407,6 +2461,11 @@ window.matrixData = {
       label: 'Qoder CLI Release Notes（跨会话消息、`/loop`、`/crontab`、任务预算、Hook 失败、`/hooks` GA 与插件市场条目的版本时间线）',
       url: 'https://docs.qoder.com/release-notes/qoder-cli',
     },
+    'qoder-release-notes-auto-mode': {
+      label:
+        'Qoder CLI Release Notes（审批自动审查相关条目：1.1.62 于 2026-09-23 “Improved the two-phase review flow of Auto permission mode to speed up reviews”、1.1.63 于 2026-09-24 “Approval requests in Auto permission mode now follow the BYOK model”、1.1.56 于 2026-09-18 “Improved Auto mode: when the auto-approval component is temporarily unavailable, it now falls back to user confirmation and shows the reason”；1.1.64 至最新 1.1.72（2026-10-15）没有任何 auto 模式、审批、分类器或权限条目）',
+      url: 'https://docs.qoder.com/release-notes/qoder-cli',
+    },
     'qoder-tools-delegate': {
       label: 'Qoder CLI Tools（Delegate and Automate 分组的 Scheduled work 行；未列出 `SendMessage`/`ListAgents`）',
       url: 'https://docs.qoder.com/cli/tools',
@@ -3250,7 +3309,7 @@ window.matrixData = {
       category: 'security',
       capability: '审批自动审查',
       description: '需审批的操作由产品内置的分类器或审查代理自动裁决，而不是等待用户确认。',
-      values: { claude: '`auto` 权限模式 · classifier 审查', codex: '`approvals_reviewer = "auto_review"` · `--approve-for-me`', qwen: 'Auto 审批模式 · LLM 分类器', kimi: '无同类机制；`/auto` 为全部审批自动放行', qoder: '`auto` 权限模式 · AI 分类器' },
+      values: { claude: '`auto` 权限模式 · classifier 审查 · `CLAUDE_CODE_AUTO_MODE_MODEL` 指定客户端分类器模型', codex: '`approvals_reviewer = "auto_review"` · `--approve-for-me`', qwen: 'Auto 审批模式 · LLM 分类器', kimi: '无同类机制；`/auto` 为全部审批自动放行', qoder: '`auto` 权限模式 · AI 分类器' },
     },
     {
       id: 'security-bypass',
