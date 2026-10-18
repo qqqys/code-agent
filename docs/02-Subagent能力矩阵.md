@@ -24,10 +24,11 @@
 | 初始上下文 | 父任务传入的任务描述；可预载 Skills；Fork 继承完整对话与提示词缓存（v2.1.232 起交互会话默认开启） | 父任务与委派描述 | 命名 Agent 使用任务提示；Fork 可继承全部或最近若干轮 | 只接收任务提示；实验开关开启后 `fork` 参数可以调用方对话快照启动（v2 引擎，合入 main 尚未发布） | 任务提示，可配置 `initialPrompt` |
 | Fork 会话 | `/fork` 创建独立后台会话 | `/fork` 创建会话副本 | Fork Agent 继承父上下文 | `/fork` 创建副本；fork 后停留原会话 | 未确认 Slash Fork |
 | 结果回传 | 返回父会话 | 返回主线程汇总 | 命名 Agent 返回；Fork 不自动回传给父模型 | 返回父会话 | 返回父会话 |
-| 后台运行 | 支持；Fork 模式开启时 Fork 与命名 Subagent 统一后台（v2.1.232 起交互会话默认开启） | 支持并发线程 | 命名 Agent 默认后台；可设前台 | 支持后台 | `background` 可配置 |
-| 前台运行 | 支持；`CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` 强制前台 | 支持 | `run_in_background: false` | 支持 | `background: false` |
+| 后台运行 | 默认后台；Fork 模式开启时 Fork 与命名 Subagent 一律后台、Claude 不能请求前台（交互会话 v2.1.232 起，`claude -p`、Agent SDK、桌面端与 VS Code v2.1.302 起） | 官方不区分前后台；并行派生后等全部结果再合并回复 | 顶层命名 Agent 默认后台、经完成通知回传 | `Agent` 的 `run_in_background` 默认 `false`；设 `true` 后立即返回任务 ID、完成时以合成 User 消息回到 main agent | `background` 决定默认后台，需先启用后台 Subagent 会话 |
+| 前台运行 | Fork 模式关闭时由 Claude 按需选择；`CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` 与 Agent Team 队友派生一律前台 | 官方不区分前后台 | `run_in_background: false` 改为 inline；外部执行器与调用方自有 `working_dir` 固定前台 | 默认即前台，父 Agent 等待 subagent 完成再继续 | 官方只记录 `background` 为 Boolean、没有给出默认值；启用后台会话的开关未确认 |
 | 恢复 Agent | 支持恢复 | `/agent` 检查和切换线程 | 任务列表与 UI 状态；Fork 独立 | Agent 实例可恢复 | 支持任务与 Agent 管理 |
-| 并行执行 | 支持 | `max_concurrent_threads_per_session` | 支持多个命名 Agent | 支持；另有 `/swarm` | 支持 |
+| 并行执行 | 支持；单会话默认 20 个并发上限，`CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS` 可改、ultracode 会话豁免 | `max_concurrent_threads_per_session`（官方未公布默认值） | 支持多个命名 Agent；官方文档没有并发 Subagent 上限 | 支持；`AgentSwarm` 至多 128 个 subagent 并等全部完成 | 支持；`QODER_CLI_MAX_CONCURRENT_SUBAGENTS`（CLI 1.1.31 起，未公布默认值） |
+| 查看与停止 | `/tasks`；`Ctrl+B` 把运行中任务转后台 | CLI `/subagents` 切换线程；网页侧栏 **Subagents** 只读 Active/Done；IDE background-agent 面板可停止 | `/tasks`；`list_agents` 与 `send_message` | `/tasks`（别名 `/task`）；`Ctrl+B` 转后台（0.19.0 起）；模型侧 `TaskList`/`TaskOutput`/`TaskStop`/`WaitFor` | `/tasks` 查看状态与结果或在运行中停止 |
 
 ## 模型、工具与扩展
 
@@ -43,7 +44,7 @@
 | Agent 持久记忆 | `memory` | 主产品 Memories；Agent 独立记忆字段未确认 | 未确认独立字段 | 未确认独立字段 | `memory` |
 | 最大轮数 | `maxTurns` | 未确认独立字段 | `maxTurns` | Agent 定义无独立字段 | `maxTurns` |
 | 超时 | 未确认独立字段 | 未确认独立字段 | 未确认独立字段 | `[subagent] timeout_ms`（默认 2 h）；AgentSwarm 自 0.39.0 起用相互独立的 `[swarm] timeout_ms`（默认同为 2 h） | `timeoutMins` |
-| 全局并发与嵌套 | 并发 20 · 会话 200 · 嵌套 3 层 | `max_concurrent_threads_per_session` | 未确认独立全局并发字段 | 未确认独立全局并发字段 | 未确认独立全局并发字段 |
+| 全局并发与嵌套 | 并发 20 · 会话 200 · 嵌套 3 层 | `max_concurrent_threads_per_session`（旧别名 `max_threads`） | 官方文档没有并发 Subagent 上限；完成通知队列上限 20 条 | `[background] max_running_tasks` 与 `KIMI_CODE_BACKGROUND_MAX_RUNNING_TASKS`（不设即无上限）· `KIMI_CODE_AGENT_SWARM_MAX_CONCURRENCY` 限 swarm ramp 并发 | `QODER_CLI_MAX_CONCURRENT_SUBAGENTS`（CLI 1.1.31 起，默认值未公布） |
 
 ## 权限、嵌套与工作区
 
@@ -68,11 +69,15 @@
 - [Claude Code v2.1.292 更新日志（Agent 工具 `effort` 参数）](https://github.com/anthropics/claude-code/blob/fbe20e00e285/CHANGELOG.md)
 - [Claude Code Workflows（workflow agent 的模型解析）](https://code.claude.com/docs/en/workflows)
 - [Claude Code v2.1.296 更新日志（`CLAUDE_CODE_WORKFLOW_SUBAGENT_MODEL`）](https://github.com/anthropics/claude-code/blob/2301018b1f61073c501a8e7a4813ef48c239163b/CHANGELOG.md)
+- [Claude Code Subagents 的 “Run subagents in foreground or background” 与并发上限段](https://code.claude.com/docs/en/sub-agents#run-subagents-in-foreground-or-background)
+- [Claude Code v2.1.302 更新日志（Fork 在 `claude -p`、Agent SDK、桌面端与 VS Code 默认开启，桌面端与 VS Code 一律后台）](https://github.com/anthropics/claude-code/blob/c017428c8c27e604840435048d5bce6a9a22c040/CHANGELOG.md)
 - [Codex Subagents](https://learn.chatgpt.com/docs/agent-configuration/subagents)
 - [Codex configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference)
 - [Codex Subagent activity 记录解析后模型与推理强度的提交](https://github.com/openai/codex/commit/b0a6b8d86f455d3db9dd869fc1178a5fbd865e7f)
 - [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/412eae24b48ff16f54166c2b17eb4d4a9cdcdd1e/docs/users/features/sub-agents.md)
 - [Qwen Code v0.25.1-preview.2 Subagents 的 Model Selection 小节](https://github.com/QwenLM/qwen-code/blob/d381509d32e62a992a344de33207d54f436bcefc/docs/users/features/sub-agents.md)
+- [Qwen Code Subagents 文档（main 分支 `97925919acb9`，后台默认值、外部执行器前台、调用方自有 `working_dir` 与通知队列上限）](https://github.com/QwenLM/qwen-code/blob/97925919acb92b089d817991bfefe4545601c8f6/docs/users/features/sub-agents.md)
+- [Qwen Code Subagents 文档在 stable 标签 v0.25.2 下的同一文件（证明上述后台行为已发布）](https://github.com/QwenLM/qwen-code/blob/8a415cb628db88844e0196bdfdcce83b4f88d812/docs/users/features/sub-agents.md)
 - [Qwen Code Worktree](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/worktree.md)
 - [Kimi Code Agents](https://github.com/MoonshotAI/kimi-code/blob/c9f01f07388abc2cdca40c9c5267f58c65086710/docs/zh/customization/agents.md)
 - [Kimi Code subagent and secondary model configuration](https://github.com/MoonshotAI/kimi-code/blob/c9f01f07388abc2cdca40c9c5267f58c65086710/docs/zh/configuration/config-files.md)
@@ -89,4 +94,15 @@
 - [Kimi Code 0.36.0 发布说明](https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%400.36.0)
 - [Kimi Code coder profile Agent tool removal commit](https://github.com/MoonshotAI/kimi-code/commit/101c4d199746bf2ed4f26375b65a6fcb6cba2a60)
 - [Kimi Code 0.35.0 release notes](https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%400.35.0)
+- [Kimi Code 工具文档（main 分支 `4a82a07f08d0`，`Agent` 的 `run_in_background` 默认 false、`AgentSwarm` 128 个上限与 ramp 并发、`TaskList`/`TaskOutput`/`TaskStop`/`WaitFor`）](https://github.com/MoonshotAI/kimi-code/blob/4a82a07f08d0b135c4349c20aae53a2d51e5c3fa/docs/zh/reference/tools.md)
+- [Kimi Code 工具文档在 Release 2.2.0 下的同一文件（证明上述后台与并发行为已发布）](https://github.com/MoonshotAI/kimi-code/blob/472192c34c1efad89a369870eff0da0b708ce9bb/docs/zh/reference/tools.md)
+- [Kimi Code 配置文档（main 分支 `4a82a07f08d0`，`[background]`、`[subagent]` 与 `[swarm]` 三节）](https://github.com/MoonshotAI/kimi-code/blob/4a82a07f08d0b135c4349c20aae53a2d51e5c3fa/docs/zh/configuration/config-files.md)
+- [Kimi Code 环境变量文档（main 分支 `4a82a07f08d0`，后台与 subagent 相关变量）](https://github.com/MoonshotAI/kimi-code/blob/4a82a07f08d0b135c4349c20aae53a2d51e5c3fa/docs/zh/configuration/env-vars.md)
+- [Kimi Code Agents 文档（main 分支 `4a82a07f08d0`，后台运行、并行与状态存储）](https://github.com/MoonshotAI/kimi-code/blob/4a82a07f08d0b135c4349c20aae53a2d51e5c3fa/docs/zh/customization/agents.md)
+- [Kimi Code 官方变更记录（main 分支 `4a82a07f08d0`，后台与并行时间线 0.14.1–0.43.0）](https://github.com/MoonshotAI/kimi-code/blob/4a82a07f08d0b135c4349c20aae53a2d51e5c3fa/docs/zh/release-notes/changelog.md)
+- [Kimi Code Slash 命令表（main 分支 `4a82a07f08d0`，`/tasks` 别名 `/task`）](https://github.com/MoonshotAI/kimi-code/blob/4a82a07f08d0b135c4349c20aae53a2d51e5c3fa/docs/zh/reference/slash-commands.md)
+- [Kimi Code 交互指南（main 分支 `4a82a07f08d0`，`Ctrl+B` 只覆盖命令）](https://github.com/MoonshotAI/kimi-code/blob/4a82a07f08d0b135c4349c20aae53a2d51e5c3fa/docs/zh/guides/interaction.md)
 - [Qoder CLI Subagent](https://docs.qoder.com/en/cli/subagent)
+- [Qoder CLI Parallel Tasks（Background Agents / Tasks 与 `/tasks`）](https://docs.qoder.com/cli/parallel-tasks)
+- [Qoder CLI 设置参考（没有任何含 background 的设置键，`agents` 组只有 `agents.overrides`）](https://docs.qoder.com/cli/settings-reference)
+- [Qoder CLI Release Notes（1.1.31 的 `QODER_CLI_MAX_CONCURRENT_SUBAGENTS` 与 0.1.43 的并发审批排队）](https://docs.qoder.com/release-notes/qoder-cli)
