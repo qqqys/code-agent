@@ -409,33 +409,110 @@
     'agent-background': createDetail({
       id: 'agent-background',
       definition:
-        'Subagent 是否能与主会话并发执行，以及前台等待和后台通知的控制方式。',
-      includes: ['前台等待', '后台运行', '并行派发'],
-      excludes: ['普通 Shell 后台进程', '多会话云任务', 'Swarm 的内部算法'],
+        'Subagent 是否能与主会话并发执行、默认落在前台还是后台，以及并发上限、查看与停止入口。',
+      includes: [
+        '前台等待与后台运行',
+        '默认前后台策略与覆盖开关',
+        '并行派发与并发上限',
+        '运行中 Subagent 的查看与停止入口',
+        '后台结果的回报方式',
+        '各 Surface 的差异',
+      ],
+      excludes: [
+        '普通 Shell 后台进程',
+        '多会话云任务',
+        'Swarm 的内部算法',
+        '结果内容与摘要格式',
+        '每 Agent Worktree 隔离',
+      ],
       facts: [
-        '五家都能并行处理独立子任务，但默认前后台策略和显式开关不同。',
-        'Claude Code 自 v2.1.232 起在交互会话默认开启 Fork 模式：Fork 与命名 Subagent 一律后台运行，Claude 不能请求前台。',
-        '后台 Agent 的审批、完成通知和恢复能力必须分别核对，不能只按“支持后台”推断。',
+        '五家都能让 Subagent 与主会话并发，但默认落点不同：Claude Code 在 Fork 模式开启时把 Fork 与命名 Subagent 一律放到后台，Qwen Code 的顶层命名 Agent 默认后台，Kimi Code 的 `Agent` 工具 `run_in_background` 默认 `false` 因而默认前台，Codex 官方只写并行派生后统一收集结果、不区分前台与后台，Qoder CLI 由 `background` 字段决定而官方没有给出该字段的默认值。',
+        '只有 Claude Code 与 Kimi Code 公布了并发上限的具体数值或形状：Claude Code 默认单会话 20 个、`CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS` 可改为任意正整数且 ultracode 会话豁免；Kimi Code 的 `AgentSwarm` 至多 128 个 subagent、ramp 阶段先起 5 个再每 700 毫秒起 1 个，`[background] max_running_tasks` 与 `KIMI_CODE_AGENT_SWARM_MAX_CONCURRENCY` 不设即无上限。Codex 的 `agents.max_concurrent_threads_per_session` 与 Qoder CLI 的 `QODER_CLI_MAX_CONCURRENT_SUBAGENTS` 都没有公布默认数值，Qwen Code 官方文档没有并发 Subagent 上限。',
+        '把运行中的前台工作转到后台的快捷键只有两家记录，且覆盖范围不同：Claude Code 官方 Subagents 页写 “Press **Ctrl+B** to background a running task”，Kimi Code 官方变更记录 0.19.0（2026-06-22）逐字为 “允许使用 `Ctrl+B` 将长时间运行的前台命令和子 Agent 移动到后台任务，并通过 `/tasks` 面板查看它们。”，但现行交互指南只写 “后台运行：命令执行期间按 `Ctrl+B` 可将其转为后台任务。”、没有提子 Agent；Qwen Code 的 Subagent 文档全篇没有 `Ctrl+B`。',
+        '后台结果的回报方式五种各不相同：Claude Code 把权限提示送到主会话并点名请求方，Qwen Code 用完成通知且在 TUI 与 ACP 共享一条上限 20 条的队列，Kimi Code 以合成 User 消息回到 main agent，Qoder CLI 在主会话无其他工作时先显示等待态再自动回传结果，Codex 由主线程收齐全部结果后合并成一条回复。',
+        '只有 Claude Code 按前后台区分工具集，官方逐字为 “Background subagents run with a smaller built-in tool set than foreground subagents, except for conversation forks and resumed foreground subagents.”；其余四家的官方页面没有按前台或后台给出不同的工具边界。',
+        '默认值随 Surface 变化，不能只按 CLI 推断：Claude Code v2.1.302 把 Fork 默认开启扩到 `claude -p`、Agent SDK、桌面端与 VS Code，同版让桌面端与 VS Code 一律后台运行主会话的 Subagent、并让这四个 Surface 里 Subagent 自己派生的 Agent 默认前台，而官方 Subagents 页在核对日期仍写 “Fork mode is off in non-interactive mode with `-p` and in the Agent SDK unless you turn it on.”；Qwen Code 的内置 `claude-code` 与 `codex` 外部执行器默认前台、headless Fork 只走后台；Kimi Code 的 print 模式默认 `print_background_mode = "steer"` 且后台 Bash 与 subagent 都不设墙钟超时。',
       ],
       notes: {
         claude: {
           behavior:
-            '前台会阻塞主会话；后台与主会话并发。Fork 模式开启时（交互会话自 v2.1.232 起默认开启），Fork 与命名 Subagent 一律后台运行，Claude 不能请求前台；Fork 模式关闭时默认后台，Claude 在需要先拿到结果时改用前台，frontmatter `background: true` 可把指定 Subagent 固定在后台。',
+            '官方定义为 “**Foreground subagents** block the main conversation until complete. Permission prompts are passed through to you as they come up.” 与 “**Background subagents** run concurrently while you continue working. When a background subagent reaches a tool call that needs permission, Claude Code surfaces the prompt in your main session and names the subagent that is asking.”。前后台的判定顺序为：进程内 Agent Team 队友派生的 Subagent 一律前台（定义里写 `background: true` 时 “Claude Code refuses with an error to spawn a teammate\'s subagent whose definition sets `background: true`.”）→ `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` 时一律前台 → Fork 模式开启时 “Claude Code runs the subagent in the background, forks and non-fork subagents alike, and Claude can\'t ask for the foreground.” → Fork 模式关闭时 “Claude runs the subagent in the background by default and in the foreground when it needs the result before continuing.”，此时 frontmatter `background: true` 把指定 Subagent 固定在后台。Fork 模式在交互会话默认开启（v2.1.232 起），v2.1.302 更新日志逐字为 “Changed fork subagents (`subagent_type: "fork"`) to be on by default in `claude -p`, the Agent SDK, the desktop app and VS Code, as they already are in the terminal; `CLAUDE_CODE_FORK_SUBAGENT=0` turns them off, and `claude mcp serve` never offers them”，同版另一条逐字为 “Changed the desktop app and VS Code to always run the main conversation\'s subagents in the background, as the terminal does, rather than let Claude choose; a subagent\'s own Agent calls in `claude -p`, the Agent SDK, the desktop app and VS Code now run in the foreground by default”。运行中的任务可按 `Ctrl+B` 转后台（“Press **Ctrl+B** to background a running task”），Fork 模式关闭时也可以直接要求 Claude 把任务放后台或前台。工具边界为 “Background subagents run with a smaller built-in tool set than foreground subagents, except for conversation forks and resumed foreground subagents.”。面板行为为 Subagent 成功结束时立即移除其行、除读屏模式外在页脚显示 `/tasks to see subagents` 30 秒，完成的后台 Subagent 在 `/tasks` 里标记 done 并排在运行中任务下方、同样保留 30 秒。',
+          limits:
+            '并发上限默认 20：“By default, when 20 subagents are running in a session, spawning another with the Agent tool fails with `Concurrent subagent limit reached`, and the error tells Claude not to retry. Spawning succeeds again when the running count drops below the limit.”；`CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS` 可设为任意正整数（需 v2.1.217 及以上），开启 ultracode 的会话豁免该上限。`maxTurns` 限制单个 Subagent 的 agentic 轮数，达到上限时输出被标记为 partial 并可恢复继续（partial 标记需 v2.1.246 及以上）；官方字段表没有单 Agent 超时字段。会话内可派生的 Subagent 总数没有上限。',
           conditions:
-            '`CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` 在所有会话类型与 Fork 模式状态下强制前台；进程内 Agent Team 队友派生的 Subagent 固定前台运行。后台命名 Subagent 的权限提示出现在主会话，Fork 的权限提示出现在终端。插件分发的 Agent 会忽略 `hooks`、`mcpServers`、`permissionMode`。',
+            '并发上限只拦 Claude 用 Agent 工具派生的 Subagent，但其他运行占用同样的槽位：用 `/subtask` 启动的会话内 Fork “takes a slot while it runs and is never blocked by the limit”，恢复一个已结束的 Subagent “takes a fresh slot without checking the limit, so resumes can push the running count past it”，workflow agent 与 Agent Team 队友 “follow their own limits instead”。`CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` 在所有会话类型与 Fork 模式状态下强制前台。官方 Subagents 页的前后台一节没有出现桌面端、VS Code、`claude -p` 或 Agent SDK，四个 Surface 的默认值只见于 v2.1.302 更新日志；同页在核对日期仍逐字写 “Fork mode is off in non-interactive mode with `-p` and in the Agent SDK unless you turn it on.”，与该条更新日志冲突，以更新日志为准并保留这处文档缺口。插件分发的 Agent 会忽略 `hooks`、`mcpServers`、`permissionMode`。',
         },
-        codex:
-          '支持多个并发 Agent 线程；父线程可等待全部结果，也可在 CLI 中切换查看。',
-        qwen:
-          '顶层命名 Agent 默认后台；`run_in_background: false` 改为前台。Fork 始终 detached。',
-        kimi:
-          '主 Agent 可并行派发子 Agent；coder 会等待自己启动的后台任务都结束后才报告完成。',
-        qoder:
-          '`background` 控制默认后台行为，但需要启用后台 Subagent 会话；独立任务可并行派发。',
+        codex: {
+          behavior:
+            '官方描述为并行派生后统一收集：“ChatGPT Work and Codex can run subagent workflows by spawning specialized agents in parallel and then collecting their results in one response.”，且 “When many agents are running, Codex waits until all requested results are available, then returns a consolidated response.”。官方没有把 Subagent 分成前台与后台两种模式，也没有给出把某个 Subagent 强制放到前台或后台的开关；Subagents 页只提到 IDE 扩展里有一个 background-agent 面板。官方建议提示词写清 “how to divide the work, whether Codex should wait for all agents before continuing, and what summary or output to return.”。',
+          limits:
+            '`agents.enabled`（boolean，默认 `true`）开关多代理工具；`agents.max_concurrent_threads_per_session`（number）逐字为 “Maximum number of spawned-agent threads that can be open concurrently, excluding the primary thread. When unset, Codex chooses the default.”，默认值栏为空、全页没有公布数值，旧配置可继续用 `agents.max_threads` 作为 legacy 别名，Subagents 页的示例给出 `max_concurrent_threads_per_session = 8` 与 `= 6`；`agents.interrupt_message`（boolean，默认 `true`）在 Agent 回合被打断时记录一条模型可见消息。Agent 文件本身没有轮数或超时字段。',
+          conditions:
+            '查看与停止入口按 Surface 不同：CLI 用 `/subagents` 在活跃 Agent 线程之间切换查看（“Use `/subagents` in the CLI to switch between active agent threads and inspect the ongoing thread.”），并可直接要求 Codex “steer a running subagent, stop it, or close completed agent threads”；交互会话里 “approval requests can surface from inactive agent threads even while you are looking at the main thread”，审批时可按 `o` 先打开那个线程再批准、拒绝或回答。IDE 扩展的 background-agent 面板可展开查看状态、停止活跃 Subagent 或打开某个 Subagent 线程。桌面 App 显示 Subagent 活动并可从主线程的活动里打开某个 Subagent 线程。ChatGPT Work 网页侧栏 **Subagents** 提供只读的 **Active** 与 **Done** 两个列表、可选中已完成的 Subagent 查看详情与结果，但 “it doesn\'t provide controls to stop or steer an individual subagent.”。非交互流程里需要新审批的动作会失败。',
+        },
+        qwen: {
+          behavior:
+            '官方逐字为 “Top-level named subagents run in the background by default and deliver their results through completion notifications.”，需要当前回合 inline 拿到结果时 “Set `run_in_background: false` when the current turn must wait for a regular subagent\'s result inline.”；对照表 Execution 行把普通 Subagent 写成 “Background by default; supports an explicit foreground opt-out”、Fork 写成 “Always detached; parent continues immediately”，并另记 “A fork inherits the parent\'s full conversation context and normally runs detached in the background.” 与 “Forks work in both interactive and headless sessions; headless forks always use the background path.”。结果回报为 “Background runs send a completion notification containing the result to the main conversation; foreground regular subagents return results inline”；后台 Agent 结束后 Qwen Code 保留足够状态以便继续相关工作而不再启动重复 Agent，被继续的 Agent 通过另一条完成通知报告下一次结果，主模型可用 `list_agents` 找到后台 Agent、用 `send_message` 继续一个运行中、已暂停或已完成的 Agent。',
+          limits:
+            'frontmatter `maxTurns` 为 positive integer，官方说明为 “Caps the agent\'s turn budget. Wired into `runConfig.max_turns` at runtime; when both are set, the top-level field wins.”；委派外部 Codex 执行器时可用 `runConfig.max_time_minutes` 限制执行时长。官方 Subagent 文档没有并发 Subagent 数量上限，只有通知队列上限 20 条、description 1,000 字符与系统提示词 10,000 字符的软警告。',
+          conditions:
+            '委派给外部执行器的内置 `claude-code` 与 `codex` Agent 默认前台：“Both agents default to foreground execution; set `run_in_background: true` to receive a background completion notification.”。调用方自有 worktree 的匿名派生固定前台：“An unnamed caller-owned `working_dir` launch runs in the foreground because Qwen Code does not own that worktree\'s lifecycle: an explicit `run_in_background: true` request is rejected, while a configured background default (`background: true` in a subagent definition) is rejected at the top level and downgraded to the foreground when nested.”；`working_dir` 与 `isolation: "worktree"` 同时给出时复用调用方自有的 worktree 而不再新建，`working_dir` 不能与 `subagent_type: "fork"` 同用。`background` 不在 frontmatter 字段表里，只出现在 YAML 示例与上述散文中。通知队列按 Surface 不同：交互 TUI 与 ACP 会话里后台 Agent、shell、monitor 与 workflow 的完成通知共享一条队列、在会话空闲时排入一个模型回合，队列至多 20 条，第 21 条到达时先驱逐中间态 monitor pulse 否则驱逐最旧的一条，交互 TUI 里 Agent 结果、workflow 结果与定时提示词永不被驱逐、会顶掉它们的通知改为被丢弃，headless CLI 的本地队列不受该上限约束；被丢弃的通知会被报告而不是静默丢掉，丢弃一条通知从不停止或删除其任务、已完成的任务保留结果，摘要在有任务可查时指向 `/tasks` 与任务输出文件；ACP 在会话被清空或切换、客户端取消或抢占通知回合时可能丢弃待处理摘要。上述内容在 stable 标签 v0.25.2 与 main HEAD 下字节数相同（均为 41,363 字节），即已随 v0.25.2 发布。',
+        },
+        kimi: {
+          behavior:
+            '`Agent` 工具的可选参数含 `run_in_background`（默认 false），官方逐字为 “前台模式下父 Agent 等待 subagent 完成再继续；后台模式立即返回任务 ID，完成时通过合成 User 消息自动回到 main agent。多个前台 `Agent` 调用在同一步运行时，TUI 会合并展示，并为每个 subagent 显示运行、等待、完成或失败状态以及已耗时长。”；`Agent` 自动放行而 `AgentSwarm` 为 “swarm mode 中自动放行，否则需审批”。Agents 文档另写 “subagent 支持在后台运行：完成后结果自动回到 main agent，无需手动轮询。也可以唤回已有的 subagent 实例继续推进同一任务。”、“多个 subagent 可以并行运行，互不干扰。” 与 “如果 subagent 结束自己的轮次时仍有后台任务在运行，这次运行会等这些后台任务全部落定后才回报完成。”。`AgentSwarm` 从共享 `prompt_template` 与 `items` 批量派生，“本工具最多支持 128 个 subagent，会等待全部 subagent 完成，并返回聚合报告。”，“在 TUI 中，前台 swarm 会在输入框上方显示实时 `Agent swarm` 进度面板。”，且一次模型响应里调用 `AgentSwarm` 时该调用必须是唯一工具调用。查看与停止：`/tasks`（别名 `/task`，说明为“浏览后台任务列表”、「随时可用」为「是」），模型侧 `TaskList`（自动放行，`active_only` 默认 true、`limit` 默认 20、取值 1–100）、`TaskOutput`（自动放行、始终非阻塞、内联预览最近 32 KB 并返回落盘 `output_path`）、`TaskStop`（需审批，接受 `task_id` 与可选 `reason`、默认 `Stopped by TaskStop`，对已终止任务也能安全调用）与 `WaitFor`（自动放行，`timeout` 必填、单位秒、上限 90，新消息会提前结束等待）。',
+          limits:
+            '并发上限有两层：`[background] max_running_tasks` 是“同时运行的最大后台任务数”、`KIMI_CODE_BACKGROUND_MAX_RUNNING_TASKS` 覆盖且不设置表示无上限，配置文档逐字写明该节“控制后台任务（通过 `Bash` 工具或 `Agent` 工具的 `run_in_background=true` 参数启动）的并发数”，但默认值栏为 — 、没有公布数值；`KIMI_CODE_AGENT_SWARM_MAX_CONCURRENCY` 只限 `AgentSwarm` 初始 ramp 阶段的同时运行数，“默认情况下，本工具会逐步提升并发且不设上限（立即启动 5 个 subagent，之后每 700 毫秒再启动 1 个）”，设为非正整数时本次调用立即失败。墙钟超时为 `[subagent] timeout_ms`（默认 7200000 ms、`0` 无超时、超时以 `timed_out` 收尾、`KIMI_SUBAGENT_TIMEOUT_MS` 覆盖）与相互独立的 `[swarm] timeout_ms`（默认同为 7200000 ms、超时后中止并在聚合报告标记 `Subagent timed out.`、`KIMI_CODE_SWARM_TIMEOUT_MS` 覆盖），print 模式下两键未显式设置时都按 `0` 处理。Agent 定义 frontmatter 无轮数或超时字段。',
+          conditions:
+            'print 模式（`kimi -p`）另有一整套后台策略：`[background] print_background_mode` 默认 `"steer"`（可选 `"exit"`/`"drain"`），官方逐字为 “只要还有未决的后台任务，Kimi Code 在 main agent 的 turn 结束后不会退出：每个任务完成都会以合成 user 消息回馈给 main agent，steer 出新的 turn……直到某 turn 结束时没有任何未决任务才退出”，并受 `print_wait_ceiling_s`（默认 `2147483`）与 `print_max_turns`（默认 `100000`）约束；`keep_alive_on_exit` 默认 `false`、在 print 模式下只作 `print_background_mode` 的回退（`true` 等价 `drain`），`kill_grace_period_ms` 默认 `5000`。`Ctrl+B` 转后台只见于官方变更记录 0.19.0（“允许使用 `Ctrl+B` 将长时间运行的前台命令和子 Agent 移动到后台任务，并通过 `/tasks` 面板查看它们。”），现行交互指南只写命令执行期间按 `Ctrl+B` 转后台、没有提子 Agent，Slash 命令表也没有任何快捷键；`kimi web` 侧 0.39.0 起运行卡片有“转到后台”按钮可把前台 Bash 或子 Agent 转后台。后台 subagent 的生命周期状态另经会话目录 `tasks/` 子目录暴露，运行状态写在 `agents/` 下的 `wire.jsonl`。环境变量文档把 `bash_task_timeout_s` 与 `print_background_mode` 的所属节写成 `[task]`，而配置文档把它们定义在 `[background]` 下，两份官方文档节名不一致。`Agent` 工具与 `KIMI_CODE_AGENT_SWARM_MAX_CONCURRENCY` 的上述行为在 Release 2.2.0（2026-10-14）的工具文档里已同样存在，即已发布而不是只在 main 分支。',
+        },
+        qoder: {
+          behavior:
+            'frontmatter `background`（Boolean，必填 No）逐字为 “Whether the Subagent should launch in the background by default. Requires background Subagent sessions to be enabled.”，官方没有给出该字段的默认值。后台行为逐字为 “When background Subagent sessions are enabled, independent work can also run in the background and notify the main session later.” 与 “When a Subagent runs in the background, the main session first receives a launch result and can continue work that does not depend on it. If there is no other work, the main conversation shows a waiting state to indicate that the session is still running. When the task finishes, its result automatically returns to the main session for synthesis or follow-up work.”。并行为 “Qoder CLI can dispatch multiple independent Subagents in parallel.”；Parallel Tasks 页把 Background Agents / Tasks 与 Worktree、Subagents 并列为三种隔离方式。查看与停止为 “In TUI, use `/tasks` to view its status and result or to stop it while it is still running.”。',
+          limits:
+            '并发上限由环境变量 `QODER_CLI_MAX_CONCURRENT_SUBAGENTS` 配置，CLI 1.1.31（2026-08-26）逐字为 “Added a concurrency limit for subagents, configurable via the `QODER_CLI_MAX_CONCURRENT_SUBAGENTS` environment variable”，官方没有给出默认并发数；Subagent 页与 Parallel Tasks 页都没有并发上限。`settings.json` 的 `agents.overrides` 可覆盖已发现 Agent 的 “enabled state, model configuration, runtime limits, tool allowlists, and appended MCP servers”，Markdown 定义另有 `maxTurns` 与 `timeoutMins`。',
+          conditions:
+            '启用后台 Subagent 会话的开关未确认：Subagent 页只写 “Requires background Subagent sessions to be enabled.”，设置参考全页没有任何含 background 的设置键（`agents.background`、`backgroundSubagents` 与 `general.background` 都不存在）、也没有 Subagent 并发键或 `QODER_CLI_MAX_CONCURRENT_SUBAGENTS`，Parallel Tasks 页同样没有说明如何启用。`background` 只能写在 Markdown 定义里，`--agents` 的 JSON schema 不支持该字段。Subagent 页只描述 TUI、Headless Mode 与 Non-Interactive 三种 CLI 用法，没有 ACP、SDK 或 Cloud 的前后台差异。并发 Subagent 的审批在 CLI 0.1.43（2026-04-16）起排队并顺序展示。',
+        },
       },
       related: ['agent-result', 'agent-limits', 'agent-context'],
       overrides: {
-        claude: { sources: ['claude-agents', 'claude-subagent-fork-v232'] },
+        claude: {
+          sources: [
+            'claude-subagents-background',
+            'claude-subagent-fork-v232',
+            'claude-v21302-fork-background-changelog',
+          ],
+        },
+        codex: {
+          sources: ['codex-subagents-execution', 'codex-agents-concurrency-keys'],
+        },
+        qwen: {
+          sources: [
+            'qwen-subagents-background-head',
+            'qwen-v0252-subagents-doc',
+          ],
+        },
+        kimi: {
+          sources: [
+            'kimi-tools-head',
+            'kimi-tools-220',
+            'kimi-background-config-head',
+            'kimi-env-vars-head',
+            'kimi-agents-head',
+            'kimi-changelog-background',
+            'kimi-slash-commands-tasks-head',
+            'kimi-interaction-head',
+          ],
+        },
+        qoder: {
+          sources: [
+            'qoder-subagent-background',
+            'qoder-parallel-tasks-background',
+            'qoder-settings-reference-agents',
+            'qoder-release-notes-subagent-concurrency',
+          ],
+        },
       },
     }),
 
