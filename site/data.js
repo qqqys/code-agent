@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-10-18',
+  updatedAt: '2026-10-19',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -271,6 +271,16 @@ window.matrixData = {
     'claude-v21302-release': {
       label: 'Claude Code v2.1.302 Release（2026-10-16T20:53:06Z 发布）',
       url: 'https://github.com/anthropics/claude-code/releases/tag/v2.1.302',
+    },
+    'claude-v21302-hooks-concurrency-changelog': {
+      label:
+        'Claude Code v2.1.302 更新日志（固定到提交 `c017428c8c27e604840435048d5bce6a9a22c040`）：与生命周期 Hooks 相关的一条逐字为 “Changed prompt and agent hooks so that at most 12 of one event run at a time; the rest wait their turn”，该段没有说明 command、http 与 `mcp_tool` 三类 Handler 是否同受这个上限、12 是按事件还是按会话计，也没有说明排队等待的时间是否计入 Hook 自身的 `timeout`',
+      url: 'https://github.com/anthropics/claude-code/blob/c017428c8c27e604840435048d5bce6a9a22c040/CHANGELOG.md',
+    },
+    'claude-v21303-release': {
+      label:
+        'Claude Code v2.1.303 Release（2026-10-18T22:26:54Z 发布，核对日期最新 Release）：main 分支更新日志的 `## 2.1.303` 段只有一条 “Bug fixes and reliability improvements”，没有任何 Hook 事件、Handler 或并发条目',
+      url: 'https://github.com/anthropics/claude-code/releases/tag/v2.1.303',
     },
     'claude-cli-reference': {
       label: 'Claude Code CLI reference（`--autocompact` 与 `--agents`）',
@@ -762,6 +772,56 @@ window.matrixData = {
     'codex-hooks-mcp-route': {
       label: 'Codex hook MCP current-connection routing commit',
       url: 'https://github.com/openai/codex/commit/d35e5495f991508409ff30e38db8dbe49d565570',
+    },
+    'codex-hooks-model-request-commit': {
+      label:
+        'Codex 提交 `70b3bb6d8814ab3f2045238b4ae14c43da99783b`（PR #55144 “Add observation-only model request lifecycle hooks”，2026-10-18T22:36:47Z 合入 main，改动 46 个文件）：提交说明逐字为 “Add `PreModelRequest` and `PostModelRequest` hooks around model request attempts, including retries. Pass model, session, turn, and optional subagent context; report completion, failure, or cancellation with errors and token usage when available.”、“Treat hook output as diagnostic data without allowing it to veto requests or alter model context. Wait for synchronous post-request hooks before dispatching tools, while asynchronous hooks allow streaming tool dispatch to continue.” 与 “Apply memory-consolidation hook filtering and expose the new events through configuration, protocol schemas, generated clients, and the hooks browser.”；测试说明逐字为 “Add integration coverage for failures and retries, ignored control directives, cancellation, synchronous and asynchronous tool ordering, interrupted-turn resume and token accounting, and memory-consolidation filtering. Update hook schema fixtures and hooks browser snapshots.”',
+      url: 'https://github.com/openai/codex/commit/70b3bb6d8814ab3f2045238b4ae14c43da99783b',
+    },
+    'codex-hooks-model-request-source': {
+      label:
+        'Codex `codex-rs/hooks/src/events/model_request.rs`（提交 `70b3bb6d8814`，5,034 字节，本次新增文件）：文件头注释逐字为 “//! Observation-only lifecycle hooks. Output is logged, never interpreted as control flow.”；`ModelRequestHookEvent` 以 `#[serde(tag = "hook_event_name")]` 分 `PreModelRequest` 与带 `status`/`error`/`token_usage` 三字段的 `PostModelRequest`，`ModelRequestStatus` 以 `#[serde(rename_all = "snake_case")]` 取 `Completed`/`Failed`/`Cancelled`；`ModelRequestHookInput` 的字段为 `session_id`、`turn_id`、`cwd`（`AbsolutePathBuf`）、`transcript_path`（`Option`）、`model` 与两个 `#[serde(skip_serializing_if = "Option::is_none")]` 的 `agent_id`/`agent_type`，事件本体 `#[serde(flatten)]`；`run()` 调 `dispatcher::select_handlers(&engine.handlers, request.event.hook_event(), /*matcher_input*/ None)`，命中为空直接返回；`parse_completed` 逐字为 `let status = if result.error.is_none() && result.exit_code == Some(0) { HookRunStatus::Completed } else { HookRunStatus::Failed };`，注释 “// Observer stdout is diagnostic, including any JSON that looks like a control directive.” 之后 stdout 只进 `tracing::debug!(stdout = %result.stdout, "model request hook output")`，stderr 与执行错误各压一条 `HookOutputEntryKind::Error`，返回的 `ParsedHandler` 的 `data` 恒为 `()`',
+      url: 'https://github.com/openai/codex/blob/70b3bb6d8814ab3f2045238b4ae14c43da99783b/codex-rs/hooks/src/events/model_request.rs',
+    },
+    'codex-hooks-model-request-schema': {
+      label:
+        'Codex `codex-rs/hooks/schema/generated/model-request.command.input.schema.json`（提交 `70b3bb6d8814`，3,126 字节，本次新增文件）：`title` 为 `model-request.command.input`，顶层 `required` 为 `cwd`、`model`、`session_id`、`transcript_path`、`turn_id`，另有可选的 `agent_id` 与 `agent_type`；`oneOf` 两支分别是 `hook_event_name` 枚举 `PreModelRequest`（唯一必填项）与 `PostModelRequest`（`required` 为 `error`、`hook_event_name`、`status`、`token_usage`），`ModelRequestStatus` 枚举为 `completed`/`failed`/`cancelled`，`TokenUsage` 的 `required` 为 `cached_input_tokens`、`input_tokens`、`output_tokens`、`reasoning_output_tokens`、`total_tokens` 且 `cache_write_input_tokens` 默认 `0`',
+      url: 'https://github.com/openai/codex/blob/70b3bb6d8814ab3f2045238b4ae14c43da99783b/codex-rs/hooks/schema/generated/model-request.command.input.schema.json',
+    },
+    'codex-hooks-model-request-config': {
+      label:
+        'Codex `codex-rs/config/src/hook_config.rs`（提交 `70b3bb6d8814`，9,032 字节）：`HookEventsToml` 新增 `#[serde(rename = "PreModelRequest", default)] pub pre_model_request: Vec<MatcherGroup>` 与 `#[serde(rename = "PostModelRequest", default)] pub post_model_request: Vec<MatcherGroup>`，`matcher_groups_mut` 的返回类型由 12 项变为 `[(HookEventName, &mut Vec<MatcherGroup>); 14]` 并把这两个事件排在最前；该文件没有任何按事件的默认超时或阻断分类，Handler 侧只有可选的 `timeout_sec: Option<u64>` 与 command 的 `r#async: bool`。对照标签 `rust-v0.164.0-alpha.3` 的同一文件（8,419 字节）：`matcher_groups_mut` 的返回类型是 `[(HookEventName, &mut Vec<MatcherGroup>); 12]`，`HookEventsToml` 的 12 个 serde 名是 `PreToolUse`、`PermissionRequest`、`PostToolUse`、`PreCompact`、`PostCompact`、`SessionStart`、`SessionEnd`、`UserPromptSubmit`、`SubagentStart`、`SubagentStop`、`Stop` 与 `Interrupt`，全文没有 `PreModelRequest` 或 `PostModelRequest`',
+      url: 'https://github.com/openai/codex/blob/70b3bb6d8814ab3f2045238b4ae14c43da99783b/codex-rs/config/src/hook_config.rs',
+    },
+    'codex-hooks-model-request-dispatch': {
+      label:
+        'Codex `codex-rs/hooks/src/engine/dispatcher.rs`（提交 `70b3bb6d8814`，21,824 字节）：`select_handlers_for_matcher_inputs` 的 `matcher` 过滤把 `PreModelRequest`、`PostModelRequest` 与 `UserPromptSubmit`、`Stop`、`Interrupt` 这五个 `HookEventName` 合并进同一个直接返回 `true` 的 match 分支（源码是五个变体的或模式），即这两个事件不评估配置的 `matcher`；同步 Handler 全部放进 `FuturesUnordered` 一起启动、按完成顺序处理，文件内没有条数上限，`HookExecutionMode::Async` 的 Handler 交给 `engine.command_runtime.schedule_async_hook(...)` 后不等待',
+      url: 'https://github.com/openai/codex/blob/70b3bb6d8814ab3f2045238b4ae14c43da99783b/codex-rs/hooks/src/engine/dispatcher.rs',
+    },
+    'codex-hooks-model-request-timeout': {
+      label:
+        'Codex `codex-rs/hooks/src/engine/discovery.rs`（提交 `70b3bb6d8814`，67,601 字节）：`normalize_command_hook` 的文档注释逐字为 “/// Normalizes hook timeouts. SessionEnd and Interrupt default to one second and are capped at three /// seconds; all other hooks keep the standard ten-minute default.”，实现只有 `SessionEnd` 与 `Interrupt` 两个事件组成的一个具名分支（`clamp(1, SESSION_END_MAX_TIMEOUT_SEC)`，超限写 “clamping {} hook timeout to {max_timeout_sec}s in {}” 警告），其余事件走 `_ => timeout_sec.unwrap_or(600).max(1)`，因此 `PreModelRequest` 与 `PostModelRequest` 的默认超时是 600 秒、下限 1 秒；command 与 `mcp_tool` 两类 Handler 都经这个函数归一',
+      url: 'https://github.com/openai/codex/blob/70b3bb6d8814ab3f2045238b4ae14c43da99783b/codex-rs/hooks/src/engine/discovery.rs',
+    },
+    'codex-hooks-model-request-runtime': {
+      label:
+        'Codex `codex-rs/core/src/hook_runtime.rs`（提交 `70b3bb6d8814`，51,970 字节）：`hooks_for_model_request` 在 `step.turn.session_source` 为 `SessionSource::Internal(InternalSessionSource::MemoryConsolidation)` 或 `SessionSource::SubAgent(SubAgentSource::MemoryConsolidation)` 时改用 `hooks.for_memory_consolidation(executor_hook_sources_for_step(step))`，其余情况用会话自己的 Hook 集；`run_model_request_hooks` 用 `thread_spawn_subagent_hook_context` 填 `agent_id`/`agent_type`、`turn_id` 取 `step.turn.sub_id`、`cwd` 取 `tool_hook_cwd(&step.environments, &step.turn)`、`model` 取 `step.settings.model_info.slug`，先 `emit_hook_started_events(... hooks.preview_model_request(&request))` 再 `hooks.run_model_request(request)` 并 `emit_hook_completed_events`；`hook_run_metric_tags` 的事件名映射同步加入 `PreModelRequest` 与 `PostModelRequest`',
+      url: 'https://github.com/openai/codex/blob/70b3bb6d8814ab3f2045238b4ae14c43da99783b/codex-rs/core/src/hook_runtime.rs',
+    },
+    'codex-hooks-model-request-order': {
+      label:
+        'Codex `codex-rs/core/src/stream_events_utils.rs`（提交 `70b3bb6d8814`，20,647 字节）：工具派发处逐字注释为 “// handle_tool_call dispatches immediately, not when its future is polled. // With a synchronous post-model hook, dispatch only when the turn drains tools.”，随后按 `ctx.defer_tool_dispatch` 选择 `tool_future` 的构造方式，即同步的 `PostModelRequest` Hook 会推迟工具派发',
+      url: 'https://github.com/openai/codex/blob/70b3bb6d8814ab3f2045238b4ae14c43da99783b/codex-rs/core/src/stream_events_utils.rs',
+    },
+    'codex-hooks-model-request-browser': {
+      label:
+        'Codex TUI `/hooks` 浏览器快照 `codex_tui__bottom_pane__hooks_browser_view__tests__hooks_browser_model_requests.snap`（提交 `70b3bb6d8814`，1,938 字节，本次新增文件）：Event 表新增两行，`PreModelRequest` 的 Description 逐字为 “Before a model request”，`PostModelRequest` 为 “After a model request, including failures”，表头仍是 “Event / Installed / Active / Description”、页脚仍是 “enter details · esc close”；`codex-rs/hooks/src/engine/mod.rs` 的 `event_name_label` 同时给出 `pre-model-request` 与 `post-model-request` 两个标签',
+      url: 'https://github.com/openai/codex/blob/70b3bb6d8814ab3f2045238b4ae14c43da99783b/codex-rs/tui/src/bottom_pane/snapshots/codex_tui__bottom_pane__hooks_browser_view__tests__hooks_browser_model_requests.snap',
+    },
+    'codex-hooks-events-recheck': {
+      label:
+        'Codex Hooks 文档页（2026-10-19 复核）：事件表仍只列 12 个——“During a turn” 的 `PreToolUse`、`PermissionRequest`、`PostToolUse`、`PreCompact`、`PostCompact`、`UserPromptSubmit`、`SubagentStop`、`Stop`，“When you interrupt an active turn” 的 `Interrupt`（doesn’t run for subagents），“When a session or subagent starts” 的 `SessionStart`、`SubagentStart` 与 “When the main thread ends” 的 `SessionEnd`（doesn’t run for subagents），全页没有 `PreModelRequest` 或 `PostModelRequest`；并发口径逐字为 “Multiple matching command hooks for the same event are launched concurrently, so one hook can’t prevent another matching hook from starting.” 与 “Codex runs up to eight background hooks concurrently per session. Additional hooks wait until a running hook finishes.”；Handler 口径仍是 “`command` and `mcp_tool` handlers are supported. `prompt` and `agent` handlers are parsed but skipped.”',
+      url: 'https://learn.chatgpt.com/docs/hooks',
     },
     'codex-v0149-release': {
       label: 'Codex rust-v0.149.0 release notes (agents dashboard and codex queue)',
@@ -1321,6 +1381,21 @@ window.matrixData = {
       label: 'Qwen Code current Hooks（失败与超时语义复核）',
       url: 'https://github.com/QwenLM/qwen-code/blob/d13ff87407d673c547726b43928dedba0465ffa1/docs/users/features/hooks.md',
     },
+    'qwen-hooks-order': {
+      label:
+        'Qwen Code `docs/users/features/hooks.md`（提交 `52ae53b02a17d6214e9e4f81578f2ba2725539a6`，96,225 字节，2026-10-19 复核执行顺序与并发）：逐字为 “By default, hooks execute in parallel for better performance”、“Use `sequential: true` in hook definition to enforce order-dependent execution”、“Sequential hooks can modify input for subsequent hooks in the chain”、“When hooks run in parallel, they all receive the same input, the last replacement in configuration order wins, and an invalid replacement from any of them stops the call. Hooks that run sequentially each receive the previous replacement as `tool_input`.”、“When several calls from one turn are scheduled together, as in the interactive terminal UI, every call\'s hooks run before any of them runs.”、“A shell command that a hook could still rewrite is not run in parallel with other tool calls.”；`MessageDisplay` 一类中途 Hook 另有 “At most one mid-stream hook execution per message is in flight at a time; while one runs, newer debounced payloads _replace_ the queued one rather than piling up behind it.”；`async: true` 逐字为 “Only `command` type supports asynchronous execution. Setting `"async": true` runs the hook in the background without blocking the main flow.” 与 “Occupies one of 10 concurrent async hook slots until it finishes or reaches its `timeout` (60 seconds by default). While all 10 slots are in use, a new async hook is skipped”；事件表在核对日期列出 22 个事件（`PreToolUse`、`PostToolUse`、`PostToolUseFailure`、`PostToolBatch`、`UserPromptSubmit`、`UserPromptExpansion`、`SessionStart`、`SessionEnd`、`SessionDelete`、`MessageDisplay`、`Stop`、`StopFailure`、`SubagentStart`、`SubagentStop`、`PreCompact`、`PostCompact`、`Notification`、`PermissionRequest`、`PermissionDenied`、`TodoCreated`、`TodoCompleted`、`InstructionsLoaded`）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/52ae53b02a17d6214e9e4f81578f2ba2725539a6/docs/users/features/hooks.md',
+    },
+    'qwen-hooks-headless-gate': {
+      label:
+        'Qwen Code 提交 `52ae53b02a17d6214e9e4f81578f2ba2725539a6`（PR #14356 “fix(hooks): gate headless file and skill prompts before expansion”，2026-10-16 合入 main）在 `docs/users/features/hooks.md` 新增的段落逐字为 “In headless runs, an input that invokes a custom command or skill, including several stacked skills, is checked before the command expands. The hook runs once for that input, with `prompt` and `submitted_prompt` both set to the raw input, such as `/deploy staging`. A block stops the command before it runs: its `!{...}` shell commands do not run, a skill does not register its allowed tools or hooks, and no model request is made. When the input is allowed, its `additionalContext` is added once to the expanded prompt, and `UserPromptExpansion` still runs after the expansion. Hooks that the skill registers do not check the input that invoked it. Other slash commands, MCP prompts and saved workflows, and the interactive UI and ACP sessions, still run the hook on the expanded prompt.”',
+      url: 'https://github.com/QwenLM/qwen-code/commit/52ae53b02a17d6214e9e4f81578f2ba2725539a6',
+    },
+    'qwen-v0253-preview0-release': {
+      label:
+        'Qwen Code v0.25.3-preview.0 Release（2026-10-16T18:28Z 发布，标签提交 `d407c0bb3823118281fbfc178494f4525a2241b8`）：发布说明逐字列出 “fix(hooks): gate headless file and skill prompts before expansion by @qqqys in #14356”；稳定通道最新 Release 仍是 v0.25.2（2026-10-15T15:41:15Z），早于该提交',
+      url: 'https://github.com/QwenLM/qwen-code/releases/tag/v0.25.3-preview.0',
+    },
     'qwen-extensions-current': {
       label: 'Qwen Code current Extensions',
       url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/extension/introduction.md',
@@ -1766,6 +1841,11 @@ window.matrixData = {
     'kimi-hooks-failure-current': {
       label: 'Kimi Code current Hooks（fail-open 与超时语义复核）',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/494df61ce9858c70a9f37a996614534bc9b1cd12/docs/zh/customization/hooks.md',
+    },
+    'kimi-hooks-session-cwd': {
+      label:
+        'Kimi Code 提交 `c1459a61845056832b85a0a220ee11a2bc5132f8`（PR #4242 “fix(server): run agent hooks in the session\'s working directory”，2026-10-15T11:38:24Z 合入 main）：`AgentExternalHooksService` 的 `fireAndForgetTrigger(event)`（事件总线触发的 Hook）与 `PreToolUse`／`UserPromptSubmit`／`Stop`／`PreCompact` 四类 Agent 级 Hook 改为显式传入 `cwd: sessionContext.cwd`；此前这些 Agent 级 Hook 没有传 `cwd`、Hook 运行器回落到 `bootstrap.cwd`，因而在引擎或服务器进程的启动目录里执行，与会话级 Hook 已经在会话目录执行不一致；测试把引擎启动目录设为 `/launch-dir` 并断言 Agent 级 Hook 拿到会话目录 `/tmp`，`fullCompaction.test.ts` 另断言 `PreCompact`／`PostCompact` 载荷里的 `cwd` 是会话目录。附带的 changeset 文件为 `.changeset/hooks-session-cwd.md`，对 `@moonshot-ai/kimi-code` 与 `@moonshot-ai/kimi-code-sdk` 都是 patch，核对日期最新 Release `@moonshot-ai/kimi-code@2.2.0`（2026-10-14T15:31:16Z）早于该提交，因此尚未发布；官方中文 Hooks 文档最近一次改动仍是 2026-09-03 的 `494df61ce985`，没有提到服务器路径的这一差异',
+      url: 'https://github.com/MoonshotAI/kimi-code/commit/c1459a61845056832b85a0a220ee11a2bc5132f8',
     },
     'kimi-plugins-current': {
       label: 'Kimi Code current Plugins',
@@ -2264,6 +2344,16 @@ window.matrixData = {
     'qoder-hooks': {
       label: 'Qoder CLI Hooks',
       url: 'https://docs.qoder.com/en/cli/hooks',
+    },
+    'qoder-hooks-concurrency': {
+      label:
+        'Qoder CLI Hooks 页（2026-10-19 复核执行顺序与并发）：全页没有任何说明匹配同一事件的多个 Hook 是并行还是顺序执行的语句，也没有数字形式的并发上限，与执行顺序相关的只有配置合并口径 “All three sources are **loaded and merged together** (hooks for the same event do not override each other)”；事件表仍是 23 个（`SessionStart`、`SessionEnd`、`UserPromptSubmit`、`PreToolUse`、`PostToolUse`、`PostToolUseFailure`、`PermissionRequest`、`PermissionDenied`、`Stop`、`StopFailure`、`SubagentStart`、`SubagentStop`、`PreCompact`、`PostCompact`、`Notification`、`InstructionsLoaded`、`ConfigChange`、`CwdChanged`、`FileChanged`、`WorktreeCreate`、`WorktreeRemove`、`Elicitation`、`ElicitationResult`）；`timeout` 默认值仍是 command 600、http 600、prompt 30、agent 60；后台执行仍只有组级 `async`（“When `true`, all hooks in the group run in the background without blocking the current operation; results are injected as additional context in the next model turn”）、条目级 `async`（“When `true`, this single hook runs in the background; overrides the group-level `async`”）与 `asyncRewake`（“When `true`, runs in the background; if it exits with code 2, the CLI builds a system reminder from stderr/stdout/error and wakes the model — useful for long-running checks”），三者都没有并发数量限制',
+      url: 'https://docs.qoder.com/en/cli/hooks',
+    },
+    'qoder-release-notes-hooks-recheck': {
+      label:
+        'Qoder CLI Release Notes（2026-10-19 复核 Hook 相关条目）：最新条目为 CLI 1.1.73（2026-10-16，只有 “Added support for using site capabilities via qoder sites subcommands”），其前的 1.1.72（2026-10-15）、1.1.71（2026-10-14）、1.1.70（2026-10-13）、1.1.69（2026-10-12）与 1.1.68（2026-10-10）六版里没有任何提到 hooks、生命周期事件、`PreToolUse`、`SessionEnd`、异步 Hook 或 Hook 配置的条目',
+      url: 'https://docs.qoder.com/release-notes/qoder-cli',
     },
     'qoder-plugins': {
       label: 'Qoder CLI Plugins',
@@ -3641,7 +3731,7 @@ window.matrixData = {
       category: 'extensions',
       capability: '生命周期 Hooks',
       description: '在工具调用、会话或 Agent 生命周期节点运行自定义逻辑。',
-      values: { claude: '`/hooks` · 多类 Handler · v2.1.287 起插件 `hooks/hooks.json` 的 `modules` 注册进程内 JS/TS 函数 Hook（mod），可改写事件并绘制界面 · v2.1.295 起 command 与 HTTP Hook 可设 `onFailure: "block"`，启动失败、超时或意外退出码改为阻断', codex: '`/hooks` · command 同步或 `async: true` 后台执行 · 条件：`mcp_tool` Handler 引擎执行随 rust-v0.148.0 发布，会话运行时接入仍在 main 分支（提交 `87070a77925c`，尚未发布）· 失败、超时与畸形响应默认放行，只有 `PermissionRequest` 保留字段 fail closed', qwen: '`/hooks` · command/HTTP/prompt · 退出码 2 阻断，其他非零、HTTP 非 2xx 与超时放行；无 `onFailure` 一类失败开关', kimi: '`config.toml` · command · 退出码 2 阻断，其他非零、超时与崩溃按 fail-open 放行；无 `onFailure` 一类失败开关', qoder: '`/hooks` · `settings.json` · command/HTTP/prompt/agent · 退出码 2 阻断，其他非零放行；无 `onFailure` 一类失败开关' },
+      values: { claude: '`/hooks` · 多类 Handler · v2.1.287 起插件 `hooks/hooks.json` 的 `modules` 注册进程内 JS/TS 函数 Hook（mod），可改写事件并绘制界面 · v2.1.295 起 command 与 HTTP Hook 可设 `onFailure: "block"`，启动失败、超时或意外退出码改为阻断 · v2.1.302 起 prompt 与 agent Hook 同一事件至多 12 个并发、其余排队', codex: '`/hooks` · command 同步或 `async: true` 后台执行（后台每会话至多 8 个并发）· 条件：`mcp_tool` Handler 引擎执行随 rust-v0.148.0 发布，会话运行时接入仍在 main 分支（提交 `87070a77925c`，尚未发布）· 条件：main 分支提交 `70b3bb6d8814` 新增观察型 `PreModelRequest`/`PostModelRequest`，输出只作诊断（尚未发布）· 失败、超时与畸形响应默认放行，只有 `PermissionRequest` 保留字段 fail closed', qwen: '`/hooks` · command/HTTP/prompt · 默认并行，`sequential: true` 强制顺序，`async: true` 占 10 个并发槽 · 退出码 2 阻断，其他非零、HTTP 非 2xx 与超时放行；无 `onFailure` 一类失败开关 · headless 下调用命令或 Skill 的输入在展开前先过 `UserPromptSubmit`（v0.25.3-preview.0，稳定通道 v0.25.2 尚未包含）', kimi: '`config.toml` · command · 同一事件命中的多条规则并行、`command` 完全相同只运行一次，官方未给并发上限 · 退出码 2 阻断，其他非零、超时与崩溃按 fail-open 放行；无 `onFailure` 一类失败开关', qoder: '`/hooks` · `settings.json` · command/HTTP/prompt/agent · 组级或条目级 `async` 与 `asyncRewake` 后台运行 · 退出码 2 阻断，其他非零放行；无 `onFailure` 一类失败开关；官方没有公布同事件的执行顺序与并发数' },
     },
     {
       id: 'extension-plugins',
