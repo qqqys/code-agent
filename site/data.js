@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-10-19',
+  updatedAt: '2026-10-20',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -159,6 +159,36 @@ window.matrixData = {
       label:
         'Claude Code v2.1.299 空闲压缩更新日志（`idleCompaction` 与 `CLAUDE_CODE_IDLE_COMPACT_MIN_TOKENS`，2026-10-14 发布）',
       url: 'https://github.com/anthropics/claude-code/blob/db93774d73e8fdbaf315a6f4c175ae99ad3d515a/CHANGELOG.md',
+    },
+    'claude-v21304-autocompact-window-changelog': {
+      label:
+        'Claude Code v2.1.304 更新日志（2026-10-19T21:34:39Z 发布，固定到提交 `772c6bee5c36f58be43bbb2b182862aeb22aceff`）：与自动压缩窗口相关的一条逐字为 “Fixed `CLAUDE_CODE_AUTO_COMPACT_WINDOW=200k` silently setting a 100K window: the variable now accepts `k` and `M` suffixes like `--autocompact`, and warns when a value is out of range or ignored”，该条只写环境变量，没有改命令与旗标的取值形式',
+      url: 'https://github.com/anthropics/claude-code/blob/772c6bee5c36f58be43bbb2b182862aeb22aceff/CHANGELOG.md',
+    },
+    'claude-v21302-idle-compaction-config-changelog': {
+      label:
+        'Claude Code v2.1.302 更新日志（固定到提交 `c017428c8c27e604840435048d5bce6a9a22c040`）：与空闲压缩相关的一条逐字为 “Added an `Idle compaction` row to `/config` for turning idle compaction off or back on; the notices shown after an idle compaction now say how to turn it off”',
+      url: 'https://github.com/anthropics/claude-code/blob/c017428c8c27e604840435048d5bce6a9a22c040/CHANGELOG.md',
+    },
+    'claude-autocompact-window-values': {
+      label:
+        'Claude Code 模型配置页的 “Set the auto-compact window” 与 “Values and warnings for `CLAUDE_CODE_AUTO_COMPACT_WINDOW`” 两节（2026-10-20 复核，120,859 字节）：设置窗口的位置逐字列五项——“**For the current model, in this session and later ones**: run `/autocompact` with a value, like `/autocompact 500k`.”、“**For every model**: set `autoCompactWindow` in a settings file, such as `"autoCompactWindow": 200000` in `~/.claude/settings.json`.”、“**For one launch**: pass `--autocompact` when starting Claude Code.”、“**In scripts and cloud environments**: set `CLAUDE_CODE_AUTO_COMPACT_WINDOW` to a token count such as `200000`.” 与 “**For one subagent**: see Set the auto-compact window for one subagent”；命令与旗标的取值形式逐字为 “The command and the flag accept a window size from 100K to 1M tokens, in any of these forms:” 加 “A plain token count, such as `200000`”、“A `k` or `M` suffix, such as `500k` or `1M`”、“A bare number from 100 to 1000, meaning thousands, so `200` sets 200,000”，并写 “Whichever way you set the window, Claude Code caps it at the model\'s context window.”；优先级逐字为 “Unless Claude Code ignores the value, the variable takes precedence over the command, the flag, and the `autoCompactWindow` setting. `/autocompact` then reports the override without saving.” 与 “The status line\'s `used_percentage` measures against the model\'s full context window, so while the variable is set, that percentage doesn\'t indicate when compaction will run.”；告警小节逐字为 “A warning that quotes your `CLAUDE_CODE_AUTO_COMPACT_WINDOW` value means the value falls outside 100,000 to 1,000,000 or isn\'t a token count. To stop the warning, set a number in that range, such as `CLAUDE_CODE_AUTO_COMPACT_WINDOW=200000`. On Claude Code v2.1.304 or later, you can also write the number with `k` for thousands or `M` for millions, as in `200k` or `1M`.”，三行对照表（表头逐字为 “Your warning contains”、“Window the session uses” 与 “What to change”，下面把每行三列照录并以「／」分隔）为 “`reads as <N> tokens, so Claude Code treats it as the 100k minimum`／The smaller of 100,000 tokens and your model\'s context window／Set at least `100000`, such as `200000`, or `200k` if you meant `200` as thousands”、“`is too large, so Claude Code treats it as the 1M maximum`／The smaller of 1,000,000 tokens and your model\'s context window／You already have the largest window. To stop the warning, set `1M` or `1000000`” 与 “`isn\'t a usable size, so Claude Code ignores it`／The window from `--autocompact`, `/autocompact`, or `autoCompactWindow`, or the default when none is set／Set a number such as `200000`, or unset the variable”；无后缀数字的读法逐字为 “A number with no suffix is read as that many tokens, so `CLAUDE_CODE_AUTO_COMPACT_WINDOW=200` means 200 tokens even though `/autocompact 200` means 200,000.”；该页 “Default auto-compact thresholds” 一节在核对日期仍写未设窗口时在模型上下文上限处压缩，例外为 Cloud 会话接近上限时压缩、Sonnet 4.6 与 Opus 4.6 未开扩展上下文时在 200K 边界、`CLAUDE_CODE_DISABLE_1M_CONTEXT=1` 时原生 1M 窗口模型在 200K 边界、原生 1M 窗口模型默认约 967K，另加两条本次未展开的例外（不认识的模型 ID 按 Claude Code 假定的窗口、自定义 `ANTHROPIC_BASE_URL` 见网关一节）',
+      url: 'https://code.claude.com/docs/en/model-config#claude_code_auto_compact_window-values',
+    },
+    'claude-env-vars-autocompact-window': {
+      label:
+        'Claude Code 环境变量页的 `CLAUDE_CODE_AUTO_COMPACT_WINDOW` 行（2026-10-20 复核，167,567 字节）逐字为 “Set the auto-compact window, how full the context gets before compaction, from `100000` to `1000000` tokens. Suffixed values such as `200k` require v2.1.304 or later. For precedence over the other ways to set the window and the effect on the status line\'s `used_percentage`, see Set the auto-compact window”；同页 `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` 行仍为 1–100 的百分比、不能抬高阈值、只在上限前就压缩的会话生效且主会话与 Subagent 都适用，`CLAUDE_CODE_IDLE_COMPACT_MIN_TOKENS` 行仍为默认 `200000`、只接受正整数、低于 `100000` 抬到 `100000`、需 v2.1.290 及以上；该页没有 `DISABLE_AUTO_COMPACT` 行',
+      url: 'https://code.claude.com/docs/en/env-vars',
+    },
+    'claude-subagent-autocompact-window-docs': {
+      label:
+        'Claude Code Subagents 页的 “Set the auto-compact window for one subagent” 一节与 frontmatter 字段表 `autoCompactWindow` 行（2026-10-20 复核，108,779 字节）：字段表行逐字为 “Lower the auto-compact window for this subagent to a token count from `100000` to `1000000`. Requires Claude Code v2.1.296 or later”，必填列为 No；专节正文逐字为 “To make one subagent compact earlier than it otherwise would, set `autoCompactWindow` in its frontmatter to a token count from `100000` to `1000000`. If you set `CLAUDE_CODE_AUTO_COMPACT_WINDOW`, the subagent uses that variable\'s window instead and the field has no effect, unless Claude Code ignores the variable\'s value. Requires Claude Code v2.1.296 or later.”，示例 frontmatter 为 `name: log-reader` 加 `autoCompactWindow: 200000`；写法限制逐字为 “Write the value as a plain integer such as `200000`, because in frontmatter Claude Code reads `200k` as 200, which is outside the allowed range. The subagent still loads and compacts as if the field were absent. To check whether Claude Code ignored your value, run `claude --debug` in your shell and search the debug log for `invalid autoCompactWindow`.”；无效原因两条逐字为 “**The value isn\'t below the auto-compact window the subagent would otherwise inherit**: to compact earlier, set a value below that window.” 与 “**You run the whole session as this subagent with `--agent` or the `agent` setting**: the field has no effect there.”；该页没有说明 frontmatter 窗口与 `--autocompact`、每模型 `modelSettings` 或顶层 `autoCompactWindow` 的组合顺序',
+      url: 'https://code.claude.com/docs/en/sub-agents#subagent-auto-compact-window',
+    },
+    'codex-compaction-threshold-keys': {
+      label:
+        'Codex configuration reference 的压缩键（2026-10-20 复核，1,456,078 字节）：`model_auto_compact_token_limit` 类型为 `number`、默认未设置、描述逐字为 “Token threshold that triggers automatic history compaction (unset uses model defaults).”；`model_auto_compact_token_limit_scope` 取值 `total` 或 `body_after_prefix`、默认 `total`、描述逐字为 “Controls whether the auto-compaction threshold counts the full active context (`total`, the default) or only growth after the carried compaction-window prefix (`body_after_prefix`).”；`compact_prompt` 为 `string`、描述 “Inline override for the history compaction prompt.”；`experimental_compact_prompt_file` 为 `string (path)`、描述 “Load the compaction prompt override from a file (experimental).”；四行都没有 `k`/`M` 一类后缀写法、取值范围或越界告警的说明',
+      url: 'https://learn.chatgpt.com/docs/config-file/config-reference',
     },
     'claude-v21301-commands-changelog': {
       label:
@@ -1774,6 +1804,16 @@ window.matrixData = {
       label:
         'Kimi Code 自动压缩与缓存过期配置（`loop_control.reserved_context_size`、`compaction_max_attempts`、只有 `timeout_ms` 的 `[subagent]`，以及 `tui.toml` 的 `cache_expiry_hint`）',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/c7dd84124a00d2dc1a68fbbc3e54b1095ee9ac23/docs/zh/configuration/config-files.md',
+    },
+    'kimi-compaction-config-ce0834a': {
+      label:
+        'Kimi Code 配置文档在 main 上该文件最后一次变更提交 `ce0834a8f301b89cc4523499a3e074c36851de8f`（2026-10-20T06:20:55Z，PR #4272 “feat: share session rating rules across CLI and server”，40,246 字节，2026-10-20 复核）：`loop_control` 表 `reserved_context_size` 行按「字段／类型／默认值／说明」四列照录为 “`reserved_context_size`／`integer`／—／预留给模型输出的 token 数；上下文窗口剩余量低于此值时触发自动压缩” 且示例配置写 `reserved_context_size = 50000`，`compaction_max_attempts` 行照录为 “`compaction_max_attempts`／`integer`／`5`／压缩请求失败后的最大总尝试次数（含首次尝试）”，`[subagent]` 段仍只有 `timeout_ms` 一行（`7200000`，即 2 小时，`0` 表示无超时），`tui.toml` 的 `cache_expiry_hint` 行照录为 “`cache_expiry_hint`／`boolean`／`true`／resume 或长时间空闲后发消息时，若上下文缓存可能过期则提醒，可先压缩或新建会话（仅 v2 引擎）”；四行与提交 `c7dd84124a00d2dc1a68fbbc3e54b1095ee9ac23` 逐字一致；`loop_control` 的环境变量覆盖仍只有 `max_steps_per_turn`（`KIMI_LOOP_MAX_STEPS_PER_TURN`）与 `max_attempts_per_step`（`KIMI_LOOP_MAX_ATTEMPTS_PER_STEP`）两个，逐字为 “优先级均高于配置文件。旧的 `KIMI_LOOP_MAX_RETRIES_PER_STEP` 已废弃，但在新变量未设置时仍生效（启动时会给出警告）”；`[experimental] micro_compaction`（默认 `false`，清理较旧的大型工具结果）整段仍在 HTML 注释里，不按已公布能力记录',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/ce0834a8f301b89cc4523499a3e074c36851de8f/docs/zh/configuration/config-files.md',
+    },
+    'kimi-release-220-compaction': {
+      label:
+        'Kimi Code 官方中文变更记录（main 分支，2026-10-20 复核，108,758 字节，最新段为 2.2.0（2026-10-14））：2.2.0 段的新功能为实验性进度更新 NotifyUser（默认关闭、`/experiments` 面板开启）、`kimi app [path]` 打开 Desktop 会话与全屏模式的用户消息摘要条，优化为用户技能卡片高亮提示词并支持 `Ctrl-S` 发送、Tower 模式运行中发消息中止当前 turn 并作为独立 turn 执行、退出时 shutdown hooks 期间显示「Shutting down」且 `Ctrl+C` 可立即强制退出，修复为 UserPromptSubmit hook 注入文本时的对话错位、移除 MCP stdio 配置中从未实现的 `executor = "kaos"`、修复 fork 会话重复触发源会话 cron 任务；全段没有压缩阈值、`reserved_context_size`、`cache_expiry_hint` 或 `/compact` 相关条目。核对日期最新 Release 仍是 `@moonshot-ai/kimi-code@2.2.0`（2026-10-14T15:31:16Z 发布）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/main/docs/zh/release-notes/changelog.md',
     },
     'kimi-subagent-config': {
       label:
@@ -3676,7 +3716,7 @@ window.matrixData = {
       category: 'sessions',
       capability: '手动压缩',
       description: '主动总结当前上下文以释放窗口。',
-      values: { claude: '`/compact [instructions]`；自动窗口 `/autocompact <tokens 或 auto>` · `autoCompactWindow`（v2.1.296 起 Subagent 定义可单独设）· 空闲压缩 `idleCompaction`（200K token 且约 54 分钟空闲，在一小时缓存到期前压缩）', codex: '`/compact`；阈值 `model_auto_compact_token_limit` 与统计口径 `model_auto_compact_token_limit_scope`；无空闲或缓存过期触发', qwen: '`/compress [instructions]` · `/compress-fast`；阈值 `context.autoCompactThreshold`（默认 0.85）· `context.clearContextOnIdle` 空闲 60 分钟清理旧工具结果', kimi: '`/compact [instruction]`；`loop_control.reserved_context_size` 触发自动压缩 · `tui.toml` 的 `cache_expiry_hint` 只提醒、不自动压缩', qoder: '`/compact [instructions]`；自动压缩阈值未公开' },
+      values: { claude: '`/compact [instructions]`；自动窗口 `/autocompact <tokens 或 auto>` · `autoCompactWindow`（v2.1.296 起 Subagent frontmatter 可单独设，只认 100000–1000000 的纯整数）· `CLAUDE_CODE_AUTO_COMPACT_WINDOW` 优先于命令、旗标与设置，v2.1.304 起也接受 `k`/`M` 后缀，取值越界或不可用时告警并夹到 100K/1M 或整个忽略 · 空闲压缩 `idleCompaction`（200K token 且约 54 分钟空闲，在一小时缓存到期前压缩；v2.1.302 起 `/config` 有 Idle compaction 行）', codex: '`/compact`；阈值 `model_auto_compact_token_limit` 与统计口径 `model_auto_compact_token_limit_scope`；无空闲或缓存过期触发', qwen: '`/compress [instructions]` · `/compress-fast`；阈值 `context.autoCompactThreshold`（默认 0.85）· `context.clearContextOnIdle` 空闲 60 分钟清理旧工具结果', kimi: '`/compact [instruction]`；`loop_control.reserved_context_size` 触发自动压缩 · `tui.toml` 的 `cache_expiry_hint` 只提醒、不自动压缩', qoder: '`/compact [instructions]`；自动压缩阈值未公开' },
     },
     {
       id: 'session-context-usage',
