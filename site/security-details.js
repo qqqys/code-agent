@@ -459,44 +459,78 @@
       id: 'security-filesystem',
       definition:
         '通过 OS、容器或进程级边界限制命令及其子进程能读取和写入的文件路径，而不仅是让模型遵守工具规则。',
-      includes: ['OS 或容器隔离', '可写根目录', '受保护与禁止读取路径'],
+      includes: [
+        'OS 或容器隔离',
+        '可写根目录',
+        '受保护与禁止读取路径',
+        'Linux 后端与用户命名空间前置条件',
+        '削弱或退出隔离的开关及其代价',
+      ],
       excludes: ['只针对文件工具的 Allow/Deny', 'Git Worktree 隔离', '网络访问策略'],
       facts: [
-        'Claude Code 与 Codex 都公开了本地 OS 级文件系统沙箱；Qwen Code 提供可选 Seatbelt 或容器沙箱。',
-        'Codex 在 macOS 用 Seatbelt、Linux 用 Landlock，原生 Windows 另有 `elevated`、`unelevated` 与 `mxc` 三种沙箱实现，由 `[windows] sandbox` 选择；`codex sandbox` 是 Stable 子命令，可用同一套策略手动跑一条命令。',
-        'Kimi Code 当前公开的是工具权限规则；Qoder CLI SDK 暴露可选 Sandbox Settings，但主 CLI 权限页主要描述路径规则。',
+        'Claude Code、Codex 与 Qwen Code 都公开了本地 OS 级文件系统沙箱；三家的 Linux 边界都落在 bubblewrap 上，Qwen 另提供 Landlock 回退。',
+        'Codex 官方 Sandboxing 页把 Linux 与 WSL2 的实现写成 bubblewrap（macOS 是 Seatbelt），而不是本仓库此前记录的 Landlock；Landlock 与 seccomp 在 Codex 里是 `codex-linux-sandbox` crate 的实现依赖，`bwrap.rs` 才是构造边界的地方。原生 Windows 另有 `elevated`、`unelevated` 与 `mxc` 三种实现，由 `[windows] sandbox` 选择；`codex sandbox` 是 Stable 子命令，可用同一套策略手动跑一条命令。',
+        'Linux 用户命名空间是三家的共同前置条件：Claude Code 与 Codex 都在官方文档里写了 Ubuntu 24.04 及以后的 AppArmor 限制会让 bubblewrap 建不出用户命名空间，并各自给出 profile 文件（Claude 是 `/etc/apparmor.d/bwrap`，Codex 是 `/etc/apparmor.d/bwrap-userns-restrict`）与同一个 sysctl 键 `kernel.apparmor_restrict_unprivileged_userns`；Qwen Code 则直接要求 bwrap 装在 `/usr/bin/bwrap`。',
+        '三家都提供削弱或退出文件系统隔离的开关并写明代价：Claude Code 的 `sandbox.enableWeakerNestedSandbox`（改挂容器已有 `/proc`，官方写 “considerably weakens security”）与 v2.1.305 新增的 `sandbox.allowNestedUserNamespaces`（官方更新日志写 “this lets them get around the sandbox\u0027s file protections”）、Codex 的 `danger-full-access`、Qwen Code 的 `filesystem: "workspace-write"` 与 Landlock 后端的 `partial` enforcement。',
+        'Qwen Code 自 v0.24.4 起把 Linux 沙箱从「整个 CLI 跑在 bwrap 里」改成「只有工具执行跑在 bwrap 或 Landlock 里」，策略键 `tools.executionSandbox` 由运算符（User 或 System 设置）所有，Workspace 设置即使在受信任项目里也不能启用、关闭或修改它。',
+        'Kimi Code 2.3.0 标签的整棵仓库树里没有任何 sandbox、bwrap、landlock、seccomp 或 seatbelt 路径，文件边界仍由 `[permission]` 规则与工具层路径策略提供；Qoder CLI 官方文档在核对日期已无独立 Sandbox 页，`https://docs.qoder.com/en/cli/sandbox` 返回 404，设置参考与 SDK 参考都没有 `sandbox.*` 键，本仓库此前记录的 SDK `sandbox.filesystem` 已无法从官方文档复核。',
       ],
       behavior: {
         claude:
-          'Bash 沙箱使用 Seatbelt 或 bubblewrap，默认只向工作目录与会话临时目录写入；Read/Edit deny 与 Sandbox 路径合并。',
+          'Bash 沙箱在 macOS 用 Seatbelt、在 Linux 与 WSL2 用 bubblewrap（另需 `socat` 做网络中继），默认只向工作目录、每用户临时目录以及 `--add-dir`/`/add-dir`/`permissions.additionalDirectories` 加入的目录写入；Read/Edit deny 与 Sandbox 路径合并。官方另写明 Subagent 与父会话同进程、共用同一份沙箱配置，后台会话在自己的进程里按其设置决定是否沙箱化。',
         codex:
-          '`read-only` 禁止一般写入，`workspace-write` 只写工作区与附加 writable roots，`danger-full-access` 移除沙箱；`.git`、`.agents`、`.codex` 等路径仍受保护。原生 Windows 上再由 `[windows] sandbox` 选实现：`elevated` 用专用低权限沙箱用户加文件系统权限边界，`unelevated` 用当前用户派生的受限 Windows 令牌加 ACL 边界，`mxc` 经 Microsoft MXC `BaseContainerRunner` 直接包裹命令，不改主机 ACL、不创建沙箱用户、不跑安装也不请求提权。MXC 的文件系统权限取自规范化的 Codex 权限 Profile（含受保护元数据豁免），deny glob 沿用既有 Windows 沙箱解析器在启动前展开为具体路径并保持相同的快照语义与扫描上限；Windows 卷根授权不递归，只授卷根与其直接子项，命令运行中新建或新挂载的目录不自动获得授权。',
+          '`read-only` 禁止一般写入，`workspace-write` 只写工作区与附加 writable roots，`danger-full-access` 移除沙箱；`.git`、`.agents`、`.codex` 等路径仍受保护。Linux 与 WSL2 的边界由 bubblewrap 构造：官方写 Codex 用 `PATH` 上找到的第一个 `bwrap`，找不到时退回一个捆绑 helper，而该 helper “requires support for unprivileged user namespace creation”；`codex-rs/linux-sandbox/src/bwrap.rs` 在两处参数构造里都显式加 `--unshare-user`，注释说明一是让容器内的 root 不必持有 ambient `CAP_SYS_ADMIN` 就能建其余命名空间，二是不依赖 bubblewrap 在调用方为 uid 0 时会跳过的自动启用行为，同时借 ptrace 权限检查挡住宿主 procfs 的 root/cwd/fd 链接；同一参数表还有 `--unshare-ipc`、`--cap-drop ALL` 与按选项决定的 `--unshare-pid`、`--unshare-net`、`--proc /proc`。原生 Windows 上再由 `[windows] sandbox` 选实现：`elevated` 用专用低权限沙箱用户加文件系统权限边界，`unelevated` 用当前用户派生的受限 Windows 令牌加 ACL 边界，`mxc` 经 Microsoft MXC `BaseContainerRunner` 直接包裹命令，不改主机 ACL、不创建沙箱用户、不跑安装也不请求提权。MXC 的文件系统权限取自规范化的 Codex 权限 Profile（含受保护元数据豁免），deny glob 沿用既有 Windows 沙箱解析器在启动前展开为具体路径并保持相同的快照语义与扫描上限；Windows 卷根授权不递归，只授卷根与其直接子项，命令运行中新建或新挂载的目录不自动获得授权。',
         qwen:
-          'Sandbox 默认关闭；macOS 可用 Seatbelt，跨平台可用 Docker/Podman。容器挂载工作区和 `~/.qwen`，Seatbelt Profile 限制工作区外写入。',
+          '两层彼此独立。其一是 Linux 工具执行沙箱 `tools.executionSandbox`：只有命令及其子进程进边界，CLI 本体、模型传输、认证与会话存储留在宿主；`filesystem: "read-only"` 拒绝工作区写入，`"workspace-write"` 允许在当前规范化工作区内写入，每条命令另有私有 scratch 空间（经 `TMPDIR`/`TMP`/`TEMP` 暴露），普通 `includeDirectories` 不授予写权限；`backend: "auto"` 先试 bwrap，bwrap 不可用且 `network` 为 `open` 时可用内核 Landlock ABI 3 及以上的捆绑 Landlock helper，写 `bwrap` 或 `landlock` 则严格要求该实现。Landlock 后端报 `partial` enforcement：只限制 pathname 读写与目录变更，不创建 PID 或网络命名空间，也不能限制 `chmod`、`chown`、扩展属性与时间戳等全部元数据操作，可写设备面更窄（允许写 `/dev/null`，但不建 bwrap 的私有 `/dev` 与 `/proc`，写 `/dev/full`、`/dev/tty` 与在 `/dev/shm` 建文件被拒）。其二是把整个 CLI 跑进去的旧方法：macOS Seatbelt（`sandbox-exec`，默认 profile `permissive-open`，限制项目目录外写入）与跨平台 Docker/Podman 容器（挂载工作区和 `~/.qwen`）。',
         kimi:
-          'Read、Bash 等可用 permission rules 控制，工具也有 enabled/disabled 列表；当前 CLI 文档未确认 OS 或容器级文件系统沙箱。',
+          'Read、Bash 等可用 permission rules 控制，工具也有 enabled/disabled 列表；2.3.0 标签的仓库树里没有任何 OS 或容器级文件系统沙箱实现，文件边界由 `permissionPolicy/policies/` 下的策略与 `tool/path-access.ts` 的路径判定提供，属权限规则层。',
         qoder:
-          '主 CLI 提供 Read/Edit 路径规则、受信目录与受保护路径；SDK 的 `sandbox.filesystem` 可设置 allow/deny read/write，且 Sandbox 默认关闭。',
+          '主 CLI 提供 Read/Edit 路径规则、受信目录与受保护路径；官方 CLI 文档在核对日期没有公开任何 OS 或容器级文件系统沙箱的配置，SDK 侧只出现退出码 `44` “Fatal sandbox error” 与把 sandboxing 列为互补控制之一的表述。',
       },
       overrides: {
+        claude: {
+          entry:
+            '`/permissions` 管理规则，`Shift+Tab` 切换常用模式；启动参数使用 `--permission-mode`，`/sandbox` 单独配置 Bash 沙箱并在缺少依赖时只显示 Dependencies 页签。`sandbox.enableWeakerNestedSandbox`、`sandbox.allowNestedUserNamespaces` 与 `sandbox.bwrapPath` 都是设置文件键，没有对应的 Slash 命令；Linux 与 WSL2 上还需要先用包管理器装 `bubblewrap` 与 `socat`，Ubuntu 24.04 及以后要按官方提示块放开 AppArmor 对非特权用户命名空间的限制。',
+          rules:
+            '`permissions.allow`、`ask`、`deny` 按 deny → ask → allow 处理；规则覆盖 Bash、Read、Edit、WebFetch、MCP、Agent 等工具。沙箱侧另有一组「放宽即削弱」的键：官方写明除非 Managed settings 已经设置，开发者的用户设置或 `--settings` 可以打开 `enableWeakerNestedSandbox`、`enableWeakerNetworkIsolation`、`network.allowAllUnixSockets`、`network.allowLocalBinding` 与 `allowAppleEvents`（最后一项仓库设置不能打开），沙箱为 admin-required 时仓库 `.claude/settings.json` 也不能打开；沙箱为 admin-required 时仓库文件里的这四项取 `true` 被忽略而 “A `false` still applies”。组织想禁止就把它们写死为 `false`，或用 `sandbox.filesystem.allowManagedReadPathsOnly`、`sandbox.network.allowManagedDomainsOnly` 把读路径与域名锁到 Managed 值。',
+          boundary:
+            '权限系统覆盖全部工具；OS 沙箱只覆盖 Bash 及其子进程。沙箱默认只允许向工作目录和会话临时目录写入，并通过代理限制网络域名。嵌套场景有两道不同的口子：非特权容器里 bubblewrap 挂不上新的 `/proc`，命令会以 `Can\u0027t mount proc on /newroot/proc: Operation not permitted` 一类错误失败，`enableWeakerNestedSandbox: true` 改为 bind-mount 容器已有的 `/proc`，代价是把新 `/proc` 挂载本会隐藏的进程信息暴露给沙箱内命令，官方要求只在外层容器已经提供所需隔离边界时使用，并在 Security limitations 一节写明该模式 “considerably weakens security”；`allowNestedUserNamespaces` 则是让沙箱内命令自己创建用户命名空间（官方点名 Chromium 与 rootless podman），更新日志直接写这会让它们绕过沙箱的文件保护。要给整个进程加边界，官方指向 sandbox runtime 或 dev container，而不是这两个键。',
+          conditions:
+            'OS 沙箱依赖 macOS Seatbelt、Linux bubblewrap 或 WSL2；默认不可用时会警告并回退，`sandbox.failIfUnavailable` 可改为失败关闭，`sandbox.allowUnsandboxedCommands` 决定失败命令能否在沙箱外重试。Linux 与 WSL2 需要 `bubblewrap` 与 `socat`，可选的 seccomp 过滤器用 `npm install -g @anthropic-ai/sandbox-runtime` 安装；`sandbox.bwrapPath`（作用域 Managed）可指向 `PATH` 外的 bubblewrap 二进制。Ubuntu 24.04 及以后（含 WSL2 内）默认 AppArmor 策略会阻止 bubblewrap 创建隔离所需的用户命名空间：`sysctl kernel.apparmor_restrict_unprivileged_userns` 返回 `0` 或报 `No such file or directory` 时跳过，返回 `1` 时要写入 `/etc/apparmor.d/bwrap`，内容为 `abi <abi/4.0>,`、`include <tunables/global>` 与 `profile bwrap /usr/bin/bwrap flags=(unconfined) { userns, include if exists <local/bwrap> }`。`enableWeakerNestedSandbox` 在官方 Sandboxing 页与 Settings 参考索引表都有记录（后者描述为 “Run the Linux sandbox inside an unprivileged container”、作用域 “Any file”）；`allowNestedUserNamespaces` 只出现在 v2.1.305 更新日志（2026-10-20T20:46:50Z 发布，更新日志提交 `49b8c35f8c57493c2f0eba1429ccaa9638ab8712`），核对日期的官方 Sandboxing 页全文没有该词、Settings 参考索引表也没有该行，因此它的取值集合、默认值、可写作用域与是否需要 v2.1.305 及以上都记为未确认；它同 `enableWeakerNestedSandbox` 的关系（一个放行沙箱内建用户命名空间、一个改挂已有 `/proc`）官方也没有说明。核对日期最新 Release 为 v2.1.306（2026-10-21T03:16:31Z），其两条都是修复、没有沙箱条目。',
+          sources: [
+            'claude-permissions',
+            'claude-permission-modes',
+            'claude-sandboxing',
+            'claude-headless',
+            'claude-v21305-nested-userns-changelog',
+            'claude-v21305-release',
+            'claude-sandbox-weaker-nested',
+            'claude-sandbox-apparmor-userns',
+            'claude-sandbox-weakening-keys',
+            'claude-settings-reference',
+          ],
+        },
         codex: {
           entry:
-            '`/permissions` 与权限选择器控制当前会话；CLI 可传 `--sandbox`、`--ask-for-approval`，持久配置写入 `config.toml`。原生 Windows 沙箱实现由 `config.toml` 的 `[windows] sandbox = "elevated"` 或 `"unelevated"` 选择，TUI 的 `/setup-default-sandbox`（源码描述 “set up elevated agent sandbox”）负责 elevated 安装；`codex sandbox` 子命令（官方标注 Stable，Windows 形式的 `COMMAND...` 说明为 “Command to execute under the native Windows sandbox. Provide the executable after `--`.”）可用 `-P/--permission-profile`、`-C/--cd`、`-c/--config`、`-p/--profile`、`--include-managed-config` 以真实执行相同的策略跑一条命令，MXC 也走同一准备路径。官方 Windows sandbox 页要求用 `/sandbox-add-read-dir C:\\absolute\\directory\\path` 给沙箱授予某个已存在绝对目录的读权限（仅当前会话），但 CLI TUI 的 Slash 命令枚举在 rust-v0.154.0（提交 `6b9826e3aa83`）仍有该命令、自 rust-v0.155.0（提交 `f0a1b8f0849d`）起已无，官方 Slash 命令参考页也未列出，CLI 侧入口记为未确认。',
+            '`/permissions` 与权限选择器控制当前会话；CLI 可传 `--sandbox`、`--ask-for-approval`，持久配置写入 `config.toml`。原生 Windows 沙箱实现由 `config.toml` 的 `[windows] sandbox = "elevated"` 或 `"unelevated"` 选择，TUI 的 `/setup-default-sandbox`（源码描述 “set up elevated agent sandbox”）负责 elevated 安装；`codex sandbox` 子命令（官方标注 Stable，Windows 形式的 `COMMAND...` 说明为 “Command to execute under the native Windows sandbox. Provide the executable after `--`.”）可用 `-P/--permission-profile`、`-C/--cd`、`-c/--config`、`-p/--profile`、`--include-managed-config` 以真实执行相同的策略跑一条命令，MXC 也走同一准备路径。官方 Windows sandbox 页要求用 `/sandbox-add-read-dir C:\\absolute\\directory\\path` 给沙箱授予某个已存在绝对目录的读权限（仅当前会话），但 CLI TUI 的 Slash 命令枚举在 rust-v0.154.0（提交 `6b9826e3aa83`）仍有该命令、自 rust-v0.155.0（提交 `f0a1b8f0849d`）起已无，官方 Slash 命令参考页也未列出，CLI 侧入口记为未确认。Linux 与 WSL2 上没有开关命令，边界取决于 `PATH` 上是否有 `bwrap`。',
           defaults:
             '版本库目录通常采用 `workspace-write` + `on-request`，非版本库目录通常采用 `read-only`；具体启动状态还受目录信任和配置影响。原生 Windows 上 agent 模式默认就用 Windows 沙箱阻止工作目录外写入；未选择模式时 Codex 优先 `elevated`，`elevated` 安装没完成会退回 `unelevated`。MXC 不自动启用：`features.prefer_mxc` 在功能登记册里是 `Stage::UnderDevelopment` 且 `default_enabled: false`，`windows.sandbox = "mxc"` 则是严格选择。',
           rules:
-            '`approval_policy` 支持 `untrusted`、`on-request`、`never` 和 granular 分类策略；命令 Rules、MCP 注解、权限 Profile 与沙箱共同生效。企业可用 `requirements.toml` 的 `[windows] allowed_sandbox_implementations = ["elevated"]` 限定允许的原生沙箱实现，写两个值即两者都允许；配置与强制规则冲突时本地客户端回退到兼容值并通知用户。',
+            '`approval_policy` 支持 `untrusted`、`on-request`、`never` 和 granular 分类策略；命令 Rules、MCP 注解、权限 Profile 与沙箱共同生效。企业可用 `requirements.toml` 的 `[windows] allowed_sandbox_implementations = ["elevated"]` 限定允许的原生沙箱实现，写两个值即两者都允许；配置与强制规则冲突时本地客户端回退到兼容值并通知用户。官方 Sandboxing 页把三种模式逐字记为 `read-only`（“The agent can inspect files, but it can\u0027t edit files or run commands without approval.”）、`workspace-write`（“The agent can read files, edit within the workspace, and run routine local commands inside that boundary. This is the default low-friction mode for local work.”）与 `danger-full-access`（“The agent runs without sandbox restrictions.”），并写 “Full access means using `sandbox_mode = "danger-full-access"` together with `approval_policy = "never"`.”。',
           boundary:
-            '本地 CLI/IDE 使用 OS 级沙箱。`read-only`、`workspace-write`、`danger-full-access` 分别提供只读、工作区写入和无沙箱边界。原生 Windows 沙箱还做 UI 隔离：官方文档写两种模式默认使用私有桌面，并给出 `windows.sandbox_private_desktop = false` 退回旧的 `Winsta0\\Default`，但固定到的 `WindowsToml` JSON schema 是 `additionalProperties: false` 且只有 `sandbox` 与 `allow_mxc` 两个键，该键的实际可用性记为未确认。MXC 后端另有限制：路径与环境变量值以 Unicode 字符串表示，非 Unicode 值直接失败而不做有损转换；显式为空的子进程环境被拒绝；请求 deny 路径还要求原生 `PSE_SUPPORT_FS_DENY` 能力，否则命令在启动前失败。',
+            '本地 CLI/IDE 使用 OS 级沙箱，官方逐字为 “Codex uses platform-native enforcement on each OS. The implementation differs between macOS, Linux, WSL2, and native Windows”。`read-only`、`workspace-write`、`danger-full-access` 分别提供只读、工作区写入和无沙箱边界；`sandbox_workspace_write.writable_roots` 可在不移除沙箱的前提下扩展可写目录。macOS 用内置 Seatbelt 且开箱可用；Windows 在 PowerShell 下用原生 Windows 沙箱、在 WSL2 下用 Linux 沙箱实现。原生 Windows 沙箱还做 UI 隔离：官方文档写两种模式默认使用私有桌面，并给出 `windows.sandbox_private_desktop = false` 退回旧的 `Winsta0\\Default`，但固定到的 `WindowsToml` JSON schema 是 `additionalProperties: false` 且只有 `sandbox` 与 `allow_mxc` 两个键，该键的实际可用性记为未确认。MXC 后端另有限制：路径与环境变量值以 Unicode 字符串表示，非 Unicode 值直接失败而不做有损转换；显式为空的子进程环境被拒绝；请求 deny 路径还要求原生 `PSE_SUPPORT_FS_DENY` 能力，否则命令在启动前失败。官方 Sandboxing 页没有讨论「Codex 自己跑在容器里」的嵌套场景，也没有给出 Claude `enableWeakerNestedSandbox` 或 Qwen `partial` enforcement 一类的削弱档位。',
           persistence:
             '用户配置位于 `~/.codex/config.toml`；受信任项目可加载 `.codex/config.toml`、Hooks 和 Rules；系统与管理员 Requirements 可进一步收紧。`[windows]` 表同属 `config.toml`，也可用 `-c key=value` 覆盖。Windows 沙箱的安装与运行诊断写在 `CODEX_HOME/.sandbox/sandbox.log`，官方同时要求不要把 `CODEX_HOME/.sandbox-secrets/` 的内容发给 OpenAI。',
           noninteractive:
             '非交互流程无法展示新审批时，需要审批的动作失败并把错误返回给 Agent；可在启动前固定审批策略、沙箱和 Rules。远程 executor 继承 `config.toml` 里配置的后端，不跟随本机 `features.prefer_mxc` 的解析结果；MXC 下命令失败不触发后端回退，且前台进程退出或取消时上游 runner 会终止其余子孙进程，因此分离式后台服务在 MXC 下失去既有两个 Windows 后端保留子孙进程的行为。',
           conditions:
-            '审批决定何时停下来询问，沙箱决定技术边界；`approval_policy = "never"` 不会自动移除仍在生效的沙箱。原生 Windows 沙箱只在 Windows 上生效：官方推荐 Windows 11，完整更新的 Windows 10 为尽力支持（依赖 ConPTY，实践中需 1809 及以上），更旧的 Windows 10 构建不推荐；`winget` 应可用，`elevated` 依赖管理员批准的安装（本机用户或组创建、防火墙规则修改与沙箱用户登录权限），企业策略可能阻断这些步骤，沙箱内命令报 Windows 错误 `1385` 表示 Windows 拒绝沙箱用户启动命令所需的登录类型，Codex 也会在文件夹对 `Everyone` 可写时告警。MXC 需要可用的 Windows 进程安全环境（PSEC），可用性由 MXC 自身的 create/close 探测判断而不是 OS 构建号或 SDK 的 `platform_support()`，Windows executor 每进程记录一次 `codex.windows_mxc.available`，不支持的 Windows executor 在执行前拒绝 MXC 请求；受管网络要求把 `allow_local_binding` 生效为 `false` 时 MXC 判定为不可用（MXC 被选中时该值默认 `true`）。main 分支提交 `e95abcdf4939`（PR #51547，2026-10-07）新增 `windows.allow_mxc`：设为 `false` 时即使开启 `features.prefer_mxc` 也不自动选择 MXC，并让显式 `windows.sandbox = "mxc"` 直接报错，不写该键保持原行为；该键只在 main 分支，rust-v0.160.1（提交 `d27764b82f71`）的 `WindowsToml` 只有 `sandbox` 一个字段，官方配置参考与 Windows sandbox 页也未列出。需要 Linux 原生工具链时官方建议改用 WSL。',
+            '审批决定何时停下来询问，沙箱决定技术边界；`approval_policy = "never"` 不会自动移除仍在生效的沙箱。Linux 与 WSL2 需要 bubblewrap：官方写装发行版的 `bubblewrap` 包更可靠，`bwrap` 缺失或捆绑 helper 建不出所需用户命名空间时 Codex 在启动时给出告警；Ubuntu 24.04 上即使装了 `bubblewrap` 也可能继续告警，官方给的修法是把 `/usr/share/apparmor/extra-profiles/bwrap-userns-restrict` 以 `-m 0644` 安装到 `/etc/apparmor.d/bwrap-userns-restrict` 再 `sudo apparmor_parser -r` 载入（不需要重启，也可 `sudo systemctl reload apparmor.service`），并建议在限制该 AppArmor 设置的发行版上优先加载 profile 而不是全局关闭限制，退路才是 `sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0`。原生 Windows 沙箱只在 Windows 上生效：官方推荐 Windows 11，完整更新的 Windows 10 为尽力支持（依赖 ConPTY，实践中需 1809 及以上），更旧的 Windows 10 构建不推荐；`winget` 应可用，`elevated` 依赖管理员批准的安装（本机用户或组创建、防火墙规则修改与沙箱用户登录权限），企业策略可能阻断这些步骤，沙箱内命令报 Windows 错误 `1385` 表示 Windows 拒绝沙箱用户启动命令所需的登录类型，Codex 也会在文件夹对 `Everyone` 可写时告警。MXC 需要可用的 Windows 进程安全环境（PSEC），可用性由 MXC 自身的 create/close 探测判断而不是 OS 构建号或 SDK 的 `platform_support()`，Windows executor 每进程记录一次 `codex.windows_mxc.available`，不支持的 Windows executor 在执行前拒绝 MXC 请求；受管网络要求把 `allow_local_binding` 生效为 `false` 时 MXC 判定为不可用（MXC 被选中时该值默认 `true`）。main 分支提交 `e95abcdf4939`（PR #51547，2026-10-07）新增 `windows.allow_mxc`：设为 `false` 时即使开启 `features.prefer_mxc` 也不自动选择 MXC，并让显式 `windows.sandbox = "mxc"` 直接报错，不写该键保持原行为；该键只在 main 分支，rust-v0.160.1（提交 `d27764b82f71`）的 `WindowsToml` 只有 `sandbox` 一个字段，官方配置参考与 Windows sandbox 页也未列出。需要 Linux 原生工具链时官方建议改用 WSL。',
           sources: [
             'codex-approvals',
             'codex-config',
+            'codex-sandboxing',
+            'codex-linux-sandbox-bwrap',
+            'codex-linux-sandbox-cargo',
             'codex-windows-sandbox',
             'codex-config-reference',
             'codex-commands',
@@ -508,6 +542,65 @@
             'codex-windows-allow-mxc-commit',
             'codex-slash-command-v0154',
             'codex-slash-command-v0155',
+          ],
+        },
+        qwen: {
+          entry:
+            '审批侧仍是 `/approval-mode`、`/permissions` 与 `Shift+Tab`，CLI 可传 `--approval-mode`、`--allowed-tools`、`--sandbox`，启用目录信任后提供 `/trust`。工具执行沙箱没有 Slash 命令：策略写在 User 设置（`~/.qwen/settings.json`，或 `QWEN_HOME` 选择的目录）或管理员 System 设置的 `tools.executionSandbox` 下，核对与验证走独立子命令 `qwen sandbox`（报告生效策略）、`qwen sandbox --verify`（验证内核边界）与 `qwen sandbox -- <cmd...>`（在边界内跑一条命令）；该子命令的 yargs 定义为 `sandbox [cmd...]`、描述 “Inspect tool confinement, verify it, or run one confined command”，选项为 `--verify`（boolean，默认 `false`）、`--sandbox` 与 `--sandbox-image`，开启 `.strict()`，SIGINT 与 SIGTERM 分别以 130 与 143 退出。整 CLI 的旧方法仍走 `--sandbox`/`-s`、`QWEN_SANDBOX` 或 `tools.sandbox`。',
+          defaults:
+            '`tools.approvalMode` 当前默认值为 `auto`；`security.folderTrust.enabled` 默认关闭。两层沙箱都默认关闭：`tools.executionSandbox` 是必填 `filesystem` 与 `network`、可选 `backend`（默认 `auto`）的完整策略对象，不写就不启用；整 CLI 的 `tools.sandbox` 默认 `undefined`，且官方逐字写 “**`--yolo` does _not_ automatically enable a sandbox.**”。工具执行沙箱只支持 Linux，`execution-sandbox-config.ts` 在不满足时抛 “tools.executionSandbox requires Linux with a compatible bwrap or Landlock backend.”。',
+          rules:
+            '`permissions.deny` > `ask` > `allow`；规则可限制 Shell、Read、Edit、WebFetch、MCP 等。`tools.disabled` 在注册阶段直接移除工具。工具执行沙箱与规则是两层：官方写 “Approval and YOLO do not expand the filesystem or network policy.”，即审批模式与 YOLO 都不能放宽该策略；策略本身只认字面量，`parseExecutionSandboxSettings` 在出现 `backend`/`filesystem`/`network` 以外的键、缺 `filesystem` 或 `network`、取值不在枚举内或不是字符串时抛 `InvalidExecutionSandboxConfigError`（继承 `FatalConfigError`），消息为 “tools.executionSandbox requires literal filesystem (read-only | workspace-write), network (open | closed), and optional backend (auto | bwrap | landlock). Unknown fields and environment interpolation are not supported.”。',
+          boundary:
+            '工具执行沙箱覆盖 Shell、终端 `!`、提示词 shell 插值、Monitor、Read/Write/Edit 与受支持的嵌套 in-process Agent/Code Mode 调用，它们共用同一运行时策略；CLI 本体、模型传输、认证与会话存储留在宿主。读取仍然宽：官方写该模式 “does not hide host secrets or promise to isolate pathname Unix sockets and host services”。Landlock 后端另报 `partial` enforcement——不创建 PID 或网络命名空间、不能限制 `chmod`/`chown`/扩展属性/时间戳等全部元数据操作、命令能看到宿主进程并用宿主网络，分离的子孙进程保留文件系统限制但没有 bwrap 的 PID-namespace 生命周期边界；启动时的 Landlock 策略探测需要 `/usr/bin/true`，缺它的宿主即使内核支持也会探测失败。链接的 Git worktree 只对准入的工作区有写权限，工作区外的 Git common-directory 与 worktree 元数据保持只读。整 CLI 方法的边界则是 Seatbelt Profile 或容器挂载（工作区与 `~/.qwen`）。',
+          persistence:
+            '审批模式和规则可写入用户、项目或系统 Settings；`/permissions` 可管理规则，目录信任记录单独保存在受信目录配置中。`tools.executionSandbox` 的保存范围被官方刻意收窄：Workspace 设置不能启用、关闭或修改它，即使在受信任项目里也不行；生效优先级为 System > User > SystemDefaults，且选择的是一个完整策略对象（System 策略替换整个 User/SystemDefaults 对象，Workspace 值被忽略）；`--bare` 与 `--safe-mode` 保留运算符设定的限制，改动需要新的运行时。',
+          noninteractive:
+            'Headless 可预设 approval mode 和规则；没有交互通道时，仍需人工确认的工具调用会被拒绝。YOLO 会全放行工具，但不会自动启用 Sandbox。工具执行沙箱支持普通 headless CLI 与两个终端 UI；`qwen sandbox -- <cmd...>` 逐字转发参数与重定向的 stdin，并按字节保留 stdout 与 stderr，交互式 PTY 命令要改用终端 `!`。后端建立错误在 payload 执行前失败，绝不会把命令重跑到宿主上。',
+          conditions:
+            '目录信任是可选功能；未信任目录会阻止 Auto-Edit、Auto、YOLO 等高权限路径及部分项目自定义内容。工具执行沙箱的平台与集成条件更硬：只在 Linux 生效，bwrap 的支持路径是 `/usr/bin/bwrap`，Landlock 回退要求内核 Landlock ABI 3 及以上且只在 `network: "open"` 时可用；Landlock 不能实现 `network: "closed"`，也不能隐藏显式 masked paths，任一要求都会在命令启动前拒绝 Landlock，而自动回退不会丢弃剩余的路径掩码。Surface 限制逐字为 “This initial public mode supports the ordinary headless CLI and both terminal UIs. ACP, `qwen serve` and web terminals explicitly reject it.”，源码里由 `assertExecutionSandboxSupported(settings, surface)` 抛 “tools.executionSandbox does not yet support ${surface}. Use the ordinary CLI or terminal UI.”；同时被禁用或拒绝的还有 MCP/LSP、可执行 hooks/extensions、worktree/arena 管理、外部 agent、投机执行、文件检查点、自动 skill/memory 维护与未移植的进程或变更工具，同工作区的普通 in-process agent 不能新增 hooks、MCP server、外部执行器或 worktree 隔离，自定义状态命令、外部 Markdown/图片渲染器、IDE 检测与连接、文件恢复与宿主 Git diff 预览都被关掉，只剩对话级 rewind。设置文件格式错误或不可读会阻止启动（配置退出码 52）并给出文件名与修复动作，User 侧的 `.corrupted` 副本只是参考、原文件永不被清除。与旧方法互斥：`QWEN_SANDBOX`、`--sandbox`、`tools.sandbox` 或继承的 `SANDBOX` 取值为 `bwrap` 时抛 `BWRAP_MIGRATION_MESSAGE`（“Whole-CLI bwrap has been removed. Replace tools.sandbox: "bwrap" / QWEN_SANDBOX=bwrap with tools.executionSandbox: {"backend":"auto","filesystem":"workspace-write","network":"closed"} in User or System settings; remove inherited SANDBOX=bwrap and restart outside the old sandbox.”），同时存在 `tools.executionSandbox` 与整 CLI 沙箱选择、`SANDBOX` 标记、`QWEN_SANDBOX_NET` 或 `QWEN_SANDBOX_PROXY_COMMAND` 时抛 “tools.executionSandbox cannot be combined with a whole-CLI sandbox, SANDBOX marker, QWEN_SANDBOX_NET or QWEN_SANDBOX_PROXY_COMMAND. Remove the legacy configuration and restart.”；`proxied` 不是受支持的网络策略。版本时间线：PR #12267（提交 `1afbcffe21c98046670e8e4837a640f5d50465b1`，2026-09-22T10:55:51Z）把 bwrap 沙箱移到工具执行并移除整 CLI 的 bwrap 启动路径，首个记录该节的稳定标签是 v0.24.4（提交 `9674d6efdc8ac16583270bd2a55cfa49e3ec254e`，2026-09-22T15:15:06Z 发布），当时文档写 “Landlock is not available in this release.”，再前一个稳定标签 v0.24.0 的同文件里 Linux 方法仍只有 Docker 或 Podman；PR #12278（提交 `1a5a74bc35b5ac35298118af81df8a973d49260a`，2026-09-29T03:45:46Z）加入 Landlock 回退，首个记录它的稳定标签是 v0.24.7（提交 `b12edec1401a28fc53cd9e714d5928b285071fc8`，2026-09-29T14:02:21Z 发布）；PR #13140（提交 `09411aa0a9193b2e1d86f1a8de7c65e513757a52`，2026-10-03T12:02:48Z）收紧设置失败与沙箱命令流。核对日期最新稳定标签是 v0.25.3（提交 `b28b0d948fa28b89750ac5f1525b95e1746f47ab`，2026-10-19T06:06:37Z 发布），其 `docs/users/features/sandbox.md` 与 main 分支同文件逐字一致；v0.24.7 之后补上的四处是 `/usr/bin/bwrap` 支持路径、配置退出码 52、链接 Worktree 的写权限范围与 stdin 走私有只读 socket。官方写 `qwen sandbox` 的报告包含 “requested/effective backend” 与 “enforcement level”，但全文只给出 Landlock 一侧的级别名 `partial`，bwrap 后端的级别取值官方没有列出，记为未确认。',
+          sources: [
+            'qwen-approval',
+            'qwen-sandbox',
+            'qwen-settings',
+            'qwen-headless',
+            'qwen-sandbox-execution-v0253',
+            'qwen-sandbox-execution-scope-v0253',
+            'qwen-sandbox-landlock-partial-v0253',
+            'qwen-sandbox-verify-v0253',
+            'qwen-sandbox-migration-v0253',
+            'qwen-settings-execution-sandbox-v0253',
+            'qwen-execution-sandbox-settings-v0253',
+            'qwen-execution-sandbox-pr-12267',
+            'qwen-sandbox-doc-v0244',
+            'qwen-landlock-fallback-pr-12278',
+          ],
+        },
+        kimi: {
+          boundary:
+            '权限规则覆盖文件、Bash、MCP 等工具调用。2.3.0 标签提交 `b5e28fd6beac752a2cdcc0ff2f5fdf40e6494fbb` 的整棵仓库树里没有任何路径含 sandbox、bwrap、bubblewrap、landlock、seccomp 或 seatbelt 字样，该标签的 `docs/zh/configuration/config-files.md`、`docs/zh/reference/tools.md` 与 `docs/zh/configuration/env-vars.md` 也没有这些词；文件边界由 `packages/agent-core-v2/src/agent/permissionPolicy/policies/` 下的策略（含 `sensitive-file-access-ask.ts`、`git-control-path-access-ask.ts`、`git-cwd-write-approve.ts`、`user-configured-deny.ts` 等）与 `packages/agent-core-v2/src/tool/path-access.ts` 的路径判定提供，属权限规则层而不是 OS 或容器隔离层。是否存在未公开的 OS 沙箱记为未确认。',
+          conditions:
+            'YOLO 跳过普通工具审批，但敏感文件与退出 Plan 仍可询问；Auto 会自动处理全部审批并禁止 Agent 向用户提问。`[permission] dangerous_command_guard = false` 自 2.3.0 起一次关掉全部三条内置 guard 确认策略。官方中文变更记录 2.3.0（2026-10-21）与 2.2.0（2026-10-14）两段都没有沙箱、文件系统隔离或命名空间条目。',
+          sources: [
+            'kimi-interaction',
+            'kimi-config',
+            'kimi-cli',
+            'kimi-no-os-sandbox-230',
+          ],
+        },
+        qoder: {
+          boundary:
+            'CLI 权限文档提供路径级 Read/Edit 规则、`permissions.additionalDirectories` 与 `permissions.trustDirectories` 两类受信目录，以及受保护路径。OS 或容器级文件系统沙箱在核对日期无法从官方 CLI 文档复核：`llms.txt` 列出的 96 个 `/cli/` 页面里只有 `cli/sdk/errors`、`cli/sdk/how-it-works` 与 `cli/sdk/skills` 三页出现 sandbox 字样，分别是退出码 `44` “Fatal sandbox error”、“`cwd`, tool allowlists, permission rules, hooks, sandboxing, and infrastructure isolation are complementary controls.” 与 “Don\u0027t treat `skills` as a sandbox”；设置参考页全文没有 sandbox 字样，SDK 参考页也没有 `sandbox.filesystem` 一类键。本仓库此前记录的「SDK 的 `sandbox.filesystem` 可设置 allow/deny read/write，且 Sandbox 默认关闭」因此改为未确认；`llms.txt` 里含 sandbox 的其余链接属 Qoder IDE 与 Cloud Agents 两个别的 Surface，按本仓库规则不并入 CLI。',
+          conditions:
+            '未信任目录强制回退 `default`；受保护路径仍可要求审批或在 Auto 中拒绝。PreToolUse Hook 的 deny 即使在 bypass 下也能阻断。官方 CLI Release Notes 最新条目为 CLI 1.1.75（October 20, 2026），1.1.66 至 1.1.75 各段都没有本地沙箱键或 OS 隔离条目；整份发布说明唯一含 sandbox 字样的是 CLI 1.0.0（May 20, 2026）段 “Enterprise Integration” 下的 Cloud Agents 一条，属云端 Surface。此前引用的 `https://docs.qoder.com/en/cli/sandbox` 在核对日期返回 404。',
+          sources: [
+            'qoder-permissions',
+            'qoder-sdk-reference',
+            'qoder-sdk-errors',
+            'qoder-sdk-how-it-works',
+            'qoder-docs-index',
+            'qoder-settings-reference-sandbox',
+            'qoder-release-notes-sandbox',
           ],
         },
       },

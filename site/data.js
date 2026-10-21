@@ -324,6 +324,31 @@ window.matrixData = {
       label: 'Claude Code v2.1.219 changelog',
       url: 'https://github.com/anthropics/claude-code/blob/0c188278cdf9/CHANGELOG.md',
     },
+    'claude-v21305-nested-userns-changelog': {
+      label:
+        'Claude Code 官方仓库 `CHANGELOG.md`（固定到提交 `49b8c35f8c57493c2f0eba1429ccaa9638ab8712`，2026-10-20T20:46:27Z，提交说明 “chore: Update CHANGELOG.md and feed.xml”，只改 `CHANGELOG.md` 与 `feed.xml`）`## 2.1.305` 段下逐字为 “Added `sandbox.allowNestedUserNamespaces` so sandboxed commands on Linux can create user namespaces (Chromium, rootless podman); this lets them get around the sandbox\'s file protections”；同段另一条为 “Added `CLAUDE_CODE_RETRY_WATCHDOG_USAGE_LIMIT_RECHECK_MS` so unattended retry mode (`CLAUDE_CODE_RETRY_WATCHDOG`) notices a usage limit that was lifted before its reset”',
+      url: 'https://github.com/anthropics/claude-code/blob/49b8c35f8c57493c2f0eba1429ccaa9638ab8712/CHANGELOG.md',
+    },
+    'claude-v21305-release': {
+      label:
+        'Claude Code Release [v2.1.305](https://github.com/anthropics/claude-code/releases/tag/v2.1.305)（2026-10-20T20:46:50Z 发布）；核对日期最新 Release 为 v2.1.306（2026-10-21T03:16:31Z），其更新日志两条都是修复、没有沙箱条目',
+      url: 'https://github.com/anthropics/claude-code/releases/tag/v2.1.305',
+    },
+    'claude-sandbox-weaker-nested': {
+      label:
+        'Claude Code 官方 Sandboxing 页 “Bubblewrap fails to start inside a container” 一节（2026-10-21 抓取，95,397 字节）逐字为 “In an unprivileged container, bubblewrap can\'t mount a fresh `/proc` filesystem, so sandboxed commands fail with a `bwrap` error such as `Can\'t mount proc on /newroot/proc: Operation not permitted`. Set `enableWeakerNestedSandbox` to `true` so the sandbox bind-mounts the container\'s existing `/proc` instead. Only use this setting when the outer container already provides the isolation boundary you need, since the setting exposes process information to sandboxed commands that a fresh `/proc` mount would hide.”；同页 “Security limitations” 一节逐字为 “**Linux sandbox strength**: the Linux implementation provides strong filesystem and network isolation but includes an `enableWeakerNestedSandbox` mode that enables it to work inside Docker environments without privileged namespaces. This option considerably weakens security and should only be used when additional isolation is otherwise enforced.”；该页全文没有 `allowNestedUserNamespaces` 字样',
+      url: 'https://code.claude.com/docs/en/sandboxing#bubblewrap-fails-to-start-inside-a-container',
+    },
+    'claude-sandbox-apparmor-userns': {
+      label:
+        'Claude Code 官方 Sandboxing 页 “Set up Linux and WSL2” 一节的提示块（2026-10-21 抓取）标题逐字为 “**Ubuntu 24.04 and later: allow bubblewrap to create user namespaces**”，正文逐字为 “On Ubuntu 24.04 and later, the default AppArmor policy prevents bubblewrap from creating the user namespaces it needs for isolation.” 与 “To check whether your environment enforces this restriction, including inside WSL2, run `sysctl kernel.apparmor_restrict_unprivileged_userns`. If the command returns `0`, skip this step. If it prints a `No such file or directory` error, the key doesn\'t exist and you can skip this step. If it returns `1`, add an AppArmor profile that grants `bwrap` this capability:”，给出的 profile 写入 `/etc/apparmor.d/bwrap`，内容为 `abi <abi/4.0>,`、`include <tunables/global>` 与 `profile bwrap /usr/bin/bwrap flags=(unconfined) { userns, include if exists <local/bwrap> }`；同页 “OS-level enforcement” 一节逐字为 macOS “uses Seatbelt for sandbox enforcement”、Linux “uses [bubblewrap](https://github.com/containers/bubblewrap) for isolation”、WSL2 “uses bubblewrap, same as Linux”，依赖为 `bubblewrap` 与 `socat`',
+      url: 'https://code.claude.com/docs/en/sandboxing#set-up-linux-and-wsl2',
+    },
+    'claude-sandbox-weakening-keys': {
+      label:
+        'Claude Code 官方 Sandboxing 页 “Keep developers from widening the policy” 一节（2026-10-21 抓取）逐字为 “Unless managed settings set them, a developer\'s user settings or `--settings` can turn on the following keys. A repository\'s `.claude/settings.json` can too, unless the sandbox is admin-required. Each one weakens the sandbox, so set it to `false` in managed settings if you don\'t want it used:”，其下五项为 `enableWeakerNestedSandbox`、`enableWeakerNetworkIsolation`、`network.allowAllUnixSockets`、`network.allowLocalBinding` 与 `allowAppleEvents`（后者注明 “which a repository can\'t turn on”）；“Repository settings under an admin-required sandbox” 一节的忽略表把 `enableWeakerNestedSandbox`、`enableWeakerNetworkIsolation`、`network.allowAllUnixSockets`、`network.allowLocalBinding` 四行记为忽略仓库文件里的 `true`、而 “A `false` still applies”；官方 Settings 参考页索引表 `sandbox.enableWeakerNestedSandbox` 行描述为 “Run the Linux sandbox inside an unprivileged container”、作用域 “Any file”，同页另有 `sandbox.bwrapPath`（“Point the sandbox at a bubblewrap binary outside `PATH`”，作用域 Managed），但索引表没有 `sandbox.allowNestedUserNamespaces` 行',
+      url: 'https://code.claude.com/docs/en/sandboxing#keep-developers-from-widening-the-policy',
+    },
     'claude-credential-file-mask': {
       label: 'Claude Code v2.1.221 changelog',
       url: 'https://github.com/anthropics/claude-code/blob/dd796139237c/CHANGELOG.md',
@@ -965,6 +990,21 @@ window.matrixData = {
       label: 'Codex Windows sandbox',
       url: 'https://learn.chatgpt.com/docs/windows/windows-sandbox',
     },
+    'codex-sandboxing': {
+      label:
+        'Codex 官方 Sandboxing 页（2026-10-21 抓取，492,064 字节）逐字为 “Codex uses platform-native enforcement on each OS. The implementation differs between macOS, Linux, WSL2, and native Windows, but the idea is the same across surfaces: give the agent a bounded place to work so routine tasks can run autonomously inside clear limits.”、“On **macOS**, sandboxing works out of the box using the built-in Seatbelt framework.”、“On **Windows**, Codex uses the native Windows sandbox when you run in PowerShell and the Linux sandbox implementation when you run in WSL2.”；Linux 侧逐字为 “Codex uses the first `bwrap` executable it finds on `PATH`. If no `bwrap` executable is available, Codex falls back to a bundled helper, but that helper requires support for unprivileged user namespace creation. Installing the distribution package that provides `bwrap` keeps this setup reliable.” 与 “Codex surfaces a startup warning when `bwrap` is missing or when the helper can\'t create the needed user namespace. On distributions that restrict this AppArmor setting, prefer loading the `bwrap` AppArmor profile so `bwrap` can keep working without disabling the restriction globally.”；Ubuntu 24.04 一段逐字为 “On Ubuntu 24.04, Codex may still warn that it can\'t create the needed user namespace after `bubblewrap` is installed. Copy and load the extra profile:”，命令为 `sudo apt install apparmor-profiles apparmor-utils`、`sudo install -m 0644 /usr/share/apparmor/extra-profiles/bwrap-userns-restrict /etc/apparmor.d/bwrap-userns-restrict`、`sudo apparmor_parser -r /etc/apparmor.d/bwrap-userns-restrict`，并注明 “`apparmor_parser -r` loads the profile into the kernel without a reboot.”，退路为 “If that profile is unavailable or does not resolve the issue, you can disable the AppArmor unprivileged user namespace restriction with: `sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0`”；该页没有讨论在容器内运行 Codex 的嵌套场景，也没有出现 Landlock 或 seccomp 字样',
+      url: 'https://learn.chatgpt.com/docs/sandboxing',
+    },
+    'codex-linux-sandbox-bwrap': {
+      label:
+        'Codex `codex-rs/linux-sandbox/src/bwrap.rs`（标签 `rust-v0.164.0-alpha.9`，提交 `bcee56bcdb74cbf08fc6dd47ef0079fded4bba9a`，1522 行）在两处构造 `bwrap` 参数时都显式加入 `--unshare-user`，注释分别逐字为 “// Always enter a fresh user namespace so root inside a container does // not need ambient CAP_SYS_ADMIN to create the remaining namespaces.” 与 “// Request a user namespace explicitly rather than relying on bubblewrap\'s // auto-enable behavior, which is skipped when the caller runs as uid 0. // This also blocks host procfs root/cwd/fd links through ptrace permission // checks, including when a container requires retaining the host procfs.”；同一参数列表还含 `--unshare-ipc`、`--dev /dev`、`--bind-try /dev/shm /dev/shm`、`--cap-drop ALL`，并按选项条件加入 `--unshare-pid`、`--unshare-net` 与 `--proc /proc`，`mount_proc` 为假且需要遮蔽 WSL 视图时改挂 `--tmpfs /proc`',
+      url: 'https://github.com/openai/codex/blob/bcee56bcdb74cbf08fc6dd47ef0079fded4bba9a/codex-rs/linux-sandbox/src/bwrap.rs',
+    },
+    'codex-linux-sandbox-cargo': {
+      label:
+        'Codex `codex-rs/linux-sandbox/Cargo.toml`（标签 `rust-v0.164.0-alpha.9`，提交 `bcee56bcdb74cbf08fc6dd47ef0079fded4bba9a`）的 `[target.\'cfg(target_os = "linux")\'.dependencies]` 段同时列出 `landlock = { workspace = true }` 与 `seccompiler = { workspace = true }`，另有 `codex-network-proxy`、`codex-process-hardening`、`codex-sandboxing`、`globset` 与 `rustix`；同目录 `src/` 下的文件为 `bazel_bwrap.rs`、`bundled_bwrap.rs`、`bwrap.rs`、`bwrap_wslg_tests.rs`、`daemon_mounts.rs`、`exec_util.rs`、`fd_mount.rs`、`launcher.rs`、`lib.rs`、`linux_run_main.rs`、`main.rs`、`proxy_lifecycle.rs`、`proxy_routing.rs`、`seccomp.rs` 与 `wslg.rs`，即 Landlock 与 seccomp 是该 crate 的实现依赖，而官方文档口径的 Linux 边界是 bubblewrap',
+      url: 'https://github.com/openai/codex/blob/bcee56bcdb74cbf08fc6dd47ef0079fded4bba9a/codex-rs/linux-sandbox/Cargo.toml',
+    },
     'codex-managed-configuration': {
       label: 'Codex Managed configuration（requirements.toml）',
       url: 'https://learn.chatgpt.com/docs/enterprise/managed-configuration',
@@ -1178,6 +1218,56 @@ window.matrixData = {
     'qwen-sandbox': {
       label: 'Qwen Code Sandbox',
       url: 'https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/sandbox.md',
+    },
+    'qwen-sandbox-execution-v0253': {
+      label:
+        'Qwen Code `docs/users/features/sandbox.md`（标签 v0.25.3，提交 `b28b0d948fa28b89750ac5f1525b95e1746f47ab`，17,891 字节，与 main 分支同文件逐字一致）首段逐字为 “This document explains tool execution confinement on Linux and the existing whole-CLI sandbox methods.”，“## Linux tool execution sandbox” 一节逐字为 “On Linux, install `bwrap` (Bubblewrap) at `/usr/bin/bwrap` (the supported system path) for the strongest supported boundary, then enable the tool execution sandbox in your **User** settings (`~/.qwen/settings.json`, or the directory selected by `QWEN_HOME`) or administrator **System** settings:”，示例为 `{ "tools": { "executionSandbox": { "backend": "auto", "filesystem": "workspace-write", "network": "closed" } } }`，随后逐字为 “`filesystem` and `network` are required. `backend` defaults to `auto`, which tries bwrap first. When bwrap is unavailable and `network` is `open`, `auto` can use the bundled Landlock helper on kernels with Landlock ABI 3 or newer. Set `backend` to `bwrap` or `landlock` to require that exact implementation. Landlock cannot enforce `network: closed` or hide explicit masked paths. Either requirement rejects Landlock before any command starts; automatic fallback never discards a remaining path mask. Use `read-only` to deny workspace writes, or `workspace-write` to permit writes inside the current canonical workspace. Each command also gets private scratch space. Ordinary `includeDirectories` settings do not grant write access.”',
+      url: 'https://github.com/QwenLM/qwen-code/blob/b28b0d948fa28b89750ac5f1525b95e1746f47ab/docs/users/features/sandbox.md',
+    },
+    'qwen-sandbox-execution-scope-v0253': {
+      label:
+        'Qwen Code `docs/users/features/sandbox.md`（标签 v0.25.3，提交 `b28b0d948fa28b89750ac5f1525b95e1746f47ab`）作用域与限制段逐字为 “The CLI, model transport, authentication and session storage remain on the host. Shell, terminal `!`, prompt shell interpolation, Monitor, Read/Write/Edit and supported nested in-process Agent/Code Mode calls use the same runtime policy.”、“With bwrap, `network: closed` blocks ordinary host/external IP connections from commands, while `open` shares the host network. Reads remain broad: this mode does not hide host secrets or promise to isolate pathname Unix sockets and host services. Approval and YOLO do not expand the filesystem or network policy.”、“Workspace settings cannot enable, disable or modify this policy, even in a trusted project. Effective precedence is System over User over SystemDefaults, selecting a complete policy object. Values must be literals; environment substitutions, unknown fields and incomplete objects are rejected. `--bare` and `--safe-mode` retain operator confinement. Changes require a new runtime. A malformed or unreadable SystemDefaults, User or System settings file now blocks startup (configuration exit code 52), instead of silently resetting unknown policy to empty settings.”、“This initial public mode supports the ordinary headless CLI and both terminal UIs. ACP, `qwen serve` and web terminals explicitly reject it. MCP/LSP, executable hooks/extensions, worktree/arena management, external agents, speculative execution, file checkpoints, automatic skill/memory maintenance, and unported process or mutation tools are disabled or rejected.” 与 “Linked Git worktrees receive write access to the admitted workspace only. Git common-directory and worktree metadata outside that workspace stay read-only; this mode does not implicitly authorize changing another checkout\'s repository metadata.”',
+      url: 'https://github.com/QwenLM/qwen-code/blob/b28b0d948fa28b89750ac5f1525b95e1746f47ab/docs/users/features/sandbox.md#linux-tool-execution-sandbox',
+    },
+    'qwen-sandbox-landlock-partial-v0253': {
+      label:
+        'Qwen Code `docs/users/features/sandbox.md`（标签 v0.25.3，提交 `b28b0d948fa28b89750ac5f1525b95e1746f47ab`）Landlock 段逐字为 “Landlock reports `partial` enforcement because it restricts pathname reads, writes and directory mutations but does not create PID or network namespaces and cannot currently restrict every metadata operation, including `chmod`, `chown`, extended attributes and timestamps. A Landlock command can see host processes and uses host networking. Detached descendants retain the Landlock filesystem restrictions but do not get bwrap\'s PID-namespace lifetime boundary.” 与 “Landlock also has a narrower writable device surface: it grants writes to `/dev/null`, but does not create bwrap\'s private `/dev` and `/proc` mounts. Opening `/dev/full` or `/dev/tty` for writing and creating files in `/dev/shm` are denied, so programs requiring these operations may fail. Use the private scratch directory exposed through `TMPDIR`, `TMP`, and `TEMP` for temporary files.”，并写 “Startup\'s Landlock policy probe requires `/usr/bin/true`; a host missing it fails the probe even if its kernel supports Landlock.”',
+      url: 'https://github.com/QwenLM/qwen-code/blob/b28b0d948fa28b89750ac5f1525b95e1746f47ab/docs/users/features/sandbox.md',
+    },
+    'qwen-sandbox-verify-v0253': {
+      label:
+        'Qwen Code `docs/users/features/sandbox.md`（标签 v0.25.3，提交 `b28b0d948fa28b89750ac5f1525b95e1746f47ab`）核对命令段逐字为 “Inspect and verify the active boundary before running a task:” 加代码块 `qwen sandbox`、`qwen sandbox --verify`、`qwen sandbox -- sh -c \'printf "confined command\\n"\'`、`qwen -y -p "Update the project and run its tests"`，说明逐字为 “The report names the tool boundary, requested/effective backend, enforcement level, Landlock ABI when applicable, workspace, filesystem and command network policy. `--verify` checks workspace writes, denial against a file known to be writable on the host, the expected private or shared PID namespace identity, and the selected network namespace. A passed backend probe establishes admission, not authenticated full-session viability under all inherited environment settings.” 与 “Backend setup errors fail before payload execution and never rerun the command on the host. The one-command subcommand forwards literal arguments and redirected stdin while preserving stdout and stderr byte-for-byte; use terminal `!` for interactive PTY commands.”；同标签 `packages/cli/src/commands/sandbox.ts`（302 行）的 yargs 定义为 `command: \'sandbox [cmd...]\'`、`describe: \'Inspect tool confinement, verify it, or run one confined command\'`，选项为 `--verify`（boolean，默认 `false`）、`--sandbox` 与 `--sandbox-image`，三条 example 为 `$0 sandbox`（“Report the effective execution policy”）、`$0 sandbox --verify`（“Verify the kernel boundary”）与 `$0 sandbox -- sh -c \'ls /\'`（“Run one command confined”），并开启 `.strict()`；SIGINT 与 SIGTERM 分别把取消退出码设为 130 与 143',
+      url: 'https://github.com/QwenLM/qwen-code/blob/b28b0d948fa28b89750ac5f1525b95e1746f47ab/packages/cli/src/commands/sandbox.ts',
+    },
+    'qwen-sandbox-migration-v0253': {
+      label:
+        'Qwen Code `docs/users/features/sandbox.md`（标签 v0.25.3，提交 `b28b0d948fa28b89750ac5f1525b95e1746f47ab`）“### Migrating from whole-CLI bwrap” 一节逐字为 “Replace `--sandbox bwrap` and remove `tools.sandbox: "bwrap"`, `QWEN_SANDBOX=bwrap`, `QWEN_SANDBOX_NET` and `QWEN_SANDBOX_PROXY_COMMAND`, then configure `tools.executionSandbox` as above. Restart from a shell outside the old sandbox; inherited `SANDBOX=bwrap` is rejected. `proxied` is not a supported network policy. Do not combine this mode with Docker, Podman, Seatbelt or an inherited whole-CLI sandbox marker. Old bwrap settings produce an explicit migration error.”，紧接一句为 “The Docker, Podman and macOS Seatbelt methods below still run the whole CLI in their existing environment.”；同页保留的整 CLI 方法为 macOS Seatbelt（`sandbox-exec`，默认 profile `permissive-open`，逐字 “restricts writes outside the project directory, but allows most other operations and outbound network access”）与 Docker/Podman 容器（逐字 “The container sandbox mounts your workspace and your `~/.qwen` directory into the container so auth and settings persist between runs.”）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/b28b0d948fa28b89750ac5f1525b95e1746f47ab/docs/users/features/sandbox.md#migrating-from-whole-cli-bwrap',
+    },
+    'qwen-settings-execution-sandbox-v0253': {
+      label:
+        'Qwen Code `docs/users/configuration/settings.md`（标签 v0.25.3，提交 `b28b0d948fa28b89750ac5f1525b95e1746f47ab`，381,388 字节）设有独立一节 “## Tool execution sandbox”，逐字为 “`tools.executionSandbox` is an operator-only Linux policy with required `filesystem: "read-only" | "workspace-write"` and `network: "open" | "closed"`, plus optional `backend: "auto" | "bwrap" | "landlock"`. `auto` prefers bwrap and can fall back to partial Landlock filesystem enforcement only when command networking is open. System policy replaces the complete User/SystemDefaults object; Workspace values are ignored. Bare/safe modes retain the policy and changing it requires restart.”；同页 `tools` 表仍保留 `tools.sandbox`（boolean or string，“Sandbox execution environment (can be a boolean or a path string).”，默认 `undefined`）与 `tools.sandboxImage`，并逐字写 “**`--yolo` does _not_ automatically enable a sandbox.**”',
+      url: 'https://github.com/QwenLM/qwen-code/blob/b28b0d948fa28b89750ac5f1525b95e1746f47ab/docs/users/configuration/settings.md#tool-execution-sandbox',
+    },
+    'qwen-execution-sandbox-pr-12267': {
+      label:
+        'Qwen Code PR #12267 的合并提交 `1afbcffe21c98046670e8e4837a640f5d50465b1`（“feat(cli): Move bwrap sandboxing to tool execution (#12267)”，2026-09-22T10:55:51Z）提交说明逐字含 “Expose the operator-owned tools.executionSandbox policy across the CLI, route supported interactive entrypoints through the runtime boundary, and remove the legacy whole-CLI bwrap launch path.”；该提交是 `docs/users/features/sandbox.md` 引入 “## Linux tool execution sandbox” 一节的第一次变更',
+      url: 'https://github.com/QwenLM/qwen-code/commit/1afbcffe21c98046670e8e4837a640f5d50465b1',
+    },
+    'qwen-sandbox-doc-v0244': {
+      label:
+        'Qwen Code `docs/users/features/sandbox.md`（标签 v0.24.4，提交 `9674d6efdc8ac16583270bd2a55cfa49e3ec254e`，Release 发布于 2026-09-22T15:15:06Z，13,144 字节）是首个记录该节的稳定标签，其 `backend` 一句逐字为 “`filesystem` and `network` are required. `backend` defaults to `auto`; both `auto` and `bwrap` currently select bwrap. Landlock is not available in this release.”；再前一个稳定标签 v0.24.0（提交 `56b003be0785`）的同文件只有 8,559 字节，没有 `tools.executionSandbox` 与 “Linux tool execution sandbox” 字样，Linux 方法仍是 “On Linux/Windows: - Use Docker or Podman.”',
+      url: 'https://github.com/QwenLM/qwen-code/blob/9674d6efdc8ac16583270bd2a55cfa49e3ec254e/docs/users/features/sandbox.md',
+    },
+    'qwen-landlock-fallback-pr-12278': {
+      label:
+        'Qwen Code PR #12278 的合并提交 `1a5a74bc35b5ac35298118af81df8a973d49260a`（“feat(core): Add Landlock execution fallback (#12278)”，2026-09-29T03:45:46Z）；标签 v0.24.7（提交 `b12edec1401a28fc53cd9e714d5928b285071fc8`，Release 发布于 2026-09-29T14:02:21Z，15,025 字节）的 `docs/users/features/sandbox.md` 是首个记录 Landlock 回退的稳定标签，其 `backend` 一句逐字为 “`backend` defaults to `auto`, which tries bwrap first. When bwrap is unavailable and `network` is `open`, `auto` can use the bundled Landlock helper on kernels with Landlock ABI 3 or newer.”；该标签还没有 v0.25.3 里的 `/usr/bin/bwrap` 支持路径、配置退出码 52、链接 Worktree 写权限范围与 stdin 私有 socket 四段',
+      url: 'https://github.com/QwenLM/qwen-code/commit/1a5a74bc35b5ac35298118af81df8a973d49260a',
+    },
+    'qwen-execution-sandbox-settings-v0253': {
+      label:
+        'Qwen Code `packages/cli/src/config/execution-sandbox-settings.ts`（标签 v0.25.3，提交 `b28b0d948fa28b89750ac5f1525b95e1746f47ab`，226 行）导出 `interface ExecutionSandboxSettings { backend?: \'auto\' | \'bwrap\' | \'landlock\'; filesystem: \'read-only\' | \'workspace-write\'; network: \'open\' | \'closed\'; }`，`parseExecutionSandboxSettings` 在对象含 `backend`/`filesystem`/`network` 以外的键、缺 `filesystem` 或 `network`、取值不在枚举内或不是字符串时抛 `InvalidExecutionSandboxConfigError`，消息逐字为 “tools.executionSandbox requires literal filesystem (read-only | workspace-write), network (open | closed), and optional backend (auto | bwrap | landlock). Unknown fields and environment interpolation are not supported.”；`InvalidExecutionSandboxConfigError extends FatalConfigError`；常量 `BWRAP_MIGRATION_MESSAGE` 逐字为 “Whole-CLI bwrap has been removed. Replace tools.sandbox: "bwrap" / QWEN_SANDBOX=bwrap with tools.executionSandbox: {"backend":"auto","filesystem":"workspace-write","network":"closed"} in User or System settings; remove inherited SANDBOX=bwrap and restart outside the old sandbox.”，在 `QWEN_SANDBOX`、`--sandbox`、`tools.sandbox` 或继承的 `SANDBOX` 取值为 `bwrap` 时抛出；同时设了 `tools.executionSandbox` 又存在整 CLI 沙箱选择、`SANDBOX` 标记、`QWEN_SANDBOX_NET` 或 `QWEN_SANDBOX_PROXY_COMMAND` 时抛 “tools.executionSandbox cannot be combined with a whole-CLI sandbox, SANDBOX marker, QWEN_SANDBOX_NET or QWEN_SANDBOX_PROXY_COMMAND. Remove the legacy configuration and restart.”；`assertExecutionSandboxSupported(settings, surface)` 抛 `tools.executionSandbox does not yet support ${surface}. Use the ordinary CLI or terminal UI.`；同目录 `execution-sandbox-config.ts`（30 行）另抛 “tools.executionSandbox requires Linux with a compatible bwrap or Landlock backend.”',
+      url: 'https://github.com/QwenLM/qwen-code/blob/b28b0d948fa28b89750ac5f1525b95e1746f47ab/packages/cli/src/config/execution-sandbox-settings.ts',
     },
     'qwen-settings': {
       label: 'Qwen Code Settings',
@@ -2352,6 +2442,31 @@ window.matrixData = {
       label: 'Qoder CLI SDK Reference',
       url: 'https://docs.qoder.com/en/cli/sdk/references',
     },
+    'qoder-sdk-errors': {
+      label:
+        'Qoder CLI SDK Errors 页（2026-10-21 抓取）的退出码表逐字含 “| `44`      | Fatal sandbox error |”，同表相邻行为 `41` “Authentication failure; the SDK also triggers the authentication-expired callback when configured”、`42` “Invalid input or command-line arguments”、`52` “Fatal configuration error”、`53` “Fatal turn-limit error” 与 `54` “Fatal tool-execution error”；该页没有描述沙箱的配置键、默认状态或平台实现',
+      url: 'https://docs.qoder.com/cli/sdk/errors',
+    },
+    'qoder-sdk-how-it-works': {
+      label:
+        'Qoder CLI SDK How it works 页（2026-10-21 抓取）逐字为 “`cwd`, tool allowlists, permission rules, hooks, sandboxing, and infrastructure isolation are complementary controls. Configure them according to the consequences of the task.”，同段另写 “Tools execute in the qodercli environment and may read, write, or call other systems according to their configuration.”；该页把 sandboxing 列为一种控制但没有给出键名、默认值或实现',
+      url: 'https://docs.qoder.com/cli/sdk/how-it-works',
+    },
+    'qoder-docs-index': {
+      label:
+        'Qoder 官方文档索引 https://docs.qoder.com/llms.txt（2026-10-21 抓取，列出 646 个链接，其中 96 个为 `/cli/` 页面）：逐页抓取这 96 个 `/cli/*.md` 后只有三页出现 sandbox 字样——`cli/sdk/errors`（退出码 `44`）、`cli/sdk/how-it-works`（一句泛指）与 `cli/sdk/skills`（“Don\'t treat `skills` as a sandbox: security boundaries belong to tool allow/deny lists, the permission callback, permission modes, and sandboxing combined.”）；索引里没有 CLI 的 Sandbox 页，`https://docs.qoder.com/en/cli/sandbox` 与 `https://docs.qoder.com/cli/sandbox` 都返回 404；索引中含 sandbox 的其余链接属别的 Surface——`qoder/approval-and-sandbox`、`qoder/terminal-and-sandbox`、`user-guide/editor/terminal`、`user-guide/quest/terminal-and-sandbox`、`cloud-agents/overview`（“Run AI agents in fully managed cloud sandboxes.”）与 `cloud-agents/api/environments/storage-buckets`',
+      url: 'https://docs.qoder.com/llms.txt',
+    },
+    'qoder-settings-reference-sandbox': {
+      label:
+        'Qoder CLI 设置参考页（2026-10-21 抓取，30,253 字节的 Markdown 形式）全文没有 sandbox 字样，即没有 `sandbox.enabled` 或 `sandbox.filesystem.*` 一类键；与文件边界相关的键逐字为 `permissions.allow`（string[]，默认 `[]`，Restart `No`，“List of automatically allowed permission rules. For rule syntax, see Permissions.”）、`permissions.ask`（“List of permission rules requiring confirmation.”）、`permissions.deny`（“List of always denied permission rules.”）、`permissions.additionalDirectories`（“Additional trusted directories added to workspace context (corresponding to `/add-dir`).”）与 `permissions.trustDirectories`（“Directories explicitly trusted by the user; stored in user-level configuration and not overridden by project-level configuration.”）',
+      url: 'https://docs.qoder.com/cli/settings-reference',
+    },
+    'qoder-release-notes-sandbox': {
+      label:
+        'Qoder CLI 官方 Release Notes（2026-10-21 抓取，111,371 字节的 Markdown 形式）最新条目为 CLI 1.1.75（October 20, 2026，小节 “Configurable session cleanup and faster /branch command”，两条为 “Removed automatic session cleanup; it can now be enabled by modifying the configuration” 与 “Improved the execution speed of the /branch command”），其后是 1.1.74（October 19, 2026）、1.1.73、1.1.72 与 1.1.71；整份发布说明只有 CLI 1.0.0（May 20, 2026）段 “Enterprise Integration” 下的一条 “**Cloud Agents:** Agents-as-a-Service. Sandbox isolation, state management, async orchestration, credential management, and long-running execution all built into the platform.” 含 sandbox 字样，属云端 Surface，1.1.66 至 1.1.75 各段都没有本地沙箱键或 OS 隔离条目',
+      url: 'https://docs.qoder.com/release-notes/qoder-cli',
+    },
     'qoder-sdk-quickstart': {
       label: 'Qoder Agent SDK TypeScript quick start',
       url: 'https://docs.qoder.com/en/cli/sdk/quick-start',
@@ -3084,6 +3199,11 @@ window.matrixData = {
         'Kimi Code 2.2.0 tag（提交 472192c34c1e）配置文档同段的旧写法，逐字为 “也可以在 `[permission]` 下设置 `dangerous_command_guard = false` 完全关闭内置危险命令策略（"Always Ask" 和 "Ask When Needed" 模式下不再触发危险命令审批；"Never Ask" 模式本就不启用该策略），默认 `true`。环境变量 `KIMI_CODE_DANGEROUS_COMMAND_GUARD=false` 会覆盖文件设置并恢复策略引入前的行为。此开关只适用于已经在 Agent 之外统一命令限权的环境。”，即发布版只关危险命令一项；2.0.0、2.0.1、2.0.2、2.1.0、2.1.1 各 tag 的同一文件也都已含该键',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/472192c34c1efad89a369870eff0da0b708ce9bb/docs/zh/configuration/config-files.md',
     },
+    'kimi-no-os-sandbox-230': {
+      label:
+        'Kimi Code 2.3.0 标签提交 `b5e28fd6beac752a2cdcc0ff2f5fdf40e6494fbb` 的整棵仓库树里没有任何路径含 sandbox、bwrap、bubblewrap、landlock、seccomp 或 seatbelt 字样；该标签的 `docs/zh/configuration/config-files.md`、`docs/zh/reference/tools.md` 与 `docs/zh/configuration/env-vars.md` 三份文件也都没有这些词。文件边界仍由 `[permission]` 规则与工具层策略提供：`packages/agent-core-v2/src/agent/permissionPolicy/policies/` 目录下的文件为 `auto-mode-approve.ts`、`auto-mode-ask-user-question-deny.ts`、`dangerous-command-ask.ts`、`default-tool-approve.ts`、`fallback-ask.ts`、`git-control-path-access-ask.ts`、`git-cwd-write-approve.ts`、`path-utils.ts`、`sensitive-file-access-ask.ts`、`session-approval-history.ts`、`user-configured-allow.ts`、`user-configured-ask.ts`、`user-configured-deny.ts`、`user-configured-rule.ts` 与 `yolo-mode-approve.ts`，路径判定在 `packages/agent-core-v2/src/tool/path-access.ts`，即这些都是权限规则层而不是 OS 或容器隔离层',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/b5e28fd6beac752a2cdcc0ff2f5fdf40e6494fbb/docs/zh/configuration/config-files.md',
+    },
     'kimi-guard-changeset': {
       label:
         'Kimi Code changeset `.changeset/dangerous-guard-off-allow-all.md`（提交 6e7cc909da90 新增），标 `"@moonshot-ai/kimi-code": patch`，正文逐字为 “Setting `[permission] dangerous_command_guard = false` now turns off every built-in confirmation guard — dangerous commands, sensitive-file access, and git control-path access — instead of only the dangerous-command guard.”',
@@ -3778,7 +3898,7 @@ window.matrixData = {
       category: 'security',
       capability: '文件系统隔离',
       description: '在操作系统或进程边界限制可读写路径。',
-      values: { claude: 'Bash OS 沙箱 + 文件权限规则', codex: '`read-only` · `workspace-write` · `danger-full-access`；条件：原生 Windows 另有 `[windows] sandbox` 的 `elevated`/`unelevated`/`mxc` 后端', qwen: 'Seatbelt 或容器 Sandbox；默认关闭', kimi: '文件工具权限；OS 沙箱未确认', qoder: '路径权限规则；SDK 条件 Sandbox' },
+      values: { claude: 'Bash OS 沙箱（macOS Seatbelt · Linux 与 WSL2 bubblewrap）+ 文件权限规则；Linux 嵌套场景另有 `sandbox.enableWeakerNestedSandbox`（改挂容器已有 `/proc`）与 v2.1.305 起的 `sandbox.allowNestedUserNamespaces`（放行沙箱内用户命名空间）', codex: '`read-only` · `workspace-write` · `danger-full-access`；条件：Linux 与 WSL2 用 bubblewrap（`PATH` 上的 `bwrap`，否则退回需要非特权用户命名空间的捆绑 helper），原生 Windows 另有 `[windows] sandbox` 的 `elevated`/`unelevated`/`mxc` 后端', qwen: '条件：Linux 工具执行沙箱 `tools.executionSandbox`（`bwrap`/`landlock` · `read-only`/`workspace-write`，v0.24.4 起）· 整 CLI 的 Seatbelt 或容器 Sandbox；两者都默认关闭', kimi: '文件工具权限；2.3.0 仓库树无任何 OS 沙箱实现，OS 沙箱未确认', qoder: '路径权限规则；官方 CLI 文档在核对日期已无 Sandbox 页与 `sandbox.*` 键，OS 沙箱未确认' },
     },
     {
       id: 'security-network',
