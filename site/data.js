@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-10-20',
+  updatedAt: '2026-10-21',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -3254,6 +3254,131 @@ window.matrixData = {
         'Qoder CLI Release Notes 的 Subagent 并发与后台条目（2026-10-18 复核，最新条目为 2026-10-16 的 CLI 1.1.73）：0.1.43（2026-04-16）“Implemented permission request queuing and sequential display for concurrent subagents”；0.2.2（2026-04-28）“Fixed /tasks command unable to exit”；1.1.17（2026-08-07）“Fixed the subagent display in the TUI task panel”；1.1.31（2026-08-26）“Added a concurrency limit for subagents, configurable via the `QODER_CLI_MAX_CONCURRENT_SUBAGENTS` environment variable”，该条没有给出默认并发数；1.1.42（2026-09-03）“Limited subagent spawning to one nested level by default”；1.1.55（2026-09-17）“Fixed concurrent configuration updates in Qoder CLI overwriting each other”；全页没有含 “background subagents”、“background sessions” 或 “parallel subagents” 字样的条目',
       url: 'https://docs.qoder.com/release-notes/qoder-cli',
     },
+    'qoder-sessions': {
+      label:
+        'Qoder CLI Session Management 页（2026-10-21 复核，1,174,731 字节）：启动命名逐字为 “Use `-n` (`--name`) to set an easily recognizable display name for a session:” 加示例 `qoder -n "Refactor login"`，旗标表 `-n, --name <name>` 描述为 “Set the session display name”；会话内命名逐字为 “You can also use `/rename` to rename the current session from within the session.”，命令表 `/rename` 描述为 “Rename the current session”；恢复只按会话 ID——“Use `-r` (`--resume`) to resume a previous session by its ID:” 加示例 `qoder -r <session-id>`，旗标表 `-r, --resume [id]` 描述为 “Resume a specific session; opens the Session Browser if no ID is provided”，全页没有按名称恢复的入口；存储位置只给出会话日志与状态的 `~/.qoder/projects/<processed-project-path-name>/<session-id>.jsonl` 与 `<session-id>/state.json`，并写 “the system automatically generates a session ID”，没有写明显示名保存在哪个文件，也没有名称长度上限或净化规则',
+      url: 'https://docs.qoder.com/cli/sessions',
+    },
+    'qoder-release-notes-rename': {
+      label:
+        'Qoder CLI Release Notes 的 `/rename` 时间线（2026-10-21 复核，1,706,864 字节）：CLI 1.1.52（September 14, 2026，小节 “Improved the rename and btw commands”）逐字为 “Type `/rename` to auto-generate a session name based on the current conversation; manually entered names are automatically sanitized and length-limited”；CLI 1.1.9（July 30, 2026，小节 “Rename, Skill Scanning, and Startup Improvements”）逐字为 “Added support for running /rename while a task is in progress”；CLI 1.1.4（July 23, 2026，小节 “Background Tasks, Terminal Titles, and Input Enhancements”）逐字为 “Improved terminal session window title updates”，属终端窗口标题不属会话命名；三条都没有给出名称长度上限、净化规则或自动生成所用的模型与端点',
+      url: 'https://docs.qoder.com/release-notes/qoder-cli',
+    },
+    'claude-sessions-naming': {
+      label:
+        'Claude Code Manage sessions 页的命名部分（2026-10-21 复核，31,381 字节）：“Name your sessions” 表逐字列出六条命名途径——启动时 `claude -n auth-refactor`、会话中 “`/rename auth-refactor`. The name also appears on the prompt bar”、选择器里 “Highlight a session and press `Ctrl+R`”、“Accepting a plan in plan mode gives the session a generated title based on the plan unless you\'ve already named it”、“Rename a Remote Control session; Claude Code applies the same name in the CLI. Requires Claude Code v2.1.221 or later” 与桌面端重命名；未命名会话的两种标签逐字为 “Default display name: ... The default combines the working directory\'s name with a two-character suffix, for example `my-app-3f` ... The default isn\'t a resume handle. If you pass it to `claude --resume` or `/resume`, Claude Code doesn\'t find the session.” 与 “Generated title: if you don\'t name a session, Claude Code generates a session title for it. The title is a short summary of your first prompt, written by a background request to the small/fast model, normally a Haiku-class model. A `claude -p` run you start directly from a shell or script doesn\'t get one.”，并写 “Only the generated title works as a resume handle”、“Accepting a plan replaces the generated title with a title based on the plan. You can pass either title to `claude --resume` or `/resume`, and Claude Code resolves it the same way as a name you set.”；按名称恢复 “Resolving by name resolves across the current repository and its worktrees. Both forms look for an exact match”，歧义时 `claude --resume <name>` 打开选择器并预填搜索词而 `/resume <name>` 报错；选择器每行 “shows the session name if you set one, otherwise the AI-generated session title, conversation summary, or first prompt”；`/clear` 一条逐字为 “With no argument, the new session keeps a name you set with `--name` or `/rename`, but not an AI-generated session title. To name the session you\'re leaving instead, pass the name, as in `/clear release-prep`; the new session then starts unnamed”',
+      url: 'https://code.claude.com/docs/en/sessions',
+    },
+    'claude-cli-reference-name': {
+      label:
+        'Claude Code CLI 参考的 `--name` 行（2026-10-21 复核）：逐字为 “| `--name`, `-n` | Set a display name for the session, shown in `/resume` and the terminal title. You can resume a named session with `claude --resume <name>`. `/rename` changes the name mid-session and also shows it on the prompt bar | `claude -n "my-feature-work"` |”',
+      url: 'https://code.claude.com/docs/en/cli-reference',
+    },
+    'codex-commands-rename': {
+      label:
+        'Codex CLI 命令参考的命名条目（2026-10-21 复核，重定向到 `learn.chatgpt.com/docs/developer-commands?surface=cli`，1,091,211 字节）：命令表 `/rename` 行逐字为 “Rename the current chat.” 与 “Give a saved session a recognizable name without leaving the TUI.”；操作步骤逐字为 “Type `/rename <name>`, or type `/rename` to open the naming prompt.”、“Enter a short name that will help you find the chat later.” 与 “Expected: Codex updates the saved chat name without changing its transcript.”；`/new` 一节逐字为 “To name the new chat as you create it, run `/new bug bash`.”；CLI 子命令表中 `codex archive`、`codex unarchive` 与 `codex delete` 的描述分别为 “Archive a saved interactive session by session ID or session name.”、“Restore an archived interactive session by session ID or session name.” 与 “Permanently delete a saved interactive session by session ID or session name.”；`/title` 一节标题为 “Configure terminal title items with /title”，属终端窗口标题；全页没有承诺未命名会话的自动标题生成规则',
+      url: 'https://developers.openai.com/codex/cli/slash-commands',
+    },
+    'qwen-commands-e8ddd0d': {
+      label:
+        'Qwen Code 命令文档（main 分支，固定到提交 `e8ddd0d79a4f562d0513e0987ac8dbe328531e2c`，2026-10-21T14:06:57Z）：`/rename` 行逐字为 “| `/rename`        | Rename or tag the current session                                        | `/rename My Feature` or `/tag`                                |”；该文档没有描述 `--auto`、自动触发的时机、长度上限或保存位置',
+      url: 'https://github.com/QwenLM/qwen-code/blob/e8ddd0d79a4f562d0513e0987ac8dbe328531e2c/docs/users/features/commands.md',
+    },
+    'qwen-rename-command-e8ddd0d': {
+      label:
+        'Qwen Code `packages/cli/src/ui/commands/renameCommand.ts`（提交 `e8ddd0d79a4f562d0513e0987ac8dbe328531e2c`，8,366 字节）：`name: \'rename\'`、`altNames: [\'tag\']`、`kind: CommandKind.BUILT_IN`、`argumentHint: \'[--auto] [<name>]\'`、描述逐字为 “Rename the current conversation. --auto lets the fast model pick a title.”，补全项描述 “Let the fast model generate a sentence-case title from the conversation so far.”；源码注释逐字为 “Both `/rename` (no args) and `/rename --auto` go through the same schema-enforced sentence-case pipeline backed by the fast model. The flag is now just an explicitness marker (no semantic divergence beyond the spinner copy)”，`--auto` 与名称同时给出时报 “/rename --auto does not take a name. Use `/rename <name>` to set one yourself.”，未知 `--xxx` 报 “Unknown flag "{{flag}}". Supported: --auto. To use this as a literal name, run `/rename -- {{flag}}`.”；`titleSource` 注释逐字为 “Track where the title came from so the session picker can dim auto-generated titles; only explicit user text stays \'manual\'.”；超长报 “Name is too long. Maximum {{max}} characters.”；写入用 `chatRecordingService.recordCustomTitle(name, titleSource)`（注释 “Record the custom title in the current session\'s JSONL file”），非录制会话回落 `sessionService.renameSession(sessionId, name, titleSource)`，成功后 `context.ui.setSessionName(name)` 并提示 “Session renamed to "{{name}}"”；六条失败原因文案为 `no_fast_model`（“Auto-generating a title requires a fast model. Configure one with `/model --fast <model>`, or pass a name: `/rename <name>`.”）、`empty_history`、`empty_result`、`aborted`、`model_error` 与 `no_client`；生成时会把最后一条恰为 `/rename`/`/tag`/`/rename --auto` 的用户显示文本从输入里剔除',
+      url: 'https://github.com/QwenLM/qwen-code/blob/e8ddd0d79a4f562d0513e0987ac8dbe328531e2c/packages/cli/src/ui/commands/renameCommand.ts',
+    },
+    'qwen-auto-title-recording-e8ddd0d': {
+      label:
+        'Qwen Code `packages/core/src/services/chatRecordingService.ts`（提交 `e8ddd0d79a4f562d0513e0987ac8dbe328531e2c`，3,991 行）：`maybeTriggerAutoTitle()` 在 `recordAssistantTurn` 追加记录后调用，方法注释逐字为 “Fire-and-forget: after an assistant turn is recorded, attempt to generate a short session title from the conversation so far.” 并列出两个条件（尚未设标题、配置了 fast model）与 “Errors are swallowed. The title is best-effort and must never surface as a user-visible error or interrupt recording.”；跳过条件依次为已有 `currentCustomTitle`、`writeFailure`、`pendingExplicitTitleWrites > 0`、已有在途 `autoTitleController`、`autoTitleAttempts >= AUTO_TITLE_ATTEMPT_CAP`（常量 3，注释 “Maximum number of auto-title generation attempts per session”）、`QWEN_DISABLE_AUTO_TITLE` 为真值（`0`/`false`/`no`/`off` 视为未关闭，注释写明这样不必取消 fast model 因而 `/rename --auto` 仍可用）、`!isInteractive() && !getExperimentalZedIntegration()`（注释逐字为 “Headless/one-shot CLI flows (`qwen -p "…"`, cron, CI scripts) run a single prompt and throw the session away... Daemon (ACP) sessions are long-lived and user-resumable, so they DO need auto-titles even though `isInteractive()` returns false”）、没有 `getFastModel()`；输入是滚动窗口 `userDisplayTextsForTitle`（`MAX_TITLE_USER_DISPLAY_TEXTS = 20`，超出即 `shift()` 丢最旧）；成功前重读磁盘标题（注释 “Cross-process guard: another CLI tab writing to the same JSONL could have renamed (manually) since we started.”），发现 `source === \'manual\'` 就同步内存并放弃；失败只 `debugLogger.warn` 且不永久关闭，注释 “transient failures (network blips, rate limits, bad UTF-16 in one turn\'s history) should still allow a later turn to retry. The attempt cap bounds total waste.”',
+      url: 'https://github.com/QwenLM/qwen-code/blob/e8ddd0d79a4f562d0513e0987ac8dbe328531e2c/packages/core/src/services/chatRecordingService.ts',
+    },
+    'qwen-session-title-e8ddd0d': {
+      label:
+        'Qwen Code `packages/core/src/services/sessionTitle.ts`（提交 `e8ddd0d79a4f562d0513e0987ac8dbe328531e2c`，346 行）：`TITLE_SYSTEM_PROMPT` 首句逐字为 “Generate a concise, sentence-case title (3-7 words) that captures what this programming-assistant session is about. Think of it as a git commit subject for the session.”，规则含 3–7 个词、只首字母与专有名词大写、无句尾标点、无引号反引号或 Markdown、要具体到用户目标，并给出好例与四类坏例（太笼统、太长、大小写错、带句尾标点）；`TITLE_USER_PROMPT` 为 “Generate the session title now. Populate the schema with a single short title string.”，`TITLE_SCHEMA` 的 `title` 描述为 “A concise sentence-case session title, 3-7 words, no trailing punctuation.”；`tryGenerateSessionTitle` 用 `config.getFastModel()` 且 `no_fast_model` 的注释逐字为 “config.getFastModel() returned undefined.”；归一化时超过 `SESSION_TITLE_MAX_LENGTH` 会被 `slice` 后 `trim`，模型照抄提示词示例（#9706）或返回空都按失败处理并记 “Session title rejected”',
+      url: 'https://github.com/QwenLM/qwen-code/blob/e8ddd0d79a4f562d0513e0987ac8dbe328531e2c/packages/core/src/services/sessionTitle.ts',
+    },
+    'qwen-session-service-e8ddd0d': {
+      label:
+        'Qwen Code `packages/core/src/services/sessionService.ts`（提交 `e8ddd0d79a4f562d0513e0987ac8dbe328531e2c`）第 473 行逐字为 “export const SESSION_TITLE_MAX_LENGTH = 200;”，同文件第 5,181 行在派生显示名时按 `.slice(0, SESSION_TITLE_MAX_LENGTH - maxSuffixLen)` 截断',
+      url: 'https://github.com/QwenLM/qwen-code/blob/e8ddd0d79a4f562d0513e0987ac8dbe328531e2c/packages/core/src/services/sessionService.ts',
+    },
+    'kimi-config-files-b5e28fd': {
+      label:
+        'Kimi Code 配置文档（2.3.0 标签提交 `b5e28fd6beac752a2cdcc0ff2f5fdf40e6494fbb`）：`config.toml` 顶层字段表 `auto_session_title` 行逐字为 “| `auto_session_title` | `boolean` | `true` | 是否允许客户端自动生成会话标题；显式设为 `false` 时关闭 |”；`tui.toml` 表 `auto_session_title` 行逐字为 “| `auto_session_title` | `boolean` | `true` | 首个完成的轮次后由 TUI 自动生成会话标题；设为 `false` 只关闭 TUI 的触发，不影响 `config.toml` 中的全局 `auto_session_title` |”，示例配置写 “auto_session_title = true # false 表示 TUI 不在首个完成的轮次后自动生成会话标题”；英文版同两行逐字为 “Whether clients may automatically generate session titles; disabled only when explicitly set to `false`” 与 “Let the TUI automatically generate a session title after the first completed turn; `false` opts out the TUI only, without affecting the global `auto_session_title` gate in `config.toml`”',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/b5e28fd6beac752a2cdcc0ff2f5fdf40e6494fbb/docs/zh/configuration/config-files.md',
+    },
+    'kimi-sessions-b5e28fd': {
+      label:
+        'Kimi Code 会话指南（2.3.0 标签提交 `b5e28fd6beac752a2cdcc0ff2f5fdf40e6494fbb`）：第 24 行逐字为 “- `state.json`：会话标题、创建时间等元数据。”，第 64 行逐字为 “- **`/title <text>`**（别名 `/rename`）：设置会话标题方便识别；不带参数时显示当前标题。”；该页没有任何自动生成标题的描述',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/b5e28fd6beac752a2cdcc0ff2f5fdf40e6494fbb/docs/zh/guides/sessions.md',
+    },
+    'kimi-slash-commands-b5e28fd': {
+      label:
+        'Kimi Code 中文 Slash 命令参考（2.3.0 标签提交 `b5e28fd6beac752a2cdcc0ff2f5fdf40e6494fbb`）：`/title` 行逐字为 “| `/title [<text>]` | `/rename` | 不带参数时显示当前会话标题；带参数时设置为新标题（最长 200 字符） | 是 |”',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/b5e28fd6beac752a2cdcc0ff2f5fdf40e6494fbb/docs/zh/reference/slash-commands.md',
+    },
+    'kimi-tui-app-b5e28fd': {
+      label:
+        'Kimi Code `apps/kimi-code/src/tui/kimi-tui.ts`（2.3.0 标签提交 `b5e28fd6beac752a2cdcc0ff2f5fdf40e6494fbb`）：`handleTurnEnded` 末行逐字为 “if (event.reason === \'completed\') void this.maybeAutoGenerateSessionTitle();”；`maybeAutoGenerateSessionTitle()` 依次检查 `sessionId.length === 0`、`this.state.appState.autoSessionTitle === false`、`record.done || record.attempts >= MAX_AUTO_TITLE_ATTEMPTS`，再 `await this.harness.getConfig()` 复核 `config.autoSessionTitle === false`，然后 `this.harness.generateSessionTitle({ id: sessionId, source: \'first_turn\' })`，返回非 `undefined` 时把该会话记为 `{ attempts: 0, done: true }`，整个 try 块的 catch 为空并附注释 “title generation is best-effort; the session keeps its current title”；`updateTerminalTitle()` 逐字为 “const label = trimmed.length > 0 ? trimmed.slice(0, MAX_TERMINAL_TITLE_LENGTH) : PRODUCT_NAME;” 后调 `this.state.terminal.setTitle(label)`',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/b5e28fd6beac752a2cdcc0ff2f5fdf40e6494fbb/apps/kimi-code/src/tui/kimi-tui.ts',
+    },
+    'kimi-tui-constants-b5e28fd': {
+      label:
+        'Kimi Code `apps/kimi-code/src/tui/constant/kimi-tui.ts`（2.3.0 标签提交 `b5e28fd6beac752a2cdcc0ff2f5fdf40e6494fbb`）：`MAX_AUTO_TITLE_ATTEMPTS = 3`，其上注释逐字为 “Per-session cap on automatic title-generation attempts; failures stay retryable across turns until the cap so a transient error is not sticky.”；同目录 `constant/terminal.ts` 第 36 行为 “export const MAX_TERMINAL_TITLE_LENGTH = 32;”',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/b5e28fd6beac752a2cdcc0ff2f5fdf40e6494fbb/apps/kimi-code/src/tui/constant/kimi-tui.ts',
+    },
+    'kimi-tui-config-b5e28fd': {
+      label:
+        'Kimi Code `apps/kimi-code/src/tui/config.ts`（2.3.0 标签提交 `b5e28fd6beac752a2cdcc0ff2f5fdf40e6494fbb`）：`TuiConfigFileSchema` 新增 `auto_session_title: z.boolean().optional()`，`DEFAULT_TUI_CONFIG` 写 `autoSessionTitle: true`，`normalizeTuiConfig` 用 `config.auto_session_title ?? DEFAULT_TUI_CONFIG.autoSessionTitle` 归一，写回 `tui.toml` 的模板行为 “auto_session_title = ${String(config.autoSessionTitle !== false)} # false stops the TUI from auto-generating a session title after the first turn”；`commands/reload.ts` 的 `applyReloadedTuiConfig` 把 `autoSessionTitle: config.autoSessionTitle` 一并应用（`/reload` 与 `/reload-tui` 都走这条路径），`commands/config.ts` 的 `currentTuiConfig` 也带上该键以便写回时保留当前值',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/b5e28fd6beac752a2cdcc0ff2f5fdf40e6494fbb/apps/kimi-code/src/tui/config.ts',
+    },
+    'kimi-title-command-b5e28fd': {
+      label:
+        'Kimi Code `apps/kimi-code/src/tui/commands/session.ts` 与 `commands/registry.ts`（2.3.0 标签提交 `b5e28fd6beac752a2cdcc0ff2f5fdf40e6494fbb`）：注册项为 `name: \'title\'`、`aliases: [\'rename\']`、`description: \'Set or show session title\'`、`argumentHint: \'<title>\'`、`availability: \'always\'`；处理函数不带参数时输出 “Session title: ${current}” 或 “Session title: (not set) — id: ${host.state.appState.sessionId}”，带参数时 `const newTitle = title.slice(0, 200);` 后调 `host.harness.renameSession({ id: session.id, title: newTitle })`，成功提示 “Session title set to: ${newTitle}”、失败提示 “Failed to set title: ${msg}”，注释说明设置标题需要活动会话因而会按需惰性创建',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/b5e28fd6beac752a2cdcc0ff2f5fdf40e6494fbb/apps/kimi-code/src/tui/commands/session.ts',
+    },
+    'kimi-title-service-b5e28fd': {
+      label:
+        'Kimi Code `packages/agent-core-v2/src/session/sessionTitle/sessionTitleService.ts`（2.3.0 标签提交 `b5e28fd6beac752a2cdcc0ff2f5fdf40e6494fbb`）：`generateTitle({force, source})` 的 `source` 默认 `\'user_prompts\'`，非 force 时 `titleKind` 为 `\'custom\'` 或 `\'generated\'` 都直接返回 `undefined`，并用 `_shared` 合流并发请求；`generateAndApply` 要求 `KIMI_CODE_PROVIDER_NAME` 的 Provider 存在、`isOAuthCatalogVendor(provider.type)` 为真且 `provider.oauth` 已配置，取不到 token provider 即返回，`OAuthError` 记 debug “chat_title request unavailable:” 后返回，HTTP 401 强制刷新令牌重试一次，其他失败记 “chat_title request failed:”；标题按 `MAX_GENERATED_TITLE_LENGTH = 200` 截断后经 `metadata.setGeneratedTitleIfUncustomized(title, { force })` 写入并发布 `SessionMetaUpdated`（补丁 `{ title, isCustomTitle: false }`）；`first_turn` 输入由 `firstTurnExcerpt()` 组成，缺一即不生成，用户段截 `MAX_TITLE_USER_SEGMENT = 400`、助手段截 `MAX_TITLE_FIRST_TURN_ASSISTANT = 300`，另有 `user_prompts`（最多 `MAX_TITLE_PROMPTS = 3` 条、总长 `MAX_TITLE_INPUT_LENGTH = 1000`）与 `digest`（头尾保留、总长 `MAX_TITLE_DIGEST_INPUT_LENGTH = 3000`、省略号标记）两种来源',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/b5e28fd6beac752a2cdcc0ff2f5fdf40e6494fbb/packages/agent-core-v2/src/session/sessionTitle/sessionTitleService.ts',
+    },
+    'kimi-title-prompt-source-b5e28fd': {
+      label:
+        'Kimi Code `packages/agent-core-v2/src/session/sessionTitle/agentTitlePromptSourceService.ts`（2.3.0 标签提交 `b5e28fd6beac752a2cdcc0ff2f5fdf40e6494fbb`）：`firstTurnExcerpt()` 取第一条自然语言用户提示（`origin === undefined || origin.kind === \'user\'`），助手文本取该轮跨度的 `finalAssistantText`（下一条自然语言用户提示之前，倒序找第一条有非空 text 的 assistant 消息）；用户文本经 `promptMetadataTextFromUserMessage` 组装，过滤掉 Skill 激活段与 `UserPromptSubmit` Hook 段',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/b5e28fd6beac752a2cdcc0ff2f5fdf40e6494fbb/packages/agent-core-v2/src/session/sessionTitle/agentTitlePromptSourceService.ts',
+    },
+    'kimi-session-metadata-b5e28fd': {
+      label:
+        'Kimi Code `packages/agent-core-v2/src/session/sessionMetadata/sessionMetadataService.ts` 与 `promptMetadata.ts`（2.3.0 标签提交 `b5e28fd6beac752a2cdcc0ff2f5fdf40e6494fbb`）：`const META_KEY = \'state.json\';`；`setTitle(title)` 写 `{ title, titleKind: \'custom\' }`；`setGeneratedTitleIfUncustomized` 在 `opts?.force !== true && this.data.titleKind === \'custom\'` 时返回 `false`，否则写 `{ title, titleKind: \'generated\' }`，两者都带 `touchUpdatedAt: false`；`applyPromptMetadata(lastPrompt, title)` 只在 `titleKind !== \'custom\' && isUntitled(this.data.title)` 时写 `{ lastPrompt, title, titleKind: \'replaceable\' }`，`isUntitled` 判定为 `title === undefined || title.trim().length === 0 || title === \'New Session\'`，占位标题由 `titleFromPromptMetadataText(text)` 取提示词前 `MAX_TITLE_LENGTH = 200` 字符',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/b5e28fd6beac752a2cdcc0ff2f5fdf40e6494fbb/packages/agent-core-v2/src/session/sessionMetadata/sessionMetadataService.ts',
+    },
+    'kimi-managed-tools-b5e28fd': {
+      label:
+        'Kimi Code `packages/oauth/src/managed-tools.ts`（2.3.0 标签提交 `b5e28fd6beac752a2cdcc0ff2f5fdf40e6494fbb`）：文件头注释逐字为 “Managed-platform `/tools` dispatch: POSTs `{method, params}` to `{kimiCodeBaseUrl}/tools` with a Bearer access token” 与 “`chat_title` generates a short session title from a chat excerpt: { "method": "chat_title", "params": { "chat_content": "user: ...\\nassistant: ..." } } → { "title": "..." }”；`kimiCodeToolsUrl(baseUrl)` 返回去掉尾部斜杠后加 `/tools` 的地址，`fetchChatTitle` 默认 `timeoutMs` 为 8000，失败消息为 “Failed to generate session title: HTTP <status>”、“: missing title.”、“: request timed out.” 与 “: request aborted.”',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/b5e28fd6beac752a2cdcc0ff2f5fdf40e6494fbb/packages/oauth/src/managed-tools.ts',
+    },
+    'kimi-sdk-rpc-v2-b5e28fd': {
+      label:
+        'Kimi Code `packages/node-sdk/src/sdk-rpc-client-v2.ts`（2.3.0 标签提交 `b5e28fd6beac752a2cdcc0ff2f5fdf40e6494fbb`）：`generateSessionTitle` 的方法注释逐字为 “v2-only (`ISessionTitleService`, session scope). Like `renameSession`, a closed session is resumed, titled, and closed again so generation does not leak a live session. `undefined` means generation was unavailable (no managed OAuth login, no prompt yet, or a custom title is set) — the current title is kept.”；实现把 `force` 与 `source` 透传给 klient 的 `session(id).generateTitle`，`packages/klient/src/contract/session/title.ts` 的契约把 `source` 限定为 `\'user_prompts\' | \'first_turn\' | \'digest\'`',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/b5e28fd6beac752a2cdcc0ff2f5fdf40e6494fbb/packages/node-sdk/src/sdk-rpc-client-v2.ts',
+    },
+    'kimi-title-pr-4200': {
+      label:
+        'Kimi Code PR #4200 的合并提交 `5bab748dddaae4b2ac15822d72b83446e5fd7bf4`（“feat(tui): auto-generate session title after the first turn (#4200)”，含后续提交 “feat(tui): gate auto session title behind a tui.toml auto_session_title toggle”）：新增 `.changeset/tui-auto-session-title.md`（标 `"@moonshot-ai/kimi-code": minor`，正文逐字为 “Automatically generate a session title after the first turn and show it as the terminal window title.”），改动 `tui/commands/reload.ts`、`tui/config.ts`、`tui/constant/kimi-tui.ts`、`tui/kimi-tui.ts`、`tui/types.ts` 与中英文 `configuration/config-files.md`；2.3.0 标签提交 `b5e28fd6beac752a2cdcc0ff2f5fdf40e6494fbb` 比该提交超前 18 个提交、落后 0 个，即该功能已随 2.3.0 发布',
+      url: 'https://github.com/MoonshotAI/kimi-code/commit/5bab748dddaae4b2ac15822d72b83446e5fd7bf4',
+    },
+    'kimi-release-230': {
+      label:
+        'Kimi Code Release [`@moonshot-ai/kimi-code@2.3.0`](https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai%2Fkimi-code%402.3.0)（2026-10-21T05:51:43Z 发布，是核对日期最新 Release）；仓库内 `apps/kimi-code/CHANGELOG.md` 的 2.3.0 段 Minor Changes 下该条逐字为 “Automatically generate a session title after the first turn and show it as the terminal window title.”，链接指向 PR #4200 与提交 `5bab748`',
+      url: 'https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai%2Fkimi-code%402.3.0',
+    },
+    'kimi-changelog-web-auto-title': {
+      label:
+        'Kimi Code 官方中文变更记录（2.3.0 标签提交 `b5e28fd6beac752a2cdcc0ff2f5fdf40e6494fbb`）0.36.1（2026-08-14）段逐字为 “- web: AI 自动生成会话标题（实验性）。默认关闭，设置 `KIMI_CODE_EXPERIMENTAL_AUTO_SESSION_TITLE=1`（或实验总开关 `KIMI_CODE_EXPERIMENTAL_FLAG=1`）开启。”；该环境变量在 2.3.0 的源码中已不存在，只留在这两份变更记录里，属 Web Surface 的更早形态',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/b5e28fd6beac752a2cdcc0ff2f5fdf40e6494fbb/docs/zh/release-notes/changelog.md',
+    },
   },
   rows: [
     {
@@ -3709,7 +3834,7 @@ window.matrixData = {
       category: 'sessions',
       capability: '会话命名',
       description: '为会话设置便于查找的标题。',
-      values: { claude: '`/rename` · `--name`', codex: '`/rename`', qwen: '`/rename` · `/tag`', kimi: '`/title` · `/rename`', qoder: 'TUI 命令表未列出' },
+      values: { claude: '`claude -n <name>` · `/rename <name>` · 选择器 `Ctrl+R` · 未命名会话由 small/fast 模型生成标题且标题可作恢复句柄', codex: '`/rename <name>`（不带参数打开命名提示）· `/new <name>` 创建时命名 · 名称可作 `codex archive|unarchive|delete` 的句柄', qwen: '`/rename [--auto] [<name>]` · `/tag` · 每记录一个助手回合后由 fast model 自动生成（`QWEN_DISABLE_AUTO_TITLE` 关闭）', kimi: '`/title [<text>]` · `/rename` · 2.3.0 起首个完成回合后自动生成（`tui.toml` 与 `config.toml` 的 `auto_session_title` 默认 `true`、需 Kimi OAuth 登录）', qoder: '`qoder -n <name>` · `/rename`（不带参数时按当前对话自动生成，CLI 1.1.52 起）· 名称保存位置与长度上限未公开' },
     },
     {
       id: 'session-compress',

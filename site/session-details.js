@@ -451,90 +451,126 @@
       id: 'session-naming',
       definition:
         '为持久会话设置可读名称或标题，便于在历史列表中识别和按名称恢复。',
-      includes: ['显式名称或标题', '自动生成标题', '名称在恢复列表中的用途'],
-      excludes: ['终端窗口标题', 'Git 分支名', '后台任务名称'],
+      includes: [
+        '显式名称或标题',
+        '自动生成的触发时机与开关',
+        '生成引擎、输入与尝试上限',
+        '名称在恢复列表或 CLI 子命令中的用途',
+      ],
+      excludes: ['终端窗口标题的显示项配置', 'Git 分支名', '后台任务名称'],
       facts: [
-        'Claude Code、Codex、Qwen Code 和 Kimi Code 有显式命名入口；Qoder CLI 当前 TUI 命令表未列出用户命名命令。',
-        'Codex 的 `/title` 配置终端标题字段，不是会话命名；会话命名入口是 `/rename`。',
-        '自动生成的展示标题不一定能作为恢复句柄，Claude Code 明确区分用户名称与 AI 标题。',
+        '五家都有会话命名入口：Claude Code 用 `-n`/`--name`、`/rename` 与选择器 `Ctrl+R`，Codex 用 `/rename` 与 `/new <name>`，Qwen Code 用 `/rename`（别名 `/tag`），Kimi Code 用 `/title`（别名 `/rename`），Qoder CLI 用 `-n`/`--name` 与 `/rename`。此前记录的「Qoder CLI 的 TUI 命令表未列出用户命名命令」已过期：官方 Slash 命令参考的会话管理表与 Session Management 页现在都列出 `/rename`。',
+        '自动生成有三种触发方式：Qwen Code 在每记录一个助手回合后自动触发，Kimi Code 自 2.3.0 起在回合以 `completed` 结束后自动触发，Claude Code 为未命名的交互会话生成标题；Codex 的官方命令资料没有承诺自动生成，Qoder CLI 只在用户运行不带参数的 `/rename` 时生成。',
+        'Qwen Code 与 Kimi Code 的自动标题都是尽力而为，而且上限数字相同：每会话 3 次尝试（`AUTO_TITLE_ATTEMPT_CAP` 与 `MAX_AUTO_TITLE_ATTEMPTS`）、失败静默、后续回合可在上限内重试、都不覆盖用户手工设的名称。两家区分来源的字段名不同——Qwen Code 用 `titleSource` 的 `auto`/`manual`，Kimi Code 用 `titleKind` 的 `replaceable`/`generated`/`custom`。',
+        '生成引擎各不相同：Qwen Code 用配置的 fast model 做 schema 强制的句子式标题（3–7 个词、要像 git commit subject），Kimi Code 调托管平台的 `chat_title` 工具因而要求 Kimi OAuth 登录，Claude Code 用 small/fast 模型（通常 Haiku 级）后台摘要首个提示，Qoder CLI 只写“基于当前对话自动生成”而没有公布模型或端点，Codex 没有该机制。',
+        '关闭方式只有两家公布：Qwen Code 用环境变量 `QWEN_DISABLE_AUTO_TITLE`（只关自动触发，`/rename --auto` 仍可用），Kimi Code 用 `tui.toml` 与 `config.toml` 两个默认 `true` 的 `auto_session_title` 键（前者只关 TUI 的触发）；Claude Code、Codex 与 Qoder CLI 都没有公布关闭自动标题的开关。',
+        '长度上限只有两家给出数字：Qwen Code 的 `SESSION_TITLE_MAX_LENGTH` 与 Kimi Code 的 `/title` 及生成标题都是 200 字符（Kimi Code 把会话标题镜像成终端窗口标题时另截到 32 字符），Qoder CLI 只写 “length-limited” 而没有数字，Claude Code 与 Codex 未公布上限。',
+        '名称能当句柄用的范围只有 Claude Code 与 Codex 公布：Claude Code 的用户名称与 AI 生成标题都能传给 `claude --resume` 或 `/resume`（默认显示名不能），Codex 的名称可用于 `codex archive`、`codex unarchive` 与 `codex delete`，Qoder CLI 的恢复只认会话 ID。',
+        'Codex 的 `/title` 配置终端窗口标题显示项，Kimi Code 把会话标题镜像成终端窗口标题，两者都不是独立的命名入口；本字段不计终端窗口标题。',
       ],
       products: {
         claude: {
           entry:
-            '启动时用 `claude --name <name>`，会话中用 `/rename <name>`，选择器中可按 `Ctrl+R` 重命名。',
+            '启动时 `claude -n <name>`（CLI 参考记为 `--name`, `-n`，逐字 “Set a display name for the session, shown in `/resume` and the terminal title.”）；会话中 `/rename <name>`；`/resume` 选择器里高亮会话后按 `Ctrl+R`；在 plan mode 接受计划时按该计划生成标题（已命名则不生成）；从 claude.ai 或 Claude app 重命名 Remote Control 会话后 Claude Code 在 CLI 套用同一名称（需 v2.1.221 及以上）；桌面端也能重命名会话。',
           behavior:
-            '用户名称显示在提示栏和会话选择器，并可用于 `--resume <name>` 或 `/resume <name>` 精确恢复。',
+            '名称显示在提示栏与 `/resume` 选择器；选择器每行优先显示用户设的名称，否则显示 AI 生成标题、对话摘要或首个提示，并附最近活动时间、Git 分支与文件大小。',
           scope:
-            '名称是会话元数据；未命名会话还会有默认显示名和 AI 生成标题，但两者不是恢复句柄。',
+            '名称是会话元数据。按名称恢复只在当前仓库及其 Worktree 内解析并要求精确匹配；名称歧义时 `claude --resume <name>` 打开选择器并把名称预填为搜索词，`/resume <name>` 直接报错并要求不带参数运行 `/resume`。',
           automation:
-            '未命名交互会话会用快速模型根据首个提示生成标题；接受 Plan 时也可生成名称，除非用户已命名。',
+            '未命名会话拿到两种标签：默认显示名由工作目录名加两位字符后缀组成（官方示例 `my-app-3f`），用于 agent view 与 `claude agents --json` 一类运行中会话列表；生成标题是对首个提示的简短摘要，由后台请求 small/fast 模型（通常 Haiku 级）写出。官方逐字写 “Only the generated title works as a resume handle”，接受计划会用基于该计划的标题替换生成标题，两种标题都能传给 `claude --resume` 或 `/resume` 并按用户设的名称同样解析。',
           persistence:
-            '显式名称随会话保存，`/clear` 后当前进程保留用户名称，但不保留 AI 自动标题。',
+            '名称随会话保存。`/clear` 不带参数时新会话保留用 `--name` 或 `/rename` 设的名称，但不保留 AI 生成标题；`/clear <name>`（官方示例 `/clear release-prep`）改为给正要离开的会话命名，新会话则不带名称。',
           conditions:
-            '按名称恢复需要精确匹配；名称歧义时 CLI 和会话内命令的处理不同。',
-          sources: ['claude-sessions'],
+            '默认显示名不是恢复句柄，把它传给 `claude --resume` 或 `/resume` 找不到会话；直接从 shell 或脚本启动的 `claude -p` 运行不生成标题；桌面端命名的会话在桌面端恢复。',
+          sources: ['claude-sessions-naming', 'claude-cli-reference-name'],
         },
         codex: {
-          entry: '`/rename` 为当前聊天设置名称。',
+          entry:
+            '`/rename <name>` 直接命名，或 `/rename` 不带参数打开命名提示；创建新聊天时用 `/new <name>`（官方示例 `/new bug bash`）在开新会话的同时命名。',
           behavior:
-            '更新会话在客户端中的可读名称，便于从历史中识别。',
+            '官方写 “Expected: Codex updates the saved chat name without changing its transcript.”，命令表把 `/rename` 描述为 “Rename the current chat.” 与 “Give a saved session a recognizable name without leaving the TUI.”，操作说明要求输入 “a short name that will help you find the chat later”。',
           scope:
-            '只修改聊天元数据，不改变项目、线程内容或终端标题设置。',
+            '只改保存的聊天名称，不改 transcript、项目、线程内容或终端标题设置。',
           automation:
-            '当前命令资料未承诺未命名会话的自动标题生成规则。',
+            '2026-10-21 复核官方 CLI 命令参考，全页仍没有未命名会话自动生成标题或名称的承诺，也没有关闭自动命名的开关。',
           persistence:
-            '名称与本地会话记录关联；会话归档不等同于删除名称。',
+            '名称与本地会话记录关联；`codex archive`、`codex unarchive` 与 `codex delete` 都按 “session ID or session name” 接受目标，因此名称是这三条子命令的句柄。归档不等同于删除名称。',
           conditions:
-            '`/title` 不计入本能力：它配置终端窗口标题显示项。',
-          sources: ['codex-commands'],
+            '`/title` 不计入本能力：它配置终端窗口标题显示项（官方小节标题为 “Configure terminal title items with /title”）。',
+          sources: ['codex-commands-rename'],
         },
         qwen: {
           entry:
-            '`/rename <name>` 为当前会话命名，`/tag` 是别名；不带名称或使用 `--auto` 时可自动生成。',
+            '`/rename [--auto] [<name>]`，`/tag` 是别名（源码 `altNames` 为 `tag`、`argumentHint` 为 `[--auto] [<name>]`、描述 “Rename the current conversation. --auto lets the fast model pick a title.”）；官方命令表把 `/rename` 记为 “Rename or tag the current session”，示例 `/rename My Feature` 或 `/tag`。',
           behavior:
-            '更新当前聊天记录的显示名称，供 `/resume` 选择器和历史管理识别。',
+            '带名称时先校验长度再写入当前会话记录，成功后更新输入框上方显示的会话名并提示 `Session renamed to "<name>"`；不带名称与 `--auto` 走同一条由 fast model 支撑、schema 强制的句子式标题管线（源码注释写明该旗标现在只是显式标记，除 spinner 文案外没有语义分叉），生成期间显示 “Generating session title” 加动态点；`--auto` 与名称同时给出时报 “/rename --auto does not take a name.”，未知 `--xxx` 报错并提示用 `/rename -- <flag>` 把它当字面名称；恰为 `/rename`、`/tag` 或 `/rename --auto` 的最后一条用户显示文本会从生成输入里剔除。',
           scope:
-            '名称属于当前会话，不修改 Git 分支、Worktree slug 或项目名称。',
+            '名称属于当前会话记录，不修改 Git 分支、Worktree slug 或项目名。标题来源记为 `auto` 或 `manual`，会话选择器据此把自动生成的标题淡化显示。',
           automation:
-            '自动命名通过快速模型根据会话生成标题；显式名称直接保存。',
+            '每记录一个助手回合后以 fire-and-forget 方式尝试自动生成（`maybeTriggerAutoTitle`）。跳过条件依次是已有标题、写入失败、有待完成的显式标题写入、已有在途生成、每会话尝试次数达到 `AUTO_TITLE_ATTEMPT_CAP = 3`、`QWEN_DISABLE_AUTO_TITLE` 为真值（`0`/`false`/`no`/`off` 视为未关闭）、既非交互式又没开 Zed/ACP 集成（`qwen -p`、cron 与 CI 一类单次运行整个跳过，daemon 的 ACP 会话仍生成）、没有配置 fast model。输入是最多 `MAX_TITLE_USER_DISPLAY_TEXTS = 20` 条用户显示文本的滚动窗口（超出即丢最旧），提示词要求 3–7 个词的句子式标题并“像这次会话的 git commit subject”，输出经 schema 校验，照抄提示词示例（#9706）或为空都按失败处理；失败只写 debug 日志，后续回合可在上限内重试。',
           persistence:
-            '名称写入当前项目的会话记录，并随该会话恢复。',
+            '显式与自动标题都写进当前会话的 JSONL 记录（`recordCustomTitle(name, titleSource)`，非录制会话回落到 `sessionService.renameSession`）。长度上限 `SESSION_TITLE_MAX_LENGTH = 200`，超长报 “Name is too long. Maximum 200 characters.”，生成结果超长时截断到 200 再 trim。自动标题落盘前会重读该 JSONL 尾部的最新标题记录，发现来源是 `manual` 就同步内存状态并放弃，避免覆盖另一个终端里的手工命名。',
           conditions:
-            '命令在不同模式下按命令注册范围出现；名称长度和合法性由当前实现校验。',
-          sources: ['qwen-session-commands'],
+            '自动标题不覆盖已有标题；`/rename --auto` 在没有 fast model 时报 `no_fast_model` 并提示用 `/model --fast <model>` 配置或直接传名称，其余失败原因是 `empty_history`、`empty_result`、`aborted`、`model_error` 与 `no_client`；`QWEN_DISABLE_AUTO_TITLE` 只关自动触发，`/rename --auto` 仍可用。官方命令文档只给命令行形状，触发时机、长度上限与保存位置取自源码。',
+          sources: [
+            'qwen-commands-e8ddd0d',
+            'qwen-rename-command-e8ddd0d',
+            'qwen-auto-title-recording-e8ddd0d',
+            'qwen-session-title-e8ddd0d',
+            'qwen-session-service-e8ddd0d',
+          ],
         },
         kimi: {
-          entry: '`/title [text]` 设置或显示标题，`/rename` 是别名。',
+          entry:
+            '`/title [<text>]` 设置或显示标题，`/rename` 是别名（源码注册项 `name` 为 `title`、`aliases` 为 `rename`、`argumentHint` 为 `<title>`、`availability` 为 `always`；官方中文命令表逐字 “不带参数时显示当前会话标题；带参数时设置为新标题（最长 200 字符）”）。2.3.0 起 TUI 会在首个完成的回合后自动生成标题，两个开关默认都是 `true`：`tui.toml` 的 `auto_session_title`（只关 TUI 的触发）与 `config.toml` 的全局 `auto_session_title`（“是否允许客户端自动生成会话标题；显式设为 `false` 时关闭”）。',
           behavior:
-            '带参数时更新当前会话标题；不带参数时显示现有标题。',
+            '带参数时把标题截到 200 字符后经 `renameSession` 写入，成功提示 “Session title set to: <title>”、失败提示 “Failed to set title: <msg>”；不带参数时显示 “Session title: <title>” 或 “Session title: (not set) — id: <sessionId>”。自动生成走托管平台的 `chat_title` 工具：`POST {kimiCodeBaseUrl}/tools` 带 Bearer 访问令牌，请求体为 `{ "method": "chat_title", "params": { "chat_content": "user: ... assistant: ..." } }`，默认 8000 ms 超时，返回标题截到 `MAX_GENERATED_TITLE_LENGTH = 200` 后写入会话元数据。TUI 还把会话标题镜像成终端窗口标题（截到 `MAX_TERMINAL_TITLE_LENGTH = 32`，没有标题时用产品名）。',
           scope:
-            '标题保存在当前会话 `state.json`，不修改工作目录或 Agent 名称。',
+            '标题保存在当前会话的 `state.json`（源码 `META_KEY` 即 `state.json`），不修改工作目录或 Agent 名称。元数据带 `titleKind`：`replaceable` 是由首个提示前 200 字符派生的占位标题（`isUntitled` 把 `undefined`、空白与 `New Session` 都算未命名），`generated` 是平台生成的标题，`custom` 是用户经 `/title` 设的标题。',
           automation:
-            '公开会话文档未描述单独的 AI 自动命名入口。',
+            'TUI 在 `TurnEnded` 且 `reason` 为 `completed` 时调用 `maybeAutoGenerateSessionTitle()`：要求 `sessionId` 非空、`appState.autoSessionTitle` 不为 `false`，再经 `harness.getConfig()` 复核全局 `auto_session_title`，然后以 `source` 为 `first_turn` 调 `generateSessionTitle`；每会话尝试上限 `MAX_AUTO_TITLE_ATTEMPTS = 3`，失败可在后续回合重试，成功即记为 done 不再触发，异常整个吞掉（源码注释 “title generation is best-effort; the session keeps its current title”）。`first_turn` 摘要是第一条自然语言用户提示（过滤 Skill 激活段与 `UserPromptSubmit` Hook 段，截 400 字符）加该轮最后一条助手文本（截 300 字符），两者缺一即不生成；服务本身还支持 `user_prompts`（最多 3 条、总长 1000）与 `digest`（头尾保留、总长 3000）两种来源，TUI 只用 `first_turn`。非 `force` 生成在 `titleKind` 已是 `custom` 或 `generated` 时直接返回，因此自动生成至多成功一次且永不覆盖 `/title` 设的名称。',
           persistence:
-            '标题随会话元数据保存，并显示在会话历史中。',
+            '生成的标题以 `{ title, titleKind: generated }` 写进会话 `state.json`（`touchUpdatedAt: false`，即不刷新会话更新时间）并广播 `session.meta.updated`，补丁为 `{ title, isCustomTitle: false }`；用户经 `/title` 设的标题写成 `titleKind: custom`。`/reload` 与 `/reload-tui` 会把重新读取的 `auto_session_title` 应用到运行中的 TUI，`/config` 写回 `tui.toml` 时保留该键当前值。',
           conditions:
-            '标题最长 200 字符；命令可随时查看，但设置需要遵循当前 TUI 状态。',
+            '自动生成要求 Kimi Code Provider 属 OAuth 目录厂商且配置了 `oauth`：拿不到令牌提供者或 OAuth 失败即放弃（debug 日志 “chat_title request unavailable”），HTTP 401 会强制刷新令牌重试一次，其他失败记 “chat_title request failed”，因此只配了自定义 API Key 的 Provider 不生成标题。SDK 侧 `generateSessionTitle({ id, force?, source? })` 是 v2 引擎能力，已关闭的会话会被临时恢复、命名后再关闭，返回 `undefined` 表示不可用（没有托管 OAuth 登录、还没有提示词或已设自定义标题）。官方中文会话指南只写 `state.json` 存会话标题与 `/title`（别名 `/rename`），没有描述自动生成，公开说明只在配置文档的两行 `auto_session_title`。Web 端更早另有实验性 AI 标题（0.36.1 变更记录的 `KIMI_CODE_EXPERIMENTAL_AUTO_SESSION_TITLE=1`，该环境变量在 2.3.0 源码中已不存在），属另一 Surface。2.3.0（2026-10-21T05:51:43Z）是核对日期最新 Release。',
           sources: [
-            'kimi-sessions-current',
-            'kimi-commands-current',
-            'kimi-data-current',
+            'kimi-sessions-b5e28fd',
+            'kimi-slash-commands-b5e28fd',
+            'kimi-config-files-b5e28fd',
+            'kimi-tui-app-b5e28fd',
+            'kimi-tui-constants-b5e28fd',
+            'kimi-tui-config-b5e28fd',
+            'kimi-title-command-b5e28fd',
+            'kimi-title-service-b5e28fd',
+            'kimi-title-prompt-source-b5e28fd',
+            'kimi-session-metadata-b5e28fd',
+            'kimi-managed-tools-b5e28fd',
+            'kimi-sdk-rpc-v2-b5e28fd',
+            'kimi-title-pr-4200',
+            'kimi-release-230',
+            'kimi-changelog-web-auto-title',
           ],
         },
         qoder: {
-          entry: '当前 TUI 内置命令表未列出会话重命名或标题命令。',
+          entry:
+            '启动时 `qoder -n <name>`（官方会话页逐字 “Use `-n` (`--name`) to set an easily recognizable display name for a session:”，示例 `qoder -n "Refactor login"`，旗标表 `-n, --name <name>` 描述为 “Set the session display name”）；会话中 `/rename`，官方会话页写 “You can also use `/rename` to rename the current session from within the session.”，Slash 命令参考的会话管理表把 `/rename` 记为 “Rename the current session.”',
           behavior:
-            'SDK 消息类型可通知宿主会话标题发生变化，但当前公开参考未提供用户设置标题的方法。',
+            'CLI 1.1.52（2026-09-14）的 “Improved the rename and btw commands” 逐字为 “Type `/rename` to auto-generate a session name based on the current conversation; manually entered names are automatically sanitized and length-limited”，即不带参数时按当前对话自动生成名称，手工输入的名称会被净化并限制长度。',
           scope:
-            '只确认 SDK 可观察标题变化；不据此推断 TUI 存在命名入口。',
+            '名称是会话显示名。官方会话页写明恢复按会话 ID（`-r`/`--resume [id]`，不带 ID 时打开 Session Browser），没有按名称恢复的入口，也没有把名称当作其他子命令句柄的说明。',
           automation:
-            '公开文档未说明标题生成时机和算法。',
+            '自动生成只由用户运行不带参数的 `/rename` 触发；官方没有描述回合结束后自动命名的行为，也没有公布生成所用的模型或端点。',
+          storage:
+            '官方会话页给出会话日志 `~/.qoder/projects/<processed-project-path-name>/<session-id>.jsonl` 与状态 `<session-id>/state.json`；显示名保存在哪个文件或字段未公开。',
           persistence:
-            '公开文档未说明标题在磁盘中的保存位置。',
+            '显示名随会话保留并在会话列表中显示，但官方没有写明落盘位置，也没有说明净化规则与长度上限的具体取值，这部分记为未确认。',
           conditions:
-            '本项保留为未确认，直到 TUI 文档或 SDK 提供明确的设置入口。',
-          status: '未确认',
-          sources: ['qoder-commands', 'qoder-sdk-reference'],
+            'CLI 1.1.9（2026-07-30）“Added support for running /rename while a task is in progress”，任务执行中也能改名；名称长度上限与净化规则官方只写 “length-limited” 与 “sanitized” 而没有给数字或规则；终端窗口标题由 CLI 1.1.4（2026-07-23）“Improved terminal session window title updates” 单独改进，不属本字段。官方 SDK 参考页在 2026-10-21 复核时全文没有 rename 或 session_title 字样，此前「SDK 消息类型可通知宿主会话标题发生变化」的说法无法从该来源复核，本次删除。',
+          sources: [
+            'qoder-commands',
+            'qoder-sessions',
+            'qoder-release-notes-rename',
+          ],
         },
       },
       related: ['session-resume', 'session-branch', 'cmd-status'],
