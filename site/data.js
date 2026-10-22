@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-10-21',
+  updatedAt: '2026-10-22',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -316,6 +316,26 @@ window.matrixData = {
       label: 'Claude Code CLI reference（`--autocompact` 与 `--agents`）',
       url: 'https://code.claude.com/docs/en/cli-reference',
     },
+    'claude-cli-reference-daemon': {
+      label:
+        'Claude Code CLI reference（2026-10-22 抓取，48,250 字节）`claude` 子命令表里的四行 daemon 命令逐字为 “`claude daemon logs` | Follow the background-session supervisor\'s log file, `~/.claude/daemon.log`, printing new lines as they arrive until you press `Ctrl+C`”、“`claude daemon run` | Run the background-session supervisor in the foreground of this terminal, printing its log”、“`claude daemon status` | Print the background-session supervisor\'s state, version, socket directory, and worker count for diagnostics. Exits 1 if the supervisor isn\'t running” 与 “`claude daemon stop --any` | Stop the background-session supervisor and the sessions it hosts. Pass `--keep-workers` to leave background sessions running for the next supervisor to reconnect to. `--any` confirms stopping an on-demand supervisor, which is the default. Use this to recover from an unresponsive supervisor”；同页 `claude respawn <id>` 一行写 “Restart a background session, running or stopped, with its conversation intact. Use `--all` to restart every running session, e.g. to pick up an updated Claude Code binary”；该页没有任何 `claude mcp serve` 子命令，`claude mcp` 下只有 `login <name>` 与 `logout <name>`',
+      url: 'https://code.claude.com/docs/en/cli-reference',
+    },
+    'claude-agent-view': {
+      label:
+        'Claude Code Agent view（2026-10-22 抓取，143,172 字节）“The supervisor process” 一节逐字为 “The supervisor is a background service that runs your background sessions so they keep working after you close agent view or your terminal. Claude Code starts it the first time you background a session or open agent view, and you don\'t need to manage it yourself.”；“Where state is stored” 表四行为 `~/.claude/daemon.log`（Supervisor log）、`~/.claude/daemon/roster.json`（List of running background sessions, used to reconnect after a restart）、`~/.claude/jobs/<id>/state.json` 与 `~/.claude/jobs/<id>/tmp/`；“Manage sessions from the shell” 表含 `claude daemon status`/`logs`/`stop --any` 三行；另有 “To inspect this state without reading the files directly, run `claude daemon status`. It reports whether the supervisor is reachable, its process ID and version, the socket directory, and how many background sessions are live.”、“The command also warns when the running supervisor is on a different version than the `claude` you invoked, which happens after an update the supervisor hasn\'t restarted into yet. The warning shows both versions and tells you to run `claude daemon stop --any` to pick up the new version.”、“After an auto-update: the supervisor restarts itself onto the new version and moves idle sessions over in the background.”、“If you set `CLAUDE_CONFIG_DIR`, the supervisor uses that directory instead of `~/.claude` and runs as a separate instance with its own sessions.” 与 supervisor 自身被外部结束时 “on macOS and Linux, your sessions stop unless a new supervisor connects within about a minute. To start one, run `claude agents` in your shell.”；排障表两次要求删 `~/.claude/daemon.lock`，并写 “Claude Code started with `daemon` is a supervisor, so run `kill -9 <pid>`.”',
+      url: 'https://code.claude.com/docs/en/agent-view',
+    },
+    'claude-v21300-daemon-stop-changelog': {
+      label:
+        'Claude Code 官方仓库 `CHANGELOG.md`（固定到提交 `5ed799e5cc56bea9efff57398ca43e31d82784ff`，2026-10-22T04:34:32Z）全文只有两条含 daemon 字样，都在 `## 2.1.300` 段下，逐字为 “Fixed `claude daemon stop --any` printing \"stopped\" while a stuck background service kept running: it now waits, force-kills the service, and says so with exit 1 if it is still there” 与 “Fixed `claude daemon stop` exiting with no output, and leaving sessions listed as running, when telemetry is turned off”；更新日志里没有任何 “Added `claude daemon`” 一类引入条目，因此该命令族的引入版本未确认',
+      url: 'https://github.com/anthropics/claude-code/blob/5ed799e5cc56bea9efff57398ca43e31d82784ff/CHANGELOG.md',
+    },
+    'claude-v21308-release': {
+      label:
+        'Claude Code Release [v2.1.308](https://github.com/anthropics/claude-code/releases/tag/v2.1.308)（2026-10-22T04:34:55Z 发布，核对日期最新 Release）；v2.1.306 至 v2.1.308 三版都没有 daemon 或 supervisor 相关条目',
+      url: 'https://github.com/anthropics/claude-code/releases/tag/v2.1.308',
+    },
     'claude-keybindings': {
       label: 'Claude Code keybindings',
       url: 'https://code.claude.com/docs/en/keybindings',
@@ -578,6 +598,11 @@ window.matrixData = {
       label:
         'Codex `/daemon` 菜单合并提交（`04581f96044a9fe6062593c4d557036477aee961`，PR #45854，2026-09-16，标题 “Add `/daemon` menu for local background server updates”）',
       url: 'https://github.com/openai/codex/commit/04581f96044a9fe6062593c4d557036477aee961',
+    },
+    'codex-daemon-settings-source': {
+      label:
+        'Codex daemon 设置源码（`codex-rs/app-server-daemon/src/settings.rs`，固定到 main 提交 `40db507eeca2ff778c040c325449eb72e90c0590`，2026-10-22T19:54:04Z）常量逐字为 `pub(crate) const DEFAULT_UPDATE_INTERVAL_MINUTES: u32 = 60;`、`pub(crate) const DEFAULT_SHUTDOWN_GRACE_SECONDS: u32 = 60;` 与 `pub(crate) const MAX_SHUTDOWN_GRACE_SECONDS: u32 = 5 * 60;`，`UpdaterSettings` 的 `update_interval_minutes` 带 `#[serde(default = "default_update_interval_minutes")]`、`StoredSettings` 的 `shutdown_grace_seconds` 带 `#[serde(default = "default_shutdown_grace_seconds")]`，校验为 `ensure!(seconds <= MAX_SHUTDOWN_GRACE_SECONDS, "shutdown grace must be between 0 and {MAX_SHUTDOWN_GRACE_SECONDS} seconds")` 与 `ensure!(self.update_interval_minutes > 0, "update interval must be positive")`；同一提交的 `codex-rs/app-server-daemon/README.md` 示例 JSON 把 `updateIntervalMinutes` 写成 `120`，而正文写 “Eligible managed daemons check for updates after five minutes, then hourly by default.”，即 README 示例与 crate 常量不一致，默认值以源码的 60 为准',
+      url: 'https://github.com/openai/codex/blob/40db507eeca2ff778c040c325449eb72e90c0590/codex-rs/app-server-daemon/src/settings.rs',
     },
     'codex-daemon-restart-commit': {
       label:
@@ -1393,6 +1418,41 @@ window.matrixData = {
         'Qwen Code v0.25.1 的 `qwen serve` 文档（“Run Qwen Code as a local HTTP daemon”、默认 `127.0.0.1:4170`、`--max-sessions` 默认 32、`--require-auth`、`QWEN_SERVER_TOKEN`、“Status: Stage 1 (experimental)” 与 “🚧 v0.16-alpha”、systemd/launchd/nohup/tmux 与 Local launch templates）',
       url: 'https://github.com/QwenLM/qwen-code/blob/c1a8218f38203e272e6e965778ed6a2795cfeed7/docs/users/qwen-serve.md',
     },
+    'qwen-serve-v0260': {
+      label:
+        'Qwen Code v0.26.0 标签的 `qwen serve` 文档（`docs/users/qwen-serve.md`，标签提交 `ac97ce7a70d9b2ea5d62b357e3d9b0851423afc9`，218,629 字节；官方文档站同页标题为 “Daemon mode (`qwen serve`)”）“Inspect and control a local daemon” 一节逐字给出七行示例 `qwen daemon start --port 4170      # detached; waits for the discovery record`、`qwen daemon status                 # ports, PIDs, workspaces, and health`、`qwen daemon status --json          # one JSON object per daemon`、`qwen daemon status --detail        # version, uptime, sessions, and issues`、`qwen daemon logs --port 4170 -f    # follow the recorded log file`、`qwen daemon stop --port 4170       # SIGTERM the recorded process` 与 `qwen daemon restart --port 4170    # stop, then start with the recorded settings`；同页逐字为 “`qwen daemon start` spawns `qwen serve` detached, waits for its discovery record, and prints the bound URL, PID, log path, and stop command.”、“Records live under the runtime directory (`$QWEN_RUNTIME_DIR`, `$QWEN_HOME`, or `~/.qwen`) in `daemon/daemon-<port>.json`. They are `0600` on POSIX and never contain the bearer token.”、“A record left by a crashed daemon is reported as `stale`; `status --prune` or `stop` removes it.”、“`stop` sends `SIGTERM` only after the listener answers `/health` or its PID is still alive; `--force` adds `SIGKILL` after the graceful timeout. When more than one daemon is registered, pass `--port`; `stop` also accepts `--all`.”、“`--wait` waits until the runtime is serving (no `daemon_runtime_starting` issue and not `error`); a timeout keeps the startup log and exits non-zero.”、“`qwen daemon restart` stops one registered daemon through `daemon stop` and starts it again through `daemon start --wait` on its recorded port and hostname, with its recorded startup workspaces, Web Shell mode, and `--require-auth` setting”、“`--web`/`--no-web` 与 `--require-auth`/`--no-require-auth` override the record.”、“`--force` is forwarded to `daemon stop` only when you pass it.”、“`status --detail` asks the daemon for its own status: version, uptime, active sessions, and issue count. It sends `QWEN_SERVER_TOKEN` only when the record says the daemon uses a bearer and the recorded process is alive, addressable, and started when the record says it did; a record whose recorded PID namespace this process cannot address is never sent the bearer. Without a token, a daemon that requires a bearer reports that authentication is required.”、“The startup log is `0600` and is removed after a successful start.” 与 “`GET /daemon/status` is the consolidated troubleshooting snapshot. The default `detail=summary` reads only in-memory daemon state (sessions, permissions, SSE/ACP transport counts, rate limit rejects, process memory, resolved limits) and does not start the ACP child. Use `GET /daemon/status?detail=full` for per-session diagnostics, ACP connection details, auth device-flow counts, and workspace status sections when you are actively investigating a problem.”；状态标记仍是 “**Status:** Stage 1 (experimental).” 与 “**🚧 v0.16-alpha**: `qwen serve` first ships to npm in v0.16-alpha as **text-only chat / coding** with **local-only deployment**.”，默认绑定仍写 “The default bind is `127.0.0.1:4170`.”，全页没有任何自动启动 daemon 的说法，常驻方式仍列 systemd/launchd/`nohup &`/tmux',
+      url: 'https://github.com/QwenLM/qwen-code/blob/ac97ce7a70d9b2ea5d62b357e3d9b0851423afc9/docs/users/qwen-serve.md',
+    },
+    'qwen-serve-docs-site': {
+      label:
+        'Qwen Code 官方文档站 Daemon mode (`qwen serve`) 页（2026-10-22 抓取，与仓库 `docs/users/qwen-serve.md` 同源，含同一组 `qwen daemon` 的 start、status、logs、stop、restart 五行示例与 `daemon/daemon-<port>.json` 发现记录说明）；同站另有 “Daemon Mode (Developer Deep Dive)” 21 页开发者专章（00-index 至 20-quickstart-operations）与 Daemon Client Adapters、Daemon UI 两组文档',
+      url: 'https://qwenlm.github.io/qwen-code-docs/en/users/qwen-serve/',
+    },
+    'qwen-daemon-command-v0260': {
+      label:
+        'Qwen Code v0.26.0 标签的 `qwen daemon` 命令源码（`packages/cli/src/commands/daemon.ts`，54,330 字节）：根命令 `command: \'daemon\'`、`describe: \'Inspect and control local qwen serve daemons\'`，五个子命令的 describe 逐字为 start “Start a local qwen serve daemon in the background”、status “List local qwen serve daemons and their health”、logs “Show or follow a local daemon log file”、stop “Stop a local qwen serve daemon” 与 restart “Restart a local qwen serve daemon on its recorded port and workspaces”；`start` 选项为 `port`（number，“TCP port (default 4170; 0 picks an ephemeral port)”）、`hostname`（string，默认 `127.0.0.1`）、`workspace`（string 数组，“repeat for multiple; defaults to the current directory”）、`web`（boolean，默认 `true`，“use --no-web for API-only”）、`require-auth`（boolean，默认 `false`）、`token`（string，“prefer QWEN_SERVER_TOKEN”）、`wait`（boolean，默认 `false`）与 `json`（boolean，默认 `false`）；`status` 选项为 `json`、`prune`（“Remove records whose process is gone”）与 `detail`（“Fetch /daemon/status for version, uptime, active sessions, and issue count”）；`logs` 选项为 `port`（“required when more than one is registered”）、`follow`（别名 `f`）与 `lines`（别名 `n`，默认 50）；`stop` 选项为 `port`、`all`（“Stop every registered daemon”）与 `force`（“SIGKILL a daemon that does not exit after SIGTERM”）；`restart` 选项为 `port`、`token`、`web`、`require-auth` 与 `force`（“Pass --force to daemon stop: confirm the Windows hard kill, or SIGKILL a POSIX daemon that does not exit after SIGTERM”）；常量为 `HEALTH_TIMEOUT_MS = 1_000`、`DETAIL_TIMEOUT_MS = 1_500`、`STOP_TIMEOUT_MS = 10_000`、`STOP_POLL_MS = 100`、`FOLLOW_POLL_MS = 250`、`PROCESS_START_TOLERANCE_MS = 5_000`、`PROCESS_START_LEAD_MS = 10 * 60_000`、`START_TIMEOUT_MS = 30_000`、`START_POLL_MS = 100`、`START_READY_TIMEOUT_MS = 30_000`、`START_READY_POLL_MS = 250` 与 `START_LOG_MAX_AGE_MS = 24 * 60 * 60_000`；健康状态只有 `running`/`stale`/`unreachable` 三种（`/health` 有响应即算活，含 401），Windows 下 `stop` 未带 `--force` 时报 “qwen daemon: Windows stop is a hard kill; pass --force to confirm (shutdown handlers do not run).” 并由 `terminateTree()` 调 `%SystemRoot%\\System32\\taskkill.exe` 以 `/pid <pid> /T /F` 结束进程树、成功文案用 `hard-killed` 而非 `stopped`；同一工作区重复 `start` 且未传 `--port` 时报 “qwen daemon: a daemon is already running for ${primary} on port ${existing.record.port}; pass --port to start another.”；启动失败打印日志末 40 行；启动日志名为 `start-${process.pid}-${Date.now()}.log`，目录 mode `0o700`、日志 fd mode `0o600`，无文件 sink 时回落到运行时目录的 `debug/daemon/daemon.log`',
+      url: 'https://github.com/QwenLM/qwen-code/blob/ac97ce7a70d9b2ea5d62b357e3d9b0851423afc9/packages/cli/src/commands/daemon.ts',
+    },
+    'qwen-daemon-discovery-commit': {
+      label:
+        'Qwen Code 合入提交 `35e0b4960def3af880862f18eab636908830dd26`（PR #14739，2026-10-20T00:50:38Z 合入 main，标题 “feat(serve): add local daemon discovery and control commands”）：新增 `packages/cli/src/serve/daemon-discovery.ts`、`packages/cli/src/commands/daemon.ts` 与 `docs/design/2026-10-19-daemon-discovery-and-control.md`，PR 说明逐字为 “Adds a local discovery record and a small control surface for `qwen serve`. Each daemon publishes its bound URL, PID, registered workspaces, and log path under the runtime directory once the listener is ready. A new `qwen daemon` command exposes `status`, `logs`, and `stop`, so a second terminal no longer has to parse startup output or search the process table.” 与 “`GET /daemon/status` existed but had no CLI entry point.”，并记录发现记录权限 `0700`/`0600` 且不含 bearer token、`stop` 只在监听器应答 `/health` 或 PID 仍存活时发信号、记录携带写入方 `pidNamespace` 因而跨容器不可寻址的 PID 不会被误杀、删除记录时校验 `expectedPid`、写记录失败只向 stderr 告警而不阻断 `qwen serve` 启动、自签名 TLS 证书的 daemon 在 `status` 里可能显示为 `unreachable`',
+      url: 'https://github.com/QwenLM/qwen-code/commit/35e0b4960def3af880862f18eab636908830dd26',
+    },
+    'qwen-daemon-start-commit': {
+      label:
+        'Qwen Code 合入提交 `f4f3749f3661712d28d72a05e1a9436594e457b9`（PR #14869，2026-10-20T11:05:34Z 合入 main，标题 “feat(serve): add qwen daemon start”）：PR 说明逐字为 “Adds `qwen daemon start`, which launches `qwen serve` as a detached child, waits for the child to publish its discovery record, and returns to the shell with the bound URL, PID, log path, and stop command. It removes the launching session\'s identifiers and private capability bindings from the child environment, passes a supplied token through the environment rather than the child\'s arguments, and keeps startup output in a private file that is removed after a successful start.” 与 “Starting a local daemon previously required systemd, tmux, or `nohup`.”；风险段逐字为 “The log is `0600` and removed after success; on failure it is kept and its tail is printed. A non-loopback bind requires `QWEN_SERVER_TOKEN`, and the child is always started with `--no-token-qr` so a token cannot enter the startup log. There is no supervision or crash restart.” 与 “No service installation or restart command is included.”',
+      url: 'https://github.com/QwenLM/qwen-code/commit/f4f3749f3661712d28d72a05e1a9436594e457b9',
+    },
+    'qwen-daemon-start-design-v0260': {
+      label:
+        'Qwen Code v0.26.0 标签的 daemon start 设计文档（`docs/design/2026-10-20-daemon-start.md`，4,453 字节，标题 “Background daemon start”）Status 一节逐字为 “Implemented in this change. `qwen daemon start` is local process management; it does not change the serve protocol, authentication, or workspace isolation.”，Problem 一节逐字为 “Starting a local daemon required a service manager, tmux, or `nohup`. The discovery record and `qwen daemon stop` already made a running daemon inspectable, but there was no supported way to start one and return to the shell.”；同标签下没有 `docs/design/2026-10-21-daemon-token.md`（返回 404），即 PR #15023 的 daemon token 持久化不在 v0.26.0 之内',
+      url: 'https://github.com/QwenLM/qwen-code/blob/ac97ce7a70d9b2ea5d62b357e3d9b0851423afc9/docs/design/2026-10-20-daemon-start.md',
+    },
+    'qwen-daemon-lifecycle-commits': {
+      label:
+        'Qwen Code 补齐 daemon 生命周期的三个合入提交：`171f8a6d4d11961e3c61e65e9a5e0d21339737d4`（PR #14902，2026-10-20T13:32:46Z，“feat(serve): add daemon status detail”）、`69b3149654315d15eb60639a4069beec9d1b75c8`（PR #14914，2026-10-20T15:23:31Z，“feat(serve): add daemon start --wait”）与 `a8616497861fd779a0a90d3d2986b5327211f03d`（PR #14929，2026-10-21T05:00:39Z，“feat(serve): add daemon restart”）；五个 daemon PR 连同 #14739 与 #14869 都列在 [v0.26.0 Release](https://github.com/QwenLM/qwen-code/releases/tag/v0.26.0)（2026-10-21T23:20:53Z 发布，标签提交 `ac97ce7a70d9b2ea5d62b357e3d9b0851423afc9`）的 Features 清单里；`e63a0bfc23d2b97eddae7fefd02ab1c13552f30c`（PR #15023，2026-10-21T15:06:39Z，“feat(serve): add daemon token persistence”）虽早于标签发布时间，却既不在 v0.26.0 的 Release 清单里、其设计文档在该标签下也返回 404，即 main-only 未发布',
+      url: 'https://github.com/QwenLM/qwen-code/releases/tag/v0.26.0',
+    },
     'qwen-web-shell-image-dnd': {
       label: 'Qwen Code Web Shell image drag and drop commit',
       url: 'https://github.com/QwenLM/qwen-code/commit/e46586782cf8fc85d535051830bcc743bcd6b47a',
@@ -2061,6 +2121,11 @@ window.matrixData = {
         'Kimi Code `kimi web` 参考（提交 `242ac230006447f8601e1678c49182bfbae89fe9`：默认端口 58627 与占用时 +1 重试、`--host`/`--allowed-host`/`--web-title`/`--log-level`/`--debug-endpoints`、`~/.kimi-code/server/instances/` 多实例登记、`~/.kimi-code/server.token` 与 `rotate-token`、前台运行到 SIGINT/SIGTERM、已废弃的 `kimi server kill`）',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/242ac230006447f8601e1678c49182bfbae89fe9/docs/zh/reference/kimi-command.md',
     },
+    'kimi-command-759958a': {
+      label:
+        'Kimi Code 命令参考复核（固定到 main 提交 `759958afdfeb0f8c7d09cb03cbc2cf85b6255e9e`，2026-10-22T12:30:23Z，20,041 字节）：顶层 `kimi` 子命令为 `login`、`acp`、`web`、`doctor`、`export`、`migrate`、`upgrade`（别名 `update`）、`provider`、`app`、`install-desktop`（隐藏别名 `install-app`）与 `vis`，没有任何 daemon 生命周期子命令；`kimi web` 一节逐字为 “在当前终端前台运行本地 Kimi 服务 —— 同一个进程同时挂载 REST + WebSocket API 与 web UI —— 并在服务就绪后用默认浏览器打开 web UI。命令会一直挂在终端，直到收到 `SIGINT` / `SIGTERM`（如 `Ctrl-C`）时干净退出。”，其下只有 `kimi web rotate-token` 一个子命令；`kimi server` 命令树的弃用提示逐字为 “`kimi server` 命令树已废弃：任何 `kimi server …` 调用（含全部旧子命令）只会打印弃用提示并以退出码 1 结束，请改用 `kimi web`。唯一的例外是 `kimi server kill`，它仍然可用，仅用于停止 0.28.0 之前版本启动的服务。”，`kimi server kill` 一节末尾写 “`kimi web` 启动的服务在前台运行，直接用 `Ctrl+C` 停止即可。”；核对日期最新 Release 仍为 [`@moonshot-ai/kimi-code@2.3.0`](https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai%2Fkimi-code%402.3.0)（2026-10-21T05:51:43Z）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/759958afdfeb0f8c7d09cb03cbc2cf85b6255e9e/docs/zh/reference/kimi-command.md',
+    },
     'kimi-sdk-current': {
       label: 'Kimi Code current TypeScript SDK package',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/packages/node-sdk/package.json',
@@ -2543,6 +2608,11 @@ window.matrixData = {
     },
     'qoder-cli-reference': {
       label: 'Qoder CLI 命令行参考（`--worktree`、子命令表与 `plugins`/`skills`/`hooks`/`agents` 子命令组）',
+      url: 'https://docs.qoder.com/cli/cli-reference',
+    },
+    'qoder-cli-reference-daemon': {
+      label:
+        'Qoder CLI 命令行参考（2026-10-22 抓取）子命令表共 14 行：`mcp`、`plugins`（别名 `plugin`）、`skills`（别名 `skill`）、`hooks`（别名 `hook`）、`agents`（别名 `agent`）、`login`、`commit`、`rollback`、`update`、`remote-control`、`status`、`sites`、`feedback` 与 `wiki`；其中与常驻服务有关的只有 “`remote-control` | Start the remote-control daemon.” 一行，`status` 一行是 “Display session status.” 而不是 daemon 状态，表里没有任何 daemon 的 stop/restart/logs/update 子命令；`--acp` 在 “Editor Integration” 段逐字为 “Start as an ACP server for integration via standard input/output by clients implementing the ACP protocol, such as Zed.”；[CLI Release Notes](https://docs.qoder.com/release-notes/qoder-cli) 最新六版 1.1.77（2026-10-22）、1.1.76（2026-10-21）、1.1.75（2026-10-20）、1.1.74（2026-10-19）、1.1.73（2026-10-16）与 1.1.72（2026-10-15）都没有 daemon、remote-control 或后台服务条目',
       url: 'https://docs.qoder.com/cli/cli-reference',
     },
     'qoder-builtins-reference': {
@@ -4171,7 +4241,7 @@ window.matrixData = {
       category: 'surfaces',
       capability: '服务端与 Daemon',
       description: '以常驻进程、协议服务器或本地服务承载 Agent 会话。',
-      values: { claude: 'Agent SDK · Remote Control 服务', codex: '`codex app-server` · `mcp-server` · 本地后台 daemon（`app-server daemon start|restart|update|stop` · TUI `/daemon`）', qwen: '`qwen serve` HTTP + SSE', kimi: '`kimi web` REST + WebSocket', qoder: '`qodercli --acp` · `remote-control` Daemon' },
+      values: { claude: '后台会话 supervisor（`claude daemon status|logs|run|stop --any`）· Agent SDK · Remote Control 服务', codex: '`codex app-server` · `mcp-server` · 本地后台 daemon（`app-server daemon start|restart|update|stop` · TUI `/daemon`）', qwen: '`qwen serve` HTTP + SSE · `qwen daemon start|status|logs|stop|restart`', kimi: '`kimi web` REST + WebSocket', qoder: '`qodercli --acp` · `remote-control` Daemon' },
     },
     {
       id: 'surface-cli',

@@ -464,30 +464,39 @@
       facts: [
         'Codex 的 app-server、Qwen 的 qwen serve 和 Kimi 的 kimi web 都提供面向富客户端的双向服务，但协议分别是 JSON-RPC、HTTP + SSE、REST + WebSocket。',
         'Qoder 的 ACP Server 面向 IDE，Remote Control Daemon 面向 Qoder Web/移动端；它不是公开的本地 HTTP Agent API。',
-        'Claude Code 的 Agent SDK 和 Remote Control 可承载长运行会话，但官方没有把通用本地 HTTP Agent Daemon 作为开发者接口。',
-        '只有 Codex 记录到由 CLI 自己发现、附加并管理版本的本地后台服务器：TUI 默认附加共享 daemon，`/daemon` 可更新或重启它，`codex app-server daemon` 提供 start/restart/update/stop 等生命周期子命令。其余四家的常驻服务都由用户显式启动：Kimi 官方写明 `kimi web` 在前台运行到 SIGINT/SIGTERM，Qoder Remote Control Daemon 按 `Ctrl+C` 退出，Qwen `qwen serve` 的官方文档给出 systemd/launchd/`nohup &`/tmux 一类由部署者自行常驻的方式。',
-        'Codex daemon 的生命周期、状态文件与 `/daemon` 菜单只记录在官方仓库（`codex-rs/app-server-daemon/README.md`、TUI 源码与 CLI 集成测试）；官方文档站的 App Server 页没有 daemon 字样，只有 Developer commands 页的 remote-control 段写 “the local app-server daemon”。',
+        'Claude Code 有三条常驻路径且托管对象各不相同：后台会话 supervisor（`claude daemon` 管理）只承载后台会话的 worker 进程，Agent SDK 是宿主进程内的长连接运行时，Remote Control 是经 Anthropic 中继的跨端通道。三者都不是通用本地 HTTP Agent API，官方 CLI 参考的 `claude` 子命令表里也没有 `claude mcp serve`，`claude mcp` 下只有 `login <name>` 与 `logout <name>`。',
+        'Codex、Claude Code 与 Qwen Code 都有 CLI 自己管理的本地常驻进程和生命周期子命令，但启动方式三种不同：Claude 的 supervisor 由 CLI 在首次把会话转入后台或打开 agent view 时自动拉起（官方逐字 “Claude Code starts it the first time you background a session or open agent view, and you don\'t need to manage it yourself.”），Codex TUI 默认发现并附加共享 daemon（特征开关 `daemon_auto_start`），Qwen 的 `qwen daemon start` 必须显式执行、官方文档同时保留 systemd/launchd/`nohup &`/tmux 与 Local launch templates。Kimi 与 Qoder 没有任何生命周期子命令：`kimi web` 在前台运行到 SIGINT/SIGTERM，Qoder 子命令表 14 行里与常驻服务有关的只有 “`remote-control` | Start the remote-control daemon.”，`status` 是会话状态而不是 daemon 状态。',
+        '版本更新入口只有 Codex 与 Claude 有：Codex `/daemon` 菜单的 “Install latest public stable” 与 “Use this CLI build” 两项更新被管理二进制，`codex app-server daemon update` 即使关闭自动更新也选最新 stable；Claude 的 supervisor 在自动更新后自行重启到新版本并在后台迁移空闲会话（正在工作、等待用户或已被接管的会话不中断），`claude daemon status` 在 supervisor 版本与调用的 `claude` 不一致时告警并让你跑 `claude daemon stop --any` 换新版本，`claude respawn --all` 则把所有会话迁到更新后的二进制。Qwen 的 `qwen daemon restart` 只按记录的端口、hostname、工作区、Web Shell 模式与 `--require-auth` 重启同一二进制，不做版本更新，也没有服务安装入口。',
+        '发现记录与状态文件位置各不相同：Codex 在 `CODEX_HOME/app-server-daemon/`（`settings.json`、`app-server.pid`、`app-server-updater.pid`、`daemon.lock`），Claude 在 `~/.claude/daemon.log`、`~/.claude/daemon/roster.json`、`~/.claude/daemon.lock` 与 `~/.claude/jobs/<id>/state.json`（设 `CLAUDE_CONFIG_DIR` 时 supervisor 改用该目录并成为带自己会话的独立实例），Qwen 在 `$QWEN_RUNTIME_DIR`／`$QWEN_HOME`／`~/.qwen` 下的 `daemon/daemon-<port>.json`（POSIX `0600`、目录 `0700`、从不包含 bearer token），Kimi 在 `~/.kimi-code/server/instances/` 登记多实例并把 token 写进 `~/.kimi-code/server.token`，Qoder 未公开。',
+        'Codex daemon 的生命周期、状态文件与 `/daemon` 菜单只记录在官方仓库（`codex-rs/app-server-daemon/README.md`、TUI 源码与 CLI 集成测试）；官方文档站的 App Server 页没有 daemon 字样，只有 Developer commands 页的 remote-control 段写 “the local app-server daemon”。Qwen 的 `qwen daemon` 相反，仓库文档、官方文档站与命令源码三处一致；Claude 的 `claude daemon` 记录在官方 CLI 参考与 Agent view 两页，但更新日志里只有 v2.1.300 的两条修复、没有引入条目，因此引入版本未确认。',
       ],
       products: {
         claude: {
           entry:
-            'Agent SDK 长连接客户端；`claude remote-control` 或会话内 `/remote-control` 启动远程控制服务。',
+            '`claude daemon status`（打印 supervisor 的状态、版本、socket 目录与 worker 数用于诊断，supervisor 未运行时退出码 1）、`claude daemon logs`（跟随 `~/.claude/daemon.log`，新行到达即打印直到按 `Ctrl+C`）、`claude daemon run`（在本终端前台运行 supervisor 并打印其日志）、`claude daemon stop --any`（停掉 supervisor 与它承载的会话，`--keep-workers` 让后台会话留着等下一个 supervisor 重连，`--any` 用来确认停止默认的按需 supervisor）；supervisor 本身由 CLI 自动拉起，官方逐字为 “Claude Code starts it the first time you background a session or open agent view, and you don\'t need to manage it yourself.”，被外部结束后在 macOS 与 Linux 上要在约一分钟内跑 `claude agents` 才能续上会话。另有 Agent SDK 长连接客户端，以及 `claude remote-control` 或会话内 `/remote-control` 启动的远程控制服务（服务器模式，无本地交互会话）。',
           protocol:
-            'SDK 通过本地运行时消息流通信；Remote Control 通过 Anthropic 中继把 Web/移动界面连接到本地会话。',
+            'supervisor 经 socket 目录下的套接字与 CLI 通信（`claude daemon status` 会报告该目录），每个后台会话的终端跑在自己的宿主进程里；官方没有把它开放成通用 HTTP Agent API。SDK 通过本地运行时消息流通信；Remote Control 通过 Anthropic 中继把 Web/移动界面连接到本地会话。',
           behavior:
-            'SDK 宿主可持续发送多轮消息；Remote Control 同步本地终端、浏览器和手机上的同一对话。',
+            'supervisor 让后台会话在关闭 agent view、关闭 shell 或另开交互会话后继续运行；`←`、`Ctrl+Z`、`/exit` 与双按 `Ctrl+C` 或双按 `Ctrl+D` 都不会停掉已转入后台的会话。会话「已完成或在等你的下一条消息、且约一小时无人接管」时 supervisor 停掉其进程释放资源，对话留在磁盘上，下次接管或回复时从原处继续；会话在 supervisor 运行期间意外退出时由 supervisor 重启其进程；打开一个已停止响应的会话时 supervisor 重启其进程并从中断处续上那条回答；自动更新后 supervisor 自行重启到新版本并在后台把空闲会话迁过去。`claude daemon stop --any` 自 v2.1.300 起在后台服务卡住时改为等待并强制结束、仍存活则以退出码 1 说明，此前会打印 “stopped” 却把进程留着；同版还修了关闭遥测时 `claude daemon stop` 无输出退出且会话仍被列为运行。SDK 宿主可持续发送多轮消息；Remote Control 同步本地终端、浏览器和手机上的同一对话。',
           state:
-            'Agent SDK 会话可持久化与恢复；Remote Control 的执行进程和文件始终留在本机。',
+            'supervisor 状态在 `~/.claude/daemon.log`（supervisor 日志）、`~/.claude/daemon/roster.json`（运行中后台会话清单，用于重启后重连）、`~/.claude/jobs/<id>/state.json`（agent view 显示的每会话状态，官方要求走 `claude agents --json` 而不是直接解析该文件）与 `~/.claude/jobs/<id>/tmp/`（每会话临时目录，Claude 在此的 `Write` 与 `Edit` 不提示权限，删会话时一并移除），排障时还会用到 `~/.claude/daemon.lock`。会话状态在磁盘上跨自动更新与 supervisor 重启保留，机器睡眠期间同样保留、唤醒后进程恢复且 supervisor 重连而不把这段时间算作空闲；后台会话的权限模式、模型、effort 与后台化时携带的配置旗标在 supervisor 之后停止并重启其进程时全部保留。设 `CLAUDE_CONFIG_DIR` 时 supervisor 改用该目录并成为带自己会话的独立实例。Agent SDK 会话可持久化与恢复；Remote Control 的执行进程和文件始终留在本机。',
           tools:
-            '连接后的远程界面使用本机会话已有的文件、MCP、工具和项目配置。',
+            'supervisor 承载的是完整的 Claude Code 后台会话，因此带该会话自己的工具、MCP 与项目配置；supervisor 给每个后台会话的终端各起一个宿主进程。连接后的远程界面使用本机会话已有的文件、MCP、工具和项目配置。',
           auth:
-            'Remote Control 要求同一 Claude 账号并受组织开关控制；SDK 按 Agent SDK 认证。',
+            'supervisor 与其会话使用和交互会话相同的已存凭据；后台会话的凭据来自 supervisor，因此 `Could not resolve authentication method` 意味着 supervisor 进程本身拿不到已存凭据，要在那次启动 supervisor 的 shell 里设好变量再重启它。LLM 网关只有在 supervisor 本身就是从导出了同一网关的 shell 启动时才够得着，否则要从跑 respawn 命令的终端重启 supervisor。Remote Control 要求同一 Claude 账号并受组织开关控制；SDK 按 Agent SDK 认证。',
           deployment:
-            '服务进程运行在用户机器或应用宿主；不是公开自托管 HTTP API。',
+            'supervisor 运行在本机，是官方文档里唯一由 Claude Code 自己按需拉起的常驻服务；它不是公开的自托管 HTTP API，也不提供跨机器的通用客户端协议。Remote Control 服务进程同样运行在用户机器上，停掉服务后可以把它原先服务的会话恢复回来。',
           conditions:
-            'Remote Control 是专用跨端通道，不应作为任意第三方客户端协议；通用产品内嵌应使用 Agent SDK。',
+            'supervisor 只在用过 agent view 或后台会话之后才存在，`claude daemon status` 在它未运行时以退出码 1 结束；supervisor 自身被外部结束时，macOS 与 Linux 上的会话除非约一分钟内有新 supervisor 接上否则会停止，之后要按 “Keep sessions running after the supervisor stops” 处理。排障文案有明确边界：`could not be verified as the daemon, so it was not signalled` 要先查清那个 PID 属于哪个程序、是自己的 supervisor 就停掉它、别的程序不要动，然后删 `~/.claude/daemon.lock`；`was not sent SIGKILL` 要再跑一次停止命令，进程仍在时用 `ps -ww -o args= -p <pid>` 核对（以 `daemon` 启动的 Claude Code 才是 supervisor，可 `kill -9 <pid>`），若之后 `claude agents` 起不了 supervisor 再删 `~/.claude/daemon.lock`。官方两页都没有给 `claude daemon` 命令族标注最低版本，更新日志里也只有 v2.1.300 的两条修复而没有引入条目，因此引入版本记为未确认；Agent view 页唯一相关的版本句是排障段的 “If you saw `stopped` but the same error returns, and you\'re on macOS or Linux with Claude Code older than v2.1.300, run `claude update`, then both commands again.”。Remote Control 是专用跨端通道，不应作为任意第三方客户端协议；通用产品内嵌应使用 Agent SDK。',
           status: '条件项',
-          sources: ['claude-agent-sdk', 'claude-remote-control'],
+          sources: [
+            'claude-cli-reference-daemon',
+            'claude-agent-view',
+            'claude-v21300-daemon-stop-changelog',
+            'claude-v21308-release',
+            'claude-agent-sdk',
+            'claude-remote-control',
+          ],
         },
         codex: {
           entry:
@@ -497,7 +506,7 @@
           behavior:
             'app-server 提供认证、线程历史、审批和流式 Agent 事件；MCP Server 暴露 `codex` 与 `codex-reply` 工具。TUI 默认发现并附加本地后台 daemon（特征开关 `daemon_auto_start`，`codex --disable daemon_auto_start` 关闭），附加成功时状态行显示 `Server: Local background server`、改用内嵌服务器时显示 `Model:`；隐式发现的 daemon 无法初始化连接时 TUI 改起内嵌服务器，显式 `--remote` 端点仍以远端为准并报告连接失败。`/daemon` 菜单三项为 “Install latest public stable”、“Use this CLI build” 与 “Restart background server”：两个更新项在标题 “Update daemon and exit Codex?” 的确认（默认落在 Cancel）后退出 TUI、由启动它的 CLI 可执行文件执行更新并传播失败；重启项在标题 “Restart background server?” 的确认（正文 “Active or queued work in other chats may be interrupted.”、“Codex will reconnect automatically.”）后重启并自动重连，TUI 退出时进行中的重启会跑完。`stop` 先发优雅终止请求、超过 `shutdownGraceSeconds` 仍存活再强制结束；`update` 即使关闭自动更新也选最新 stable 并让被钉住的本地包恢复生产资格，运行中的 daemon 会重启、已停止的保持停止；`enable-remote-control`/`disable-remote-control` 持久化启动设置并重启已在运行的被管理 app-server。',
           state:
-            '一个服务可管理多个 thread/turn；远程终端连接到服务端工作区而非复制文件。daemon 状态在 `CODEX_HOME/app-server-daemon/`：`settings.json`（`remoteControlEnabled`、`shutdownGraceSeconds` 取 0–300 默认 60、`updater.autoUpdateEnabled`、`updater.updateIntervalMinutes`）、`app-server.pid`、`app-server-updater.pid` 与 `daemon.lock`；被管理的二进制固定在 `CODEX_HOME/packages/app-server-daemon/current/bin/codex`（Windows 为 `codex.exe`），生命周期命令一律用它而不随调用方 CLI 版本变化，旧 daemon 保留 `CODEX_HOME/packages/standalone/current`。CLI 集成测试以 `app-server-daemon/daemon.pid` 的内容变化断言重启确实发生，该文件与 README 记录的 `app-server.pid` 的关系未确认；测试写入的 `settings.json` 还含 `featureOverrides`（例如 `{"api_key_model_discovery": false}`），README 的键列表没有列出它。',
+            '一个服务可管理多个 thread/turn；远程终端连接到服务端工作区而非复制文件。daemon 状态在 `CODEX_HOME/app-server-daemon/`：`settings.json`（`remoteControlEnabled`、`shutdownGraceSeconds` 取 0–300 默认 60、`updater.autoUpdateEnabled`、`updater.updateIntervalMinutes`）、`app-server.pid`、`app-server-updater.pid` 与 `daemon.lock`；被管理的二进制固定在 `CODEX_HOME/packages/app-server-daemon/current/bin/codex`（Windows 为 `codex.exe`），生命周期命令一律用它而不随调用方 CLI 版本变化，旧 daemon 保留 `CODEX_HOME/packages/standalone/current`。CLI 集成测试以 `app-server-daemon/daemon.pid` 的内容变化断言重启确实发生，该文件与 README 记录的 `app-server.pid` 的关系未确认；测试写入的 `settings.json` 还含 `featureOverrides`（例如 `{"api_key_model_discovery": false}`），README 的键列表没有列出它。默认值以 crate 源码为准：`settings.rs`（main 提交 `40db507eeca2ff778c040c325449eb72e90c0590`）的常量是 `DEFAULT_UPDATE_INTERVAL_MINUTES: u32 = 60`、`DEFAULT_SHUTDOWN_GRACE_SECONDS: u32 = 60` 与 `MAX_SHUTDOWN_GRACE_SECONDS: u32 = 5 * 60`，两个字段各带 `#[serde(default = …)]`，校验为 shutdown grace 不得超过 300 秒、update interval 必须为正；同一提交的 README 示例 JSON 却把 `updateIntervalMinutes` 写成 `120`，而 README 正文写 “Eligible managed daemons check for updates after five minutes, then hourly by default.”，即示例与常量冲突，本仓库按源码记 60。',
           tools:
             '完整 Codex 工具、审批、MCP 和沙箱由 app-server 统一执行；MCP Server 可被上层 Agents SDK 编排。',
           auth:
@@ -505,7 +514,7 @@
           deployment:
             '可运行在本机、远程开发机或产品后端；CLI TUI 可跨机器连接。daemon 面向经 SSH 启动的 Codex 实例与需要以 `remote_control` 暴露 app-server 的新机器：`bootstrap` 在没有安装 daemon 包时把调用方的完整 CLI 包复制进 `CODEX_HOME/packages/app-server-daemon`、记录设置并以 pidfile 后台进程启动，条件满足时再拉起独立更新循环；合格的被管理 daemon 启动 5 分钟后检查更新、之后按 `updateIntervalMinutes`（默认 60）检查，更新循环只在开启自动更新、安装器选择了 stable `latest` 通道且被管理二进制支持 updater 命令时运行，且不随机器重启持久（重启后的一次受管启动会重新拉起）。顶层 `codex remote-control start` 会按需启动或 bootstrap daemon，`codex remote-control` 在合格时使用被管理 daemon、`--no-daemon` 改为单独的前台服务器。',
           conditions:
-            'WebSocket 明确是 experimental/unsupported；远程暴露必须使用 WSS、认证或 SSH 端口转发。`/daemon` 的两个更新项在远程连接或拿不到 CLI 可执行文件时禁用：远程时菜单头部写 “Manage this server on its host. Local daemon updates are unavailable for remote connections.”，没有 CLI 可执行文件时写 “Run the Codex CLI to manage the daemon from this menu.”，“Use this CLI build” 在没有本地包时另给禁用原因 “This CLI has no local package to copy”；断线或使用内嵌服务器时菜单仍可打开。重启项只在 Codex 已核实自己管理这台本地服务器时可用（含 auto-start 关闭时发现的服务器与 `codex agents` 启动的服务器），是本地 daemon 但未被管理时写 “Codex hasn\'t verified it manages this server. Restart it where it was started.”，断线或已有重启在进行时同样禁用；该动作 2026-10-11 合入 main（提交 `27065a91ccbf`，PR #53173），核对日期最新 Release rust-v0.162.1（2026-10-09）与 rust-v0.163.0-alpha.5（2026-10-10）都早于该提交，而 `/daemon` 本身自 2026-09-16 提交 `04581f96044a`（PR #45854）进入 main、rust-v0.162.1 标签的 `SlashCommand` 枚举已含 `Daemon`。会话要求的特征设置与已运行 daemon 不一致时，TUI 提示 “Background server has incompatible feature settings”，可改用内嵌服务器或确认后重启并把确认的开关写进 `settings.json` 的 `featureOverrides`，取消则以非零状态退出并提示 “Cannot use the shared background server: This session requires <flag> to be disabled.”；提权启动的本地 TUI 直接用内嵌服务器且不启动 daemon，启动器受限时若 daemon 起不来也回退内嵌。官方 App Server 页没有 daemon 字样，Developer commands 页的内置 Slash 命令表（50 行）没有 `/daemon` 行、CLI 子命令表（26 个子命令）也没有 `codex app-server daemon`，只有该页 remote-control 段提到 “the local app-server daemon”。',
+            'WebSocket 明确是 experimental/unsupported；远程暴露必须使用 WSS、认证或 SSH 端口转发。`/daemon` 的两个更新项在远程连接或拿不到 CLI 可执行文件时禁用：远程时菜单头部写 “Manage this server on its host. Local daemon updates are unavailable for remote connections.”，没有 CLI 可执行文件时写 “Run the Codex CLI to manage the daemon from this menu.”，“Use this CLI build” 在没有本地包时另给禁用原因 “This CLI has no local package to copy”；断线或使用内嵌服务器时菜单仍可打开。重启项只在 Codex 已核实自己管理这台本地服务器时可用（含 auto-start 关闭时发现的服务器与 `codex agents` 启动的服务器），是本地 daemon 但未被管理时写 “Codex hasn\'t verified it manages this server. Restart it where it was started.”，断线或已有重启在进行时同样禁用；该动作 2026-10-11 合入 main（提交 `27065a91ccbf`，PR #53173），2026-10-22 复核 Releases 页最新十项全部是 pre-release（最新为 rust-v0.164.0-alpha.12，2026-10-22T11:11:51Z，其余为 rust-v0.164.0-alpha.5 至 alpha.11 与 rust-v0.163.0-alpha.11.1/.2），页内没有 stable 标签，即该动作已进入其后的 alpha 通道；而 `/daemon` 本身自 2026-09-16 提交 `04581f96044a`（PR #45854）进入 main、rust-v0.162.1 标签的 `SlashCommand` 枚举已含 `Daemon`。会话要求的特征设置与已运行 daemon 不一致时，TUI 提示 “Background server has incompatible feature settings”，可改用内嵌服务器或确认后重启并把确认的开关写进 `settings.json` 的 `featureOverrides`，取消则以非零状态退出并提示 “Cannot use the shared background server: This session requires <flag> to be disabled.”；提权启动的本地 TUI 直接用内嵌服务器且不启动 daemon，启动器受限时若 daemon 起不来也回退内嵌。官方 App Server 页没有 daemon 字样，Developer commands 页的内置 Slash 命令表（50 行）没有 `/daemon` 行、CLI 子命令表（26 个子命令）也没有 `codex app-server daemon`，只有该页 remote-control 段提到 “the local app-server daemon”。',
           sources: [
             'codex-app-server',
             'codex-mcp-server',
@@ -516,27 +525,38 @@
             'codex-daemon-restart-commit',
             'codex-daemon-startup-tests',
             'codex-slash-command-v01621',
+            'codex-daemon-settings-source',
           ],
         },
         qwen: {
           entry:
-            '`qwen serve`，默认 `127.0.0.1:4170`；可加 `--open`、`--no-web`、`--workspace`、`--max-sessions`（默认 32）、`--require-auth` 与 bearer token（`--token` 或 `QWEN_SERVER_TOKEN`）。',
+            '`qwen serve`，默认绑定 `127.0.0.1:4170`；可加 `--port`（`0` 请 OS 分配临时端口）、`--hostname`、`--workspace`（可重复）、`--web`/`--no-web`、`--open`、`--max-sessions`（默认 32）、`--require-auth` 与 bearer token（`--token` 或 `QWEN_SERVER_TOKEN`）。v0.26.0 起另有 `qwen daemon` 命令族，根命令描述逐字为 “Inspect and control local qwen serve daemons”，五个子命令为 `start`（“Start a local qwen serve daemon in the background”）、`status`（“List local qwen serve daemons and their health”）、`logs`（“Show or follow a local daemon log file”）、`stop`（“Stop a local qwen serve daemon”）与 `restart`（“Restart a local qwen serve daemon on its recorded port and workspaces”）。',
           protocol:
-            'HTTP REST 管理会话与工作区，SSE 推送事件；内部通过一个或多个 `qwen --acp` 子进程承载 Agent。',
+            'HTTP REST 管理会话与工作区，SSE 推送事件；内部通过一个或多个 `qwen --acp` 子进程承载 Agent。`qwen daemon` 不引入新协议，只读运行时目录里的发现记录并打 HTTP 探测：健康探测是 `GET /health`（超时 1 秒，任何 HTTP 响应都算活，含 `--require-auth` 下的 401），`status --detail` 打 `GET /daemon/status`（超时 1.5 秒）取版本、运行时长、活动会话与 issue 数。`GET /daemon/status` 默认 `detail=summary`，只读内存态（会话、权限、SSE/ACP transport 计数、限流拒绝数、进程内存、解析后的 limits）且不启动 ACP 子进程，`?detail=full` 才给每会话诊断、ACP 连接细节、认证 device-flow 计数与工作区分节；`GET /capabilities` 与 `GET /daemon/status` 都暴露 `limits.maxRegisteredWorkspaces`。',
           behavior:
-            '多客户端共享会话、权限请求和 Diff；SSE 支持 `Last-Event-ID` 重连，Web Shell 与 API 同源。',
+            '多客户端共享会话、权限请求和 Diff；SSE 支持 `Last-Event-ID` 重连，Web Shell 与 API 同源。`qwen daemon start` 以 detached 子进程（`detached: true`、`windowsHide: true`，子进程 stdio 指向一个日志 fd）启动 `qwen serve`，等它发布发现记录后打印绑定 URL、PID、日志路径与停止命令，再对子进程 `unref()` 回到 shell；默认端口 4170，按 `record.pid === child.pid` 而不是按端口匹配记录，因此支持 `--port 0`。同一规范工作区已有存活 daemon 且没传 `--port` 时拒绝启动，报 “qwen daemon: a daemon is already running for <path> on port <n>; pass --port to start another.”；`--wait` 要等到运行时无 `daemon_runtime_starting` issue 且不为 `error` 才返回，超时保留启动日志并以非零退出，不带 `--wait` 时只等发现记录（30 秒、每 100 ms 轮询，`--wait` 的就绪等待同样是 30 秒但每 250 ms 轮询）。`stop` 只在监听器应答 `/health` 或记录的 PID 仍存活时才发 SIGTERM，`--force` 在优雅超时（10 秒、每 100 ms 轮询）后加 SIGKILL，注册了多个 daemon 时必须传 `--port`，`--all` 停掉全部。`restart` 先经 `daemon stop` 停一个已注册 daemon、再经 `daemon start --wait` 按记录的端口与 hostname、记录的启动工作区、Web Shell 模式与 `--require-auth` 设置重启，`--web`/`--no-web` 与 `--require-auth`/`--no-require-auth` 覆盖记录，`--force` 只在你显式传时才转发给 `daemon stop`。`logs` 默认先打印末 50 行（`--lines`/`-n`），`--follow`/`-f` 每 250 ms 轮询续打，日志被轮转换名时先把旧句柄读到 EOF 再切。官方明确不做进程守护与崩溃重启。',
           state:
-            '持久化 transcript 可分页读取和恢复；活跃进程状态在 daemon 重启后需重新加载，跨重启队列需应用层处理。',
+            '发现记录在运行时目录（`$QWEN_RUNTIME_DIR`、`$QWEN_HOME`，否则 `~/.qwen`）下的 `daemon/daemon-<port>.json`，POSIX 上文件 `0600`、目录 `0700`，从不包含 bearer token；内容含绑定 URL、PID、已注册的规范工作区、日志路径、认证类型、`startedAt` 与写入方的 `pidNamespace`，用临时文件加改名原子发布。崩溃遗留的记录报 `stale`，由 `status --prune` 或 `stop` 清理；健康状态只有 `running`、`stale` 与 `unreachable` 三种。`start` 的启动日志名为 `start-<pid>-<时间戳>.log`、`0600`，启动成功后删除，失败或超时则保留并打印末 40 行，超过 24 小时的 `start-*.log` 会被清扫；logger 没有文件 sink（返回空串）时记录里省略日志路径、读侧回落到运行时目录的 `debug/daemon/daemon.log`。持久化 transcript 仍可分页读取和恢复；活跃进程状态在 daemon 重启后需重新加载，跨重启队列需应用层处理。',
           tools:
-            '客户端可查询或控制工具、Skills、MCP、Approval mode、工作区和 Channel；严格变更路由要求 token。',
+            '客户端可查询或控制工具、Skills、MCP、Approval mode、工作区和 Channel；严格变更路由要求 token。`qwen daemon` 只管进程生命周期，官方设计文档写明 “`qwen daemon start` is local process management; it does not change the serve protocol, authentication, or workspace isolation.”；ready 的 channel worker 之后崩溃时 daemon 继续运行、在有界重启策略下重拉它，并把状态（含 `channel_worker_exited` 告警）报进 `GET /daemon/status`。',
           auth:
-            'loopback 默认可无 token；非 loopback 绑定必须配置 bearer，`--require-auth` 可在 loopback 上也强制 bearer，远程设备登录可走 device flow。',
+            'loopback 默认可无 token；非 loopback 绑定必须配置 bearer（`qwen daemon start` 下非 loopback 必须有 `QWEN_SERVER_TOKEN`），`--require-auth` 可在 loopback 上也强制 bearer，远程设备登录可走 device flow。`start` 从子进程环境里移除启动会话的标识与私有能力绑定，显式 token 通过环境变量而不是子进程参数传递，且子进程一律带 `--no-token-qr` 启动以免 token 进入启动日志。`status --detail` 只在记录说明该 daemon 用 bearer、且记录的进程存活、可寻址、启动时间与记录相符时才发送 `QWEN_SERVER_TOKEN`；记录的 PID 命名空间本进程无法寻址时绝不发送 bearer，没有 token 时要求 bearer 的 daemon 回报需要认证。',
           deployment:
-            'v0.25.1 的文档仍标 “🚧 v0.16-alpha”（`qwen serve` 首次随 v0.16-alpha 发布到 npm）并定位为本地单机、单用户或小团队；官方给出 systemd/launchd/`nohup &`/tmux 与 Local launch templates 文档，但不承诺容器与多 daemon 协调。',
+            'v0.26.0 标签的文档仍标 “🚧 v0.16-alpha”（`qwen serve` 首次随 v0.16-alpha 发布到 npm）与 “**Status:** Stage 1 (experimental).”，定位为本地单机、单用户或小团队；官方同时给出 systemd/launchd/`nohup &`/tmux 与 Local launch templates，`qwen daemon start` 是新增的第四种方式而不是替代——官方 PR 说明逐字为 “Starting a local daemon previously required systemd, tmux, or `nohup`.”。不承诺容器与多 daemon 协调，也没有服务安装入口（`start` 的 PR 明确写 “No service installation or restart command is included.”，`restart` 是随后另一个 PR 才加的）。',
           conditions:
-            'Stage 1 experimental，首版仅文本 prompt；生产级多客户端、网络抖动、容器和跨主机保证仍有明确限制。',
+            'Stage 1 experimental，首版仅文本 prompt；生产级多客户端、网络抖动、容器和跨主机保证仍有明确限制。`qwen daemon` 的已记录边界：官方 PR 写明 Windows 与 Linux 未在本地跑过、交互式 `logs --follow` 只做了代码审查未做端到端验证，使用自签名 TLS 证书的 daemon 会因本地健康探测不信任该证书而在 `status` 里显示为 `unreachable`；写发现记录失败（例如路径不可写）只向 stderr 告警、不让 `qwen serve` 启动失败。Windows 下 `stop` 是硬杀，未带 `--force` 直接拒绝并报 “qwen daemon: Windows stop is a hard kill; pass --force to confirm (shutdown handlers do not run).”，带 `--force` 时由 `terminateTree()` 调 `%SystemRoot%\\System32\\taskkill.exe` 以 `/pid <pid> /T /F` 结束进程树、成功文案是 `hard-killed` 而不是 `stopped`。防 PID 复用：POSIX 上用 `ps -o lstart=` 读进程启动时间并要求落在记录两侧窗口内（容差 5 秒、最多早 10 分钟）且命令行是 `serve` 进程，Windows 上用 PowerShell 读 `Get-Process.StartTime`；删记录时校验 `expectedPid`，重启中的 daemon 不会删掉并发实例的记录；记录携带的 `pidNamespace` 让跨容器的 PID 被当作不可寻址，既不发信号也不当存活证据。时间线：#14739（发现记录与 `status`/`logs`/`stop`）2026-10-20T00:50:38Z 合入 main、#14869（`start`）2026-10-20T11:05:34Z、#14902（`status --detail`）2026-10-20T13:32:46Z、#14914（`start --wait`）2026-10-20T15:23:31Z、#14929（`restart`）2026-10-21T05:00:39Z，五个 PR 都列在 v0.26.0（2026-10-21T23:20:53Z 发布，标签提交 `ac97ce7a70d9b2ea5d62b357e3d9b0851423afc9`）的 Features 清单里；`packages/cli/src/commands/daemon.ts` 在 v0.25.3 标签下返回 404，即整个命令族首次出现在 v0.25.3 之后。PR #15023 的 daemon token 持久化（合入提交 `e63a0bfc23d2b97eddae7fefd02ab1c13552f30c`，2026-10-21T15:06:39Z）不在 v0.26.0 的 Release 清单里、其设计文档 `docs/design/2026-10-21-daemon-token.md` 在该标签下也返回 404，即 main-only 未发布，具体键名与文件路径未确认。',
           status: '条件项',
-          sources: ['qwen-serve-v0251', 'qwen-sdk-current'],
+          sources: [
+            'qwen-serve-v0260',
+            'qwen-serve-docs-site',
+            'qwen-daemon-command-v0260',
+            'qwen-daemon-discovery-commit',
+            'qwen-daemon-start-commit',
+            'qwen-daemon-start-design-v0260',
+            'qwen-daemon-lifecycle-commits',
+            'qwen-serve-v0251',
+            'qwen-sdk-current',
+          ],
         },
         kimi: {
           entry:
@@ -554,8 +574,8 @@
           deployment:
             '默认 loopback 本地服务；可绑定 `0.0.0.0`，但网络、TLS 和访问控制由部署者负责。',
           conditions:
-            '`--dangerous-bypass-auth` 会让任何可达客户端控制会话、文件和 Shell，只能放在可信网络或自有鉴权代理之后。当前没有后台服务管理命令：`kimi server kill` 已废弃，只用于停止 0.28.0 之前的版本在后台遗留的服务进程（legacy 单实例锁文件 `~/.kimi-code/server/lock`，先请求 `POST /api/v1/shutdown` 优雅退出，再对锁中记录的 pid 发 SIGTERM、必要时升级为 SIGKILL，确认进程退出后删除锁文件）。',
-          sources: ['kimi-cli-surface-current', 'kimi-web-command-242ac23'],
+            '`--dangerous-bypass-auth` 会让任何可达客户端控制会话、文件和 Shell，只能放在可信网络或自有鉴权代理之后。当前没有后台服务管理命令：`kimi server kill` 已废弃，只用于停止 0.28.0 之前的版本在后台遗留的服务进程（legacy 单实例锁文件 `~/.kimi-code/server/lock`，先请求 `POST /api/v1/shutdown` 优雅退出，再对锁中记录的 pid 发 SIGTERM、必要时升级为 SIGKILL，确认进程退出后删除锁文件）。2026-10-22 按 main 提交 `759958afdfeb0f8c7d09cb03cbc2cf85b6255e9e` 复核：顶层 `kimi` 子命令只有 `login`、`acp`、`web`、`doctor`、`export`、`migrate`、`upgrade`（别名 `update`）、`provider`、`app`、`install-desktop`（隐藏别名 `install-app`）与 `vis`，`kimi web` 下只有 `rotate-token` 一个子命令，没有 start/stop/status/restart/logs 一类的服务生命周期入口；`kimi server` 命令树整体废弃，任何 `kimi server …` 调用（除 `kill`）只打印弃用提示并以退出码 1 结束。',
+          sources: ['kimi-cli-surface-current', 'kimi-web-command-242ac23', 'kimi-command-759958a'],
         },
         qoder: {
           entry:
@@ -573,9 +593,9 @@
           deployment:
             '两种服务都运行在本机；Remote Control 的文件与 Shell 仍在本机执行。',
           conditions:
-            'Remote Control Daemon 不是 Qoder Cloud Mode：官方写明 “Your local computer must remain active.”，也没有公开通用 HTTP 客户端协议。',
+            'Remote Control Daemon 不是 Qoder Cloud Mode：官方写明 “Your local computer must remain active.”，也没有公开通用 HTTP 客户端协议。2026-10-22 复核官方命令行参考：子命令表共 14 行（`mcp`、`plugins`、`skills`、`hooks`、`agents`、`login`、`commit`、`rollback`、`update`、`remote-control`、`status`、`sites`、`feedback`、`wiki`），与常驻服务有关的只有 “`remote-control` | Start the remote-control daemon.” 一行，`status` 一行是 “Display session status.” 而不是 daemon 状态，表里没有任何 daemon 的 stop、restart、logs 或 update 子命令；CLI Release Notes 最新六版 1.1.77（2026-10-22）、1.1.76（2026-10-21）、1.1.75（2026-10-20）、1.1.74（2026-10-19）、1.1.73（2026-10-16）与 1.1.72（2026-10-15）都没有 daemon、remote-control 或后台服务条目。',
           status: '条件项',
-          sources: ['qoder-acp', 'qoder-remote-control'],
+          sources: ['qoder-acp', 'qoder-remote-control', 'qoder-cli-reference-daemon'],
         },
       },
       related: ['surface-sdk', 'surface-web', 'surface-remote-control'],
