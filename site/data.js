@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-10-22',
+  updatedAt: '2026-10-23',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -41,6 +41,41 @@ window.matrixData = {
     'claude-sandboxing': {
       label: 'Claude Code Sandboxing',
       url: 'https://code.claude.com/docs/en/sandboxing',
+    },
+    'claude-workspace-trust': {
+      label:
+        'Claude Code Permissions 的 “Project allow rules and workspace trust” 与 “What runs before you trust a folder” 两节（2026-10-23 复核）：逐字为 “`permissions.allow` rules and `permissions.additionalDirectories` entries in a project\'s `.claude/settings.json` grant capability, so Claude Code applies them only after you accept the workspace trust dialog for that folder. The dialog lists the rules and directories the folder would grant so you can review them first. `deny` and `ask` rules aren\'t affected, since they only restrict.”；信任键按启动位置分为三种——仓库内 “Claude Code keys the trust on the git repository root, so the trust covers the whole repository apart from any git repository nested inside it, such as a submodule. In a worktree, it uses the main checkout\'s root”、仓库外 “keys the trust on the directory you started it from, and the trust covers any subdirectory of that directory apart from a git repository nested inside it, such as a clone”、home 目录 “Claude Code holds the trust for the current session only and doesn\'t write it to disk”；“Claude Code shows the trust dialog in interactive sessions only. A `claude -p` run or an SDK session never shows it, and trusting a parent folder doesn\'t count for these rules”；启动或重启后台会话前也检查信任，“If you run `claude --bg` from a terminal in a directory you haven\'t trusted, the trust dialog appears first and the session starts once you accept it. Where no dialog can appear, such as in a script, the command exits with a `Workspace not trusted` error instead.”；`.claude/settings.local.json` 通常免信任步骤，但 “When the file is tracked in git, or `.claude` is a symlink, Claude Code treats it as repository-supplied instead and holds its rules until you trust the folder.”，且判断是否在 git 仓库内要跑 git 而 git 只在信任后才跑，配置主目录（home 或 `CLAUDE_CONFIG_DIR` 指向的目录）例外、立即应用；“What runs before you trust a folder” 表逐行给出只信任父目录与 `claude -p`/SDK 两种情况——设置文件 Hooks、`env` 块与 `apiKeyHelper` 等助手以及项目 Skill 的 hooks 与 `allowed-tools` 都用（并写 “Workspace trust never gates a skill\'s `allowed-tools` in any session”），项目 `permissions.allow` 与 `additionalDirectories` 不用，项目 Subagent frontmatter hooks、项目 `@skills-dir` 插件与仓库或 `--add-dir` 来源的 `extraKnownMarketplaces` 不用且不弹对话框，Subagent frontmatter 内联 `mcpServers` 不用，`.mcp.json` 服务器在只信任父目录时先询问（仓库自己的批准不算数）而在 `-p`/SDK 下不询问直接连接（SDK 仅在 `settingSources` 含项目设置时加载、`claude mcp list` 仍报 pending），`.mcp.json` 服务器的 `headersHelper` 在信任前不运行、只用静态 `headers` 连接；手工信任的逐字写法是 “set `projects["<path>"].hasTrustDialogAccepted` to `true` in `~/.claude.json`, where `<path>` is the repository root, or the folder itself outside a repository”，被跳过的条目会在 debug 日志、stderr 警告与 `headersHelper not run` 行里打印这个确切键；降低风险的手段为 `--setting-sources user`、`--bare`、`--settings \'{"disableAllHooks": true}\'` 与 `disabledMcpjsonServers`',
+      url: 'https://code.claude.com/docs/en/permissions#project-allow-rules-and-workspace-trust',
+    },
+    'claude-security-safeguards': {
+      label:
+        'Claude Code Security 的 “Additional safeguards” 一节 “Trust verification” 条目（2026-10-23 复核）：逐字为 “In an interactive session, Claude Code shows the workspace trust dialog when you start it in a folder you haven\'t trusted. Servers in a project\'s `.mcp.json` have their own approval prompt”，两条 Note 分别写 “A `-p` session shows neither prompt.” 与 “When you start Claude Code directly in your home directory, trust acceptance is held for the current session only and is not written to disk, so the prompt reappears on each launch. There is no setting to persist it. Start Claude Code from a project subdirectory instead, where trust acceptance is saved per directory”',
+      url: 'https://code.claude.com/docs/en/security#additional-safeguards',
+    },
+    'claude-errors-trust': {
+      label:
+        'Claude Code 错误参考的目录信任条目（2026-10-23 复核）：`Workspace has not been trusted` 一节给出逐字警告 `Ignoring 2 permissions.allow entries from .claude/settings.local.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects["/Users/you/project"].hasTrustDialogAccepted: true in /Users/you/.claude.json.`，并记 v2.1.196–v2.1.199 曾把自己的 `.claude/settings.local.json` 当仓库提供处理、v2.1.207 起判断是否在仓库内要跑 git 因而只在信任后执行、配置主目录豁免；`Workspace not trusted when dispatching a background session` 一节给出逐字 `Workspace not trusted. Run `claude` in /path/to/project once and accept the trust prompt, then retry.` 与两个变体 `The home directory is trusted one session at a time`、`<path> could not be resolved on disk`，并记 v2.1.286 之前 Windows 上路径大小写不同的信任记录会被判为未信任；`Workspace not trusted when starting Remote Control` 一节记 `claude remote-control`（别名 `claude rc`）在 stdin 或 stdout 不是终端时以退出码 1 结束并打印 `Error: Workspace not trusted. Please run `claude` in /Users/you/project first to review and accept the workspace trust dialog.`，home 目录另有专用消息且 v2.1.214 之前沿用通用消息，回答 `n` 或直接回车则打印 `Remote Control did not start`；`Workspace not trusted when running claude ultrareview` 一节记退出码 1、逐字消息含 “Or, in a script or CI job, pass `--trust-workspace` to trust the folder for this run only.”，并列出终端过小或不上报尺寸的 `Error: Workspace not trusted. This terminal ...`、home 目录变体、`No answer in time.` 后接 `Error: Workspace not trusted`（`Trust <folder>? [y/N]` 提问 5 分钟无应答）与拒绝后的 `Ultrareview did not start: <folder> is not trusted`；另有配置警告 `headersHelper not run — this workspace has no persisted trust` 与工具错误 `Its agent definition was not restored: the folder its definition file came from is not trusted`',
+      url: 'https://code.claude.com/docs/en/errors',
+    },
+    'claude-ultrareview-trust': {
+      label:
+        'Claude Code ultrareview 文档的 “Trust the folder before the review runs” 一节与旗标表（2026-10-23 复核）：逐字为 “When `claude ultrareview` asks `Trust <folder>? [y/N]`, answer `y` to trust the folder. Trust it only if you trust its code, because git and Claude Code can then run programs named in its git configuration and project settings.”、“When it can\'t ask you, such as in a CI job or with output sent to a file, it exits with `Error: Workspace not trusted`. Append `--trust-workspace` to trust the folder for that run:” 与示例 `claude ultrareview 1234 --trust-workspace`、“To review an untrusted pull request, run `claude ultrareview <PR number> --trust-workspace` from a branch you trust. Unlike `y`, the flag saves nothing. The PR is cloned in the cloud, so you don\'t need its branch locally.”；旗标表 `--trust-workspace` 行逐字为 “Trust the current folder for this run only, without asking, so a script or CI job can review a checkout you haven\'t trusted. Takes no value: put a PR number or base branch before it. Requires Claude Code v2.1.309 or later”；退出码一节写 1 覆盖 “the folder isn\'t trusted, including when you answer `n` or press Ctrl-C at the trust question”，130 则是在启动审查、等待 findings 或发送 `--post` 评论时按 Ctrl-C 而非在信任提问处',
+      url: 'https://code.claude.com/docs/en/ultrareview#trust-the-folder-before-the-review-runs',
+    },
+    'claude-cli-reference-trust': {
+      label:
+        'Claude Code CLI 参考（2026-10-23 复核）：全页只有一处 trust，即 CLI flags 表 `--bg`、`--background` 行的 “Checks workspace trust for the directory before it starts. Can\'t be combined with `-p`/`--print`”；`claude ultrareview [target]` 行只列 `--json`、`--timeout <minutes>`（默认 45 分钟）、`--post` 与 `--no-post`（后两者需 v2.1.227 及以上），没有列出 `--trust-workspace`，该旗标只出现在 ultrareview 文档页与更新日志',
+      url: 'https://code.claude.com/docs/en/cli-reference',
+    },
+    'claude-env-vars-ultrareview-trust': {
+      label:
+        'Claude Code 环境变量页的 `CLAUDE_CODE_DISABLE_ULTRAREVIEW_TRUST_CHECK` 行（2026-10-23 复核）：逐字为 “Set to `1` so that `claude ultrareview` doesn\'t exit with `Error: Workspace not trusted` in a folder you haven\'t trusted when it can\'t ask you to trust it, such as in CI. Set it in the environment that launches Claude Code, not a settings `env` block, and only where every such run starts in a folder you trust. Runs that can ask still ask. Requires Claude Code v2.1.309 or later”；全页没有其他含 trust 的变量',
+      url: 'https://code.claude.com/docs/en/env-vars',
+    },
+    'claude-v21309-ultrareview-trust-changelog': {
+      label:
+        'Claude Code v2.1.309 更新日志（2026-10-23 复核，固定到提交 `65823ec0034ed0aa0266bc43903fefd3ff94a327`）：逐字为 “Changed `claude ultrareview` to require workspace trust: it asks on a terminal, else refuses; scripts pass `--trust-workspace`, which takes no value (put a PR number or base branch before it), or set `CLAUDE_CODE_DISABLE_ULTRAREVIEW_TRUST_CHECK=1`”；同版另有 “Changed commands the settings exclude from the sandbox to ask before writing to its write-list paths while the sandbox is enabled but cannot run; the unsandboxed fallback is refused there” 与 “Fixed sandboxed commands and auto-accepted edits being able to modify the MCP config file passed with `--mcp-config`”，属其他能力字段、本次未处理',
+      url: 'https://github.com/anthropics/claude-code/blob/65823ec0034e/CHANGELOG.md',
     },
     'claude-headless': {
       label: 'Claude Code Headless Mode',
@@ -549,6 +584,31 @@ window.matrixData = {
     'codex-approvals': {
       label: 'Codex Agent approvals and security',
       url: 'https://learn.chatgpt.com/docs/agent-approvals-security',
+    },
+    'codex-untrusted-retired': {
+      label:
+        'Codex Agent approvals and security 的 “Migrate from the retired `untrusted` approval policy” 一节（2026-10-23 复核）：逐字为 “Codex and ChatGPT Work no longer support `approval_policy = "untrusted"`. The retired setting can prevent either client from starting. Remove it from user or project configuration, profile files, startup scripts, and managed defaults.”；官方给的交互式只读替代是 `sandbox_mode = "read-only"` 加 `approval_policy = "on-request"`，或 `codex --sandbox read-only --ask-for-approval on-request`，并写 “With `on-request`, commands allowed by the sandbox can run without approval, read accessible files, and use network access if enabled.”；要保留更严格的命令审批则省略显式 `approval_policy` 并在用户级 `~/.codex/config.toml` 写 `[projects."/path/to/project"]` 加 `trust_level = "untrusted"`，此后 “Commands then require approval unless an execution-policy rule allows them. This also disables project-local configuration. Explicitly setting `on-request` overrides the project-derived policy; managed `allowed_approval_policies` must include `untrusted` to permit it.”',
+      url: 'https://learn.chatgpt.com/docs/agent-approvals-security#migrate-from-the-retired-untrusted-approval-policy',
+    },
+    'codex-approval-defaults': {
+      label:
+        'Codex Agent approvals and security 的 “Defaults and recommendations” 一节（2026-10-23 复核）：逐字为 “On launch, Codex detects whether the folder is version-controlled and recommends: Version-controlled folders: `Auto` (workspace write + on-request approvals); Non-version-controlled folders: `read-only`”，紧接一条 “Depending on your setup, Codex may also start in `read-only` until you explicitly trust the working directory (for example, via an onboarding prompt or `/permissions`).”；同页 “Dangerous settings” 一节写 “Two settings deliberately widen the trust boundary: `dangerously_allow_non_loopback_proxy = true` … `dangerously_allow_all_unix_sockets = true`”，属网络边界不属目录信任',
+      url: 'https://learn.chatgpt.com/docs/agent-approvals-security#defaults-and-recommendations',
+    },
+    'codex-trust-level': {
+      label:
+        'Codex Configuration Reference 的目录信任键（2026-10-23 复核）：`projects.<path>.trust_level` 类型为 `string`，描述逐字为 “Mark a project or worktree as trusted or untrusted (`"trusted"` 或 `"untrusted"`). Untrusted projects skip project-scoped `.codex/` layers, including project-local config, hooks, and rules.”（原文两个取值之间用竖线分隔）；页首写 “User-level configuration lives in `~/.codex/config.toml`. You can also add project-scoped overrides in `.codex/config.toml` files. Codex loads project-scoped config files only when you trust the project.”，并写 “Project entries with `trust_level = "untrusted"` in user-level `~/.codex/config.toml` remain supported.”；`approval_policy` 行的类型只列 `on-request`、`never` 与 `{ granular = { sandbox_approval = bool, rules = bool, mcp_elicitations = bool, request_permissions = bool, skill_approval = bool } }` 三种、描述含 “`untrusted` is unsupported, and `on-failure` is deprecated”；托管一节写 “An `untrusted` entry in `allowed_approval_policies` is still valid for the stricter approval behavior Codex derives when a project uses `trust_level = "untrusted"`. It does not permit explicitly setting `approval_policy = "untrusted"`.”；信任还决定项目层能否提供插件配置——`marketplaces.<name>.source_type` 写 “Marketplaces can be defined in system, cloud-managed, user, or trusted-project config.toml.”，`plugins.<plugin>.enabled` 写 “Read from the effective merged config; trusted-project settings can override user, cloud-managed, and system defaults.”',
+      url: 'https://learn.chatgpt.com/docs/config-file/config-reference',
+    },
+    'codex-cli-reference-hook-trust': {
+      label:
+        'Codex CLI 参考（2026-10-23 复核）：全页含 trust 的旗标只有 `--dangerously-bypass-hook-trust`，描述逐字为 “Run enabled hooks without requiring persisted hook trust for this invocation. Intended only for automation that already vets hook sources.”，属 Hook 单独信任；没有任何针对项目或目录信任的启动旗标',
+      url: 'https://learn.chatgpt.com/docs/cli/reference',
+    },
+    'codex-slash-commands-permissions': {
+      label:
+        'Codex CLI Slash 命令参考（2026-10-23 复核）：`/permissions` 行描述为 “Set what Codex can do without asking first.”、用途列为 “Relax or tighten approval requirements mid-session, such as switching between Auto and Read Only.”，正文步骤只写选择审批预设（含具名 permission profile），没有目录信任开关；`/hooks` 行用途列含 “Inspect configured hooks, trust new or changed hooks, or disable non-managed hooks before they run.”，属 Hook 单独信任；全页没有 `/trust` 一类命令',
+      url: 'https://learn.chatgpt.com/docs/cli/slash-commands',
     },
     'codex-config': {
       label: 'Codex Advanced Configuration',
@@ -1297,6 +1357,51 @@ window.matrixData = {
     'qwen-settings': {
       label: 'Qwen Code Settings',
       url: 'https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/configuration/settings.md',
+    },
+    'qwen-trusted-folders': {
+      label:
+        'Qwen Code 官方 Trusted Folders 文档（v0.26.0 标签提交 `ac97ce7a70d9b2ea5d62b357e3d9b0851423afc9`，2026-10-23 复核，5,587 字节）：功能 “**disabled by default**”，开启方式是在用户 `settings.json` 写 `"security": { "folderTrust": { "enabled": true } }`；首次运行弹出对话框，三个选项逐字为 **Trust folder**、**Trust parent folder**（“Grants trust to the parent directory …, which automatically trusts all of its subdirectories as well.”）与 **Don\'t trust**（“Marks the folder as untrusted. The CLI will operate in a restricted "safe mode."”）；“Your choice is saved in a central file (`~/.qwen/trustedFolders.json`), so you will only be asked once per folder.”；失败关闭逐字为 “The feature fails closed: until you make a choice, a folder counts as **untrusted**, not as trusted-by-default. If that file is missing — a new machine, a restored home directory, a synced dotfiles setup — every folder that no higher-priority signal decides … starts untrusted, including folders you trusted before.”；文件错误处理为 “an unreadable file, invalid JSONC syntax, or a non-object document is a hard configuration error. A failed cached load makes the CLI stop with "Please fix the configuration file and try again." and the daemon\'s v1 trust checks answer `500 trusted_folders_invalid`; a prior IDE trust decision can bypass these file-based checks.”，写入侧为 “The grant writer still validates the file before persisting a rule.”、“A file that becomes invalid after the cached load can instead fail during the grant write with `500 internal_error`, or during post-write policy verification with `409 trust_grant_ineffective`.”、“Invalid trust-level values are detected by the grant writer and v2 policy reader, but are not validated by the legacy v1 reader; v2 reports policy errors as `200` with `configured.state: "error"`.”，且 “Comments and trailing commas are accepted.”；未信任目录的 safe mode 逐项列出五条——不加载项目 `.qwen/settings.json`、不加载项目 `.env`、不能安装/更新/卸载扩展、“**Tool Auto-Acceptance is Disabled**: You will always be prompted before any tool is run, even if you have auto-acceptance enabled globally.”、不自动加载本地设置指定目录的记忆文件；管理入口为 “Run the `/permissions` command from within the CLI. This will bring up the same interactive dialog”、Web Shell 的 workspaces 总览 **Trust** 动作（“The action appears only when the connected daemon advertises `workspace_trust_grant`, which it does only where trust hot-reload applies the decision to the running runtime — a daemon that serves the grant routes without hot-reload hides the action.”，且 “a grant recorded through that daemon\'s own API updates the trust file and v1 trust status immediately, but startup-bound runtime gates require a restart. A decision recorded by a separate terminal process or a file edit is not immediately visible to the daemon\'s cached v1 status; restart the daemon to load it.”）与直接查看 `~/.qwen/trustedFolders.json`；判定顺序为 “**IDE Trust Signal**: If you are using the IDE Integration, the CLI first asks the IDE if the workspace is trusted. The IDE\'s response takes highest priority.” 其次 “**Local Trust File**: If the IDE is not connected, the CLI checks the central `~/.qwen/trustedFolders.json` file.”',
+      url: 'https://github.com/QwenLM/qwen-code/blob/ac97ce7a70d9b2ea5d62b357e3d9b0851423afc9/docs/users/configuration/trusted-folders.md',
+    },
+    'qwen-commands-trust': {
+      label:
+        'Qwen Code 官方命令文档（v0.26.0 标签提交 `ac97ce7a70d9b2ea5d62b357e3d9b0851423afc9`，2026-10-23 复核，78,099 字节）：Slash 命令表 `/trust` 行描述为 “Manage folder trust settings”、示例同为 `/trust`，`/permissions` 行描述为 “Manage permission rules”；注册条件逐字为 “`/workflows`, `/lsp`, and `/trust` are registered only when their feature is enabled — via the user/system-scoped `tools.workflowsEnabled` setting or `QWEN_CODE_ENABLE_WORKFLOWS=1` env var, the `--experimental-lsp` CLI flag, and the `security.folderTrust.enabled` setting respectively. … When disabled these commands won\'t appear and will report an unknown command.”',
+      url: 'https://github.com/QwenLM/qwen-code/blob/ac97ce7a70d9b2ea5d62b357e3d9b0851423afc9/docs/users/features/commands.md',
+    },
+    'qwen-settings-folder-trust': {
+      label:
+        'Qwen Code 官方设置文档（v0.26.0 标签提交 `ac97ce7a70d9b2ea5d62b357e3d9b0851423afc9`，2026-10-23 复核，383,596 字节）：设置表 `security.folderTrust.enabled` 行为 boolean、默认 `false`、描述 “Setting to track whether Folder trust is enabled.”；`.env` 加载一节写明被拒绝的 loader 类变量不适用于按服务器或按 Hook 作用域的 `mcpServers[].env` 与 `hooks[].env`，并括注 “(both surfaces are gated by folder trust for workspace-provided configs)”',
+      url: 'https://github.com/QwenLM/qwen-code/blob/ac97ce7a70d9b2ea5d62b357e3d9b0851423afc9/docs/users/configuration/settings.md',
+    },
+    'qwen-trust-command-source': {
+      label:
+        'Qwen Code `/trust` 命令源码（v0.26.0 标签提交 `ac97ce7a70d9b2ea5d62b357e3d9b0851423afc9`）：`trustCommand` 的 `name` 为 `trust`、`description` 为 “Manage folder trust settings”、`kind` 为 `CommandKind.BUILT_IN`、`supportedModes` 为 `[\'interactive\']`，action 只返回 `{ type: \'dialog\', dialog: \'trust\' }`，因此该命令不接参数、只打开信任对话框且不在非交互模式注册',
+      url: 'https://github.com/QwenLM/qwen-code/blob/ac97ce7a70d9b2ea5d62b357e3d9b0851423afc9/packages/cli/src/ui/commands/trustCommand.ts',
+    },
+    'qwen-trust-store-source': {
+      label:
+        'Qwen Code 信任记录源码（v0.26.0 标签提交 `ac97ce7a70d9b2ea5d62b357e3d9b0851423afc9`）：`TRUSTED_FOLDERS_FILENAME = \'trustedFolders.json\'`，路径优先取环境变量 `QWEN_CODE_TRUSTED_FOLDERS_PATH`、否则为 `path.join(Storage.getGlobalQwenDir(), TRUSTED_FOLDERS_FILENAME)`；`enum TrustLevel` 只有 `TRUST_FOLDER`、`TRUST_PARENT`、`DO_NOT_TRUST` 三个取值，持久化形状是 `config: Record<string, TrustLevel>`（路径到级别）；另有 `WorkspaceTrustState` 取值 `trusted`、`untrusted`、`unknown` 与 `WorkspaceTrustSource` 取值 `disabled`、`ide`、`file`、`none`，即功能关闭时来源标为 `disabled`',
+      url: 'https://github.com/QwenLM/qwen-code/blob/ac97ce7a70d9b2ea5d62b357e3d9b0851423afc9/packages/cli/src/config/trustedFolders.ts',
+    },
+    'qwen-trust-precedence-source': {
+      label:
+        'Qwen Code 信任规则解析源码（v0.26.0 标签提交 `ac97ce7a70d9b2ea5d62b357e3d9b0851423afc9`）：注释与实现给出 “Convert persisted folder-trust rules into the shared precedence shape. TRUST_PARENT is resolved to the containing directory before matching.”（`TRUST_PARENT` 用 `path.dirname(rule.path)` 参与匹配），以及 “Resolve the most-specific rule that contains the requested location. An untrusted rule wins when trusted and untrusted rules match at the same depth. The result is independent of persisted rule insertion order.”；`resolveTrustDecision` 在没有命中规则时返回 `undefined`，即交回上层按失败关闭处理',
+      url: 'https://github.com/QwenLM/qwen-code/blob/ac97ce7a70d9b2ea5d62b357e3d9b0851423afc9/packages/cli/src/config/trust-precedence.ts',
+    },
+    'qwen-config-trust-gate': {
+      label:
+        'Qwen Code `Config` 源码里的信任门禁（v0.26.0 标签提交 `ac97ce7a70d9b2ea5d62b357e3d9b0851423afc9`）：`setApprovalMode` 在 `!this.isTrustedFolder()` 且 `mode` 既不是 `DEFAULT` 也不是 `PLAN` 时抛 `TrustGateError`，消息逐字为 “Cannot enable privileged approval modes in an untrusted folder.”，`setPlanMode` 在 `executionMode !== ApprovalMode.DEFAULT` 时抛同一错误；`TrustGateError` 的注释写它由 `Config.setApprovalMode` 抛出、用于让 daemon 的 `POST /session/:id/approval-mode` 路由把这类拒绝翻成结构化 `errorKind: \'auth_env_error\'` 而不是通用 500；`isTrustedFolder()` 先看 `ideContextStore` 的 `workspaceState.isTrusted`、否则返回 `this.trustedFolder ?? !this.folderTrust`，即功能关闭时一律视为受信任；Hook 分层的注释逐字为 `systemHooks` “Administrator configuration, so these hooks are loaded regardless of folder trust status.”、`userHooks` “These hooks are always loaded regardless of folder trust status.”、`projectHooks` “These hooks are only loaded in trusted folders. When undefined or the folder is untrusted, project hooks are skipped.”',
+      url: 'https://github.com/QwenLM/qwen-code/blob/ac97ce7a70d9b2ea5d62b357e3d9b0851423afc9/packages/core/src/config/config.ts',
+    },
+    'qwen-folder-trust-hook': {
+      label:
+        'Qwen Code `useFolderTrust` 源码（v0.26.0 标签提交 `ac97ce7a70d9b2ea5d62b357e3d9b0851423afc9`）：挂载时调用 `isWorkspaceTrusted(settings.merged)`，只在返回 `isTrusted === undefined`（没有规则决定）时打开 `FolderTrustDialog`；`FolderTrustChoice` 三项映射到 `TrustLevel.TRUST_FOLDER`/`TRUST_PARENT`/`DO_NOT_TRUST` 并以 `process.cwd()` 为键调用 `trustedFolders.setValue`，写入失败时向 stderr 打印 “Error saving trusted folders file.” 加原始错误并保留对话框；当 `wasTrusted !== currentIsTrusted` 时置 `isRestarting = true` 并重新打开对话框，即会话内改变信任需要重启',
+      url: 'https://github.com/QwenLM/qwen-code/blob/ac97ce7a70d9b2ea5d62b357e3d9b0851423afc9/packages/cli/src/ui/hooks/useFolderTrust.ts',
+    },
+    'qwen-trust-status-source': {
+      label:
+        'Qwen Code 信任状态判定源码（v0.26.0 标签提交 `ac97ce7a70d9b2ea5d62b357e3d9b0851423afc9`）：`isFolderTrustEnabled` 读 `settings.security?.folderTrust?.enabled ?? false`；`isWorkspaceTrusted` 在功能关闭时直接返回 `{ isTrusted: true, source: undefined }`，其次看 IDE 的 `workspaceState.isTrusted`（仅当 `workspacePath` 未指定或与 `process.cwd()` 等价时采信），最后落到文件规则；`getWorkspaceTrustStatus` 返回 `effective.state` 为 `trusted`/`untrusted`/`unknown` 与 `effective.source` 为 `disabled`/`ide`/`file`/`none`，并带 `requiresDaemonRestartForChanges: true`',
+      url: 'https://github.com/QwenLM/qwen-code/blob/ac97ce7a70d9b2ea5d62b357e3d9b0851423afc9/packages/cli/src/config/trustedFolders.ts',
     },
     'qwen-auto-mode': {
       label:
@@ -2238,8 +2343,59 @@ window.matrixData = {
       url: 'https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/reference/kimi-command.md',
     },
     'kimi-trust-v2': {
-      label: 'Kimi Code workspace trust (v2 engine)',
+      label:
+        'Kimi Code workspace trust 引入提交（PR #2453，`feat(tui): ask for workspace trust on startup with the v2 engine`）；2026-10-23 更正记法——v2 引擎自 0.33.0（2026-08-05）起已是 CLI 各界面默认引擎，官方文档变更记录逐字为 “CLI 各界面（交互式 TUI、`kimi -p`、`kimi acp` 等）默认运行在 agent-core-v2 引擎上；设置 `KIMI_CODE_LEGACY_FLAG=1` 可回退旧引擎。”，因此目录信任不再是需要 `KIMI_CODE_EXPERIMENTAL_FLAG` 才生效的实验能力',
       url: 'https://github.com/MoonshotAI/kimi-code/commit/32d693f644de',
+    },
+    'kimi-mcp-trust': {
+      label:
+        'Kimi Code 官方中文 MCP 文档的工作区信任段（2.3.1 标签提交 `684bae9ea6a437f3bae98bba1dcb797a917d500b`，2026-10-23 复核）：逐字为 “当 Kimi Code 在不受信任的文件夹中发现项目级 MCP server 时，工作区信任提示会显示每个 server 的传输方式和启动目标。提示默认选中 `Trust this folder`；核对列出的命令与参数或远程 URL 后确认即可，选择 `Don\'t trust` 则该工作区的项目级 MCP server 不会启用。” 与 “无头运行（例如在 CI 中执行 `kimi -p`）无法显示信任提示，因此在工作区尚未受信任时，项目级 MCP server 会保持禁用。将 `KIMI_CODE_TRUST_WORKSPACE` 设为 `1` 即可在该进程中信任当前工作区。”；同页 “工具选择” 条件与信任无关，另写项目级 `.kimi-code/mcp.json` 的 stdio 条目会在会话启动时执行本地命令',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/684bae9ea6a437f3bae98bba1dcb797a917d500b/docs/zh/customization/mcp.md',
+    },
+    'kimi-env-vars-trust': {
+      label:
+        'Kimi Code 官方中文环境变量文档（2.3.1 标签提交 `684bae9ea6a437f3bae98bba1dcb797a917d500b`，2026-10-23 复核）：`KIMI_CODE_TRUST_WORKSPACE` 行逐字为 “将当前工作区标记为受信任，等效于在交互式信任提示中选择 "Trust this folder"；按进程生效，不写入持久化的信任记录”，取值 “真值：`1`/`true`/`yes`/`on`；假值：`0`/`false`/`no`/`off`”；全页没有目录信任总开关，也没有其他含 trust 的变量',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/684bae9ea6a437f3bae98bba1dcb797a917d500b/docs/zh/configuration/env-vars.md',
+    },
+    'kimi-server-api-trust': {
+      label:
+        'Kimi Code 官方中文 Server API 参考的工作区一节（2.3.1 标签提交 `684bae9ea6a437f3bae98bba1dcb797a917d500b`，2026-10-23 复核）：逐字为 “这组端点管理注册表——列出、注册、重命名、注销——以及控制项目级 MCP 配置是否加载的每工作区信任状态”，三个端点为 `GET /api/v1/workspaces/{workspace_id}/trust`（读取信任状态，成功时 `data` 为 `{ trusted }`）、`POST /api/v1/workspaces/{workspace_id}/trust`（“将工作区标记为信任，并加载其项目级 MCP 配置”，成功时 `data` 为 `{ trusted: true }`）与 `POST /api/v1/workspaces/{workspace_id}/untrust`（“撤销工作区信任，并卸载其项目级 MCP 配置”，成功时 `data` 为 `{ trusted: false }`）；MCP 配置路由的 `cwd` 参数说明为 “传入后，该目录的项目根层与项目本地层会并入——但仅当工作区受信任时，否则项目层会被跳过”',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/684bae9ea6a437f3bae98bba1dcb797a917d500b/docs/zh/reference/server-api.md',
+    },
+    'kimi-changelog-trust': {
+      label:
+        'Kimi Code 官方中文变更记录的目录信任时间线（2.3.1 标签提交 `684bae9ea6a437f3bae98bba1dcb797a917d500b`，2026-10-23 复核）：0.33.0（2026-08-05）“启动时询问是否信任当前文件夹。”，同版 “CLI 各界面（交互式 TUI、`kimi -p`、`kimi acp` 等）默认运行在 agent-core-v2 引擎上；设置 `KIMI_CODE_LEGACY_FLAG=1` 可回退旧引擎。”；0.36.0（2026-08-13）“修复未信任工作区可在信任确认前植入同名 `fd`/`stty` 可执行文件的风险；信任提示现在展示项目 MCP 的启动目标，并默认拒绝信任。”；0.40.0（2026-09-02）“工作区信任弹窗默认选中「Trust this folder」。”；2.1.0（2026-09-23）“加强工作区安全限制：文件工具无法再通过符号链接访问工作目录外的文件，项目本地配置仅在工作区受信任后生效，后台 git 操作不再执行仓库 git 配置中的命令，并拒绝解析结果为 home 目录或文件系统根目录的附加目录。”；该页最新条目为 2.2.0（2026-10-14），2.3.0 与 2.3.1 只在 `apps/kimi-code/CHANGELOG.md` 中',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/684bae9ea6a437f3bae98bba1dcb797a917d500b/docs/zh/release-notes/changelog.md',
+    },
+    'kimi-config-files-engine': {
+      label:
+        'Kimi Code 官方中文配置文件文档（2.3.1 标签提交 `684bae9ea6a437f3bae98bba1dcb797a917d500b`，2026-10-23 复核）：`[experimental]` 一节开头逐字为 “本节由 `agent-core-v2` 引擎读取，Kimi Code 的所有界面都运行在该引擎上。”，据此目录信任不再受实验开关门禁',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/684bae9ea6a437f3bae98bba1dcb797a917d500b/docs/zh/configuration/config-files.md',
+    },
+    'kimi-trust-prompt-source': {
+      label:
+        'Kimi Code TUI 信任弹窗源码（2.3.1 标签提交 `684bae9ea6a437f3bae98bba1dcb797a917d500b`）：`TrustPromptChoice` 只有 `trust` 与 `distrust`，`OPTIONS` 两项标签逐字为 `Trust and continue` 与 `Exit`、`selectedIndex` 初值 0 即默认选中前者，`Esc` 直接回 `distrust`，`Enter` 与空格确认；标题为 `Trust this folder?`、提示行 `↑↓ navigate · Enter select · Esc exit`，正文用 `←→`/PageUp/PageDown 分页展示披露内容，页脚两行逐字为 “Trust is remembered for this folder, including future project config changes.” 与 “Tool approvals follow your permission settings.”；当 `header.length + footer.length + 2 > availableRows` 时 `canConfirm` 置 false，只渲染标题与 ` Enlarge terminal to review sources. Esc exit.`，此时 `Enter`/`Space` 被忽略',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/684bae9ea6a437f3bae98bba1dcb797a917d500b/apps/kimi-code/src/tui/components/dialogs/trust-prompt.ts',
+    },
+    'kimi-trust-disclosure-source': {
+      label:
+        'Kimi Code 信任披露结构源码（2.3.1 标签提交 `684bae9ea6a437f3bae98bba1dcb797a917d500b`）：`TrustGatedActivation` 列出被门禁的 `mcpServers`（每项含 `name`、`transport` 为 `stdio`/`http`/`sse`、`command`、`args`、`cwd`、`url`、`origin`）、`additionalDirs` 与 `additionalDirSources`、`warnings`，以及 `instructionSources`（`agentsMdPaths`、`skills`、`agentProfiles`、`paths`），说明信任门禁覆盖项目 MCP、附加目录与指令来源三类而不只是 MCP',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/684bae9ea6a437f3bae98bba1dcb797a917d500b/packages/agent-core-v2/src/workspace/workspaceTrust/trustDisclosure.ts',
+    },
+    'kimi-trust-record-source': {
+      label:
+        'Kimi Code 信任记录与环境覆盖源码（2.3.1 标签提交 `684bae9ea6a437f3bae98bba1dcb797a917d500b`）：`TRUST_SCOPE = \'workspace-trust\'`，记录形状为 `{ root, trustedAt }`、键为 `encodeWorkDirKey(canonicalWorkspaceRoot(root))`，读到记录即视为信任、没有独立的“未信任”记录，`deleteWorkspaceTrust` 同时删规范键、旧键与匹配到的旧路径变体；旧键命中时调用 `migrateWorkspaceTrust` 迁移到规范键，`findLegacyTrustRecords` 跳过 `/\\.tmp\\.\\d+\\.[0-9a-f]+$/` 临时键，单条记录解码失败（`STORAGE_DECODE_FAILED`）跳过而其他存储异常原样抛出；读取异常上报 telemetry 事件 `workspace_trust_read_failed`（带 `error_type`）；`trustEnv.ts` 的 `TRUST_WORKSPACE_ENV = \'KIMI_CODE_TRUST_WORKSPACE\'`，`workspaceTrustStore.ts` 的 `isTrusted()` 返回环境信任与持久信任的逻辑或，`isPersistedTrusted()` 只返回持久值，初始化失败时清掉 `initialization` 以便后续重试、恢复读取完成时即使信任值未变也 fire 一次 `onDidChange`',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/684bae9ea6a437f3bae98bba1dcb797a917d500b/packages/agent-core-v2/src/workspace/workspaceTrust/trustRecord.ts',
+    },
+    'kimi-231-trust-fix': {
+      label:
+        'Kimi Code PR #4348 `fix: decouple workspace trust from runtime initialization`（合并提交 `c569bab55d4d510b09f01205d760001d16117aff`，2026-10-23T04:52:22Z 合入 `release/2026-10-23`，随 2.3.1 发布）：`GET /trust`、`POST /trust`、`POST /untrust` 三个接口从 `WorkspaceInstanceManager.getOrCreate`（会创建工作区运行时并等待 `HostEnvironment.ready`，其中包含 Git Bash 探测）改为 `WorkspaceService.get` → `WorkspaceTrustStore.forRoot` → `AtomicDocumentStore`，修复 Windows 未安装 Git Bash 时信任读写失败；信任初始化不再永久缓存已拒绝的 ready Promise、后续调用可重试；存储异常不再被转成 `trusted: false` 而是保留原始 message 与 request ID，PR 影响范围表同时写明“失败仍按未信任处理，不放开权限”；恢复读取完成时会重新完成文件与插件 MCP 的完整初始化并发布配置差异，即使信任值没有变化也会发一次状态恢复事件，首次初始化与幂等变更不额外发事件；共享存储继续保留 canonical root、旧版 Windows 路径迁移、环境变量覆盖、串行变更、事件与 telemetry 行为；测试 `workspaceMcpConfig.test.ts` 覆盖“信任初始化失败时不加载项目级 MCP 配置”',
+      url: 'https://github.com/MoonshotAI/kimi-code/commit/c569bab55d4d510b09f01205d760001d16117aff',
+    },
+    'kimi-231-changelog': {
+      label:
+        'Kimi Code 2.3.1 发布变更日志（2.3.1 标签提交 `684bae9ea6a437f3bae98bba1dcb797a917d500b`，Release 发布于 2026-10-23T07:31:22Z）：Patch Changes 首条逐字为 “Fix workspace trust failures when Git Bash is unavailable on Windows.”（PR #4348、提交 `c569bab55d4d510b09f01205d760001d16117aff`）；同版其余条目是会话占用锁相关（“Offer to take over a session that is still in use after a retry … and add a `KIMI_CODE_SESSION_LOCK=0` switch that turns off the session lock.”、“Show the holding client\'s name in session-in-use errors.”）与 web 端改进，属其他能力字段、本次未处理',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/684bae9ea6a437f3bae98bba1dcb797a917d500b/apps/kimi-code/CHANGELOG.md',
     },
     'kimi-builtin-capabilities': {
       label: 'Kimi Code built-in Computer Use and WebBridge capabilities',
@@ -2498,6 +2654,31 @@ window.matrixData = {
     'qoder-permissions': {
       label: 'Qoder CLI Permissions',
       url: 'https://docs.qoder.com/en/cli/permissions',
+    },
+    'qoder-permissions-trust': {
+      label:
+        'Qoder CLI Permissions 的 “Trust Directories” 与 “Extending Trust” 两节（2026-10-23 复核）：逐字为 “Qoder treats the startup current working directory (CWD) as the **main trust directory**. Within trusted directories:” 加三条 “File reads are allowed by default”、“File writes can be auto-approved in `accept_edits` and `auto` modes”、“Non-default permission modes (auto, bypass, etc.) are allowed to take effect”，随后 “If the current directory is not trusted, Qoder forces a fallback to `default` mode.”；扩展信任逐字为 “Add additional trusted working directories via `--add-dir`, the `/add-dir` command, or `permissions.additionalDirectories`:” 加示例 `qoder --add-dir ../shared` 与 `{"permissions": {"additionalDirectories": ["../shared"]}}`，以及 “You can also configure `permissions.trustDirectories` in global settings to permanently trust frequently-used directories.”；权限模式一节另写 “Non-default modes only take effect in trusted directories. If the current directory is not trusted, Qoder falls back to `default`.”，`bypass_permissions`（YOLO）行适用场景为 “Trusted local experiments only” 且 “Skips approval prompts. A small set of path-shape protections stays active”；全页没有信任对话框、`/trust` 命令或单次运行信任旗标',
+      url: 'https://docs.qoder.com/en/cli/permissions#trust-directories',
+    },
+    'qoder-settings-folder-trust': {
+      label:
+        'Qoder CLI 设置参考的信任相关键（2026-10-23 复核）：`security` 组的 `security.folderTrust.enabled` 为 boolean、默认 `true`、Restart 为 Yes、描述 “Enable Folder Trust.”，同组还有 `security.disableYoloMode`（boolean、默认 `false`、描述 “Disable bypass_permissions (YOLO) Permission Mode.”）；`permissions` 组的 `permissions.additionalDirectories` 为 string[]、默认 `[]`、Restart 为 No、描述 “Additional trusted directories added to workspace context (corresponding to `/add-dir`).”，`permissions.trustDirectories` 为 string[]、默认 `[]`、Restart 为 No、描述 “Directories explicitly trusted by the user; stored in user-level configuration and not overridden by project-level configuration.”；另有 `context.loadMemoryFromIncludeDirectories`（boolean、默认 `false`、“Load memory from Additional trusted directories.”）；全页没有写 `security.folderTrust.enabled` 设为 `false` 时的行为，也没有信任记录的文件名',
+      url: 'https://docs.qoder.com/cli/settings-reference',
+    },
+    'qoder-cli-reference-add-dir': {
+      label:
+        'Qoder CLI Commands and Parameters（2026-10-23 复核）：`--add-dir` 行类型为 string[]、描述逐字为 “Add Additional trusted directories for the current session (can be used multiple times).”；全页含 trust 的启动参数只有这一行，没有信任总开关或跳过信任检查的旗标',
+      url: 'https://docs.qoder.com/cli/cli-reference',
+    },
+    'qoder-slash-reference-add-dir': {
+      label:
+        'Qoder CLI Slash 命令参考（2026-10-23 复核）：`/add-dir` 行描述逐字为 “Add trusted directories.”；全页没有 `/trust` 或等价的目录信任命令',
+      url: 'https://docs.qoder.com/cli/slash-reference',
+    },
+    'qoder-release-notes-trust': {
+      label:
+        'Qoder CLI Release Notes 的目录信任时间线（2026-10-23 复核，最新条目为 CLI 1.1.77，October 22, 2026）：CLI 1.0.17（June 10, 2026，小节 “Agent Sessions, Permissions Upgrade & SOCKS5 Proxy”）逐字为 “Upgraded /permissions: directory completion, workspace dialog, scope-colored trust tags, and remove confirmation”；CLI 1.0.15（June 9, 2026）“Fixed project permission rules not taking effect immediately after granting workspace trust”；CLI 0.2.9（May 8, 2026）“Fixed /add-dir trusted directories still requiring read permission approval”，同版另有 “Fixed symlink reads bypassing permission boundary checks”；三条都没有给出信任记录的保存文件或 `security.folderTrust.enabled` 的引入版本',
+      url: 'https://docs.qoder.com/release-notes/qoder-cli',
     },
     'qoder-sandbox': {
       label: 'Qoder CLI Sandbox',
@@ -3988,8 +4169,9 @@ window.matrixData = {
       id: 'security-trust',
       category: 'security',
       capability: '项目目录信任',
-      description: '首次进入项目时确认是否信任仓库配置与指令。',
-      values: { claude: 'Workspace Trust', codex: 'Project Trust；未信任时跳过项目 `.codex/`', qwen: '`/trust`；功能默认关闭', kimi: '条件：v2 引擎启动信任提示；项目 MCP 门禁', qoder: 'Trust Directories；未信任时回退 `default`' },
+      description:
+        '首次进入目录时确认是否信任仓库配置与指令，并据此门禁项目层加载与高权限模式。',
+      values: { claude: 'Workspace Trust；未信任时项目 `allow` 与 `additionalDirectories` 不生效', codex: '`projects.<path>.trust_level`；未信任时跳过项目 `.codex/` 层', qwen: '条件：`security.folderTrust.enabled` 默认关闭，开启后才有 `/trust`', kimi: '启动 `Trust this folder?` 弹窗；未信任时跳过项目层', qoder: 'Trust Directories；未信任时回退 `default`' },
     },
     {
       id: 'security-noninteractive',
