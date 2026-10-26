@@ -8,7 +8,7 @@
 | --- | --- | --- | --- | --- | --- |
 | 内置 Agent | Explore、Plan、general-purpose | default、worker、explorer | general-purpose、Explore | coder、explore、plan | general-purpose、Explore、Plan；另有条件 Agent |
 | 管理入口 | 编辑 `.claude/agents/`；`/agents` 给出管理指引 | `/agent`、`/subagents` | `/agents manage`、`/agents create` | 配置文件；`/swarm` 是多代理模式 | `/agents`、`/agents reload`、`qodercli agents list` |
-| 自动委派 | 根据 `description` 判断 | 根据请求、项目指令或 Skill 判断 | 根据 `description` 判断 | 根据 `description`、`whenToUse` 判断 | 根据 `description` 判断 |
+| 自动委派 | 依据请求任务描述、`description` 与当前上下文自动委派；全部 `description` 合计超 15000 token 只启动告警；`permissions.deny` 拒绝 `Agent` 可全禁 | 本地版本（CLI、应用、IDE）只在直接请求或适用的 `AGENTS.md`、Skill 指令要求时委派；Web 端 ChatGPT Work 只在 Ultra 档位主动委派 | 依据请求任务描述、`description`、当前上下文与可用工具主动委派；Fork 由模型按需自动使用；单个 `description` 超 1000 字符为软告警 | 2.3.2（2026-10-25）起默认不主动派发，需用户显式要求、点名类型、`AGENTS.md` 或 Skill 指令、已开启的 swarm/tower 模式；`description` 与 `whenToUse` 只用于授权后选型；`AgentSwarm` 仅 swarm mode 开启时运行，否则拒绝 | 把任务描述与各 Subagent 的 `description` 匹配做隐式选择；派发未指定类型时默认 `general-purpose`；官方建议先显式点名验证 |
 | 显式调用 | 在提示词中点名；`/subtask` | 在提示词中要求；切换 `/agent` 查看 | 在提示词中点名 | 在提示词中点名 | 在提示词中点名或 `@name` |
 | 配置格式 | Markdown + YAML | TOML | Markdown + YAML | Markdown + YAML | Markdown + YAML；`--agents` JSON |
 | 项目级目录 | `.claude/agents/` | `.codex/agents/` | `.qwen/agents/` | `.kimi-code/agents/`、`.agents/agents/` | `.qoder/agents/` |
@@ -62,6 +62,7 @@
 ## 来源
 
 - [Claude Code Subagents](https://code.claude.com/docs/en/sub-agents)
+- [Claude Code Subagents 的 “Understand automatic delegation” 一节与内置 Subagent 限制清单（15000 token 描述告警、`permissions.deny` 拒绝 `Agent`、`CLAUDE_CODE_DISABLE_EXPLORE_PLAN_AGENTS`、`CLAUDE_AGENT_SDK_DISABLE_BUILTIN_AGENTS`）](https://code.claude.com/docs/en/sub-agents#understand-automatic-delegation)
 - [Claude Code v2.1.232 更新日志（Subagent Fork 默认开启）](https://github.com/anthropics/claude-code/blob/1f6015b5d578/CHANGELOG.md)
 - [Claude Code model configuration](https://code.claude.com/docs/en/model-config)
 - [Claude Code settings reference](https://code.claude.com/docs/en/settings-reference)
@@ -72,12 +73,14 @@
 - [Claude Code Subagents 的 “Run subagents in foreground or background” 与并发上限段](https://code.claude.com/docs/en/sub-agents#run-subagents-in-foreground-or-background)
 - [Claude Code v2.1.302 更新日志（Fork 在 `claude -p`、Agent SDK、桌面端与 VS Code 默认开启，桌面端与 VS Code 一律后台）](https://github.com/anthropics/claude-code/blob/c017428c8c27e604840435048d5bce6a9a22c040/CHANGELOG.md)
 - [Codex Subagents](https://learn.chatgpt.com/docs/agent-configuration/subagents)
+- [Codex Subagents 的 “Triggering subagent workflows” 一节（按 web、app、cli、ide 四组给出不同正文；本地版本只在直接请求或 `AGENTS.md`、Skill 指令要求时委派，Web 端只 Ultra 档位主动委派）](https://learn.chatgpt.com/docs/agent-configuration/subagents#triggering-subagent-workflows)
 - [Codex configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference)
 - [Codex Subagent activity 记录解析后模型与推理强度的提交](https://github.com/openai/codex/commit/b0a6b8d86f455d3db9dd869fc1178a5fbd865e7f)
 - [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/412eae24b48ff16f54166c2b17eb4d4a9cdcdd1e/docs/users/features/sub-agents.md)
 - [Qwen Code v0.25.1-preview.2 Subagents 的 Model Selection 小节](https://github.com/QwenLM/qwen-code/blob/d381509d32e62a992a344de33207d54f436bcefc/docs/users/features/sub-agents.md)
 - [Qwen Code Subagents 文档（main 分支 `97925919acb9`，后台默认值、外部执行器前台、调用方自有 `working_dir` 与通知队列上限）](https://github.com/QwenLM/qwen-code/blob/97925919acb92b089d817991bfefe4545601c8f6/docs/users/features/sub-agents.md)
 - [Qwen Code Subagents 文档在 stable 标签 v0.25.2 下的同一文件（证明上述后台行为已发布）](https://github.com/QwenLM/qwen-code/blob/8a415cb628db88844e0196bdfdcce83b4f88d812/docs/users/features/sub-agents.md)
+- [Qwen Code Subagents 文档在 stable 标签 v0.26.1 下的同一文件（“Automatic Delegation”、“When Fork is Used”、“Recursive Delegation Prevention” 与 “Limits” 四节；与核对日期 main 逐字节相同）](https://github.com/QwenLM/qwen-code/blob/b475278c4a300acebe6cfc990a9e1b1d18819bfc/docs/users/features/sub-agents.md)
 - [Qwen Code Worktree](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/worktree.md)
 - [Kimi Code Agents](https://github.com/MoonshotAI/kimi-code/blob/c9f01f07388abc2cdca40c9c5267f58c65086710/docs/zh/customization/agents.md)
 - [Kimi Code subagent and secondary model configuration](https://github.com/MoonshotAI/kimi-code/blob/c9f01f07388abc2cdca40c9c5267f58c65086710/docs/zh/configuration/config-files.md)
@@ -102,7 +105,19 @@
 - [Kimi Code 官方变更记录（main 分支 `4a82a07f08d0`，后台与并行时间线 0.14.1–0.43.0）](https://github.com/MoonshotAI/kimi-code/blob/4a82a07f08d0b135c4349c20aae53a2d51e5c3fa/docs/zh/release-notes/changelog.md)
 - [Kimi Code Slash 命令表（main 分支 `4a82a07f08d0`，`/tasks` 别名 `/task`）](https://github.com/MoonshotAI/kimi-code/blob/4a82a07f08d0b135c4349c20aae53a2d51e5c3fa/docs/zh/reference/slash-commands.md)
 - [Kimi Code 交互指南（main 分支 `4a82a07f08d0`，`Ctrl+B` 只覆盖命令）](https://github.com/MoonshotAI/kimi-code/blob/4a82a07f08d0b135c4349c20aae53a2d51e5c3fa/docs/zh/guides/interaction.md)
+- [Kimi Code `apps/kimi-code/CHANGELOG.md`（2.3.2 标签提交 `b8dd3a134060`，2.3.2 段只有「默认不主动派发」与「swarm 只由用户开启」两条）](https://github.com/MoonshotAI/kimi-code/blob/b8dd3a134060c6e80ba4a1659335cd63b68483f2/apps/kimi-code/CHANGELOG.md)
+- [Kimi Code 提交 `fd2e2c7e2a36`（PR #4386 “launch subagents only on explicit request”：`agent.md`、`system.md`、Plan 模式工具描述、swarm 退出提醒与 `explore` 档 `whenToUse` 五处提示词改动）](https://github.com/MoonshotAI/kimi-code/commit/fd2e2c7e2a3672dda91365d66b2ba74a1630521e)
+- [Kimi Code 提交 `c9a48369843f`（PR #4384 “leave swarm mode to the user”：`AgentSwarm` 的三处代码硬门禁与中英文工具、Slash 命令文档同步）](https://github.com/MoonshotAI/kimi-code/commit/c9a48369843fdee1b494b9d49b1f4b3aeee73497)
+- [Kimi Code `agent.md`（2.3.3 标签提交 `ec495f0cb00f`，`Agent` 工具描述基串与显式请求门禁全文）](https://github.com/MoonshotAI/kimi-code/blob/ec495f0cb00f6db9a9118bf979112886f4264a41/packages/agent-core-v2/src/agent/tools/agent/agent.md)
+- [Kimi Code `agentProfileCatalog/system.md`（2.3.3 标签提交 `ec495f0cb00f`，主 Agent 系统提示词第 25 行的派发门禁）](https://github.com/MoonshotAI/kimi-code/blob/ec495f0cb00f6db9a9118bf979112886f4264a41/packages/agent-core-v2/src/app/agentProfileCatalog/system.md)
+- [Kimi Code `agentTool.ts`（2.3.3 标签提交 `ec495f0cb00f`，`agent.md?raw` 为描述基串，`buildProfileDescriptions()` 把 `description` 与 `whenToUse` 拼成类型清单行）](https://github.com/MoonshotAI/kimi-code/blob/ec495f0cb00f6db9a9118bf979112886f4264a41/packages/agent-core-v2/src/agent/tools/agent/agentTool.ts)
+- [Kimi Code 中文工具文档（2.3.3 标签提交 `ec495f0cb00f`，`AgentSwarm` 默认审批改为“自动放行；仅在 swarm mode 中可用”）](https://github.com/MoonshotAI/kimi-code/blob/ec495f0cb00f6db9a9118bf979112886f4264a41/docs/zh/reference/tools.md)
+- [Kimi Code 中文 Agents 文档（2.3.3 标签提交 `ec495f0cb00f`，仍写“subagent 由 main agent 自动调度……无需用户手动指定”，与同标签下的工具描述和变更记录不一致）](https://github.com/MoonshotAI/kimi-code/blob/ec495f0cb00f6db9a9118bf979112886f4264a41/docs/zh/customization/agents.md)
+- [Kimi Code 中文环境变量文档（2.3.3 标签提交 `ec495f0cb00f`，没有控制主 Agent 是否主动派发的开关）](https://github.com/MoonshotAI/kimi-code/blob/ec495f0cb00f6db9a9118bf979112886f4264a41/docs/zh/configuration/env-vars.md)
+- [Kimi Code 2.3.3 Release（2026-10-26T13:22:15Z，被拒的 `AgentSwarm` 不再显示为失败 swarm、`/swarm` 开启时显示高用量告警）](https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai%2Fkimi-code%402.3.3)
 - [Qoder CLI Subagent](https://docs.qoder.com/en/cli/subagent)
+- [Qoder CLI Subagent 的 “Implicit Invocation” 一节与字段表（`description` 用于选择、未指定类型默认 `general-purpose`、最佳实践建议先显式点名）](https://docs.qoder.com/en/cli/subagent#implicit-invocation)
+- [Qoder CLI Release Notes（最新条目 CLI 1.1.78、October 23, 2026，无 Subagent 选择或委派条目）](https://docs.qoder.com/release-notes/qoder-cli)
 - [Qoder CLI Parallel Tasks（Background Agents / Tasks 与 `/tasks`）](https://docs.qoder.com/cli/parallel-tasks)
 - [Qoder CLI 设置参考（没有任何含 background 的设置键，`agents` 组只有 `agents.overrides`）](https://docs.qoder.com/cli/settings-reference)
 - [Qoder CLI Release Notes（1.1.31 的 `QODER_CLI_MAX_CONCURRENT_SUBAGENTS` 与 0.1.43 的并发审批排队）](https://docs.qoder.com/release-notes/qoder-cli)

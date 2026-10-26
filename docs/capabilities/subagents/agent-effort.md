@@ -2,7 +2,7 @@
 
 [返回 Subagent 详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=agent-effort)
 
-> 核对日期：2026-10-23
+> 核对日期：2026-10-26
 
 ## 定义
 
@@ -99,7 +99,7 @@
 | 字段 | 记录 |
 | --- | --- |
 | 矩阵结论 | `[secondary_model] default_effort` 节级档位 · `[models.<alias>.overrides] default_effort` 变体；Agent 文件 frontmatter 无 effort 字段 |
-| 入口与配置 | 主 Agent 依据描述自动派发，也可在提示词中点名；`--agent-file` 可在启动时显式加载定义。 |
+| 入口与配置 | 主 Agent 需先获得授权才派发（2.3.2 起：用户显式请求、`AGENTS.md` 或 Skill 指令、已开启的多代理模式），也可在提示词中点名；`--agent-file` 可在启动时显式加载定义。 |
 | 定义格式 | Markdown 正文 + YAML frontmatter；正文作为 Agent 系统提示词模板。 |
 | 具体行为 | Agent 文件的 frontmatter 字段表没有独立 effort 字段，官方逐字写 “其他 Agent 工具的字段（如 Claude Code 的 `model`、OpenCode 的 `mode`）同样会被忽略”。子 Agent 的档位改由模型绑定决定：`[secondary_model] default_effort`（string，无默认值）是节级设置，官方说明为 “每次派生的 subagent 绑定的 Thinking 档位，优先于所绑定模型自带的 `default_effort`”，并写明它 “无论派生绑定到池中哪个条目（或 force 固定的模型）都生效”；想按条目区分档位时不要设置它，改用模型「变体」——在 `[models]` 里为同一底层模型再注册一个条目、用 `[models."<alias>".overrides]` 只覆盖 `default_effort`，再把原别名与变体别名都放进模型池，`overrides` 不接受 `provider`、`model`、`protocol`、`beta_api` 与 `base_url` 一类身份或路由字段。绑定池别名时不继承调用方的 Thinking 档位，解析顺序为本节 `default_effort` → `[thinking].enabled = false` 时保持关闭 → 所绑定模型条目的 `default_effort` → 全局 `[thinking].effort` → 所绑定模型 `support_efforts` 的中间项；绑定保留值 `"primary"` 则连模型带档位一起继承调用方。官方另记 main agent 与 subagent 的不对称：“对 main agent，全局 `[thinking].effort` 一旦设置就压过变体的 `default_effort`；对绑定池内别名的 subagent，变体的 `default_effort` 优先于全局值，只有 `[secondary_model].default_effort` 的优先级更高。”变体生效有两个前提：底层模型必须声明 `support_efforts`（官方注明 `managed:kimi-code` 下目前只有 k3 系列声明了档位），且变体是独立条目、不继承被指向条目的字段，`capabilities` 与 `support_efforts` 等元数据要完整照抄，否则 `default_effort` 不生效（它必须是 `support_efforts` 列表中的值）。全局 `[thinking].effort` 取值为 `low`/`medium`/`high`/`xhigh`/`max`，不在模型支持列表时回落默认档。只由旧版 `agent-core` 引擎读取的 `model_preference` 字段随该包在 0.42.0 被删除，当前 agents、config-files、env-vars 与 slash-commands 四份官方文档都已不出现该字段或 `KIMI_CODE_LEGACY_FLAG`。 |
 | 作用域 | 显式文件、项目、额外目录、用户、Plugin、内置六级来源；更具体的作用域优先。 |

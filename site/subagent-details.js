@@ -59,7 +59,7 @@
     },
     kimi: {
       entry:
-        '主 Agent 依据描述自动派发，也可在提示词中点名；`--agent-file` 可在启动时显式加载定义。',
+        '主 Agent 需先获得授权才派发（2.3.2 起：用户显式请求、`AGENTS.md` 或 Skill 指令、已开启的多代理模式），也可在提示词中点名；`--agent-file` 可在启动时显式加载定义。',
       format: 'Markdown 正文 + YAML frontmatter；正文作为 Agent 系统提示词模板。',
       scope:
         '显式文件、项目、额外目录、用户、Plugin、内置六级来源；更具体的作用域优先。',
@@ -258,24 +258,84 @@
     'agent-auto': createDetail({
       id: 'agent-auto',
       definition:
-        '主 Agent 根据任务内容与 Agent 描述，在用户未指定名称时选择并派发 Subagent。',
-      includes: ['自动匹配依据', '描述字段', '项目或 Skill 指令'],
-      excludes: ['用户显式点名', '模型路由质量评价', '并发调度算法细节'],
+        '主 Agent 在用户没有点名 Subagent 时，依据什么信息选择并派发 Subagent，以及「派发」这个动作本身是否还要先被授权。',
+      includes: [
+        '自动匹配依据与描述字段语义',
+        '派发是否需要先获得授权',
+        '项目指令、Skill 与多代理模式对委派的影响',
+        '关闭或限制自动委派的开关与描述长度告警',
+      ],
+      excludes: [
+        '用户显式点名与 @ 提及',
+        '模型路由质量评价',
+        '并发调度算法与并发上限',
+      ],
       facts: [
-        '五家都允许主 Agent 在满足自身调度规则时自动委派。',
-        '自定义 Agent 的 `description` 是最普遍的选择依据；Kimi Code另有 `whenToUse`。',
+        '五家都把 `description` 作为主 Agent 挑选 Subagent 的依据：Claude Code 的字段表写 “When Claude should delegate to this subagent”，Codex 写 “Human-facing guidance for when Codex should use this agent.”，Qwen Code 的示例注释写 “Brief description of when and how to use this agent”，Kimi Code 写 “Agent 的用途。main agent 挑选 subagent 时会看到，请围绕委派决策来写”，Qoder CLI 写 “Description of when to use this Subagent. Qoder CLI uses it for selection.”。',
+        'Kimi Code 另有可选的 `whenToUse`（“补充说明何时应使用该 Agent”）；源码里 `buildProfileDescriptions()` 把 `description` 与 `whenToUse` 过滤空值后用空格拼成 `- <name>: <details>` 一行，两者都只出现在 “Available agent types (pass via subagent_type):” 清单里。',
+        '默认行为在核对日期分成两组：Claude Code、Qwen Code 与 Qoder CLI 的官方文档都把「按描述主动委派」写成默认行为，Codex 与 Kimi Code 都要求先有请求或指令。Codex 的官方措辞是本地版本 “delegate when you ask directly or when applicable `AGENTS.md` or skill instructions request it”，Kimi Code 自 2.3.2 起改为 “Do not launch a subagent unless the user explicitly asks for one.”。',
+        '授权的落实方式分两层：提示词层是工具描述与系统提示词文本（Kimi 的 `agent.md` 与 `system.md`、Codex 的 `AGENTS.md` 与 Skill 指令），代码层是硬门禁（Kimi 的 `AgentSwarm` 在 swarm mode 关闭时由 `resolveExecution()` 直接返回 `isError: true` 的结果，不启动任何 subagent）。',
+        '描述长度只有两家给出数字：Claude Code 是全部 Subagent 的 `description` 合计 15000 token 的启动告警且仍加载全部定义，Qwen Code 是单个 `description` 超过 1000 字符、系统提示词超过 10000 字符的软告警且官方写明 “no hard limits are enforced”。Codex、Kimi Code 与 Qoder CLI 的 Subagent 文档没有公布描述长度上限。',
       ],
       notes: {
-        claude:
-          'Claude 读取 `description` 判断何时委派；清晰的使用条件直接影响自动选择。',
-        codex:
-          '本地 Codex 在直接请求或适用的项目、Skill 指令下派生 Agent；自动程度还受运行档位影响。',
-        qwen:
-          '主模型结合任务描述、Agent `description`、当前上下文和可用工具选择命名 Agent。',
-        kimi:
-          '主 Agent 同时读取 `description` 与可选的 `whenToUse`；内置类型也按任务形态选择。',
-        qoder:
-          'Qoder CLI 使用 `description` 参与选择；未指定类型时 Agent 工具默认使用 `general-purpose`。',
+        claude: {
+          behavior:
+            '官方 “Understand automatic delegation” 一节逐字为 “Claude automatically delegates tasks based on the task description in your request, the `description` field in subagent configurations, and current context.”，即依据是请求里的任务描述、`description` 字段与当前上下文三项。文档同时给出提高委派倾向的写法 “To encourage proactive delegation, include phrases like "use proactively" in your subagent\'s description field.”。内置 Subagent 由 Claude 在合适时自行使用，辅助 Agent 一类 “are typically invoked automatically, so you don\'t need to use them directly.”；插件里的 Subagent 可用 `claude plugin eval` 逐条提示词跑带插件与不带插件两种结果并打分，用来衡量委派是否稳定命中。',
+          limits:
+            '可配置 `maxTurns`；官方 Subagent 字段表未列出单 Agent 超时字段。与自动委派有关的唯一硬数字是描述预算：“Keep descriptions brief: Claude Code shows a startup warning when your subagents\' combined descriptions pass the 15,000-token limit, and still loads every subagent.”，即超限只告警不裁剪。',
+          conditions:
+            '关闭自动委派有三档粒度：用 `permissions.deny` 拒绝 `Agent` 工具本身可阻止一切委派；`CLAUDE_CODE_DISABLE_EXPLORE_PLAN_AGENTS=1` 只移除内置 `Explore` 与 `Plan`，此后 “Claude reads and explores files directly instead of delegating to them”，需 v2.1.198 及以上；非交互模式与 Agent SDK 用 `CLAUDE_AGENT_SDK_DISABLE_BUILTIN_AGENTS=1` 移除全部内置类型、只留自定义定义。另有兜底失败形态：会话里没有 `general-purpose` 可回退时，省略 `subagent_type` 的 Agent 工具调用以 `subagent_type is required` 失败。插件分发的 Agent 会忽略 `hooks`、`mcpServers`、`permissionMode`。',
+        },
+        codex: {
+          behavior:
+            '官方文档按 `codex-surface` 分 web、app、cli、ide 四组给出不同正文。CLI 组逐字为 “Ask Codex in an interactive CLI session to use subagents. Codex can also follow applicable `AGENTS.md` or skill instructions that request delegation.”，即委派来源只有直接请求与适用的 `AGENTS.md` 或 Skill 指令两类；应用组写 “Current local Codex releases delegate when you ask directly or when applicable `AGENTS.md` or skill instructions request it.”，IDE 组与应用组同义。“Triggering subagent workflows” 的应用、CLI、IDE 合并组写 “Ask for subagents or parallel agent work directly. Codex can also delegate when applicable project or skill instructions request it.”，并举例直接指令为 “spawn two agents,”、“delegate this work in parallel,” 与 “use one agent per point.”。`description` 是必填 string，语义为 “Human-facing guidance for when Codex should use this agent.”，即面向人的说明而不是路由判据。',
+          conditions:
+            '主动委派只出现在 Web 端 ChatGPT Work 这一个 Surface，且只在 Ultra 档位：web 组写 “At most intelligence levels, ask for subagents or parallel agent work directly. Ultra enables proactive delegation, so ChatGPT can delegate suitable independent work without a separate request.”，模型一节补充 Ultra “uses maximum reasoning and lets ChatGPT proactively delegate suitable work to subagents” 且 “At other intelligence levels, ask for subagents explicitly when you want work delegated in parallel.”。按本仓库 Surface 规则，这一条不计入 CLI 结论。父回合的实时沙箱和审批覆盖会在派生时重新应用。',
+        },
+        qwen: {
+          behavior:
+            '官方 “Automatic Delegation” 一节逐字为 “Qwen Code proactively delegates tasks based on:” 加三条依据 “The task description in your request”、“The description field in Subagents configurations” 与 “Current context and available tools”，并给出提高委派倾向的写法 “To encourage more proactive Subagents use, include phrases like "use PROACTIVELY" or "MUST BE USED" in your description field.”。“How Subagents Work” 第 2 步把自动委派与 Fork 并列：“Delegation: The main AI can automatically delegate tasks to appropriate Subagents — or fork itself (`subagent_type: "fork"`) when it needs the parent conversation context”。“When Fork is Used” 逐字为 “The AI automatically uses fork when it needs to:” 加并行研究、主会话继续时的后台工作与需要父会话上下文的委派三种情形，即 Fork 也在自动委派的范围内。',
+          limits:
+            '支持 `maxTurns`；官方 Subagent 字段表未列出超时字段。“Limits” 一节逐字为 “The following soft warnings apply to Subagent configurations (no hard limits are enforced):”，两条是 “Description Field: A warning is shown for descriptions exceeding 1,000 characters” 与 “System Prompt: A warning is shown for system prompts exceeding 10,000 characters”，因此描述超长只是软告警、不阻止加载。',
+          conditions:
+            '自动委派有一条运行时硬边界：Fork 子 Agent 不能再派生，“Recursive Delegation Prevention” 逐字为 “Fork children cannot spawn any further sub-agent. This is enforced at runtime — if a fork calls the Agent tool, it receives an error instructing it to execute tasks directly.”。`hooks` v1 在 Agent 运行期间按会话注册；`effort`、`skills`、`memory` 等 frontmatter 尚未落地。',
+        },
+        kimi: {
+          behavior:
+            '2.3.2（2026-10-25T07:59:14Z 发布）起默认不主动派发。`Agent` 工具描述的基串 `packages/agent-core-v2/src/agent/tools/agent/agent.md` 新增一段逐字为 “Do not launch a subagent unless the user explicitly asks for one. Each subagent starts cold and re-derives context you already have, which costs the user time and tokens. Asking means: the user asks for a subagent, delegation, or parallel agents, or requests one of the agent types below by name (for example "use an explore agent"). Explicit instructions in AGENTS.md or a skill, and a multi-agent mode the user turned on (such as swarm or tower mode), also count. Nothing else does: a large or multi-part task, or a request for depth, thoroughness, research, or investigation, is not a request to launch — do that work yourself with your own tools. The agent type descriptions below only help you choose a type once launching is authorized; they never authorize it. Resuming a subagent to continue already-authorized work needs no new request.”，即四类授权来源（用户明确要求 subagent、委派或并行 Agent／点名某个 Agent 类型／`AGENTS.md` 或 Skill 的显式指令／用户已开启的多代理模式），并明确排除任务规模与「深入、调研、彻查」一类措辞，同时规定恢复已授权的 subagent 不需要新请求。主 Agent 系统提示词 `agentProfileCatalog/system.md` 同步加了一行 “Do not launch subagents with Agent unless the user, AGENTS.md, or a skill asks for them, or the user turned on a multi-agent mode such as swarm or tower mode.”。同一提交还删掉了两处会诱导主动委派的文本：Plan 模式工具描述里的 “use `Agent(subagent_type="explore")` to investigate first”，以及内置 `explore` 档 `whenToUse` 里的 “Use this agent for any read-only exploration that will clearly require more than 3 search queries. Prefer launching multiple explore agents concurrently when investigating independent questions.”。`AgentSwarm` 侧改为代码层硬门禁：`agentSwarmTool.ts` 的 `resolveExecution()` 与 `execute()` 都先判 `if (!this.swarmMode.isActive) return SWARM_MODE_OFF_RESULT;`，该结果的 `output` 逐字为 “Swarm mode is off, so AgentSwarm did not run and no subagents were started. Only the user can turn swarm mode on; do not call AgentSwarm until they do.” 且 `isError: true`；`swarmService.ts` 的 `enter(trigger)` 在 `trigger === \'tool\'` 时抛 `Only the user can turn on swarm mode.`，原先由工具自己开启 swarm mode 的调用已删除。中文工具文档同步改成 “本工具仅在 swarm mode 开启时运行，且 swarm mode 只能由你手动开启（例如使用 `/swarm`）；swarm mode 未开启时，调用会被拒绝，不会启动任何 subagent。”，默认审批列由“swarm mode 中自动放行，否则需审批”改为“自动放行；仅在 swarm mode 中可用”，`manual` 权限模式下调用 `AgentSwarm` 触发审批的旧规则随之作废。',
+          conditions:
+            '没有恢复主动委派的开关：2.3.2 的两个提交只改提示词文本、`whenToUse` 文案与 swarm 门禁代码，2.3.3 标签下的环境变量文档里与 Subagent 相关的变量只有 `KIMI_CODE_AGENT_SWARM_MAX_CONCURRENCY`、`KIMI_CODE_SUBAGENT_SCOPE_CACHE_SIZE`、`KIMI_CODE_SUBAGENT_SCOPE_EVICT_TIMEOUT_MS`、`KIMI_SUBAGENT_TIMEOUT_MS`、`KIMI_CODE_SWARM_TIMEOUT_MS`、`KIMI_CODE_EXPERIMENTAL_SUBAGENT_FORK` 与 `KIMI_CODE_EXPERIMENTAL_TOWER`，`config.toml` 的 `[subagent]` 与 `[swarm]` 两节都只有 `timeout_ms`。变更记录写明该门禁的副作用是 “swarms are no longer available in `kimi -p` or ACP clients such as Zed.”，因为这两个入口无法由用户开启 swarm mode。2.3.3（2026-10-26T13:22:15Z 发布）沿用同一策略，只补了两处交互：被拒的 `AgentSwarm` 调用不再显示为失败的 swarm，且用户本来就要 swarm 时 Agent 会指向 `/swarm`；用 `/swarm` 开启时显示高用量告警。官方文档存在冲突：`docs/zh/customization/agents.md` 在 2.3.3 标签与核对日期的 main 分支都仍写 “subagent 由 main agent 自动调度：根据任务复杂度、上下文消耗和子任务的独立性，在适当时机派发，无需用户手动指定。”，英文版为 “Sub-agents are scheduled automatically by the main Agent… They are dispatched at the right moment without the user having to specify one.”，该文件最后一次改动是 2026-10-23 的 PR #4247，早于委派改动；同页字段表仍写 `description` 为 “Agent 的用途。main agent 挑选 subagent 时会看到，请围绕委派决策来写”、`whenToUse` 为 “补充说明何时应使用该 Agent”。本记录以变更记录、工具描述、系统提示词与源码为准，把该文档页的「自动调度」说法记为未同步。',
+        },
+        qoder: {
+          behavior:
+            '官方 “Implicit Invocation” 一节把隐式选择写成与显式点名并列的入口：TUI 组逐字为 “In a TUI conversation, you can describe the task and let Qoder CLI match it against each Subagent\'s `description`:” 并给示例 `Review this API design`，Headless 组为 “In Headless mode, pass only the task description through `qoder -p`:”，随后写 “If a specific Subagent must be used, name it explicitly; in TUI, you can also use `@name`.”，即必须命中某个 Subagent 时要靠点名。本地 Subagent 字段表把 `description` 定为必填非空字符串、语义为 “Description of when to use this Subagent. Qoder CLI uses it for selection.”。派发未指定类型时有确定的回退：内置 `general-purpose` 行写 “When a dispatch omits the Subagent type, the agent tool defaults to this Subagent.”。“What a Subagent Is” 一节给出分工与边界：“The main session understands the user goal and coordinates the work; the Subagent completes a clear subtask and returns its result to the main session.” 与 “If you already know the exact file or command, use the direct tool. Subagents are best for open-ended, multi-step work that needs judgment and synthesis.”。',
+          conditions:
+            '官方 “Best Practices” 对隐式选择留了保留意见，逐字为 “Test with explicit invocation before relying on implicit selection.” 与 “Give each Subagent one clear responsibility instead of mixing review, implementation, testing, and release work.”，但没有公布匹配算法、打分方式或候选数量上限，这些记为未确认。Release Notes 最新条目 CLI 1.1.78（October 23, 2026）与其前一版 1.1.77 都没有 Subagent 选择或委派相关条目。插件 Agent 会移除 `hooks`、`mcpServers`、`permissionMode`，只保留值为 `worktree` 的 isolation。',
+        },
+      },
+      overrides: {
+        claude: { sources: ['claude-agents', 'claude-agents-auto-delegation'] },
+        codex: { sources: ['codex-agents', 'codex-agents-triggering'] },
+        qwen: {
+          sources: ['qwen-agents', 'qwen-subagents-auto-delegation'],
+        },
+        kimi: {
+          sources: [
+            'kimi-232-changelog',
+            'kimi-4386-commit',
+            'kimi-4384-commit',
+            'kimi-agent-tool-prompt-ec495f0',
+            'kimi-main-system-prompt-ec495f0',
+            'kimi-agent-tool-source-ec495f0',
+            'kimi-tools-doc-ec495f0',
+            'kimi-agents-doc-ec495f0',
+            'kimi-env-vars-ec495f0',
+            'kimi-release-233',
+          ],
+        },
+        qoder: {
+          sources: ['qoder-agents', 'qoder-subagent-selection', 'qoder-release-notes-1178'],
+        },
       },
       related: ['agent-explicit', 'agent-builtins', 'agent-background'],
     }),

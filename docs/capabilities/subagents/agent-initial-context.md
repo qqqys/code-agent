@@ -2,7 +2,7 @@
 
 [返回 Subagent 详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=agent-initial-context)
 
-> 核对日期：2026-10-23
+> 核对日期：2026-10-26
 
 ## 定义
 
@@ -94,7 +94,7 @@ Subagent 启动时收到的任务、系统提示词、父会话历史和环境�
 | 字段 | 记录 |
 | --- | --- |
 | 矩阵结论 | 只接收任务提示；条件：实验开关开启后 `fork` 参数以调用方对话快照启动（`KIMI_CODE_EXPERIMENTAL_SUBAGENT_FORK`，v2 引擎，合入 main 尚未发布） |
-| 入口与配置 | 主 Agent 依据描述自动派发，也可在提示词中点名；`--agent-file` 可在启动时显式加载定义。 |
+| 入口与配置 | 主 Agent 需先获得授权才派发（2.3.2 起：用户显式请求、`AGENTS.md` 或 Skill 指令、已开启的多代理模式），也可在提示词中点名；`--agent-file` 可在启动时显式加载定义。 |
 | 定义格式 | Markdown 正文 + YAML frontmatter；正文作为 Agent 系统提示词模板。 |
 | 具体行为 | 默认子 Agent 只接收主 Agent 给出的任务描述和自身 profile，不继承完整主历史。v2 引擎合入实验性 `fork` 参数：`Agent` 与 `AgentSwarm` 传 `fork: true` 时，子 Agent 以调用方已完成对话的一次性快照启动，继承调用方的 Agent 类型、工具集与模型，提示词只需任务本身；快照中仍在执行的工具调用会补一条合成结果，注明结果未知、不要假设成败也不要等待。 |
 | 作用域 | 显式文件、项目、额外目录、用户、Plugin、内置六级来源；更具体的作用域优先。 |
