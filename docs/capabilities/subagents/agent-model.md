@@ -2,7 +2,7 @@
 
 [返回 Subagent 详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=agent-model)
 
-> 核对日期：2026-10-23
+> 核对日期：2026-10-26
 
 ## 定义
 
@@ -98,7 +98,7 @@
 | 字段 | 记录 |
 | --- | --- |
 | 矩阵结论 | `[secondary_model]` 池别名 · 保留值 `"primary"` · `force = true` 固定到 `default_model`；模型池自 0.42.0 起始终开启，无需开关 |
-| 入口与配置 | 主 Agent 依据描述自动派发，也可在提示词中点名；`--agent-file` 可在启动时显式加载定义。 |
+| 入口与配置 | 主 Agent 需先获得授权才派发（2.3.2 起：用户显式请求、`AGENTS.md` 或 Skill 指令、已开启的多代理模式），也可在提示词中点名；`--agent-file` 可在启动时显式加载定义。 |
 | 定义格式 | Markdown 正文 + YAML frontmatter；正文作为 Agent 系统提示词模板。 |
 | 具体行为 | Agent 文件本身不带模型字段：官方字段表只列 `name`、`description`、`whenToUse`、`override`、`tools`、`disallowedTools` 与 `subagents`，并逐字写 “未知字段会被忽略……其他 Agent 工具的字段（如 Claude Code 的 `model`、OpenCode 的 `mode`）同样会被忽略”。子 Agent 的模型改由 `[secondary_model]` 模型池决定，官方对该节的说明为 “subagent 默认继承 main agent 正在运行的模型。`[secondary_model]` 节把这件事变成可配置的：为 subagent 准备一批候选模型（模型池）并指定默认绑定。”，且 “模型池始终可用，无需任何开启动作；未配置 `[secondary_model]` 时，subagent 继承调用方模型。”字段表四键为 `default_model`（string，无默认值，subagent 的默认模型）、`models`（`table<string, string>`，无默认值，subagent 模型池，key 为 `[models]` 条目别名、value 为挑选提示）、`force`（boolean，默认 `false`，把所有 subagent 固定到 `default_model` 并收回 main agent 的选择权）与 `default_effort`（string，无默认值，每次派生的 subagent 绑定的 Thinking 档位，优先于所绑定模型自带的 `default_effort`）；当前官方字段表没有旧记录里提到的兼容键 `[secondary_model] model`。约束为：配置 `models` 表时 `default_model` 必填且必须是其中的 key，单独写下 `default_model` 就是只含一个条目的池；`models` 的 value 中英文均可、空字符串表示只列出别名不给提示；`force` 必须搭配 `default_model` 且不能与 `models` 表同用（官方理由是 “表的意义在于提供选择，而 force 取消了选择”）；`default_effort` 是节级设置，想按条目区分档位时改用 `[models."<alias>".overrides]` 只覆盖 `default_effort` 的模型「变体」条目；`primary` 是保留字不能作为池 key。配置了池（显式 `models` 表或隐式单条目池）即启用模型选择：`Agent` 与 `AgentSwarm` 工具获得 `model` 参数，工具描述中列出模型池且默认模型标注 `[default]`，main agent 可按次派生挑选。派生时的解析顺序只有两级：1. 工具调用显式传入的 `model`；2. `default_model`。`model` 参数的取值规则为：接受池中任意别名或保留值 `"primary"`（即调用方自己正在运行的模型，始终合法，即使不在池中）；`default_model` 与 `models` 都未配置时该参数不存在，subagent 继承调用方模型；绑定池别名时不继承调用方的 Thinking 档位，本节设了 `default_effort` 就以它为准，否则 `[thinking].enabled = false` 保持关闭 Thinking、开启时依次用所绑定模型条目的 `default_effort`、全局 `[thinking].effort`、所绑定模型 `support_efforts` 的中间项；`"primary"` 连模型带档位一起继承调用方；传入的值既不是池别名也不是 `"primary"` 时本次派生报错并列出可选值。设 `force = true` 后不再提供 `model` 参数（与完全未配置时一样），每次派生都绑定 `default_model`，显式传入 `model`（包括 `"primary"`）会报错。池别名引用 `[models]` 表的当前内容：删除供应商、登出账号或其刷新后的模型列表不再包含某个别名时，会话启动会报出指明失效别名的配置错误，修正或移除对应条目即可恢复，系统不会自动改写 `[secondary_model]` 节。配置错误一律直接报错不做静默回退——`default_model` 缺失、不是池中 key 或池中 key 无法解析到已配置的 `[models]` 条目，以及 `force` 未搭配 `default_model` 或与 `models` 表同时使用时，会话的创建、恢复（resume）与 fork 都在启动时失败。交互式 TUI 里 `/secondary-model`（别名 `/subagent-model`）打开模型选择器，选择后写入 `default_model`（已有 `models` 表而所选别名不在其中时会一并补一条空描述条目），之后派生的 subagent 立即按新默认值绑定、无需重启会话；该命令在官方 Slash 命令表的「随时可用」列为「是」，即流式输出期间也可执行。时间线取自官方变更记录：0.31.0（2026-07-30）新增 `/secondary_model` 命令且当时为实验性、需先在 `/experiments` 中开启；0.36.0（2026-08-13）把实验性的子 Agent 模型配置升级为带描述的模型池（提交 `c9bfe8b2c831`，需 `KIMI_CODE_EXPERIMENTAL_SECONDARY_MODEL=1` 或实验总开关 `KIMI_CODE_EXPERIMENTAL_FLAG=1`）；0.40.0（2026-09-02）逐字为 “子代理设置（`[secondary_model]`）功能由实验性转为正式。”；0.42.0（2026-09-09）逐字为 “子 Agent 模型池（`[secondary_model]`）现已始终开启，实验开关与 `KIMI_CODE_EXPERIMENTAL_SECONDARY_MODEL` 退出选项已移除。”，对应提交 `e831fd1ea948`（PR #3634）；同版另有提交 `bb16383aa15f`（PR #3542）删除旧版 `agent-core` v1 包，`model_preference` frontmatter 与 `KIMI_CODE_LEGACY_FLAG` 因此在当前的 agents、config-files、env-vars 与 slash-commands 四份官方文档中都不再出现。 |
 | 作用域 | 显式文件、项目、额外目录、用户、Plugin、内置六级来源；更具体的作用域优先。 |

@@ -2,7 +2,7 @@
 
 [返回 Subagent 详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=agent-limits)
 
-> 核对日期：2026-10-23
+> 核对日期：2026-10-26
 
 ## 定义
 
@@ -96,7 +96,7 @@
 | 字段 | 记录 |
 | --- | --- |
 | 矩阵结论 | 全局 `[subagent] timeout_ms`（默认 2 h）；AgentSwarm 改用独立 `[swarm] timeout_ms`（main 分支，尚未发布）；Agent 定义无独立字段 |
-| 入口与配置 | 主 Agent 依据描述自动派发，也可在提示词中点名；`--agent-file` 可在启动时显式加载定义。 |
+| 入口与配置 | 主 Agent 需先获得授权才派发（2.3.2 起：用户显式请求、`AGENTS.md` 或 Skill 指令、已开启的多代理模式），也可在提示词中点名；`--agent-file` 可在启动时显式加载定义。 |
 | 定义格式 | Markdown 正文 + YAML frontmatter；正文作为 Agent 系统提示词模板。 |
 | 具体行为 | 全局 `[subagent] timeout_ms` 限制单个 Agent 或 AgentSwarm 运行时间，默认 7200000 ms（2 小时），print 模式未设置时默认 0（无限制）；环境变量 `KIMI_SUBAGENT_TIMEOUT_MS` 可覆盖；该值同时是后台任务管理器的单任务超时，覆盖前台与后台 Subagent。PR #3198（提交 `496bb6ce4e55`，合入 main 尚未发布）为 AgentSwarm 新增独立 `[swarm] timeout_ms`：默认同为 7200000 ms，`0` 表示无超时（运行到完成或手动停止），print 模式未显式设置时同样默认 0，环境变量 `KIMI_CODE_SWARM_TIMEOUT_MS` 优先于配置文件；超时的 swarm 子 Agent 被中止并在聚合报告中标记失败（`Subagent timed out.`），其他子 Agent 不受影响；取值超过 2147483647（约 24.8 天）时运行时收敛为约 24.8 天。该提交是有意的行为变更且无回退：原为覆盖 swarm 设置的 `[subagent] timeout_ms` 不再作用于 AgentSwarm，需迁移到 `[swarm] timeout_ms`。Agent 定义 frontmatter 无独立轮数或超时字段。 |
 | 作用域 | 显式文件、项目、额外目录、用户、Plugin、内置六级来源；更具体的作用域优先。 |

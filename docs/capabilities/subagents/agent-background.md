@@ -2,7 +2,7 @@
 
 [返回 Subagent 详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=agent-background)
 
-> 核对日期：2026-10-23
+> 核对日期：2026-10-26
 
 ## 定义
 
@@ -101,7 +101,7 @@ Subagent 是否能与主会话并发执行、默认落在前台还是后台，�
 | 字段 | 记录 |
 | --- | --- |
 | 矩阵结论 | `Agent` 的 `run_in_background` 默认 `false`：前台由父 Agent 等待完成，后台立即返回任务 ID 并在完成时以合成 User 消息回到 main agent · `Ctrl+B` 把运行中的前台子 Agent 转后台 · `/tasks`（别名 `/task`）浏览后台任务 · `AgentSwarm` 至多 128 个 subagent 且等全部完成后返回聚合报告 · `[background] max_running_tasks`（`KIMI_CODE_BACKGROUND_MAX_RUNNING_TASKS`）限同时运行的后台任务数、不设即无上限 · `KIMI_CODE_AGENT_SWARM_MAX_CONCURRENCY` 限 swarm ramp 阶段并发 |
-| 入口与配置 | 主 Agent 依据描述自动派发，也可在提示词中点名；`--agent-file` 可在启动时显式加载定义。 |
+| 入口与配置 | 主 Agent 需先获得授权才派发（2.3.2 起：用户显式请求、`AGENTS.md` 或 Skill 指令、已开启的多代理模式），也可在提示词中点名；`--agent-file` 可在启动时显式加载定义。 |
 | 定义格式 | Markdown 正文 + YAML frontmatter；正文作为 Agent 系统提示词模板。 |
 | 具体行为 | `Agent` 工具的可选参数含 `run_in_background`（默认 false），官方逐字为 “前台模式下父 Agent 等待 subagent 完成再继续；后台模式立即返回任务 ID，完成时通过合成 User 消息自动回到 main agent。多个前台 `Agent` 调用在同一步运行时，TUI 会合并展示，并为每个 subagent 显示运行、等待、完成或失败状态以及已耗时长。”；`Agent` 自动放行而 `AgentSwarm` 为 “swarm mode 中自动放行，否则需审批”。Agents 文档另写 “subagent 支持在后台运行：完成后结果自动回到 main agent，无需手动轮询。也可以唤回已有的 subagent 实例继续推进同一任务。”、“多个 subagent 可以并行运行，互不干扰。” 与 “如果 subagent 结束自己的轮次时仍有后台任务在运行，这次运行会等这些后台任务全部落定后才回报完成。”。`AgentSwarm` 从共享 `prompt_template` 与 `items` 批量派生，“本工具最多支持 128 个 subagent，会等待全部 subagent 完成，并返回聚合报告。”，“在 TUI 中，前台 swarm 会在输入框上方显示实时 `Agent swarm` 进度面板。”，且一次模型响应里调用 `AgentSwarm` 时该调用必须是唯一工具调用。查看与停止：`/tasks`（别名 `/task`，说明为“浏览后台任务列表”、「随时可用」为「是」），模型侧 `TaskList`（自动放行，`active_only` 默认 true、`limit` 默认 20、取值 1–100）、`TaskOutput`（自动放行、始终非阻塞、内联预览最近 32 KB 并返回落盘 `output_path`）、`TaskStop`（需审批，接受 `task_id` 与可选 `reason`、默认 `Stopped by TaskStop`，对已终止任务也能安全调用）与 `WaitFor`（自动放行，`timeout` 必填、单位秒、上限 90，新消息会提前结束等待）。 |
 | 作用域 | 显式文件、项目、额外目录、用户、Plugin、内置六级来源；更具体的作用域优先。 |

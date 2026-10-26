@@ -2,7 +2,7 @@
 
 [返回 Subagent 详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=agent-result)
 
-> 核对日期：2026-10-23
+> 核对日期：2026-10-26
 
 ## 定义
 
@@ -92,7 +92,7 @@ Subagent 完成或失败后，把结论、状态或通知交回主会话的方�
 | 字段 | 记录 |
 | --- | --- |
 | 矩阵结论 | 返回父会话 |
-| 入口与配置 | 主 Agent 依据描述自动派发，也可在提示词中点名；`--agent-file` 可在启动时显式加载定义。 |
+| 入口与配置 | 主 Agent 需先获得授权才派发（2.3.2 起：用户显式请求、`AGENTS.md` 或 Skill 指令、已开启的多代理模式），也可在提示词中点名；`--agent-file` 可在启动时显式加载定义。 |
 | 定义格式 | Markdown 正文 + YAML frontmatter；正文作为 Agent 系统提示词模板。 |
 | 具体行为 | 子 Agent 的最后一条消息作为完整交付返回主 Agent；自定义 Agent 需在正文中明确这一要求。 |
 | 作用域 | 显式文件、项目、额外目录、用户、Plugin、内置六级来源；更具体的作用域优先。 |

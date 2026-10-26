@@ -2,7 +2,7 @@
 
 [返回 Subagent 详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=agent-nesting)
 
-> 核对日期：2026-10-23
+> 核对日期：2026-10-26
 
 ## 定义
 
@@ -93,7 +93,7 @@
 | 字段 | 记录 |
 | --- | --- |
 | 矩阵结论 | 内置 `coder` 默认不可嵌套（0.35.0 起移除 `Agent`/`AgentSwarm`）；自定义 Agent 用 `subagents`，显式列 `Agent` 工具可恢复 |
-| 入口与配置 | 主 Agent 依据描述自动派发，也可在提示词中点名；`--agent-file` 可在启动时显式加载定义。 |
+| 入口与配置 | 主 Agent 需先获得授权才派发（2.3.2 起：用户显式请求、`AGENTS.md` 或 Skill 指令、已开启的多代理模式），也可在提示词中点名；`--agent-file` 可在启动时显式加载定义。 |
 | 定义格式 | Markdown 正文 + YAML frontmatter；正文作为 Agent 系统提示词模板。 |
 | 具体行为 | 0.35.0 起内置 coder profile（v1 与 v2 引擎）移除 `Agent` 与 `AgentSwarm` 工具，coder 子 Agent 默认不能再派生；主 Agent 保留这两个工具，默认会话仍可委派。自定义 Agent 用 `subagents` 指定允许委派的类型，派发前仍会强制校验；自定义 profile 在 `tools` 显式列出 `Agent`/`AgentSwarm` 可恢复嵌套。 |
 | 作用域 | 显式文件、项目、额外目录、用户、Plugin、内置六级来源；更具体的作用域优先。 |
