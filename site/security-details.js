@@ -84,7 +84,7 @@
       noninteractive:
         '`kimi -p` 固定使用 Auto 权限策略，不弹人工审批；静态 deny 规则仍生效，且 `--prompt` 不能与 `--yolo`、`--auto`、`--plan` 同用。',
       conditions:
-        'YOLO 跳过普通工具审批，但敏感文件与退出 Plan 仍可询问；Auto 会自动处理全部审批并禁止 Agent 向用户提问。',
+        'YOLO 跳过普通工具审批，但敏感文件与退出 Plan 仍可询问；Auto 会自动处理全部审批并禁止 Agent 向用户提问，2.4.0 起唯一例外是 Plan 模式的计划审阅仍等用户确认。',
       status: '官方确认',
       sources: ['kimi-interaction', 'kimi-config', 'kimi-cli'],
     },
@@ -198,7 +198,7 @@
           entry:
             '`/permission` 选择权限模式；`/yolo`（别名 `/yes`）与 `/auto` 分别打开权限模式列表并预选 "Ask When Needed" 与 "Never Ask"，都要按 `Enter` 确认开启；`/plan [on|off]` 切换 Plan。启动参数提供 `--plan`、`--yolo`/`-y`（隐藏别名 `--yes`、`--auto-approve`）、`--auto`，`--yolo` 与 `--auto` 互斥；恢复会话时可用这三个参数覆盖原会话保存的模式。审批面板用方向键加 `Enter` 或 `1`/`2`/`3` 数字键确认，`Esc`/`Ctrl-C`/`Ctrl-D` 拒绝。',
           defaults:
-            '`default_permission_mode` 默认 `manual`（展示名 "Always Ask"，原 Manual），可选 `yolo`（"Ask When Needed"，原 YOLO）与 `auto`（"Never Ask"，原 Auto）——配置值没有改名，改的只是展示名；`default_plan_mode` 默认 `false`。`[permission] dangerous_command_guard` 默认 `true`，即三条内置 guard 询问策略默认全部启用；"Always Ask" 下另有 `default-tool-approve` 自动放行 24 个只读或无副作用工具（Read、Grep、Glob、ReadMediaFile、SetTodoList、TodoList、TaskList、TaskOutput、WaitFor、CronList、WebSearch、FetchURL、Agent、AgentSwarm、AskUserQuestion、NotifyUser、Skill、EnterPlanMode、ExitPlanMode、CreateGoal、GetGoal、SetGoalBudget、UpdateGoal、select_tools），其余落到链末 `fallback-ask` 逐个询问。',
+            '`default_permission_mode` 默认 `manual`（展示名 "Always Ask"，原 Manual），可选 `yolo`（"Ask When Needed"，原 YOLO）与 `auto`（"Never Ask"，原 Auto）——配置值没有改名，改的只是展示名；`default_plan_mode` 默认 `false`。`[permission] dangerous_command_guard` 默认 `true`，即三条内置 guard 询问策略默认全部启用；"Always Ask" 下另有 `default-tool-approve` 自动放行 23 个只读或无副作用工具（Read、Grep、Glob、ReadMediaFile、SetTodoList、TodoList、TaskList、TaskOutput、WaitFor、CronList、WebSearch、FetchURL、Agent、AgentSwarm、AskUserQuestion、NotifyUser、Skill、ExitPlanMode、CreateGoal、GetGoal、SetGoalBudget、UpdateGoal、select_tools；2.4.0 起 `EnterPlanMode` 随工具一起删除，该清单由 24 项减为 23 项），其余落到链末 `fallback-ask` 逐个询问。',
           rules:
             '`[[permission.rules]]` 按顺序匹配第一条命中即生效，字段为 `decision`（`allow`/`deny`/`ask`）、`scope`（`turn-override`/`session-runtime`/`project`/`user`，默认 `user`）、`pattern`（`工具名` 或 `工具名(参数模式)`，如 `Bash(rm -rf*)`）与可选 `reason`；`AgentSwarm`、MCP 工具和自定义工具只能按工具名匹配。13 条策略顺序为 `auto-mode-ask-user-question-deny`、`user-configured-deny`、`dangerous-command-ask`、`auto-mode-approve`、`session-approval-history`、`user-configured-ask`、`user-configured-allow`、`sensitive-file-access-ask`、`git-control-path-access-ask`、`yolo-mode-approve`、`default-tool-approve`、`git-cwd-write-approve`、`fallback-ask`。`[permission] dangerous_command_guard = false` 或环境变量 `KIMI_CODE_DANGEROUS_COMMAND_GUARD=false` 一次关掉三条 guard；`parseDangerousCommandGuardEnv` 只把字面 `true`/`false` 解析成布尔，其他取值返回 `undefined` 因而回落到文件设置与默认值。三条 guard 都在每次 `evaluate` 时现读 `IConfigService`（`isDangerousCommandGuardEnabled` 逐字为 `config.get(PERMISSION_SECTION)?.dangerousCommandGuard ?? true`），不在会话启动时固化。`[tools].enabled` 与 `disabled` 另行限制模型能看到和调用的工具。',
           boundary:
@@ -224,6 +224,7 @@
             'kimi-guard-git-control-path',
             'kimi-guard-path-access',
             'kimi-guard-default-tool-approve',
+            'kimi-plan-default-approve-240',
             'kimi-guard-policy-test',
             'kimi-guard-widen-commit',
             'kimi-guard-introduce-commit',
@@ -239,24 +240,159 @@
     'security-plan': createDetail({
       id: 'security-plan',
       definition:
-        '在执行修改前进入以阅读、分析和方案确认为主的工作状态，并限制或阻断一般写入。',
-      includes: ['Plan 工作状态', '只读沙箱', '计划确认与退出'],
-      excludes: ['普通 Todo 列表', 'Subagent 只读配置', '代码 Review 命令'],
+        '在执行修改前进入以阅读、分析和方案确认为主的工作状态，并限制或阻断一般写入；本页同时比较谁能开启这一状态、Plan 期间放行与阻断什么、计划如何被审阅，以及退出后落到哪个权限模式。',
+      includes: [
+        'Plan 工作状态的入口与可开启者（用户入口与模型工具）',
+        'Plan 期间被放行、被限制与被阻断的工具',
+        '计划的呈现方式、审批选项与退出后的权限模式',
+        '非交互运行与 Subagent 中的 Plan 行为',
+        'Plan 相关配置键、默认值与计划文件保存位置',
+      ],
+      excludes: [
+        '普通 Todo 或清单工具（Codex `update_plan`、Kimi `TodoList`）',
+        'Subagent 的只读配置与内置 `plan`／`explore` 角色本身',
+        '代码 Review 命令',
+        'OS 沙箱强度与网络边界本身',
+      ],
       facts: [
-        'Plan 工作流与技术上的只读沙箱不是同一概念；Codex 明确把两者作为不同控制。',
-        'Qoder CLI 当前把 Plan 定义为独立工作状态，`--permission-mode plan` 仅保留兼容映射。',
+        '五家都有 Plan 工作状态，但“谁能开启”分成两类：Claude Code、Qwen Code 与 Qoder CLI 既给用户入口也给模型工具（Claude `EnterPlanMode`／`ExitPlanMode`、Qwen `enter_plan_mode`／`exit_plan_mode`、Qoder `EnterPlanMode`／`ExitPlanMode`），Codex 只有用户入口（`/plan` 与 TUI 的协作模式预设，`rust-v0.165.0` 的 `codex-rs/core/src/tools/handlers` 57 个条目里名字含 plan 的只有实现 `update_plan` 的两个文件），Kimi Code 自 2.4.0 起删掉 `EnterPlanMode`、只剩用户入口。',
+        'Kimi Code 2.4.0（2026-10-28T11:45:13Z 发布，标签提交 `f26e4d91ef8d5d233f6c20b42a150f96924d4f5e`）是这条轴上最新的一次收紧：`EnterPlanMode` 工具、它在 `default-tool-approve` 里的自动放行条目与它的 telemetry 事件一起删除（`DEFAULT_APPROVE_TOOLS` 由 24 项减到 23 项、仍含 `ExitPlanMode`），`coder` 档与 Tower worker 档删掉两个 Plan 工具，官方交互文档改写为“Plan 模式只能由你打开，Agent 不会自己进入，即使你在对话里要求它进入”，系统提示词按档注入 `PLAN_MODE_GUIDANCE`；改动来自提交 `0325b755db46f865f2dc0bca0d6c3d95ad817fcb`（PR #4247，2026-10-23 合入 main，84 个文件、+979/−790），与 2.3.3 标签提交的 compare 结果是 `diverged`、与 2.4.0 标签提交的 compare 结果是 `behind`，因此不在 2.3.3 及更早版本里。本仓库此前记的“Auto 会自动处理全部审批”“退出 Plan 通常仍需确认”据此作废——旧官方文档里“计划退出会自动批准，并在记录中标记为 "Auto-approved"”一句已在同一提交删掉。',
+        '计划是否总要人工审阅：Kimi 与 Qoder 在任何权限模式下都要（Kimi 官方写“在任何权限模式下，包括 "Never Ask"，退出 Plan 模式都需要你确认”，Qoder 官方写“entering or leaving Plan always request confirmation … None of these are outcomes of a permission verdict”）；Qwen 的 `exit_plan_mode` 在 Plan 模式下 `requiresUserInteraction()` 返回真、确认框 `hideAlwaysAllow: true`；Claude 的 `ExitPlanMode` 在工具参考的 Permission required 列标 Yes，但交互式终端会话里 bypass permissions 可用时 Plan 的阻断整体不强制；Codex 的 Plan 模式“until a developer message explicitly ends it”，TUI 在计划被批准后弹 “Implement this plan?” 让用户选实现方式。',
+        '无人值守模式与 Plan 的关系各不相同：Kimi “Never Ask”（`auto`）的唯一例外是计划审阅，注入提示逐字写 “Plan mode is the exception: ExitPlanMode still waits for the user to review the plan.”；Qoder `auto` 下分类器熔断是唯一由权限裁决产生授权提示的情况，而进出 Plan 的确认不属于权限裁决（1.0.12 与 1.1.11 曾取消该弹窗、1.1.21 恢复）；Qwen YOLO 下模型自行进入 Plan 被拒并回 “Stayed in YOLO mode (plan mode not entered).”，只有 `userRequested: true` 才生效（#5970）；Claude 在 auto 可用且 `useAutoModeDuringPlan`（默认开启）时让 classifier 审查规划期的 shell 命令而不是逐个询问。',
+        'Plan 期间允许什么、阻断什么的口径不同：Kimi 只允许写当前计划文件，拦 `TaskStop`、`CronCreate`、`CronDelete`，`Bash` 按普通权限规则；Qwen 的每轮注入提醒禁止任何编辑与状态修改类工具，安全性无法判定的 shell 命令要用户对那一次调用单独批准一次，并明令不得用包装、引号技巧、别名或混淆手段绕过；Codex 允许非变更动作（含只写缓存或构建产物的测试、构建与检查）但禁止任何改动仓库跟踪状态的动作，判据是“if the action would reasonably be described as "doing the work" rather than "planning the work," do not do it”；Claude 不改源码但会跑 shell 探索，规划期命令的处理按 bypass 可用、auto 加 `useAutoModeDuringPlan`、其余三种情况依次判定；Qoder 的 `plan` 取值被描述为 “Read-only mode”，1.0.33 起支持只读 Shell 命令，官方没有公开被阻断工具的完整清单。',
+        '计划正文的载体五家不同：Kimi 用会话目录里的计划文件（`<sessionDir>/agents/<agentId>/plans/<id>.md`），`ExitPlanMode` 不接受计划正文、只读文件并在审阅前 `recordRevision()` 把该版写进 blob store 的 `plan/<id>/v<n>.md`（带 `sha256` 与 `bytes`），`options` 可给 1–3 个备选方案；Qwen 用 `exit_plan_mode` 的必填 `plan` 参数（空字符串被拒），批准后 `savePlanBestEffort(plan)`；Codex 要求把最终计划包在 `<proposed_plan>` 块里由客户端渲染（每轮至多一个块、修订必须整块替换）；Claude 官方只写 Claude “writes a plan” 并提供 `Ctrl+G` 在默认文本编辑器里打开拟议计划；Qoder 官方没有公开计划正文的载体，只能从 0.2.3 的 “Fixed Plan mode requiring permission to read plan files” 确认存在计划文件。',
+        'Subagent 范围：Kimi 的 Plan 模式只属于 main agent（`enter()` 对其他 agent 抛 `SESSION_PLAN_MODE_INVALID: "Plan mode is only available to the main agent"`，`planKey` 的 `PlanModeEnter` reducer 忽略非 main agent 的事件，`coder` 档与 Tower worker 档已删两个 Plan 工具，官方 Agent 文档同步删掉 `coder` subagent “进入 Plan 模式” 的说法）；Qwen 的两个 Plan 工具在 Subagent 里按 `subagent-plan-tool-policy` 被阻断，团队场景的 plan-required teammate 改由 leader 裁决（成功时 `llmContent` 以 “Leader approved.” 开头）；Qoder 0.2.15 修过 “Fixed auto mode not being respected during plan mode for subagent tool calls”，说明其 Plan 状态下存在 Subagent 工具调用；Claude 与 Codex 的 Subagent 侧 Plan 行为官方未公开，记为未确认。',
+        '非交互运行：Kimi `kimi -p` 新会话跳过 `default_plan_mode`（stderr “default_plan_mode is not applied in print mode, because Plan mode waits for your review.”），恢复已在 Plan 的会话照常运行并提示用 `kimi -r <id>` 审阅，非交互宿主里审批立即判定且从不视为批准（计划审阅返回 deny 加 “Nobody can review this plan in a non-interactive run, so plan mode stays active for the rest of this run and you cannot edit files other than the plan file.”，`resolveNonInteractive` 的类型排除了 `ask`）；Qwen 的 `/plan` 只在交互式可用，headless/ACP 里 `enter_plan_mode` 是唯一入口，非交互且无 ACP 时直接拒绝；Claude 写 “Plan mode keeps its blocks wherever Claude Code runs without an interactive terminal, including non-interactive runs with `-p`, Agent SDK sessions, and conversations in the VS Code extension\'s chat panel.”；Qoder 1.0.35 修过 “Fixed Plan and Ask tools not being correctly disabled in headless mode”；Codex 非交互运行下的 Plan 行为官方未公开，记为未确认。',
+        '配置键五家各自独立：Kimi `default_plan_mode`（默认 `false`，`kimi -p` 下不生效）；Qwen `.qwen/settings.json` 的 `tools.approvalMode: "plan"`；Claude 项目 `.claude/settings.json` 的 `defaultMode: "plan"`、VS Code 用户设置的 `claudeCode.initialPermissionMode: "plan"`，以及 `useAutoModeDuringPlan` 与 `showClearContextOnPlanAccept`；Codex 只有 `plan_mode_reasoning_effort`（Plan 模式专用推理强度覆盖，未设时用内置预设），没有默认进 Plan 或开关 Plan 的键；Qoder `general.plan.enabled: false` 一次性关掉 `/plan`、`--permission-mode plan` 映射与两个 Plan 工具，1.0.44 起 `/settings` 里也有开关。',
+        'Plan 与权限模式的关系不同：Qoder 自 1.0.14 起把 Plan 做成独立工作状态（`/plan` 进出、`Shift+Tab` 只循环权限模式，`--permission-mode plan` 只保留兼容映射 “translates to default + enters Plan work state”）；Claude 与 Qwen 的 Plan 是权限模式之一（Claude `Shift+Tab` 循环 `default` → `acceptEdits` → `plan`，Qwen 循环 plan → default → auto-edit → auto → yolo）；Codex 把 Plan 做成与 `Default` 并列的协作模式（`ModeKind`，TUI 可见的只有这两个，预设来自服务端发现、缺发现就没有预设）；Kimi 的 Plan 是独立于三种权限模式的开关（`/plan [on|off]`、`--plan`、`default_plan_mode`），恢复会话时可用 `--plan`／`--yolo`／`--auto` 覆盖原会话保存的模式。',
+        'Plan 工作流与技术上的只读沙箱不是同一概念：Codex 明确把两者作为不同控制（官方审批页把“想聊天或规划而不做改动”指向 `/permissions` 切 `read-only`），Kimi 的 Plan 门禁挂在工具执行器的 before-execute 钩子上、与权限策略链和沙箱都无关，Qwen 的 Plan 是审批模式而不启用 Sandbox。清单工具也与 Plan 模式无关：Codex 的 `update_plan` 在 Plan 模式下直接返回错误 “update_plan is a TODO/checklist tool and is not allowed in Plan mode”，Kimi 的 before-execute 门禁只拦 `Write`／`Edit` 越界写、`TaskStop`、`CronCreate` 与 `CronDelete`，`TodoList`／`SetTodoList` 不在其中。',
       ],
       behavior: {
         claude:
-          'Plan Mode 允许读取和只读 Shell 探索，不修改源码；方案完成后由用户选择后续权限模式。',
+          'Plan Mode 是权限模式之一：Claude 读文件、跑 shell 命令探索并写出计划，但不改源码；除“交互式终端会话且 bypass permissions 可用”这一种情况外，编辑在用户批准计划前一直被阻断。规划期的 shell 命令按官方三种情况里第一条命中的处理：bypass permissions 可用的交互式终端会话既不经 classifier 也不询问；auto 模式可用且 `useAutoModeDuringPlan` 开启（默认开启）时由 classifier 审查除 critical-path 删除以外的命令，批准的运行、拒绝的阻断；auto 不可用或该设置关闭时，内置只读命令集之外的命令逐个询问（沙箱的 auto-allow 模式开着也一样）。计划就绪后 Claude 呈现计划并询问如何继续，选项为 **Yes, and use auto mode**（auto 对该会话不可用时读作 **Yes, auto-accept edits**；以 bypass permissions 启动会话时读作 **Yes, and switch to BYPASS PERMISSIONS (no further prompts) for this session**）、**Yes, manually approve edits** 与 **No, keep planning**；批准即退出 Plan 模式并把会话切到该选项描述的权限模式，`Ctrl+G` 可在批准前用默认文本编辑器直接改拟议计划。模型侧另有 `EnterPlanMode`（工具参考 Permission required 列为 No，描述 “Switches to plan mode to design an approach before coding”）与 `ExitPlanMode`（列为 Yes，描述 “Presents a plan for approval and exits plan mode”，权限规则只能写裸工具名），因此 Claude 自己也能切入 Plan 模式。',
         codex:
-          '`/plan` 用于计划流程，`sandbox_mode = "read-only"` 提供技术只读边界；两者可以组合但不能互相替代。',
+          'Plan 是与 `Default` 并列的协作模式（`ModeKind`，TUI 可见的只有这两个），既不是沙箱也不是审批策略：官方审批页把“想聊天或规划而不做改动”指向用 `/permissions` 切 `read-only`。模式提示词来自 `collaboration-mode-templates/templates/plan.md`，分三阶段（先在环境里取证、再聊意图、再聊实现），并写 “You are in **Plan Mode** until a developer message explicitly ends it.” 与 “Plan Mode is not changed by user intent, tone, or imperative language. If a user asks for execution while still in Plan Mode, treat it as a request to **plan the execution**, not perform it.”；允许非变更动作（读搜文件与配置、静态分析与仓库探索、不改仓库跟踪文件的 dry-run，以及只写缓存或构建产物的测试、构建与检查），禁止任何改动仓库跟踪状态的动作（编辑或写文件、会重写文件的格式化或 lint、apply patch／迁移／codegen，以及以执行为目的的副作用命令）；提问优先用 `request_user_input`，可发现的仓库事实必须先探索，只有偏好与取舍才提前问并给 2–4 个互斥选项加推荐默认。最终计划必须 decision complete 并包在 `<proposed_plan>` 块里由客户端渲染（开闭标签各占一行、块内用 Markdown、标签不翻译不改名，每轮至多一个块，修订时新块必须整体替换），并明确 “Do not ask "should I proceed?" in the final output.”——由用户自行切出 Plan 模式并要求实现。TUI 在计划被批准后弹 “Implement this plan?”：Yes, implement this plan（以 Default 模式提交 “Implement the plan.”）、Yes, clear context and implement（清空界面并在新上下文提交以 “A previous agent produced the plan below to accomplish the user\'s task. Implement the plan in a fresh context. Treat the plan as the source of user intent, re-read files as needed, and carry the work through implementation and verification.” 开头、后接计划 Markdown 的消息，描述行为 “Fresh thread with this plan” 或带用量标签的 “Start a fresh thread (current context: 89% used)”）、No, stay in Plan mode；Default 预设缺失时前两项禁用并显示 “Default mode unavailable”，有预设但没有已批准计划时第二项禁用并显示 “No approved plan available”。`update_plan` 是清单工具、不进入也不退出 Plan 模式，在 Plan 模式下调用直接返回错误 “update_plan is a TODO/checklist tool and is not allowed in Plan mode”。',
         qwen:
-          '`plan` 模式阻止文件修改和命令执行；`/plan exit` 恢复进入前的审批模式。',
+          '`plan` 是五个审批模式之一（官方对照表把 Plan 记为文件编辑 “❌ Read-only analysis only”、Shell 命令 “❌ Not executed”、风险 Lowest，循环顺序 plan → default → auto-edit → auto → yolo）。进入后每轮注入 `getPlanModeSystemReminder()`：不得做任何编辑、不得运行被归类为状态修改的工具（包括改配置或提交）、不得以其他方式改动系统；安全性无法判定的 shell 命令只有在用户对那一次调用明确批准一次、且调查确有必要时才能运行，而这种一次性批准 “does not approve the plan, authorize related commands, or exit Plan mode”；被阻断时不得重试或反复尝试类似的非只读工具，不得用包装、引号技巧、别名或混淆手段让被阻断的写操作看起来未知，也不得为了解封立刻调用 `exit_plan_mode`。系统提示词另写 “Do not enter plan mode or call enter_plan_mode on your own just because the task involves planning or complexity.”，官方文档也写 “Regular planning requests do not switch modes by themselves.”。模型侧的 `enter_plan_mode` 是降权动作，`getDefaultPermission()` 返回 `allow`、不弹确认，但描述要求只在用户本轮明确要求或确认想要时使用；YOLO 下若未传 `userRequested: true` 则不进入并回 “Stayed in YOLO mode (plan mode not entered).”；进入是幂等的（已在 Plan 时不再覆盖保存的 `prePlanMode`），并会 reveal 延迟声明的 `exit_plan_mode`。`exit_plan_mode` 必填 `plan` 参数（空字符串被拒），在 Plan 模式下 `requiresUserInteraction()` 返回真（源码注释写它 “forces \'ask\' via permissionFlow”），确认框标题 “Would you like to proceed?” 且 `hideAlwaysAllow: true`；四个结果分别落到 `getPlanExecutionMode()` 或进入前的模式（RestorePrevious）、`auto-edit`（ProceedAlways）、`default`（ProceedOnce）与不批准（Cancel）；未批准、被取消与审批模式已变分别回 “Plan execution was not approved. Remaining in plan mode.”、“Plan exit was cancelled. Remaining in plan mode.” 与 “Plan approval is stale because the approval mode changed. No action was taken.”；批准后 `savePlanBestEffort(plan)` 并以 `fromApprovedPlanExit: true` 切换审批模式、回 “User approved. You can now start coding.”。不在 Plan 模式时调用 `exit_plan_mode` 返回指引错误而不是权限拒绝（#7671），在批准流程之外切换模式则注入一次性提醒 `getManualPlanExitSystemReminder()`。',
         kimi:
-          'Agent 先产出计划并等待确认；Plan 文件写入可直接执行，退出 Plan 通常仍需确认。',
+          '2.4.0 起 Plan 模式只能由用户打开：`EnterPlanMode` 工具、它在 `default-tool-approve` 里的自动放行条目与它的 telemetry 事件一起删除，官方工具文档写“Plan 模式是一种受约束的工作状态，只能由用户打开（`Shift-Tab` 或 `/plan`），Agent 没有进入它的工具”，交互文档写“Plan 模式只能由你打开，Agent 不会自己进入，即使你在对话里要求它进入”，系统提示词按档注入 `PLAN_MODE_GUIDANCE`（“only the user can turn on … you cannot enter it yourself. If the user asks for plan mode, tell them how to turn it on. When they ask you to plan first, wait for their go-ahead before changing code.”），且只在该档仍启用 `ExitPlanMode` 时注入。开启后 `Write` 与 `Edit` 只允许写当前计划文件（判定为本次调用的写访问非空且每一项路径都等于计划文件路径），越界写回 “Plan mode is active. You may only write to the current plan file: <path>. Call ExitPlanMode to exit plan mode before editing other files.”，`TaskStop` 与 `CronCreate`／`CronDelete` 被拦并各自回固定文案，其余工具（含 `Bash`）按当前权限模式与规则处理。`ExitPlanMode` 不接受计划正文：它读当前计划文件、先 `recordRevision()` 存一版，再以 `plan_review` 展示交给用户审阅；工具自身的 `execution()` 恒返回 `isError`（未处于 Plan 时回 “ExitPlanMode can only be called while plan mode is active. Only the user can turn plan mode on.”，计划没能展示时回 “The plan could not be shown to the user for review, so plan mode is still active. Call ExitPlanMode again.”，计划文件缺失或为空时回 “No plan file found. Write your plan to <path> first, then call ExitPlanMode.”），真正的退出只发生在审阅结果里：批准则 `plan.exit()` 并回 “Exited plan mode.” 加 “Plan mode deactivated. All tools are now available.”、可选的 “Plan saved to: <path>” 与 “## Approved Plan:” 加计划正文（选了备选方案时前缀 “Selected approach: <label>” 与 “Execute ONLY the selected approach. Do not execute any unselected alternatives.”）；取消回 “Plan approval dismissed. Plan mode remains active.”（不算错误）；Reject and Exit 先退出 Plan 再回 “Plan rejected by user. Plan mode deactivated.”（`isError` 且 `stopTurn`）；Revise 或带反馈不算错误，回 “User rejected the plan. Feedback:” 加反馈或 “User requested revisions. Plan mode remains active.”；单纯拒绝回 “Plan rejected by user. Plan mode remains active.”（`isError` 且 `stopTurn`）。遥测为 `plan_submitted`（带 `has_options`）与 `plan_resolved`（outcome 取 approved、dismissed、rejected_and_exited、revise 或 rejected）。这道审阅门禁挂在工具执行器的 before-execute 钩子上（`event.waitUntil(() => this.review.requestApproval(event))`），因此与当前权限模式无关；`options` 可给 1–3 个备选方案（`label` 最长 80 字符、不得重复、不得用 `Approve`／`Reject`／`Reject and Exit`／`Revise` 保留词），源码只在 `options.length >= 2` 时把它放进审阅展示。',
         qoder:
-          '`/plan` 开启独立 Plan 状态，只允许读取和计划文件写入；退出时可选择后续权限模式或 Goal。',
+          'Plan 是独立于权限循环的工作状态（1.0.14 起 `/plan` 进出、`Shift+Tab` 只循环权限模式），官方取值表把它描述为 “Read-only mode (legacy compat: maps to default + Plan work state)”，启动参数 `--permission-mode plan` 只做兼容映射（“translates to default + enters Plan work state”）；1.0.33 起支持只读 Shell 命令，0.2.3 修过读取计划文件还要权限的问题。模型侧有 `EnterPlanMode` 与 `ExitPlanMode` 两个工具（官方工具页把 “Plan work” 归在 Manage Context：“Enter or exit Plan mode when the task should be analyzed before execution.”），`general.plan.enabled: false` 时 “the `/plan` command is unavailable, `--permission-mode plan` falls back to default, and EnterPlanMode/ExitPlanMode tools are not registered.”。`auto` 模式下分类器熔断是唯一由权限裁决产生授权提示的情况，而“需要用户输入的工具（如 AskUserQuestion）与进入或离开 Plan 始终请求确认”，官方明确这几类 “are not outcomes of a permission verdict”，因此 Plan 的确认走的是另一条路径；这条口径经过反复：1.0.12 让 YOLO 下 EnterPlanMode/ExitPlanMode 不弹窗、1.1.11 让 auto/yolo 下进出 Plan 不再弹权限窗、1.1.21 又 “Restored the confirmation dialog when entering and exiting Plan mode under auto and yolo modes”。退出选项也在演进：0.2.15 起批准计划时可直接选 auto 模式，1.0.14 起 ExitPlanMode 提供 “start goal execution” 选项以便转入 Goal，1.0.39 优化过退出选项，1.1.13 修过会话级 Plan 批准不持久的问题。',
+      },
+      overrides: {
+        claude: {
+          entry:
+            '用户入口有三个：`Shift+Tab` 循环（从 auto 起第一次切到 `default`，随后 `default` → `acceptEdits` → `plan`，可选模式排在 `plan` 之后，状态栏显示 `⏸ plan mode on`）、把单条提示词前缀成 `/plan`（官方写 “prefixing a single prompt with `/plan`”，要再规划需再次前缀或循环回 Plan）、以及 `claude --permission-mode plan`；再按一次 `Shift+Tab` 可以在不批准计划的情况下离开 Plan 模式。模型入口是 `EnterPlanMode` 工具，工具参考的 Permission required 列为 No。',
+          defaults:
+            '默认权限模式为 `default`；v2.1.283 起交互式终端与 VS Code 会话的内置起始模式是 auto。把项目 `.claude/settings.json` 的 `defaultMode` 设为 `plan` 可让该项目的终端会话默认进 Plan；VS Code 扩展发起的对话不读项目设置的起始权限模式，改在 VS Code 用户设置里把 `claudeCode.initialPermissionMode` 设为 `plan`。与 Plan 相关的另外两个设置是 `useAutoModeDuringPlan`（默认开启，决定规划期 shell 命令是否交给 classifier 审查）与 `showClearContextOnPlanAccept`（开启时审批列表首项变为批准计划并清理规划上下文）。',
+          persistence:
+            'Plan 是会话内的权限模式，批准或离开后就切到别的模式；接受计划还会按计划给会话生成标题（除非已命名）。官方没有公开计划或拟议计划的保存路径，只给出 `Ctrl+G` 在默认文本编辑器里打开拟议计划直接编辑，计划文件位置记为未确认。',
+          noninteractive:
+            '官方逐字写 “Plan mode keeps its blocks wherever Claude Code runs without an interactive terminal, including non-interactive runs with `-p`, Agent SDK sessions, and conversations in the VS Code extension\'s chat panel.”，即在 `claude -p`、Agent SDK 与 VS Code 聊天面板里 Plan 的阻断仍然生效；反过来，交互式终端会话里 bypass permissions 可用时 “Claude Code also doesn\'t enforce plan mode\'s blocks”，Claude 仍被要求只规划不编辑，但规划期尝试的文件编辑或 shell 命令会不询问直接运行，只有显式 ask 规则与被识别的 `rm`／`rmdir` critical-path 删除仍会询问。这些没有交互界面的场景里计划审批如何落定，官方没有逐项写明，记为未确认。',
+          conditions:
+            '规划期 shell 命令的三种情况按“第一条命中”判定，因此 bypass 可用的交互式终端会话里既没有 classifier 也没有提示；写受保护路径从不自动批准，例外只有 `bypassPermissions` 模式与“交互式终端会话 + Plan 模式 + bypass permissions 可用”；critical-path 删除只在 `bypassPermissions` 本身免询问，官方写 “Removals run with no prompt only in `bypassPermissions` mode itself, not in plan mode”；auto 模式下 classifier 还会审查 Claude 用 `SendMessage` 发给其他 agent 的消息，“both in auto mode and in plan mode while the classifier reviews commands”，该审查需要 v2.1.222 及以上；核对日期最新 Release 是 v2.1.312（2026-10-27T20:24:20Z），main 的 `CHANGELOG.md` 为 1,104,632 字节、最新段落仍是 `## 2.1.312`，其更新日志没有 Plan 模式条目；Subagent 侧的 Plan 行为官方未公开，记为未确认。',
+          sources: [
+            'claude-permission-modes-plan',
+            'claude-tools-reference-plan',
+            'claude-permission-modes',
+            'claude-permissions',
+            'claude-headless',
+          ],
+        },
+        codex: {
+          entry:
+            '用户入口是 `/plan`（官方命令表 “Switch to plan mode and optionally send a prompt.”），可带内联提示词（“Expected: Codex enters plan mode and uses your optional inline prompt as the first planning request.”），带内联参数时还能粘贴内容或附图；Codex 正在工作时 `/plan` 临时不可用。TUI 侧的协作模式预设来自服务端 `CollaborationModeList` 发现，`collaboration_modes.rs` 过滤出 TUI 可见的 `Default` 与 `Plan`，`next_mask()` 按列表顺序循环、`mask_for_kind()` 按 kind 取预设、`default_mask()` 优先取 `Default`，缺发现就没有预设。模型侧没有进入或退出 Plan 的工具：`rust-v0.165.0` 的 `codex-rs/core/src/tools/handlers` 共 57 个条目，名字含 plan 的只有实现 `update_plan` 的 `plan.rs` 与 `plan_spec.rs`。',
+          defaults:
+            'Plan 不是默认模式：`ModeKind` 的 `#[default]` 是 `Default`（并接受 `code`、`pair_programming`、`execute`、`custom` 四个 serde 别名）。配置参考里与 Plan 相关的键只有 `plan_mode_reasoning_effort`（`string`，“Plan-mode-specific reasoning override using a level supported by the selected model. When unset, Plan mode uses its built-in preset default.”），没有默认进 Plan、开关 Plan 或调整 Plan 权限边界的键；该内置预设具体用哪一档推理强度官方没有公布，记为未确认。',
+          boundary:
+            'Plan 协作模式是提示词与模式层的约束（模板逐条列出允许的非变更动作与禁止的变更动作，并给出“doing the work 还是 planning the work”的判据），技术只读边界仍由 `sandbox_mode = "read-only"` 提供；官方审批页写 “Codex asks for approval to edit files outside the workspace or to run commands that require network access. If you want to chat or plan without making changes, switch to `read-only` mode with the `/permissions` command.”，两者可以组合但不能互相替代。',
+          persistence:
+            'Plan 是当前 chat/thread 的协作模式状态，按模板说法一直有效 “until a developer message explicitly ends it”，由用户切出；`<proposed_plan>` 块由客户端渲染，TUI 的 “Implement this plan?” 第二项会把计划正文塞进一条新消息并在清空后的上下文里执行（“Treat the plan as the source of user intent, re-read files as needed, and carry the work through implementation and verification.”）。官方没有公开计划的本地保存路径，记为未确认。',
+          noninteractive:
+            '`codex exec` 一类非交互运行下 Plan 协作模式是否可用、计划如何被批准，官方 Slash 命令页与配置参考都没有描述，记为未确认；已确认的相邻事实是 rust-v0.165.0 修过 “Prevented queued agent messages from restarting work after an interrupt or a switch to Plan mode. (#56330)”，即排队的 agent 消息在中断或切到 Plan 模式之后不再重启工作。',
+          conditions:
+            'Plan 与沙箱、审批策略是三个独立控制；`update_plan` 在 Plan 模式下报错，模板也专门写不要把清单工具与 Plan 模式混为一谈；协作模式预设依赖服务端发现，缺发现时 TUI 就没有 Plan 预设可选；`plan_mode_reasoning_effort` 的取值必须是所选模型支持的级别（`model_reasoning_effort` 的公开取值为 `low`、`medium`、`high`、`xhigh`、`max`、`ultra`，并写 “Available levels depend on the model and client.”）；核对日期最新稳定 Release 是 rust-v0.165.0（2026-10-27T20:09:38Z），其发布说明没有 Plan 模式条目，另有 rust-v0.166.0-alpha.1 至 alpha.5（最新 alpha.5，2026-10-28T04:43:10Z）。',
+          sources: [
+            'codex-plan-mode-template',
+            'codex-plan-mode-kind',
+            'codex-plan-handler',
+            'codex-plan-implementation-tui',
+            'codex-plan-slash-command',
+            'codex-plan-reasoning-key',
+            'codex-approvals',
+            'codex-v0165-release',
+          ],
+        },
+        qwen: {
+          entry:
+            '用户入口有四个：`Shift+Tab`（Windows 上 `Tab`）循环审批模式（顺序 plan → default → auto-edit → auto → yolo，状态栏显示 `⏸ plan mode`；官方写从 Normal 出发第一次会切到 `auto-edits`、再按一次才进 Plan）、`/plan`（进入，可带提示词如 `/plan refactor the auth module`）、`/plan exit`（退出并恢复进入前的审批模式）与 `/approval-mode` 后选 `plan`（用于新会话）。模型入口是 `enter_plan_mode` 工具，源码注释写它是 headless/ACP 会话进入 Plan 的唯一入口（“`/plan` is `interactive`-only and there is no Shift+Tab there”）；文档同时强调 “Regular planning requests do not switch modes by themselves. If you want the read-only Plan Mode workflow, use `/plan`, the keyboard shortcut, or set the approval mode to `plan` explicitly.”，系统提示词写 “Do not enter plan mode or call enter_plan_mode on your own just because the task involves planning or complexity.”。',
+          defaults:
+            '`tools.approvalMode` 当前默认为 `auto`（官方把 Auto 称为开箱默认体验），Plan 不是默认模式；把 `.qwen/settings.json` 的 `tools.approvalMode` 设为 `"plan"` 可让新会话默认进 Plan。`enter_plan_mode` 的默认权限是 `allow`（“Entering plan mode lowers privileges, so it is always allowed without a confirmation prompt.”），`exit_plan_mode` 的默认权限同样是 `allow`，但 Plan 模式下 `requiresUserInteraction()` 为真、经权限流程强制询问；`resolutionSummary` 参数已标注废弃，官方注明计划批准不再经过 LLM review gate。',
+          persistence:
+            'Plan 是会话内的审批模式；进入前保存 `prePlanMode`，`/plan exit` 或批准计划后恢复到它（批准时若 `getPlanExecutionMode()` 有值则优先用它，ProceedAlways 落 `auto-edit`、ProceedOnce 落 `default`），`enter_plan_mode` 幂等以免覆盖已保存的 `prePlanMode`。计划正文由 `exit_plan_mode` 的 `plan` 参数携带，批准后 `savePlanBestEffort(plan)` 尽力保存，官方文档没有公开保存路径与保留期限，记为未确认；模式在批准流程之外被切换时注入一次性提醒 “The approval mode changed outside the approved exit_plan_mode flow.”。',
+          noninteractive:
+            'Headless 与 ACP 里 `/plan` 与 `Shift+Tab` 都不可用，只有 `enter_plan_mode` 能进 Plan；非交互且不是 ACP（判据为 `getExperimentalZedIntegration?.()` 或 `getInputFormat?.() === InputFormat.STREAM_JSON`）时该工具直接拒绝并回 “Cannot enter plan mode in non-interactive mode without ACP support. The gate exit paths require user interaction.”、显示 “Plan mode unavailable in non-interactive mode.”。官方文档的 “Run "headless" queries in Plan Mode” 一节写 “You can also run a query in Plan Mode directly with `-p` or `prompt`:”，但示例只给 `qwen --prompt "What is machine learning?"`，没有写出同时指定 plan 模式的参数组合，该组合记为未确认。',
+          conditions:
+            'Subagent 中两个 Plan 工具按 `subagent-plan-tool-policy` 被阻断（`isPlanLifecycleToolUnavailableInSubagent` 为真时返回 `buildSubagentPlanToolBlockedResult`）；团队场景里 plan-required teammate 的 `exit_plan_mode` 不弹用户确认而交给 leader 裁决（`executePlanRequiredTeammate`，成功时 `llmContent` 以 “Leader approved.” 开头、可附 “ Leader note: <message>”），`PLAN_EXIT_APPROVED_LLM_CONTENT_PREFIXES = [\'User approved.\', \'Leader approved.\']` 被工具调度器用于执行后的历史清理（#6237）；YOLO 下模型自行进入 Plan 被拒（#5970），只有 `userRequested: true` 才生效；`enter_plan_mode` 进入时会 reveal 延迟声明的 `exit_plan_mode` 并调用 `setTools()` 同步声明，`setTools` 失败时回滚 reveal，reveal 整体失败只记警告仍算进入成功（`exit_plan_mode` 是 `alwaysLoad=true`）；核对日期最新稳定版是 v0.26.3（2026-10-28T14:36:14Z，标签提交 `eeee1443a7e36ab22b2f1dcded8dec64b621a7ee`），其发布说明没有 Plan 模式或审批模式条目。',
+          sources: [
+            'qwen-plan-approval-doc-0263',
+            'qwen-enter-plan-mode-0263',
+            'qwen-exit-plan-mode-0263',
+            'qwen-plan-reminder-0263',
+            'qwen-release-0263',
+          ],
+        },
+        kimi: {
+          entry:
+            'Plan 只能由用户打开：`Shift-Tab` 或 `/plan [on|off]`（不带参数翻转、显式传 `on`/`off` 强制设置，单纯切换不会创建空计划文件）、`/plan clear` 清除当前计划（仅空闲时可用）、启动参数 `--plan` 以 Plan 模式启动新会话；恢复会话时 `--plan`、`--yolo`、`--auto` 可覆盖原会话保存的权限或计划模式。2.4.0 起模型没有进入 Plan 的工具（`EnterPlanMode` 及其默认放行条目与 telemetry 事件一起删除），官方交互文档写“Plan 模式只能由你打开，Agent 不会自己进入，即使你在对话里要求它进入”，工具文档写“只能由用户打开（`Shift-Tab` 或 `/plan`），Agent 没有进入它的工具”；系统提示词按档注入 `PLAN_MODE_GUIDANCE`（“Plan mode is a read-only planning state that only the user can turn on … you cannot enter it yourself. If the user asks for plan mode, tell them how to turn it on.”），且只在该档仍启用 `ExitPlanMode`（`planModeAvailable`）时注入。',
+          defaults:
+            '`default_plan_mode` 默认 `false`，官方释义为“新会话是否默认以 Plan 模式启动。非交互模式（`kimi -p`）下不生效”；`default_permission_mode` 默认 `manual`（展示名 “Always Ask”）。Plan 与三种权限模式是两套开关、可以叠加。`ExitPlanMode` 在 “Always Ask” 下仍列在 `default-tool-approve` 的 23 项自动放行清单里（`EnterPlanMode` 已从该清单删除），因此人工审阅不是由权限策略施加，而是由工具执行器上的 Plan 门禁与 `ExitPlanModeReview` 施加。',
+          persistence:
+            'Plan 是会话状态：`planKey` 声明为 `.replayable(...)` 且 `.undoable()`，撤销上下文后重算并广播 `AgentStatusUpdated({ agentId, planMode })`，遥测 mode 在 `plan` 与 `agent` 之间切换，状态行可显示 plan 模式。计划文件在 `<sessionDir>/agents/<agentId>/plans/<id>.md`（`id` 由 `generateHeroSlug(randomUUID())` 生成），`/plan clear` 把它写成空串；每次提交审阅前 `recordRevision()` 读该文件并以 `plan/<id>/v<n>.md` 为键写进 blob store、派发带 `sha256` 与 `bytes` 的 `PlanRevision`，因此计划的每一版都可追溯；`default_plan_mode` 写在 `~/.kimi-code/config.toml`。',
+          noninteractive:
+            '`--prompt`/`-p` 不能与 `--yolo`、`--auto`、`--plan` 同用，固定按 `auto` 权限处理。新建会话时若 `default_plan_mode` 已把会话带进 Plan，print 模式直接 `plan.cancel()` 并在 stderr 写 “default_plan_mode is not applied in print mode, because Plan mode waits for your review.”；`--session` 与 `--continue` 恢复已处于 Plan 的会话则照常运行、会话仍在 Plan，stderr 写 “Session "<id>" is in Plan mode, and its plan cannot be approved in print mode; review it with `kimi -r <id>`.”。非交互宿主里审批立即判定且从不视为批准：普通审批 deny 该次调用并回 “Tool "<name>" needs approval, but nobody can approve it in a non-interactive run.”，计划审阅走 `resolveNonInteractive()` 返回 deny 并附 “Nobody can review this plan in a non-interactive run, so plan mode stays active for the rest of this run and you cannot edit files other than the plan file.”，`AskUserQuestion` 回“没人能回答”；`resolveNonInteractive` 的类型是 `Exclude<PermissionPolicyResolution, { kind: \'ask\' }>`，即不能再要求人工确认。官方 CLI 文档同一段写“非交互模式下没人能审阅计划，所以新会话不应用 `default_plan_mode`。恢复已经处于 Plan 模式的会话时照常运行，会话仍在 Plan 模式中，但计划无法在非交互模式下批准，会等你下次用 `kimi -r` 打开会话时审阅。”',
+          conditions:
+            '本轮结论对应 Release 2.4.0（2026-10-28T11:45:13Z 发布，标签提交 `f26e4d91ef8d5d233f6c20b42a150f96924d4f5e`），改动来自提交 `0325b755db46f865f2dc0bca0d6c3d95ad817fcb`（PR #4247，2026-10-23T05:18:59Z 合入 main，84 个文件、+979/−790）：该提交与 2.3.3 标签提交 `ec495f0cb00f6db9a9118bf979112886f4264a41` 的 compare 结果是 `diverged`（ahead_by 16、behind_by 22），与 2.4.0 标签提交的 compare 结果是 `behind`（ahead_by 0、behind_by 33），所以 2.3.3 及更早版本仍是旧行为——当时官方交互文档写 “Never Ask” 下“所有工具审批自动处理，包括敏感文件和计划退出”，并写“"Never Ask" 模式例外：计划退出会自动批准，并在记录中标记为 "Auto-approved"”，本仓库此前记的“Auto 会自动处理全部审批”“退出 Plan 通常仍需确认”据此作废。Plan 只属于 main agent：`enter()` 对其他 agent 抛 `SESSION_PLAN_MODE_INVALID: \'Plan mode is only available to the main agent\'`，`planKey` 的 `PlanModeEnter` reducer 忽略 `agentId !== MAIN_AGENT_ID` 的事件，`coder` 档与 Tower worker 档已删掉两个 Plan 工具、main `agent` 档只保留 `ExitPlanMode`，官方 Agent 文档同步删掉 `coder` subagent “进入 Plan 模式” 的说法。“Ask When Needed”（`yolo`）跳过普通工具审批但不影响 Plan 退出审批，`--yolo` 也不跳过它；“Never Ask”（`auto`）的唯一例外就是计划审阅，注入提示逐字写 “Plan mode is the exception: ExitPlanMode still waits for the user to review the plan.”。审阅只在计划文件非空时出现（`display.plan.trim().length === 0` 时不接管），此时 `ExitPlanMode` 落回工具自身的错误分支；`options` 按文档可给 1–3 个备选方案（`label` 最长 80 字符、不得重复、不得用 `Approve`／`Reject`／`Reject and Exit`／`Revise` 保留词），源码只在 `options.length >= 2` 时把它放进审阅展示。`[tools] disabled` 的官方示例已从 `["EnterPlanMode", "ExitPlanMode", "mcp__github__*"]` 改为 `["WebSearch", "FetchURL", "mcp__github__*"]`；提交说明第一段写的 “refuse to resume a session that is still in plan mode” 与最终代码不一致（最终是照常运行并在 stderr 提示改用 `kimi -r`），发布说明与 changeset 的措辞 “cannot approve the plan of a session that is already in Plan mode” 与代码一致。官方没有公开 Plan 模式下 `Bash` 之外还有哪些工具被额外限制，除已确认的 `Write`／`Edit` 越界写、`TaskStop`、`CronCreate` 与 `CronDelete` 四类以外记为未确认。',
+          sources: [
+            'kimi-release-240',
+            'kimi-4247-commit',
+            'kimi-4247-changeset',
+            'kimi-plan-interaction-doc-240',
+            'kimi-plan-tools-doc-240',
+            'kimi-plan-config-doc-240',
+            'kimi-plan-cli-doc-240',
+            'kimi-plan-slash-doc-240',
+            'kimi-plan-agents-doc-240',
+            'kimi-plan-service-240',
+            'kimi-plan-exit-review-240',
+            'kimi-plan-exit-tool-240',
+            'kimi-plan-tool-approval-240',
+            'kimi-plan-default-approve-240',
+            'kimi-plan-print-mode-240',
+            'kimi-plan-profile-shared-240',
+            'kimi-plan-profiles-240',
+            'kimi-plan-reminders-240',
+          ],
+        },
+        qoder: {
+          entry:
+            '`/plan` 进入 Plan 工作状态（官方 Slash 命令参考 “Enter Plan mode.”），1.0.14 起 Plan 独立于权限循环——`/plan` 进出、`Shift+Tab` 只循环权限模式；启动参数 `--permission-mode plan` 只是兼容映射（官方注释 “Legacy compat: translates to default + enters Plan work state”）。`/plan` 只在对应功能开关启用时可用（官方写 “`/agents`, `/plan`, `/workflows`, `/marketplace`: Available only when the corresponding feature flags are enabled.”），1.0.44 起 `/settings` 对话框里也有管理 plan mode 的开关。模型侧有 `EnterPlanMode` 与 `ExitPlanMode` 两个工具（官方工具页把 “Plan work” 归在 Manage Context：“Enter or exit Plan mode when the task should be analyzed before execution.”）。',
+          defaults:
+            '默认权限模式是 `default`，Plan 不是权限模式之一而是独立工作状态；取值表把 `plan` 描述为 “Read-only mode (legacy compat: maps to default + Plan work state)”、别名列写 “—”，并说明取值不区分大小写、所有别名都接受。`general.plan.enabled` 设为 `false` 时 “the `/plan` command is unavailable, `--permission-mode plan` falls back to default, and EnterPlanMode/ExitPlanMode tools are not registered.”；官方只写“设为 false 时”的后果、没有逐字给出该键的默认值，按文档语气（“if the Plan workflow is not needed”）默认可用。',
+          persistence:
+            'Plan 工作状态与 Goal 状态一起随会话保存并在进程重启后恢复（1.0.14 修过 “Fixed goal and plan state not restoring correctly after process restart”，`/goal status` 的字段里也有 `planWasActive`）；会话内对 Plan 的批准可记为会话级放行（1.1.13 修过 “Fixed session-level approval of plan mode not persisting”）。官方没有公开计划文件路径，只能从 0.2.3 的 “Fixed Plan mode requiring permission to read plan files” 确认存在计划文件，路径与保留期限记为未确认。',
+          noninteractive:
+            'Headless 中 `ask` 自动转为 `deny`；1.0.35 修过 “Fixed Plan and Ask tools not being correctly disabled in headless mode”，即 headless 下 Plan 工具应被禁用；SDK 可把审批请求交给 `canUseTool`，ACP 通过 `requestPermission` 交给 IDE。Plan 计划在 headless 或 SDK 宿主下的具体批准路径官方没有逐项公开，记为未确认。',
+          conditions:
+            '`auto` 模式下分类器熔断是唯一由权限裁决产生授权提示的情况，而“需要用户输入的工具（如 AskUserQuestion）与进入或离开 Plan”始终请求确认，官方明确 “None of these are outcomes of a permission verdict”，因此 Plan 的确认与分类器裁决是两条路径；这条口径经过反复：1.0.12 让 YOLO 下 EnterPlanMode/ExitPlanMode 不弹窗、1.1.11 让 auto/yolo 下进出 Plan 不再弹权限窗、1.1.21（August 13, 2026）又 “Restored the confirmation dialog when entering and exiting Plan mode under auto and yolo modes”，此后至最新条目 CLI 1.1.80（October 27, 2026）没有新的 Plan 条目；未信任目录会强制回退 `default` 权限模式，`general.plan.enabled: false` 一次性关掉命令、启动参数映射与两个工具；1.0.33 起 Plan 支持只读 Shell 命令，0.2.15 起批准计划时可直接选 auto 模式，1.0.14 起 ExitPlanMode 提供 “start goal execution” 选项，1.0.39 优化过退出选项；官方没有公开 Plan 状态下被阻断的工具清单，记为未确认。',
+          sources: [
+            'qoder-permissions-plan',
+            'qoder-slash-plan',
+            'qoder-release-notes-plan',
+            'qoder-permissions',
+            'qoder-commands',
+          ],
+        },
       },
       related: ['cmd-plan', 'security-approval', 'security-filesystem'],
     }),
