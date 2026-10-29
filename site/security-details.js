@@ -907,6 +907,7 @@
         '项目层配置加载门禁',
         '高权限模式与非交互入口门禁',
         '信任记录保存位置与覆盖方式',
+        '关闭或绕过信任门禁的配置开关',
       ],
       excludes: [
         'Git Safe Directory',
@@ -916,10 +917,11 @@
       ],
       facts: [
         '五家都把目录信任用作项目层加载门禁：Claude 只在信任后应用项目 `permissions.allow` 与 `additionalDirectories`，Codex 未信任项目跳过项目作用域的 `.codex/` 层（项目本地配置、Hooks 与 Rules），Qwen 未信任目录不加载项目 `.qwen/settings.json`、项目 `.env` 与项目 Hooks，Kimi 未信任工作区不加载项目层 MCP 与项目本地配置，Qoder 未信任目录强制回退 `default` 权限模式。',
-        '总开关默认值相反：Qoder 的 `security.folderTrust.enabled` 默认 `true`，Qwen 的同名键默认 `false` 且关闭时一律视为受信任；Claude、Codex 与 Kimi 没有等价总开关，信任检查恒生效。',
-        '信任记录五家各自保存：Claude 写 `~/.claude.json` 的 `projects["<path>"].hasTrustDialogAccepted`，Codex 写 `~/.codex/config.toml` 的 `[projects."<path>"] trust_level`，Qwen 写 `~/.qwen/trustedFolders.json`，Kimi 写应用级原子文档存储的 `workspace-trust` 作用域（官方数据位置页没有列出该文件），Qoder 写用户级 `permissions.trustDirectories`。',
+        '总开关只有三家：Qoder 的 `security.folderTrust.enabled` 默认 `true`，Qwen 的同名键默认 `false` 且关闭时一律视为受信任，Kimi 自主干提交 `7d72ae396586`（PR #4517，2026-10-29 合入 main，尚未进入任何 Release）起有用户级 `[workspace] require_trust`、默认 `true` 即门禁开启、设 `false` 时把所有工作区视为受信任并跳过启动信任提示；Claude 与 Codex 没有等价总开关，信任检查恒生效。',
+        '关掉门禁只影响项目层加载，不放宽权限：Kimi 官方 warning 逐字写 “它不会改变权限模式、工具审批或危险命令保护”，Qwen 关闭 `security.folderTrust.enabled` 时同样只是不再触发受限 safe mode，工具审批仍按审批模式与规则执行。',
+        '信任记录五家各自保存：Claude 写 `~/.claude.json` 的 `projects["<path>"].hasTrustDialogAccepted`，Codex 写 `~/.codex/config.toml` 的 `[projects."<path>"] trust_level`，Qwen 写 `~/.qwen/trustedFolders.json`，Kimi 写应用级原子文档存储的 `workspace-trust` 作用域（官方数据位置页没有列出该文件），Qoder 写用户级 `permissions.trustDirectories`；Kimi 的门禁开关不改记录的读写，`trust()`/`untrust()` 照常写入或删除记录。',
         '高权限模式门禁只有三家写明：Qwen 源码在未信任目录对非 `DEFAULT`/`PLAN` 的审批模式抛 `TrustGateError`，Qoder 文档写非默认模式只在受信目录生效、否则回退 `default`，Claude 不改权限模式而是不应用项目 allow 规则；Codex 由 `trust_level = "untrusted"` 派生更严格的命令审批，Kimi 弹窗页脚明确写工具审批仍按权限设置执行。',
-        '非交互入口各自处理：Claude 的 `claude -p` 与 SDK 从不弹信任对话框，`claude ultrareview`、`claude rc` 与后台会话在无法弹窗时以退出码 1 失败，`--trust-workspace` 只信任本次运行；Kimi 用 `KIMI_CODE_TRUST_WORKSPACE=1` 按进程信任且不落盘；Qwen 的 `/trust` 只在交互模式注册；Codex 与 Qoder 的官方 CLI 参考都没有目录信任旗标。',
+        '非交互入口各自处理：Claude 的 `claude -p` 与 SDK 从不弹信任对话框，`claude ultrareview`、`claude rc` 与后台会话在无法弹窗时以退出码 1 失败，`--trust-workspace` 只信任本次运行；Kimi 用 `KIMI_CODE_TRUST_WORKSPACE=1` 按进程信任且不落盘，主干起还可用用户级 `[workspace] require_trust = false` 让无头运行不经确认加载项目级 MCP server；Qwen 的 `/trust` 只在交互模式注册；Codex 与 Qoder 的官方 CLI 参考都没有目录信任旗标。',
       ],
       behavior: {
         claude:
@@ -929,7 +931,7 @@
         qwen:
           '未信任目录进入官方所称的受限 safe mode，逐项列出五条：不加载项目 `.qwen/settings.json`；不加载项目任何 `.env`；不能安装、更新或卸载扩展；工具自动接受关闭，即使全局开了自动接受也每次询问；不自动加载本地设置指定目录的记忆文件。源码另外把项目 Hooks 单独门禁——`systemHooks` 与 `userHooks` 不受信任状态影响，`projectHooks` 只在受信任目录加载。判定顺序为功能开关、IDE 信任信号（仅当目标路径与 `process.cwd()` 等价时采信）、文件规则；没有规则命中时状态为 `unknown` 并弹出对话框。',
         kimi:
-          '官方 MCP 文档写：在未信任文件夹发现项目级 MCP server 时，信任提示会显示每个 server 的传输方式与启动目标，确认信任才启用该工作区的项目级 MCP server，选 `Don\'t trust` 则不启用；2.1.0 起“项目本地配置仅在工作区受信任后生效”。源码里的披露结构 `TrustGatedActivation` 同时列出被门禁的 MCP server（`name`、`transport` 为 `stdio`/`http`/`sse`、`command`、`args`、`cwd`、`url`、`origin`）、`additionalDirs` 与其来源、`warnings`，以及指令来源 `instructionSources`（`agentsMdPaths`、`skills`、`agentProfiles`、`paths`），因此门禁范围不止 MCP。撤销信任会卸载该工作区的项目级 MCP 配置。',
+          '官方 MCP 文档写：在未信任文件夹发现项目级 MCP server 时，信任提示会显示每个 server 的传输方式与启动目标，确认信任才启用该工作区的项目级 MCP server，选 `Don\'t trust` 则不启用；2.1.0 起“项目本地配置仅在工作区受信任后生效”。源码里的披露结构 `TrustGatedActivation` 同时列出被门禁的 MCP server（`name`、`transport` 为 `stdio`/`http`/`sse`、`command`、`args`、`cwd`、`url`、`origin`）、`additionalDirs` 与其来源、`warnings`，以及指令来源 `instructionSources`（`agentsMdPaths`、`skills`、`agentProfiles`、`paths`），因此门禁范围不止 MCP。撤销信任会卸载该工作区的项目级 MCP 配置。主干提交 `7d72ae396586`（PR #4517，尚未进入任何 Release）起门禁本身可关：`workspaceTrustRequired(config)` 读用户级 `[workspace] require_trust`（缺省 `true`），为 `false` 时 `WorkspaceTrustEntry.isTrusted()` 直接为真、`get()` 与新增的 `refresh()` 在 `await this.config.ready` 之后立即 `return true` 因而不再等持久化读取，`trustDisclosureService.describeGatedActivation()` 因 `await this.trust.get()` 为真返回 `EMPTY_ACTIVATION`、启动弹窗没有可披露内容因而不出现，项目级 MCP 也由 `mcpRegistryService` 的 `await this.trust.forRoot(cwd).refresh()` 与 `workspaceMcpConfigService` 的 `includeProject: trusted` 直接加载；`isPersistedTrusted()` 仍只返回持久记录，`trust()`/`untrust()` 也不检查门禁，因此这个开关只改判定不改记录。',
         qoder:
           '启动 CWD 是主信任目录。受信目录内文件读取默认允许、文件写入可在 `accept_edits` 与 `auto` 模式自动批准、非默认权限模式（`auto`、`bypass` 等）才允许生效；当前目录不受信任时强制回退 `default` 模式。`permissions.trustDirectories` 存在用户级配置且不被项目级配置覆盖，`permissions.additionalDirectories` 与 `--add-dir`、`/add-dir` 等价并只对当前会话生效。',
       },
@@ -948,7 +950,7 @@
           noninteractive:
             '`claude -p` 与 SDK 会话从不显示信任对话框，且信任父目录不算数。项目 allow 规则被跳过并向 stderr 打印 `Ignoring N permissions.allow entries from ... this workspace has not been trusted`，`headersHelper` 不运行并打印 `headersHelper not run — this workspace has no persisted trust`。无法弹窗时后台会话不启动并打印 `Workspace not trusted. Run `claude` in /path/to/project once and accept the trust prompt, then retry.`，`claude rc` 与 `claude ultrareview` 都以退出码 1 结束。',
           conditions:
-            '`claude ultrareview` 自 v2.1.309 起要求信任：提问 5 分钟无应答先报 `No answer in time.` 再报 `Error: Workspace not trusted`，回答 `n` 或直接回车报 `Ultrareview did not start: <folder> is not trusted`，终端太小或不上报尺寸报 `Error: Workspace not trusted. This terminal ...`。`CLAUDE_CODE_DISABLE_ULTRAREVIEW_TRUST_CHECK=1` 关闭该检查，官方要求设在启动 Claude Code 的环境而不是 settings 的 `env` 块，并写明能提问的运行仍会提问。官方 CLI 参考没有列出 `--trust-workspace`，只在 `--bg` 行写 “Checks workspace trust for the directory before it starts.”。',
+            '`claude ultrareview` 自 v2.1.309 起要求信任：提问 5 分钟无应答先报 `No answer in time.` 再报 `Error: Workspace not trusted`，回答 `n` 或直接回车报 `Ultrareview did not start: <folder> is not trusted`，终端太小或不上报尺寸报 `Error: Workspace not trusted. This terminal ...`。`CLAUDE_CODE_DISABLE_ULTRAREVIEW_TRUST_CHECK=1` 关闭该检查，官方要求设在启动 Claude Code 的环境而不是 settings 的 `env` 块，并写明能提问的运行仍会提问。官方 CLI 参考没有列出 `--trust-workspace`，只在 `--bg` 行写 “Checks workspace trust for the directory before it starts.”。信任弹窗的可读性有一条版本条件：v2.1.301（标签提交 `03b5892ee77de289bcd5dfa39f541525ade74aff`）逐字为 “Fixed stray characters such as `>0q` covering the folder trust prompt, and `>4m` before the shell prompt at exit, in terminals built on VTE older than 0.53 such as MATE Terminal on RHEL 8”，即基于 VTE 0.53 以前的终端里杂散转义字符会遮住弹窗。2026-10-29 复核 main 更新日志（1,104,632 字节、最新段 `## 2.1.312`），v2.1.300 至 v2.1.312 之间只有这一条涉及信任弹窗，没有新增关闭信任检查的设置或旗标；Permissions 页以 `.md` 形式复核为 90,325 字节，门禁句、信任键三种算法、只在交互会话弹对话框与手工写 `hasTrustDialogAccepted` 四处逐字未变。',
           sources: [
             'claude-workspace-trust',
             'claude-security-safeguards',
@@ -957,6 +959,7 @@
             'claude-cli-reference-trust',
             'claude-env-vars-ultrareview-trust',
             'claude-v21309-ultrareview-trust-changelog',
+            'claude-v21301-trust-prompt-changelog',
           ],
         },
         codex: {
@@ -973,7 +976,7 @@
           noninteractive:
             '官方 CLI 参考没有针对目录信任的启动旗标，唯一含 trust 的旗标是 Hook 专用的 `--dangerously-bypass-hook-trust`；非交互运行改用预先写好的 `[projects."<path>"] trust_level`，未信任项目照旧跳过项目 `.codex/` 层。',
           conditions:
-            '`trust_level = "untrusted"` 会连项目本地配置一起关掉，因此不能只用它收紧审批而保留项目配置。官方文档没有记录 `--dangerously-bypass-approvals-and-sandbox`（别名 `--yolo`）是否绕过目录信任。',
+            '`trust_level = "untrusted"` 会连项目本地配置一起关掉，因此不能只用它收紧审批而保留项目配置。官方文档没有记录 `--dangerously-bypass-approvals-and-sandbox`（别名 `--yolo`）是否绕过目录信任。2026-10-29 复核 Configuration Reference 与 Agent approvals and security 两页：`projects.<path>.trust_level` 行、“Codex loads project-scoped config files only when you trust the project.” 与 “Depending on your setup, Codex may also start in `read-only` until you explicitly trust the working directory (for example, via an onboarding prompt or `/permissions`).” 三处逐字未变，两页都没有关闭目录信任门禁的总开关，也没有单次运行的信任旗标。',
           sources: [
             'codex-trust-level',
             'codex-untrusted-retired',
@@ -997,7 +1000,7 @@
           noninteractive:
             '`/trust` 只在交互模式注册，官方 headless 文档没有列出单次运行的目录信任旗标，脚本改用预先写好的 `~/.qwen/trustedFolders.json` 或依赖 IDE 信任信号。经 `qwen serve` daemon 授予的信任会立即更新信任文件与 v1 信任状态，但启动期绑定的运行时门禁需要重启；由另一个终端进程或手工改文件做出的决定对 daemon 缓存的 v1 状态不立即可见，要重启 daemon。daemon 的审批模式路由把 `TrustGateError` 翻成结构化 `errorKind: \'auth_env_error\'` 而不是通用 500。',
           conditions:
-            'Web Shell 的 **Trust** 动作只在所连 daemon 广播 `workspace_trust_grant` 时出现，而 daemon 只在信任热重载能把决定应用到运行中运行时时才广播；只提供授权路由而没有热重载的 daemon 会隐藏该动作。IDE 信任信号优先级最高，但源码只在目标路径与 `process.cwd()` 等价时采信。官方没有给出 `security.folderTrust.enabled` 的引入版本。',
+            'Web Shell 的 **Trust** 动作只在所连 daemon 广播 `workspace_trust_grant` 时出现，而 daemon 只在信任热重载能把决定应用到运行中运行时时才广播；只提供授权路由而没有热重载的 daemon 会隐藏该动作。IDE 信任信号优先级最高，但源码只在目标路径与 `process.cwd()` 等价时采信。官方没有给出 `security.folderTrust.enabled` 的引入版本。2026-10-29 复核 v0.26.4 标签提交 `715a550cfca0135e00d4015d1ca82a8167e81fff` 下的 `docs/users/configuration/trusted-folders.md`：5,587 字节，与 v0.26.0 标签提交 `ac97ce7a70d9b2ea5d62b357e3d9b0851423afc9` 下同一文件逐字节相同，功能仍写 “**disabled by default**”、safe mode 仍是五条、判定顺序仍以 IDE 信号最高，全页仍没有跳过单次运行信任提示的旗标或环境变量。',
           sources: [
             'qwen-trusted-folders',
             'qwen-commands-trust',
@@ -1012,19 +1015,19 @@
         },
         kimi: {
           entry:
-            'TUI 启动时显示信任弹窗：标题 `Trust this folder?`、提示行 `↑↓ navigate · Enter select · Esc exit`，两个选项为 `Trust and continue` 与 `Exit`，默认选中第一项、`Esc` 等于 `Exit`、`Enter` 与空格确认；正文用 `←→` 或 PageUp/PageDown 分页展示被门禁的激活内容。没有独立 Slash 命令。Desktop/Web 侧走 server API `GET|POST /api/v1/workspaces/{workspace_id}/trust` 与 `POST .../untrust`；`KIMI_CODE_TRUST_WORKSPACE=1` 按进程信任。',
+            'TUI 启动时显示信任弹窗：标题 `Trust this folder?`、提示行 `↑↓ navigate · Enter select · Esc exit`，两个选项为 `Trust and continue` 与 `Exit`，默认选中第一项、`Esc` 等于 `Exit`、`Enter` 与空格确认；正文用 `←→` 或 PageUp/PageDown 分页展示被门禁的激活内容。没有独立 Slash 命令。Desktop/Web 侧走 server API `GET|POST /api/v1/workspaces/{workspace_id}/trust` 与 `POST .../untrust`；`KIMI_CODE_TRUST_WORKSPACE=1` 按进程信任。关闭整个门禁的入口是用户级 `~/.kimi-code/config.toml` 里的 `[workspace] require_trust = false`（主干提交 `7d72ae396586`，尚未发布），同样没有 Slash 命令；官方写“配置变更在 `/reload` 后生效；已经运行的 TUI 不会补弹启动信任提示”，源码侧 `ConfigService` 另有对配置文件的 watch 与去抖后 `void this.reload()`。',
           defaults:
-            '没有目录信任总开关，检查恒生效。`agent-core-v2` 自 0.33.0（2026-08-05）起是 CLI 各界面（交互式 TUI、`kimi -p`、`kimi acp` 等）的默认引擎，官方配置文档写“本节由 `agent-core-v2` 引擎读取，Kimi Code 的所有界面都运行在该引擎上”，`KIMI_CODE_LEGACY_FLAG=1` 回退旧引擎，因此信任不再受 `KIMI_CODE_EXPERIMENTAL_FLAG` 门禁。权限侧默认值仍是 `default_permission_mode = manual`、`default_plan_mode = false`。',
+            '默认仍要求信任确认：`require_trust` 缺省为 `true`（`DEFAULT_WORKSPACE_TRUST_CONFIG = { requireTrust: true }`，判定函数以 `?? true` 兜底，zod schema 只接受 boolean），因此到 2.4.0 为止的发布版本里检查恒生效、没有总开关；主干提交 `7d72ae396586`（PR #4517，尚未进入任何 Release）起才有这个开关，`false` 时“将所有工作区视为受信任并跳过启动信任提示”。`agent-core-v2` 自 0.33.0（2026-08-05）起是 CLI 各界面（交互式 TUI、`kimi -p`、`kimi acp` 等）的默认引擎，官方配置文档写“本节由 `agent-core-v2` 引擎读取，Kimi Code 的所有界面都运行在该引擎上”，`KIMI_CODE_LEGACY_FLAG=1` 回退旧引擎，因此信任不再受 `KIMI_CODE_EXPERIMENTAL_FLAG` 门禁。权限侧默认值仍是 `default_permission_mode = manual`、`default_plan_mode = false`。',
           rules:
-            '源码里 `isTrusted()` 等于「环境变量信任 OR 持久化信任」，`isPersistedTrusted()` 只返回持久值；`KIMI_CODE_TRUST_WORKSPACE` 真值 `1`/`true`/`yes`/`on`、假值 `0`/`false`/`no`/`off`，等效于在交互提示里选 “Trust this folder”，只按进程生效且不写持久记录。持久记录以 `workspace-trust` 作用域存储，键为规范化工作区根的 `encodeWorkDirKey`、值为 `{ root, trustedAt }`，读到记录即信任、没有独立的「未信任」记录，撤销信任即删除记录；旧键与旧 Windows 路径变体会被迁移到规范键，扫描时只跳过 `.tmp.<n>.<hex>` 临时键与单条解码失败的记录，其他存储异常原样抛出并上报 telemetry 事件 `workspace_trust_read_failed`。',
+            '源码里 `isTrusted()` 原为「环境变量信任 或 持久化信任」的逻辑或，主干提交 `7d72ae396586` 起改为 `!this.trustGateEnabled() || this.envTrusted || this.trusted`，即关闭门禁成为第三个为真的理由，而 `trustGateEnabled()` 只是 `workspaceTrustRequired(this.config)` 的封装、后者逐字为 `config.get<WorkspaceTrustConfig | undefined>(WORKSPACE_TRUST_SECTION)?.requireTrust ?? true`；`isPersistedTrusted()` 未变、仍只返回持久值。`KIMI_CODE_TRUST_WORKSPACE` 真值 `1`/`true`/`yes`/`on`、假值 `0`/`false`/`no`/`off`，等效于在交互提示里选 “Trust this folder”，只按进程生效且不写持久记录，官方环境变量页同批改写为“该变量与 `[workspace] require_trust` 相互独立；后者为 `false` 时，假值不会重新启用信任机制”。`require_trust` 的取值只来自用户级配置文件：`ConfigService.seedInitialLoad()` 只 `readFileSync(this.bootstrap.configPath, \'utf8\')` 读一份 TOML，没有项目级或受管配置层，`get(domain)` 先看 `ConfigTarget.Memory` 的 `memory` 再看叠加了 section env 绑定与 env overlay 的 `effective`，缺失时补 section 的 `defaultValue`。持久记录以 `workspace-trust` 作用域存储，键为规范化工作区根的 `encodeWorkDirKey`、值为 `{ root, trustedAt }`，读到记录即信任、没有独立的「未信任」记录，撤销信任即删除记录；旧键与旧 Windows 路径变体会被迁移到规范键，扫描时只跳过 `.tmp.<n>.<hex>` 临时键与单条解码失败的记录，其他存储异常原样抛出并上报 telemetry 事件 `workspace_trust_read_failed`。',
           boundary:
-            '信任门禁只决定项目层配置与项目级 MCP 是否加载，不替代权限模式：弹窗页脚逐字写 “Tool approvals follow your permission settings.”。MCP 配置路由的 `cwd` 参数只在受信任目录并入项目根层与项目本地层，否则项目层被跳过。2.1.0 同批加固还包括文件工具不能再经符号链接访问工作目录外文件、后台 git 操作不再执行仓库 git 配置中的命令、拒绝解析结果为 home 或文件系统根目录的附加目录。',
+            '信任门禁只决定项目层配置与项目级 MCP 是否加载，不替代权限模式：弹窗页脚逐字写 “Tool approvals follow your permission settings.”。MCP 配置路由的 `cwd` 参数只在受信任目录并入项目根层与项目本地层，否则项目层被跳过。2.1.0 同批加固还包括文件工具不能再经符号链接访问工作目录外文件、后台 git 操作不再执行仓库 git 配置中的命令、拒绝解析结果为 home 或文件系统根目录的附加目录。关闭门禁的范围官方写死在一段 warning 里，逐字为 “关闭首次打开的信任确认后，项目级 MCP server 和其他受信任机制控制的项目配置都会不经确认直接加载。仅应在所有工作区均已可信时使用该配置。它不会改变权限模式、工具审批或危险命令保护。”',
           persistence:
-            '信任按文件夹持久保存，弹窗页脚逐字写 “Trust is remembered for this folder, including future project config changes.”；`KIMI_CODE_TRUST_WORKSPACE` 不落盘。官方数据位置页的 `$KIMI_CODE_HOME`（默认 `~/.kimi-code`）目录树没有列出信任记录文件，因此该记录的确切磁盘路径记为未确认。',
+            '信任按文件夹持久保存，弹窗页脚逐字写 “Trust is remembered for this folder, including future project config changes.”；`KIMI_CODE_TRUST_WORKSPACE` 不落盘。官方数据位置页的 `$KIMI_CODE_HOME`（默认 `~/.kimi-code`）目录树没有列出信任记录文件，因此该记录的确切磁盘路径记为未确认。门禁开关本身写在用户级 `~/.kimi-code/config.toml`（`KIMI_CODE_HOME` 可改数据目录）因而跨会话持久，但它不删除也不改写已有信任记录：官方写“已有信任记录会保留，恢复该要求后继续使用”，源码里 `mutate()` 不检查门禁、`writeWorkspaceTrust`/`deleteWorkspaceTrust` 照常执行并 `track2(\'workspace_trust_changed\', { trusted })`。',
           noninteractive:
-            '官方 MCP 文档写：无头运行（例如 CI 里的 `kimi -p`）无法显示信任提示，工作区尚未受信任时项目级 MCP server 保持禁用；把 `KIMI_CODE_TRUST_WORKSPACE` 设为 `1` 即可在该进程中信任当前工作区。server API 的三个信任端点供 Desktop/Web 客户端调用，返回 `{ trusted }`、`{ trusted: true }` 与 `{ trusted: false }`。',
+            '官方 MCP 文档写：无头运行（例如 CI 里的 `kimi -p`）无法显示信任提示，工作区尚未受信任时项目级 MCP server 保持禁用；把 `KIMI_CODE_TRUST_WORKSPACE` 设为 `1` 即可在该进程中信任当前工作区。主干提交 `7d72ae396586` 在同一段之后追加了第二个入口，逐字为 “如需全局关闭工作区信任机制并不经确认加载项目级 MCP server，可在 `config.toml` 中设置 `[workspace] require_trust = false`；仅应在所有工作区均已可信时使用该配置。”，即 CI 可以只靠用户级配置而不必逐进程设环境变量。server API 的三个信任端点供 Desktop/Web 客户端调用，2.3.1 记录的成功返回依次为 `{ trusted }`、`{ trusted: true }` 与 `{ trusted: false }`；主干提交 `7d72ae396586` 把 `POST .../untrust` 的成功返回改为 `{ trusted }`：“表示撤销后的有效信任状态。通常为 `{ trusted: false }`；如果 `KIMI_CODE_TRUST_WORKSPACE` 或 `[workspace] require_trust = false` 生效，则仍为 `true`。”，其描述也改为“撤销工作区的持久化信任记录。如果进程或配置覆盖没有使工作区保持受信任，则同时卸载其项目级 MCP 配置。”',
           conditions:
-            '终端放不下披露内容时弹窗不渲染选项，只输出标题与 ` Enlarge terminal to review sources. Esc exit.`，此时 `Enter`/`Space` 被忽略、只能 `Esc` 退出。2.3.1（PR #4348，合并提交 `c569bab55d4d510b09f01205d760001d16117aff`）把三个信任接口从「创建完整工作区运行时并等待 `HostEnvironment.ready`（含 Git Bash 探测）」改为直接访问应用级信任存储，修复 Windows 未安装 Git Bash 时信任读写失败；存储异常不再被转成 `trusted: false` 而是保留原始 message 与 request ID（失败仍按未信任处理、不放开权限），初始化失败不再缓存已拒绝的 Promise、后续读写会重试，恢复时重新完成文件与插件 MCP 的完整初始化并发布配置差异，即使信任值未变也发一次状态恢复事件。',
+            '终端放不下披露内容时弹窗不渲染选项，只输出标题与 ` Enlarge terminal to review sources. Esc exit.`，此时 `Enter`/`Space` 被忽略、只能 `Esc` 退出。2.3.1（PR #4348，合并提交 `c569bab55d4d510b09f01205d760001d16117aff`）把三个信任接口从「创建完整工作区运行时并等待 `HostEnvironment.ready`（含 Git Bash 探测）」改为直接访问应用级信任存储，修复 Windows 未安装 Git Bash 时信任读写失败；存储异常不再被转成 `trusted: false` 而是保留原始 message 与 request ID（失败仍按未信任处理、不放开权限），初始化失败不再缓存已拒绝的 Promise、后续读写会重试，恢复时重新完成文件与插件 MCP 的完整初始化并发布配置差异，即使信任值未变也发一次状态恢复事件。`require_trust` 的发布状态：改动来自 PR #4517（合并提交 `7d72ae396586ad82f48ca4335956235d3c38f0d8`，2026-10-29T11:13:30Z 合入 main，25 个文件），`.changeset/workspace-require-trust-toggle.md` 级别为 `"@moonshot-ai/kimi-code": patch`、正文 “Set [workspace] require_trust = false to skip workspace trust prompts.”；GitHub compare 以当天最新 Release 标签 `@moonshot-ai/kimi-code@2.4.1-canary.20261029045033-ebe14e1`（2026-10-29T05:05:35Z 发布）为 base 得到 `status: "ahead"`、`ahead_by: 8`、`behind_by: 0`，因此截至核对日期它只在 main 上、没有任何 Release 带这个键。配置节在 `config-manifest.toml` 里标为 `owner: src/workspace/workspaceTrust/configSection.ts`、`scope: core`，条目 `require_trust = true`。项目级能否设这个键记为未确认：`config-files.md` 的项目级 `<项目根目录>/.kimi-code/local.toml` 只在 `[workspace]` 节文档化存量兼容字段 `additional_dir`，同提交的 `overrides.md` 则写“目前 CLI 只读取一份用户级配置文件，没有项目级配置文件机制”，两页口径不一致；源码侧 `ConfigService` 只读一份文件，官方也没写受管或企业层能否下发该键。',
           sources: [
             'kimi-trust-prompt-source',
             'kimi-mcp-trust',
@@ -1037,6 +1040,19 @@
             'kimi-231-trust-fix',
             'kimi-231-changelog',
             'kimi-trust-v2',
+            'kimi-require-trust-commit',
+            'kimi-require-trust-release-status',
+            'kimi-require-trust-config-doc',
+            'kimi-require-trust-env-doc',
+            'kimi-require-trust-mcp-doc',
+            'kimi-require-trust-server-api',
+            'kimi-require-trust-config-section-source',
+            'kimi-require-trust-store-source',
+            'kimi-require-trust-service-source',
+            'kimi-require-trust-gating-source',
+            'kimi-config-service-single-file',
+            'kimi-config-overrides-doc',
+            'kimi-require-trust-manifest',
           ],
         },
         qoder: {
@@ -1053,7 +1069,7 @@
           noninteractive:
             'Headless 里 `ask` 自动转为 `deny`，官方权限页的 headless 示例注明 `bypass_permissions` 只用于受信场景；未信任目录在 headless 下同样回退 `default`。官方 CLI 参考里含 trust 的启动参数只有 `--add-dir`，没有跳过信任检查的旗标。',
           conditions:
-            '`security.folderTrust.enabled` 需要重启才生效（Restart: Yes），两个 `permissions.*Directories` 键不需要。CLI 0.2.9（2026-05-08）修复了 `/add-dir` 受信目录仍要求读权限审批的问题，CLI 1.0.15（2026-06-09）修复了授予工作区信任后项目权限规则未立即生效的问题；官方没有给出这两个键的引入版本。',
+            '`security.folderTrust.enabled` 需要重启才生效（Restart: Yes），两个 `permissions.*Directories` 键不需要。CLI 0.2.9（2026-05-08）修复了 `/add-dir` 受信目录仍要求读权限审批的问题，CLI 1.0.15（2026-06-09）修复了授予工作区信任后项目权限规则未立即生效的问题；官方没有给出这两个键的引入版本。Release Notes 坐标推进到 CLI 1.1.80（October 27, 2026），1.1.78（October 23, 2026）、1.1.79（October 26, 2026）与 1.1.80 三节都没有信任门禁条目；1.1.79 的 “Rules in directories added via --add-dir, /add-dir, or additionalDirectories are no longer automatically loaded into context at startup or after context compaction” 改的是附加受信目录里规则文件的加载，属项目指令文件字段、本次未处理。Permissions 页 2026-10-29 再核对，Trust Directories 三条效果、“If the current directory is not trusted, Qoder forces a fallback to `default` mode.” 与 Extending Trust 一段逐字未变，仍没有首次信任对话框、`/trust` 命令或单次运行信任旗标。',
           sources: [
             'qoder-permissions-trust',
             'qoder-settings-folder-trust',
