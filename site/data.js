@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-10-29',
+  updatedAt: '2026-10-31',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -451,6 +451,11 @@ window.matrixData = {
     'claude-v21292-effort-changelog': {
       label: 'Claude Code v2.1.292 Agent 工具 `effort` 参数更新日志',
       url: 'https://github.com/anthropics/claude-code/blob/fbe20e00e285/CHANGELOG.md',
+    },
+    'claude-v21316-subagent-effort-changelog': {
+      label:
+        'Claude Code v2.1.316 `CLAUDE_CODE_SUBAGENT_EFFORT` 更新日志（2026-10-31 复核，固定到提交 `80c6959d28c4c30ecd14fc1cdf172f19d9adad81`，Release v2.1.316 发布于 2026-10-31T01:01:35Z）：逐字为 “Added `CLAUDE_CODE_SUBAGENT_EFFORT` to set the effort level subagents run at when nothing else names one, instead of inheriting the session\'s”，即只在没有其他来源指定 effort 时决定 Subagent 档位，取代此前直接继承会话 effort 的行为；官方环境变量页（2026-10-31 以 `.md` 形式完整抓取，187,070 字节）与官方 Subagents 页（116,225 字节）在核对日期都没有 `CLAUDE_CODE_SUBAGENT_EFFORT` 条目，环境变量页的 Subagent 相关行只有 `CLAUDE_CODE_FORK_SUBAGENT`、`CLAUDE_CODE_FORWARD_SUBAGENT_TEXT`、`CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS`、`CLAUDE_CODE_MAX_SUBAGENTS_PER_SESSION`、`CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH`、`CLAUDE_CODE_SUBAGENT_MODEL`、`CLAUDE_CODE_SUBAGENT_MODEL_FORCE`、`CLAUDE_CODE_SUBAGENT_PROMPT_CACHE_TTL` 与 `CLAUDE_SUBAGENT_BG_SHELL_MAX_MS`，Subagents 页的 Choose an effort level 小节仍只写 `CLAUDE_CODE_EFFORT_LEVEL` → 每次调用 `effort` → frontmatter `effort` 三级，因此该变量的取值集合、是否接受 `auto`、是否受 `maxEffortLevel` 与组织 effort 上限约束、是否覆盖 agent team teammates 与 workflow agent，以及它与 `CLAUDE_CODE_EFFORT_LEVEL` 的相对优先级都记为未确认；同版另有 “Added `CLAUDE_CODE_DISABLE_ULTRATHINK`, which turns the `ultrathink` keyword off” 与 v2.1.311 “Changed `ultrathink` in the interactive terminal to run its turn at xhigh effort on Opus 5.5, Sonnet 5.5, Haiku 5.5 and Fable 5.1 through Anthropic\'s API”，属其他能力字段、本次未处理',
+      url: 'https://github.com/anthropics/claude-code/blob/80c6959d28c4c30ecd14fc1cdf172f19d9adad81/CHANGELOG.md',
     },
     'claude-cross-session-messaging': {
       label: 'Claude Code cross-session messaging',
@@ -4464,7 +4469,7 @@ window.matrixData = {
       category: 'subagents',
       capability: 'Agent 推理强度',
       description: '单个 Agent 能否设置独立的推理预算。',
-      values: { claude: '`effort`；Agent 工具调用参数 `effort`（v2.1.292）', codex: '`model_reasoning_effort` · `[agents] default_subagent_reasoning_effort` 全局默认', qwen: '未确认独立字段', kimi: '`[secondary_model] default_effort` 节级档位 · `[models.<alias>.overrides] default_effort` 变体；Agent 文件 frontmatter 无 effort 字段', qoder: '`effort`' },
+      values: { claude: '`effort`；Agent 工具调用参数 `effort`（v2.1.292）；v2.1.316 另加派生默认 `CLAUDE_CODE_SUBAGENT_EFFORT`，官方环境变量页与 Subagents 页尚未收录', codex: '`model_reasoning_effort` · `[agents] default_subagent_reasoning_effort` 全局默认', qwen: '未确认独立字段', kimi: '`[secondary_model] default_effort` 节级档位 · `[models.<alias>.overrides] default_effort` 变体；Agent 文件 frontmatter 无 effort 字段', qoder: '`effort`' },
     },
     {
       id: 'agent-tools',
