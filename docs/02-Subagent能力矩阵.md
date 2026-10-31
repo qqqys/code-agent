@@ -35,7 +35,7 @@
 | 能力 | Claude Code | Codex | Qwen Code | Kimi Code | Qoder CLI |
 | --- | --- | --- | --- | --- | --- |
 | Agent 单独选模型 | `model`：`sonnet`/`opus`/`haiku`/`fable`、完整模型 ID 或 `inherit`；顺序为每次调用 `model` → frontmatter → `CLAUDE_CODE_SUBAGENT_MODEL` → 主会话模型；`CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1` 强制统一（v2.1.257）；v2.1.296 另加只统一 workflow agent 的 `CLAUDE_CODE_WORKFLOW_SUBAGENT_MODEL` | `model`；顺序为显式 spawn 值 → `agents.default_subagent_model` → 父会话值，Agent 文件写了 `model` 时文件值最后覆盖 | `model`：inherit、fast、modelId、authType:modelId 或 `modelGrades` 名称；`agents.builtin.exploreModel` 单独覆盖内置 Explore | `[secondary_model]` 池别名、保留值 `"primary"`、`force = true` 固定到 `default_model`；模型池自 0.42.0 起始终开启，无需开关 | `model`：任意模型名或 `inherit`、`auto`、`lite`、`efficient`、`performance` 别名；省略即 `inherit` |
-| Agent 单独设推理强度 | `effort`；Agent 工具调用参数 `effort`（v2.1.292） | `model_reasoning_effort`、`[agents] default_subagent_reasoning_effort` 全局默认 | 未确认独立字段 | `[secondary_model] default_effort` 节级档位、`[models.<alias>.overrides] default_effort` 变体；Agent 文件 frontmatter 无 effort 字段 | `effort` |
+| Agent 单独设推理强度 | `effort`；Agent 工具调用参数 `effort`（v2.1.292）；v2.1.316 另加派生默认 `CLAUDE_CODE_SUBAGENT_EFFORT`，官方环境变量页与 Subagents 页尚未收录 | `model_reasoning_effort`、`[agents] default_subagent_reasoning_effort` 全局默认 | 未确认独立字段 | `[secondary_model] default_effort` 节级档位、`[models.<alias>.overrides] default_effort` 变体；Agent 文件 frontmatter 无 effort 字段 | `effort` |
 | 工具白名单 | `tools` | 由 Agent 配置和沙箱控制 | `tools`；Fork 可用 `fork_tools` 限制执行 | `tools` | `tools` |
 | 工具黑名单 | `disallowedTools` | 未确认独立 `disallowedTools` 字段 | `disallowedTools` | `disallowedTools` | `disallowedTools` |
 | MCP 范围 | `mcpServers`；工具规则可继续收窄 | `mcp_servers` | `mcpServers`；工具规则可继续收窄 | 通过工具列表控制 | `mcpServers` |
@@ -68,6 +68,7 @@
 - [Claude Code settings reference](https://code.claude.com/docs/en/settings-reference)
 - [Claude Code environment variables](https://code.claude.com/docs/en/env-vars)
 - [Claude Code v2.1.292 更新日志（Agent 工具 `effort` 参数）](https://github.com/anthropics/claude-code/blob/fbe20e00e285/CHANGELOG.md)
+- [Claude Code v2.1.316 更新日志（`CLAUDE_CODE_SUBAGENT_EFFORT` 派生默认 effort，固定到提交 `80c6959d28c4c30ecd14fc1cdf172f19d9adad81`）](https://github.com/anthropics/claude-code/blob/80c6959d28c4c30ecd14fc1cdf172f19d9adad81/CHANGELOG.md)
 - [Claude Code Workflows（workflow agent 的模型解析）](https://code.claude.com/docs/en/workflows)
 - [Claude Code v2.1.296 更新日志（`CLAUDE_CODE_WORKFLOW_SUBAGENT_MODEL`）](https://github.com/anthropics/claude-code/blob/2301018b1f61073c501a8e7a4813ef48c239163b/CHANGELOG.md)
 - [Claude Code Subagents 的 “Run subagents in foreground or background” 与并发上限段](https://code.claude.com/docs/en/sub-agents#run-subagents-in-foreground-or-background)
@@ -81,9 +82,11 @@
 - [Qwen Code Subagents 文档（main 分支 `97925919acb9`，后台默认值、外部执行器前台、调用方自有 `working_dir` 与通知队列上限）](https://github.com/QwenLM/qwen-code/blob/97925919acb92b089d817991bfefe4545601c8f6/docs/users/features/sub-agents.md)
 - [Qwen Code Subagents 文档在 stable 标签 v0.25.2 下的同一文件（证明上述后台行为已发布）](https://github.com/QwenLM/qwen-code/blob/8a415cb628db88844e0196bdfdcce83b4f88d812/docs/users/features/sub-agents.md)
 - [Qwen Code Subagents 文档在 stable 标签 v0.26.1 下的同一文件（“Automatic Delegation”、“When Fork is Used”、“Recursive Delegation Prevention” 与 “Limits” 四节；与核对日期 main 逐字节相同）](https://github.com/QwenLM/qwen-code/blob/b475278c4a300acebe6cfc990a9e1b1d18819bfc/docs/users/features/sub-agents.md)
+- [Qwen Code Subagents 文档（main 分支 `fe30b5daaa6a`，2026-10-31 复核 `effort` 仍属尚未落地的 Claude Code 兼容字段，逐字原因 “`effort` needs a model-layer parameter”）](https://github.com/QwenLM/qwen-code/blob/fe30b5daaa6ae3bef16370393200204c4a82c28e/docs/users/features/sub-agents.md)
 - [Qwen Code Worktree](https://github.com/QwenLM/qwen-code/blob/2e08486b529bf64ca3b31d13424ad12f1100de93/docs/users/features/worktree.md)
 - [Kimi Code Agents](https://github.com/MoonshotAI/kimi-code/blob/c9f01f07388abc2cdca40c9c5267f58c65086710/docs/zh/customization/agents.md)
 - [Kimi Code subagent and secondary model configuration](https://github.com/MoonshotAI/kimi-code/blob/c9f01f07388abc2cdca40c9c5267f58c65086710/docs/zh/configuration/config-files.md)
+- [Kimi Code 配置文档（main 分支 `a2afdbc7d1fa`，2026-10-31 复核 `[secondary_model] default_effort`、模型「变体」与 `overrides` 可覆盖字段清单未变）](https://github.com/MoonshotAI/kimi-code/blob/a2afdbc7d1fa0737d45d5780cc6c2bd38e477b55/docs/zh/configuration/config-files.md)
 - [Kimi Code Slash 命令参考（`/secondary-model`）](https://github.com/MoonshotAI/kimi-code/blob/c9f01f07388abc2cdca40c9c5267f58c65086710/docs/zh/reference/slash-commands.md)
 - [Kimi Code 官方变更记录](https://github.com/MoonshotAI/kimi-code/blob/c9f01f07388abc2cdca40c9c5267f58c65086710/docs/zh/release-notes/changelog.md)
 - [Kimi Code 移除 Subagent 模型池实验开关的提交](https://github.com/MoonshotAI/kimi-code/commit/e831fd1ea9488ad5192bcc9d96579470cf0c4442)
