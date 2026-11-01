@@ -1,0 +1,37 @@
+# 任务执行与 Git · 文件读写：Kimi 2.4.1 单次读取降为 100,000 字符加估算 token 上限，五家坐标前移
+
+日期：2026-11-01
+能力字段：`execution-files`（执行与 Git · 文件读写）
+
+## 本次改动
+
+**Kimi Code 2.4.1 把 `Read` 的单次可申请上限从 500,000 降到 100,000 字符，并叠加估算 token 上限**（Release `@moonshot-ai/kimi-code@2.4.1`，2026-10-30T09:50:16Z 发布，标签提交 `2c73f3f50af4fa7f2540ca0d2e33b07a1408e3a7`，核对日期最新稳定 Release）：
+
+- 变更来自 PR #4553（合并提交 `9140ea0d980fc27c5c5ff983b2efe82191eb2b4a`，2026-10-30T09:16:26Z，15 个文件；GitHub compare 确认该提交是 2.4.1 标签的祖先、标签仅领先 2 个提交），changeset `.changeset/cap-read-output.md`（patch 级）与 Release 正文逐字相同：“A single file read by the agent now returns at most 100,000 characters or about 25,000 tokens, whichever comes first, instead of up to 500,000 characters; set `max_chars` under `[read]` in config.toml to raise both limits again.”
+- **据此作废旧结论「字符额度默认 100000、单次可申请到 500000」**。现行口径：默认上限和单次调用可申请的最大值都是 100,000 字符（`read.ts` 的 `DEFAULT_MAX_CHARS = 100_000`、`DEFAULT_MAX_CHARS_LIMIT` 由 `500_000` 改为 `100_000`，标签下 2,308 字节、与 main `a2afdbc7d1fa` 逐字节相同），单次调用还会在估算 token 数达到配置 `[read] max_chars` 的四分之一（默认约 25,000）时停止；调高配置 `max_chars` 同时抬高字符与 token 两个上限。
+- token 上限只由配置的 `max_chars` 派生（`readTool.ts` 的 `tokenLimit = Math.ceil(limits.maxChars / 4)`，标签下 29,621 字节），调用参数 `max_chars` 不改变它；token 折算为 `Math.ceil(ascii / 4) + nonAscii`（每个非 ASCII 字符计 1、每 4 个 ASCII 字符计 1，`tokens.ts`），中文等非 ASCII 较多的文本每次返回的字符更少。
+- 超额页面在组装时就地收缩而不重读文件：多行逐行丢弃，单行用 `cutForTokens` 按 token 权重切片段（ASCII 每字符 0.25、非 ASCII 每字符 1，不拆散代理对）；提交说明写 “It rounds up, so pages of ASCII text never reach it and keep their exact character pagination”，即纯 ASCII 页通常触不到 token 上限、保持精确字符分页。
+- 命名范围新增报错：调用带 `n_lines` 或负 `line_offset` 而 `max_chars` 之内放得下的行仍超过 token 上限（预留 `RANGE_STATUS_TOKENS = 256`）时返回 “Lines X-Y are more than one Read can return (about N estimated tokens). Read at most M lines at a time, for example {…}, or find the section with Grep.”，不再静默返回部分范围；该检查只在页面放进 `max_chars` 之后运行，只被 `max_chars` 截短的范围仍返回一页加 `Next Read`，整文件读取、从 offset 读到末尾、单行请求与列续读照常分页。
+- 状态块规则变化：整文件一次返回且没有需要说明的情况时省略 `<system>` 状态块；不完整页面新增提示 “If the answer may be further on, continue with Next Read or find the section with Grep instead of answering from this page alone.”；事件日志读取提示由 “increase max_chars for a longer record” 改为 “follow Next Read for the rest of a longer record”。
+- 写后回读引导移除：`Edit`/`Write` 成功的结果附带 note “<system>The change is applied; there is no need to Read the file back to check it.</system>”，`Read` 工具描述 `read.md` 删掉 “When the task requires the full text of a large file, request a larger `max_chars` in the first call.” 并新增 “After a successful `Edit`/`Write`, do not re-read solely to prove the write landed.”。
+- 官方中英文四份文档（`docs/{en,zh}/reference/tools.md` 与 `docs/{en,zh}/configuration/config-files.md`）在同一提交同步，不存在文档滞后：标签下中文工具文档 22,770 字节（`Read` 段新记法「默认上限和调用可申请的最大值都是 100,000 字符，单次调用还会在估算 token 数达到最大值的四分之一（默认 25,000）时停止」与命名范围报错句），中文配置文档 41,367 字节（`## read` 字段表 `max_chars` 默认由 `500000` 改 `100000`，说明段新增 token 折算句与「如果希望单次调用返回超过 100000 个字符或约 25000 个 token，需要提高 `max_chars`」）；main `a2afdbc7d1fa`（配置文档全页 47,522 字节）与标签的 `Read` 段和 `## read` 段逐字相同，两页差异只在 Agent/AgentSwarm/网络工具等无关段落。
+
+**Claude Code 深化两条拒绝边界**（结论主体不变）：
+
+- 工具参考以 `.md` 形式复核为 87,860 字节，“Large files” 段的 25,000 token 默认、256 KB 整文件拒绝与 `allow_large`（v2.1.296 起）逐字未变；补录图片源超 128 MB 拒绝——v2.1.302 更新日志逐字 “Fixed the Read tool loading an image file of any size, or a pipe or device named like an image, entirely into memory; image sources over 128 MB are now refused”，工具参考写明 “Read refuses an image file larger than 128 MB with an error that tells Claude to resize the image or export a smaller copy, then read that copy.”。
+- 补录二进制扩展名拒绝段：“Read refuses a file whose extension it treats as binary, such as `.xlsx`, `.parquet`, `.heic`, or `.zip`. Claude keeps working after a refusal: the error suggests a skill for that file type if one is available, or else a shell command or script that reads the format. If you `@`-mention a file that Read refuses, Claude receives the file's path but not its contents.”（对应 v2.1.301 修复 “Fixed the Read tool reading binary files such as .xlsm, .parquet, .epub and .heic as text”）；另记录 v2.1.312 修复旧会话文件清理与 PDF 页渲染并发时的偶发 “pdftoppm failed: Could not write image”。
+- main `80c6959d28c4c30ecd14fc1cdf172f19d9adad81` 的 CHANGELOG.md 复核为 1,130,515 字节、最新段 `## 2.1.316`，v2.1.296 至 v2.1.316 之间没有改变读取额度语义的条目。
+
+**Codex 坐标前移、结论不变**：证据由 main `f82e36592278` 前移到 rust-v0.166.0 标签提交 `6ff1e1ca3b30fc8b914720681fcf5fe62e95f856`（2026-10-29T19:47:53Z 发布、核对日期最新 Release，此前记录停留在 rust-v0.163.0-alpha.5）。`shell_spec.rs`（13,034 字节）两处 `max_output_tokens` 描述 “Output token budget. Defaults to 10000 tokens; larger requests may be capped by policy.”、`exec.rs`（45,483 字节）的 `EXEC_OUTPUT_MAX_BYTES`/`MAX_EXEC_OUTPUT_DELTAS_PER_CALL = 10_000`、`codex-rs/utils/pty/src/lib.rs` 第 25 行 `DEFAULT_OUTPUT_BYTES_CAP: usize = 1024 * 1024` 逐字未变；handlers 目录 57 个条目与旧坐标逐项相同、增减均为零，仍没有专用文本读取工具；0.166.0 发布说明没有读取额度条目。
+
+**Qwen Code 坐标前移、结论不变**：读取额度证据由 v0.25.1 标签前移到 v0.26.5（标签提交 `db0e4e24a0d89b211b2a15f4af2be22adac71dfc`，2026-11-01T03:22:50Z 发布、核对日期最新稳定 Release）。`config.ts`（530,385 字节）三个常量 `25_000`/`1000`/`200_000`、`settingsSchema.ts`（243,865 字节）三个键与 `requiresRestart: true`、`read-file.ts`（33,004 字节）的 Self-managed 注释与 `maxOutputChars` 重写、`fileUtils.ts`（92,749 字节）的分页截断逻辑逐字未变；设置参考（394,252 字节）里 `tools.toolOutputBatchBudget` 仍无任何行，文档缺口持续；v0.26.0 至 v0.26.5 发布说明没有读取额度变更条目。补录 PR #13606（提交 `6dfd4e47471c`，2026-10-25 合入 main、compare 确认首次随稳定版 v0.26.2（2026-10-27T15:32:11Z）发布）：托管 Provider 场景的 `ReadFileTool` 构造新增可选 `mediaLimits`（`maxInlineMediaBase64Bytes`/`maxMediaResultBytes`），超限返回 `FILE_TOO_LARGE` 错误 “File exceeds the inline media result byte limit. For PDFs, use 'pages' with a narrower range; otherwise use a smaller file.”，标准 CLI 构造不传该参数、读取行为不变。
+
+**Qoder CLI 结论不变、坐标前移**：Release Notes 以 `.md` 形式复核为 116,148 字节，最新条目由 CLI 1.1.80 推进到 CLI 1.1.81（October 29, 2026，“Introducing CodeMode and More Reliable Session Continuity”），1.1.70 至 1.1.81 没有任何文件读取上限、大文件或截断条目——1.1.81 唯一与上限相关的 “Fixed request failures in long sessions caused by accumulated images exceeding the limit, keeping at most the 50 most recent images per request” 讲的是长会话请求里累积图片的保留数量、不是 `Read` 工具的读取额度；Tools 页 `.md`（9,127 字节）的 “Read large files | Read a focused section when the whole file is too large.” 逐字未变，读取额度数值仍未确认。
+
+## 同步范围
+
+- `site/data.js`：`updatedAt` 推到 2026-11-01；`execution-files` 行的 Claude 与 Kimi 单元格改写；新增来源 `claude-v21302-read-fixes-changelog`、`kimi-read-tools-241`、`kimi-read-config-241`、`kimi-v241-read-cap-release`、`kimi-read-cap-commit`、`qoder-release-notes-read` 共 6 个；改写 `claude-read-large-files`、`claude-read-limit-changelog`、`kimi-read-tools-211`（转历史坐标）、`kimi-read-config-211`（转历史坐标）、`kimi-read-tools-038`、`qoder-tools-read-context` 6 个既有来源；Codex 5 个来源（`codex-tool-handlers`、`codex-shell-max-output-tokens`、`codex-exec-output-cap`、`codex-pty-output-cap`、`codex-view-image-spec`）与 Qwen 7 个来源（`qwen-read-file-source`、`qwen-truncate-settings`、`qwen-truncate-schema`、`qwen-truncate-config`、`qwen-file-utils-truncation`、`qwen-read-many-files-source`、`qwen-tool-output-offload-design`）全部前移坐标，以上被改写来源都只被本字段引用，共享来源未移动。
+- `site/execution-details.js`：跨产品事实第 6、7 条改写（Kimi 双上限与命名范围报错、状态块省略），新增第 8 条「非文本读取的边界各自独立」；Kimi 的 primitives/behavior/conditions 重写，Claude/Codex/Qwen/Qoder 的 conditions 补录与前移坐标。
+- `docs/06-任务执行与Git矩阵.md`、`docs/capabilities/execution/`：由 `npm run generate` 重新生成。
+- `docs/09-版本与证据.md`：五家核对日期推到 2026-11-01，主要材料各追加一段本次复核记录；「官方来源」表的执行与 Git 列更新 Claude、Kimi、Qoder 三家链接。
+- `README.md`：核对日期推到 2026-11-01，能力字段总数维持 115。
