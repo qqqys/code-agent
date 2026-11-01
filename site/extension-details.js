@@ -246,112 +246,149 @@
         '五家当前都采用包含 `SKILL.md` 的目录结构，并允许把辅助文件与入口指令放在同一 Skill 包内。',
         'Codex 使用通用 `.agents/skills` 目录和 `$skill` 显式引用；Kimi Code 的明确命名空间是 `/skill:<name>`；其余三家支持 `/<skill-name>`。',
         'Skill 可被模型自动选择不代表一定执行；描述匹配、可用路径、禁用配置和同名优先级都会改变最终加载结果。',
-        '禁用粒度不对齐：Qwen Code 用 `skills.disabledLevels` 整体关闭某个发现层级（`project`/`user`/`extension`/`bundled`），Claude Code 用 `disableBundledSkills` 只关内置层并以 `skillOverrides` 逐个控制，Codex 按 `SKILL.md` 路径在 `[[skills.config]]` 逐个禁用，Kimi Code 只在 frontmatter 逐个关闭模型自动调用，Qoder CLI 无独立技能软禁用、只能停用承载插件或删除目录。',
-        'Kimi Code 在 main 分支支持一条提示词引用多个 Skill 并同时激活：空白字符后输入 `/` 插入 Skill token，全部引用与提示词作为同一轮次运行、一次 `/undo` 整体撤销（尚未发布）；其余四家已固定的一手文档没有描述等价的单条提示词多 Skill 显式激活行为。',
+        '项目级 Skill 的发现宽度差别很大：Claude Code 从启动目录一路向上到仓库根都加载 `.claude/skills/`，启动目录之下的嵌套目录在 Claude 首次读写该子目录文件时才加载，`--add-dir`／`/add-dir`（以及 Agent SDK 的 `additionalDirectories`／`add_dirs`，因为它们以 `--add-dir` 传入）目录也加载并带 live reload，而设置键 `permissions.additionalDirectories` 只给文件访问；Codex 仓库层 “scans `.agents/skills` in every directory from your current working directory up to the repository root”；Qoder CLI 自 CLI 1.1.28（2026-08-21）起 “Added automatic loading of skills in a directory added with `/add-dir`”；Kimi Code 在 main 分支把每个已配置源目录的项目级 Skill 合并进同一列表（尚未发布）。只有 Qwen Code 的项目层始终只认单一 `getProjectRoot()`，`skills.directories` 是显式清单且按 user 层加载。持久化边界也不同：Kimi Code 把目录「记住到工作区」后它就长期作为共享源目录贡献 Skill，而 Claude Code 唯一能跨会话持久化附加目录的键 `permissions.additionalDirectories` 明确不加载 Skill，官方文档没有把「加载 Skill 的附加目录」持久化的办法。',
+        '同名处理有五种口径：Claude Code “Enterprise over personal, and personal over project”，与 added directory 的 Skill 冲突时后者改用前缀名（如 `/cli:verify`，需 v2.1.309 及以上）、两个 added directory 之间先加入者胜；Codex 明确不合并——“If two skills share the same `name`, Codex doesn\'t merge them; both can appear in skill selectors.”；Qwen Code “the first one found wins: project, then personal (including custom directories), then extension, then bundled”；Kimi Code 按 Project > User > Extra > Built-in，多目录时主目录优先、附加目录按工作区顺序；Qoder CLI 按 built-in < plugins < project-level < user-level，即用户级压过项目级。',
+        '禁用粒度不对齐：Qwen Code 用 `skills.disabledLevels` 整体关闭某个发现层级（`project`/`user`/`extension`/`bundled`），Claude Code 用 `disableBundledSkills` 只关内置层并以 `skillOverrides` 逐个控制，Codex 按 `SKILL.md` 路径在 `[[skills.config]]` 逐个禁用，Kimi Code 只在 frontmatter 逐个关闭模型自动调用（层级侧仅 `builtin_product_skills` 能关掉介绍自身的那部分内置 Skill），Qoder CLI 现行文档没有任何 Skill 软禁用键、更新日志提到的 `settings.skills.disabled` 在设置参考里没有对应行。',
+        'Kimi Code 支持一条提示词引用多个 Skill 并同时激活：空白字符后输入 `/` 插入 Skill token，全部引用与提示词作为同一轮次运行、一次 `/undo` 整体撤销，该行为已随 0.37.0（2026-08-18）发布并存在于当前稳定版 2.4.1；其余四家已固定的一手文档没有描述等价的单条提示词多 Skill 显式激活行为。',
       ],
       products: {
         claude: {
           entry:
             '显式使用 `/<skill-name>`；未关闭自动调用时，Claude 也可根据 Skill 描述自行选择。',
           location:
-            '用户目录 `~/.claude/skills/<name>/SKILL.md`；项目目录 `.claude/skills/<name>/SKILL.md`；Plugin 可携带 Skills。',
+            '官方 `## Choose where skills load` 表有七行：Enterprise（managed settings 目录下的 `.claude/skills/<skill-name>/SKILL.md`）、Personal `~/.claude/skills/`、Project `.claude/skills/`、Nested `<subdir>/.claude/skills/`、Additional directory（“a directory you pass with `--add-dir`”，作用范围 “That session.”）、Plugin `<plugin>/skills/`（以 `/plugin-name:skill-name` 出现）与 claude.ai account 同步的 Skills。',
           behavior:
             '先发现名称和描述，需要时再读取完整 SKILL.md，并可继续打开同目录脚本、参考资料和模板。',
           scope:
-            '项目 Skill 随仓库共享，用户 Skill 在本机多项目复用；Plugin Skill 随插件启用。',
+            '项目层不止一个目录：“Claude Code loads project skills from `.claude/skills/` in the directory where you start it and in every parent directory up to the repository root”，`/cd` 移动会话（v2.1.246 及以上）会把新目录的项目 Skill 加进来；启动目录**之下**的 `.claude/skills/` 启动时不加载，“They load the first time Claude reads or edits a file in that subdirectory and stay available for the rest of the session.”，要提前加载可用 `/add-dir <子目录>`（需 v2.1.257 及以上）。项目外目录也贡献 Skill：“When you add a directory with `--add-dir` or `/add-dir`, Claude Code loads the skills in that directory\'s `.claude/skills/`, along with its `.claude/commands/` and `.claude/agents/.”，Agent SDK 的 `additionalDirectories`（TS）与 `add_dirs`（Python）因为以 `--add-dir` 传入所以同样加载；但设置键 `permissions.additionalDirectories` “grants file access only and loads none of these”，Permissions 页的加载表把 Skills 记为 “Yes, with live reload”、`.claude/commands/` 与 `.claude/agents/` 记为 “Yes, without live reload”。这些加载依赖默认开启的 `project` setting source，`strictPluginOnlyCustomization` 策略、bare mode 与 `--safe-mode` 会进一步收紧（`--bare` 行仍写明 “Skills in a directory you pass with `--add-dir` still load.”）。Worktree 会话只向上搜到 worktree 根，v2.1.277 起当 worktree 检出根没有 `.claude/skills` 时改读主检出的项目 Skill。版本时间线取自官方更新日志：v2.1.32 “Skills defined in `.claude/skills/` within additional directories (`--add-dir`) are now loaded automatically.”，v2.1.257 让 `/add-dir` 接受当前工作目录之内的目录并 “loads that directory\'s skills, commands, and agents like `--add-dir` does at startup”，v2.1.309 “Fixed a skill in an `--add-dir` folder being unreachable when another skill already held its name; it is now offered as `<folder>:<name>`”。官方五页文档都没有 multi-root／workspace source directory 一类词汇，模型是「一个主工作目录 + 若干附加目录」；由于唯一能跨会话持久化附加目录的键 `permissions.additionalDirectories` 明确不加载 Skill，**没有文档化的办法把「加载 Skill 的附加目录」持久化到下一次会话**，这一点与 Kimi Code「把目录记住到工作区即成为共享源目录」不同。',
           components:
-            '`SKILL.md` 前置元数据、正文指令，以及可选脚本、资源和嵌套目录。',
+            '`SKILL.md` 前置元数据、正文指令，以及可选脚本、资源和嵌套目录。企业、个人与项目位置的 `<skill-name>` 可以是指向别处的符号链接，多处指向同一目标时只加载一次。',
           loading:
-            '运行中检测 Skill 变化；Skills 与旧式 `.claude/commands` 在 Slash 命令界面合并呈现。',
+            '官方逐字为 “Claude Code watches skill directories for file changes, except in bare mode. When you add, edit, or remove a skill under `~/.claude/skills/`, the project `.claude/skills/`, or a `.claude/skills/` inside an `--add-dir` directory, Claude Code picks up the change within the current session, without a restart.”；会话启动后才创建的顶层 skills 目录要用 `/reload-skills`——命令参考页的描述是 “Re-scan skill and command directories so skills added or changed on disk during the session become available without restarting. Reports how many skills are available and how many were added or removed”，且此后每次改动都要再跑一次；“Live change detection covers `SKILL.md` text only.”，同时是插件的 Skill 文件夹改 `hooks/`、`.mcp.json`、`agents/`、`output-styles/` 需 `/reload-plugins`；`--add-dir` 目录的 `.claude/commands/` 与 `.claude/agents/` 不被监听，改后要重启会话。Skills 与旧式 `.claude/commands` 在 Slash 命令界面合并呈现。',
           permissions:
-            'Skill 只是指令与资源包；其中要求调用的工具仍经过 Claude Code 权限规则。',
+            'Skill 只是指令与资源包；其中要求调用的工具仍经过 Claude Code 权限规则。v2.1.282 起修掉了仓库、用户与 `--add-dir` 三类 Skill（以及 commands 与 skills 目录型插件 manifest）在托管 `allowManagedPermissionRulesOnly` 下用自带 `allowed-tools` 自我预授权的问题。',
           conditions:
-            '同名 Skill 与旧式 Command 需要避免冲突。禁用分多层：`skillOverrides` 按名称设 `on`/`name-only`/`user-invocable-only`/`off`（`/skills` 写入 `.claude/settings.local.json`，不影响 Plugin Skill）；`disableBundledSkills` 关闭除 `/doctor` 外的全部内置 Skill；`/permissions` 可用 `Skill`、`Skill(name)`、`Skill(name *)` 拒绝；SKILL.md 可用 `disable-model-invocation`、`user-invocable`、`paths` 收窄。',
-          sources: ['claude-skills', 'claude-settings'],
+            '同名规则由 `### Resolve skills that share a name` 表给出：“Enterprise over personal, and personal over project.”；与 bundled Skill 或 built-in 命令同名时 “Your skill replaces the bundled command, but not its aliases.”；与 `.claude/commands/` 里的文件同名时跑 Skill；项目根与嵌套 Skill 同名时 “Both load.”，嵌套的以 `/apps/web:deploy` 形式目录限定调用；与企业／个人／项目 Skill 同名时 added directory 的 Skill 走前缀名，两个 added directory 之间 “The skill from the directory added first, in `--add-dir` or `/add-dir` order.”；plugin Skill “Both load, because plugin skills are namespaced as `/plugin-name:skill-name`”。added directory 的前缀规则为 “The added directory\'s folder name, then the skill directory name. When two added directories share a folder name, the prefix starts with the parent folder\'s name. Requires v2.1.309 or later”。禁用分多层：`skillOverrides` 按名称设 `on`/`name-only`/`user-invocable-only`/`off`（`/skills` 写入 `.claude/settings.local.json`，不影响 Plugin Skill）；`disableBundledSkills` 关闭除 `/doctor` 外的全部内置 Skill；`/permissions` 可用 `Skill`、`Skill(name)`、`Skill(name *)` 拒绝；SKILL.md 可用 `disable-model-invocation`、`user-invocable`、`paths` 收窄。另有保留名限制：`synced` 与 `anthropic-skills`（或 `anthropic-skills:` 前缀）在插件外不加载，名称含零宽空格或 `<` 等字符的 Skill 文件夹不加载。',
+          sources: [
+            'claude-skills',
+            'claude-skills-discovery-scope',
+            'claude-skills-add-dir-changelog',
+            'claude-commands',
+            'claude-settings',
+          ],
         },
         codex: {
           entry:
             '使用 `$skill-name` 显式引用，或通过 `/skills` 浏览；Codex 也可按描述自动匹配。',
           location:
-            '项目从当前目录向仓库根查找 `.agents/skills`；用户目录 `~/.agents/skills`；管理员目录 `/etc/codex/skills`；另有系统内置 Skills。',
+            '仓库层是 `.agents/skills`，且**cwd 到仓库根之间每一级目录都扫**——官方逐字为 “For repositories, Codex scans `.agents/skills` in every directory from your current working directory up to the repository root.”，位置表把 `REPO` 拆成 `$CWD/.agents/skills`、`$CWD/../.agents/skills` 与 `$REPO_ROOT/.agents/skills` 三行；用户层 `~/.agents/skills`，管理员层 `/etc/codex/skills`，另有系统内置 Skills。源码 `host_roots.rs` 还保留已弃用的 `$CODEX_HOME/skills`（注释 “Deprecated user skills location (`$CODEX_HOME/skills`), kept for backward compatibility.”）。',
           behavior:
             '启动时发现 Skill 元数据，触发后按需读取 SKILL.md 和相关资源。',
           scope:
-            '仓库路径、用户、管理员和系统四层来源；项目层可随代码共享。',
+            '仓库、用户、管理员和系统四层来源；仓库层可随代码共享，且因为逐级扫描，monorepo 根的 `.agents/skills` 对每个子包都可见。同名不合并——官方逐字为 “If two skills share the same `name`, Codex doesn\'t merge them; both can appear in skill selectors.”，因此仓库层多个目录里的同名 Skill 会同时出现在选择器里，这与另外四家「高优先级来源覆盖」的口径不同。没有 `--add-dir` 一类把额外工作目录纳入 Skill 发现的旗标或配置键，仓库层范围完全由项目根 marker（可由配置层覆盖，回落到默认 marker 集合）与 cwd 决定。',
           components:
             '`SKILL.md`、可选脚本、模板、示例与参考资料。',
           loading:
-            'Skill 列表随客户端发现结果提供；修改后的重新发现时机取决于当前客户端会话。',
+            '官方口径为 “Codex detects skill changes automatically. If an update doesn\'t appear, restart Codex.” 与新装 Skill 的 “Codex detects newly installed skills automatically; if one doesn\'t appear, restart Codex.”，全页没有手动刷新命令。源码侧对每个候选目录并发探测（`buffered(MAX_CONCURRENT_ANCESTOR_PROBES)`），stat 失败只记 `failed to stat repo skills root …` 警告并继续，最后按路径去重、保留首次出现者，顺序为项目根在前、cwd 在后。',
           permissions:
             'Skill 不扩大工具授权；脚本和命令仍受审批、沙箱及组织配置约束。',
           conditions:
-            'Codex 当前项目目录是 `.agents/skills`，不是旧对照表中的 `.codex/skills`。逐个禁用可在 `~/.codex/config.toml` 的 `[[skills.config]]` 中按 `path` 指向 `SKILL.md` 并设 `enabled = false`（需重启）；SKILL.md 元数据 `allow_implicit_invocation: false` 禁止隐式调用但保留 `$skill` 显式调用。',
-          sources: ['codex-skills', 'codex-config-reference'],
+            'Codex 当前项目目录是 `.agents/skills`，不是旧对照表中的 `.codex/skills`。逐个禁用可在 `~/.codex/config.toml` 的 `[[skills.config]]` 中按 `path` 指向 `SKILL.md` 并设 `enabled = false`，官方逐字为 “Use `[[skills.config]]` entries in `~/.codex/config.toml` to disable a skill without deleting it:” 与 “Restart Codex after changing `~/.codex/config.toml.”；SKILL.md 元数据 `allow_implicit_invocation: false` 禁止隐式调用但保留 `$skill` 显式调用。项目根 marker 为空时项目根即 cwd，此时仓库层只剩 cwd 一级。',
+          sources: [
+            'codex-skills',
+            'codex-skills-repo-scan',
+            'codex-skill-host-roots',
+            'codex-config-reference',
+          ],
         },
         qwen: {
           entry:
             '使用 `/<skill-name>` 或 `/skills` 显式选择；模型也可根据 Skill 描述自动调用。',
           location:
-            '用户目录 `~/.qwen/skills`，项目目录 `.qwen/skills`，Extension 可携带 Skills。',
+            '官方 `## View available Skills` 逐字列出五类来源：Personal `~/.qwen/skills/` 与 `~/.agents/skills/`、Project `.qwen/skills/` 与 `.agents/skills/`、Custom directories（`skills.directories` 里列出的路径，“loaded as personal Skills”）、Extension Skills 与 Bundled Skills。项目层只按单一 `getProjectRoot()` 展开，不按额外工作目录扩展。',
           behavior:
             '按需读取 SKILL.md，并可访问 Skill 目录中的脚本、文档和其他资源。',
           scope:
-            '项目、用户和 Extension 来源合并。`skills.disabledLevels` 可整体跳过 `project`、`user`、`extension`、`bundled` 任一发现层级（默认 `undefined`，跨作用域取并集，`requiresRestart`）；`skills.directories` 按 `user` 层发现，因此 `["user"]` 会一并隐藏。逐个控制另有 `skills.disabled`、`skills.enabled` 与 `skills.defaultDisabled`，但 `skills.enabled` 不能恢复已被 `disabledLevels` 排除的层级。',
+            '同名规则官方逐字为 “When two Skills share a name, the first one found wins: project, then personal (including custom directories), then extension, then bundled.”；每层内部另有品牌目录优先——`~/.qwen/skills/` 胜过 `~/.agents/skills/`、`.qwen/skills/` 胜过 `.agents/skills/`。`skills.directories` 的相对路径按工作目录而不是项目根解析，官方另写明这些 Skill 按 personal 加载因而其 `allowedTools` 与 hooks 不受 folder trust 门禁、只应指向自己控制的目录；schema 描述补充 “Each directory is scanned one level deep for subdirectories containing a SKILL.md file.” 与 “a custom skill with the same name as one in the default user directories will not override it”。`skills.disabledLevels` 可整体跳过 `project`、`user`、`extension`、`bundled` 任一发现层级（默认 `undefined`，跨作用域取并集，`requiresRestart`）；`skills.directories` 按 `user` 层发现，因此 `["user"]` 会一并隐藏。逐个控制另有 `skills.disabled`、`skills.enabled` 与 `skills.defaultDisabled`，但 `skills.enabled` 不能恢复已被 `disabledLevels` 排除的层级。官方文档与源码都没有把 `--include-directories`／`additionalDirectories` 的目录当作 Skill 根的说法。',
           components:
-            '`SKILL.md`、辅助文件和可执行脚本；内置 Skill 与外部 Skill 使用同一调用模型。',
+            '`SKILL.md`、辅助文件和可执行脚本；内置 Skill 与外部 Skill 使用同一调用模型。Extension Skill 注册名为 `<extensionName>:<name>`，只有 Extension Skill 加前缀。',
           loading:
-            '启动与刷新流程扫描可用目录；变更后的可见性受当前会话重新发现机制影响。',
+            '启动与刷新流程扫描可用目录；源码注释逐字为 “Only watch project and user skill directories for changes. Bundled skills are immutable (shipped with the package) and extension skills are managed by the extension system, so neither needs watching.”，watch 目标由 `project` 与 `user` 两层的 base dirs 得出，因此 `skills.directories` 里的目录同样被监听；层级加载顺序为 `[\'project\', \'user\', \'extension\', \'bundled\']`，safe mode 下只剩 `[\'bundled\']`，bare mode 下每层都直接返回空，项目根等于 home 目录时跳过 project 层。',
           permissions:
             'Skill 触发的工具继续经过 approval mode、沙箱和工具策略。',
           conditions:
-            'Slash 名称可能与内置命令、自定义 Command 或 MCP Prompt 冲突；加载器按来源和命令注册规则处理。`skills.disabledLevels` 在 safe mode、bare mode 下被忽略；daemon 在工作区未信任时也不读取。',
+            'Slash 名称可能与内置命令、自定义 Command 或 MCP Prompt 冲突；加载器按来源和命令注册规则处理。safe mode 只加载 bundled 层、bare mode 所有层返回空，因此 `skills.disabledLevels` 在这两种模式下没有额外作用；daemon 在工作区未信任时也不读取。`skills.directories` 与 `skills.disabledLevels` 都是 `requiresRestart: true`，其余三个 `skills.*` 键为 `false`；官方设置参考页在核对日期仍没有任何 `skills.*` 行。',
           status: '源码确认',
-          sources: ['qwen-skills-current', 'qwen-extensions-current', 'qwen-skills-disabled-levels'],
+          sources: [
+            'qwen-skills-current',
+            'qwen-skill-discovery-source',
+            'qwen-skills-directories-schema',
+            'qwen-extensions-current',
+            'qwen-skills-disabled-levels',
+          ],
         },
         kimi: {
           entry:
-            '明确调用为 `/skill:<name>`；没有命令冲突时也可使用 `/<name>`，模型还能自动选择。条件：在空白字符后（含后续行行首）输入 `/` 打开仅含 Skill 的补全菜单，可在一条提示词中插入多个 Skill 引用（main 分支，尚未发布）。',
+            '明确调用为 `/skill:<name>`；没有命令冲突时也可使用 `/<name>`，模型还能自动选择。在空白字符后（含后续行行首）输入 `/` 打开仅含 Skill 的补全菜单，可在一条提示词中插入多个 Skill 引用，该行为自 0.37.0 起随稳定版发布。',
           location:
-            '项目 `.kimi-code/skills`、`.agents/skills`；用户 `$KIMI_CODE_HOME/skills`、`~/.agents/skills`；另有额外目录和内置 Skills。',
+            '项目级为「项目根 = 工作目录向上最近的含 `.git` 的目录」下的 `.kimi-code/skills`、`.agents/skills`；用户级为 `$KIMI_CODE_HOME/skills`（默认 `~/.kimi-code/skills`）与 `~/.agents/skills`；`config.toml` 顶层 `extra_skill_dirs` 叠加额外目录；另有随 CLI 分发、优先级最低的内置 Skills，其中介绍 Kimi Code 自身的部分可用顶层 `builtin_product_skills` 关闭。条件：多目录工作区会为每个已配置源目录各按项目根规则发现项目级 Skill 并合并进同一列表（main `3ed0e68f3bbf`，尚未发布）。',
           behavior:
-            'Skill 被选中后读取 SKILL.md 和支持文件，可接收参数；支持有限层级的嵌套引用。条件：单条提示词的多个 Skill 引用经 `promptWithSkills` 打包进同一条用户消息一起激活，渲染的 Skill 块排在用户内容之前并与提示词作为同一轮次运行，一次 `/undo` 整体撤销，提示词原文保持不变；会话标题与 fork 的提示词摘录只取用户原文、不含 Skill 块。',
+            'Skill 被选中后读取 SKILL.md 和支持文件，可接收参数；官方逐字写「Skill 调用最多允许嵌套 3 层，超过后会被终止。」单条提示词的多个 Skill 引用经 `promptWithSkills` 打包进同一条用户消息一起激活，渲染的 Skill 块排在用户内容之前并与提示词作为同一轮次运行，一次 `/undo` 整体撤销，提示词原文保持不变；会话标题与 fork 的提示词摘录只取用户原文、不含 Skill 块。条件：合并后的列表仍是列出、`/skill:` 激活与模型自动调用的唯一来源，官方写明 “The existing catalog remains the single source for listing, slash activation, and model invocation. No REST response schema or Skill source type was added.”（main 分支，尚未发布）。',
           scope:
-            '优先级是 Project、User、Extra、Built-in；同名时高优先级来源覆盖低优先级来源。',
+            '文档口径为四档「Project > User > Extra > Built-in」，同名时高优先级来源覆盖低优先级来源；源码 `SKILL_SOURCE_PRIORITY` 实为五档 `{ builtin: 0, plugin: 5, extra: 10, user: 20, workspace: 30 }`，多出的 plugin 档位于 extra 与 builtin 之间且不参与裸名冲突，因为 Plugin Skill 只能用全限定名 `<plugin-id>:<skill-name>` 列出和调用。条件：多目录合并时同名优先级为「主目录优先；附加目录之间按工作区中的目录顺序」，实现上按 `[primary, cwd, ...sharedAdditionalDirs]` 逐个求项目根并保留首次出现顺序、按 realpath 去重，运行中切换主目录只改冲突优先级、不重建 program（main 分支，尚未发布）。',
           components:
             '`SKILL.md`、脚本、参考文件和其他同目录资源。',
           loading:
-            '启动时按配置目录发现；Plugin 也可携带 Skills，变化通常通过 `/reload` 或新会话生效。',
+            '启动时按配置目录发现；Plugin 也可携带 Skills，变化通常通过 `/reload` 或新会话生效，`/reload` 官方描述为「重新加载当前会话并应用最新的 `config.toml` 设置（供应商、模型等）和 `tui.toml` 界面偏好，无需重启 CLI；同时会把 AGENTS.md、Skill、subagent 及模型的外部变更告知 Agent」。条件：自动刷新受 `config.toml` 的 `[watch] enabled` 控制，默认开启并覆盖 local.toml、AGENTS.md、skills、MCP 配置与 `config.toml` 自身，设为 `false` 后进程内不挂任何 watcher、改文件要重启才会再读；多目录合并后按去重过的项目根各挂一个 watcher、候选目录为 `[.kimi-code/skills, .agents/skills]`、防抖 `WATCH_DEBOUNCE_MS = 200`，watch 签名同时包含 watches 与已扫描目录，因此共享目录增减与主目录变化都会重挂并刷新列表，单个 watcher 建立失败只记 `project skill watcher failed for <root>: <error>` 并继续其余项目根；会话创建改为先等 workspace reload 完成（main 分支，尚未发布）。',
+          surfaces:
+            '以 Kimi Code CLI 为准；ACP、Web UI 和外部编辑器只在对应能力中单独列出。多目录 Skill 合并的改动同时落在 TUI、node-sdk 与 kap-server，PR 行为变化表把受影响者记为 “Desktop/Web multi-directory projects and TUI/SDK workspaces”，并单列单目录与显式 `skillDirs` 场景为 “Unchanged | TUI, CLI, VS Code, ACP, SDK, Desktop, and Web users with one root or explicit Skill directories”。',
           permissions:
-            'Skill 内容不绕过 Kimi 的工具权限和交互模式。',
+            'Skill 内容不绕过 Kimi 的工具权限和交互模式。条件：未信任时的工作区披露改为用与会话创建相同的 helper 解析待定目录，并先 `reloadSources([\'workspace\'])` 再取列表，披露已配置源目录的 Skill 与规范化后的 session-only 目录路径、但不发现 session-only 目录里的 Skill（官方记为 “disclose session-only directory access without discovering their Skills”），TUI 侧 `getWorkspaceTrustInfo` 同步改为带上 `additionalDirs`、`environmentId` 与 `environmentCwd`（main 分支，尚未发布）。',
           conditions:
-            '无前缀 `/<name>` 只有在不与已有命令冲突时才作为回退；稳定写法是 `/skill:<name>`。逐个禁用只走 frontmatter：`disableModelInvocation: true`（别名 `disable-model-invocation`）禁止模型自动调用但仍可 `/skill:<name>` 手动调用，`type: flow` 仅手动调用；当前无按名称或按层级的禁用配置键。提示词中的 Skill 引用只按名称激活、不携带参数，参数仍是单独以 `/skill:<name> args` 调用时的概念；空白字符后的 `/` 只补全 Skill，内置命令和 plugin 命令仍须放在输入开头。单条提示词多 Skill 激活于 2026-08-16 合入 main（引擎提交 `61591bce09f4`、TUI 提交 `44a6c70e6676`），最新 Release 0.36.1 未包含；引擎侧 `promptWithSkills` 只在 v2 引擎实现，空提示词、空 Skill 列表或未知 Skill 在提交前整体拒绝，node-sdk `session.promptWithSkills` 在 v1 引擎报错。',
+            '无前缀 `/<name>` 只有在不与已有命令冲突时才作为回退；稳定写法是 `/skill:<name>`。逐个禁用只走 frontmatter：`disableModelInvocation: true`（别名 `disable-model-invocation`）禁止模型自动调用但仍可 `/skill:<name>` 手动调用，`type: flow` 仅手动调用；没有按名称的禁用配置键，层级侧只有 `builtin_product_skills`（默认 `true`，可由环境变量 `KIMI_CODE_BUILTIN_PRODUCT_SKILLS` 覆盖）整体关掉「介绍 Kimi Code 自身」的那部分内置 Skill。提示词中的 Skill 引用只按名称激活、不携带参数，参数仍是单独以 `/skill:<name> args` 调用时的概念；空白字符后的 `/` 只补全 Skill，内置命令和 plugin 命令仍须放在输入开头。单条提示词多 Skill 激活于 2026-08-16 合入 main（引擎提交 `61591bce09f4`、TUI 提交 `44a6c70e6676`），已随 Release `@moonshot-ai/kimi-code@0.37.0`（2026-08-18T11:23:11Z、`prerelease: false`）发布并存在于当前稳定版 2.4.1，**此前记录的「最新 Release 0.36.1 未包含」已作废**；但描述它的交互指南段落只存在于历史坐标 `44a6c70e6676`，2.4.1 与 main 的 `docs/zh/guides/interaction.md` 都已删去该段，现行 `docs/{zh,en}` 里只剩英文更新日志还留着原句。引擎侧 `promptWithSkills` 只在 v2 引擎实现，空提示词、空 Skill 列表或未知 Skill 在提交前整体拒绝，node-sdk `session.promptWithSkills` 在 v1 引擎报错。多目录合并只覆盖「已配置的源目录」：仅本次会话添加的目录（TUI `--add-dir`、SDK create/resume/add-dir）仍只扩大文件访问范围、不贡献 Skill，要纳入需用 `/add-dir` 选择把目录记入工作区注册表（`~/.kimi-code/projects.json`，`local.toml` 的 `additional_dir` 已是只读存量兼容字段）；`--skills-dir` 显式指定目录时整体替换自动发现的用户与项目目录、workspace 来源直接返回空 Skill 列表；`merge_all_available_skills`（默认 `true`）决定每个项目根是扫全部品牌目录还是只取第一个存在的。该改动在核对日期只存在于 main：2.4.1 与最新 canary `2.5.0-canary.20261030040529-bd0d4de` 都不含。',
           sources: [
             'kimi-skills-current',
+            'kimi-skills-main-multi-root',
+            'kimi-skills-en-main-multi-root',
+            'kimi-skills-config-keys',
+            'kimi-skill-source-priority',
+            'kimi-skills-dir-flag',
+            'kimi-multi-root-skills-pr',
+            'kimi-multi-root-skills-source',
+            'kimi-multi-root-skills-workspacedirs',
+            'kimi-multi-root-skills-unreleased',
             'kimi-plugins-current',
             'kimi-multi-skill-docs',
             'kimi-multi-skill-engine-commit',
             'kimi-multi-skill-tui-commit',
             'kimi-multi-skill-changeset',
+            'kimi-v0370-multi-skill-release',
           ],
         },
         qoder: {
           entry:
-            '使用 `/<skill-name>` 显式调用或由模型自动匹配；`/skills` 查看，`/skills reload` 重载。',
+            '使用 `/<skill-name>` 显式调用或由模型自动匹配；`/skills` 管理与查看（官方命令参考写 “Manage Skills.”，排障页写 “Use `/skills` to view the list of loaded skills.”），`/skills reload` 重载。内置 Skill 直接以 `/<name>` 出现，例如 `/simplify`。',
           location:
-            '用户目录 `~/.qoder/skills`，项目目录 `.qoder/skills`。',
+            '官方 Skills 页的位置表只有两行：用户目录 `~/.qoder/skills/{skill-name}/SKILL.md`（“All projects for current user”）与项目目录 `.qoder/skills/{skill-name}/SKILL.md`（“Current project only”）；排障页补充目录结构必须是 `skills/<name>/SKILL.md`。此外还有两类不写在该表的来源：Plugin 携带的 Skills，以及随 CLI 分发的 Built-in Bundled Skills（`loop`、`remember`、`run`、`run-skill-generator`、`batch`、`debug`、`quest`、`verify`、`security-scan`、`simplify`、`mcp-config`、`workflow-authoring` 共 12 个）。用 `/add-dir` 加入的目录也自动加载其中的 Skill（CLI 1.1.28 起）。',
           behavior:
-            '按需加载 SKILL.md，并让同目录资源参与任务。',
+            '官方分三步：“1. Discovery: At startup, Qoder CLI loads each Skill\'s name and description…  2. Activation: When a request matches a Skill\'s description, the model requests to use that Skill and loads the full `SKILL.md`. Some Skills can run without an extra confirmation; Skills that need additional capabilities may ask for approval. 3. Execution: The model executes according to Skill instructions, loading referenced files or running scripts as needed.”；并记 “Internally, Skills convert to a special Command type and share the same execution mechanism.”',
           scope:
-            '项目 Skill 覆盖同名用户 Skill；Plugin 也可分发 Skills。',
+            '来源优先级为 built-in < plugins < project-level < user-level，官方逐字为 “**Source Priority**: The source priority for skills is built-in \\< plugins \< project-level \< user-level. When names conflict, higher priority overrides lower priority.”，Skills 页同口径写 “When names conflict, user-level Skills override project-level Skills.”，**据此作废旧结论「项目 Skill 覆盖同名用户 Skill」**。额外目录一侧：`permissions.additionalDirectories` 官方描述为 “Additional trusted directories added to workspace context (corresponding to `/add-dir`).”，CLI 旗标 `--add-dir` 为 “Add Additional trusted directories for the current session (can be used multiple times).”，而更新日志 CLI 1.1.28 明确 “Added automatic loading of skills in a directory added with `/add-dir`”，即这些目录既进工作区上下文也贡献 Skill；该行为在现行 Skills 页与设置参考里没有对应文字。',
           components:
             '`SKILL.md` 与可选脚本、参考材料和资源。',
           loading:
-            '`/skills reload` 在当前会话重扫目录；Plugin Skills 随插件加载。',
+            '没有文件系统自动热更新：官方口径是 “New sessions load Skills at startup. If Qoder CLI is already running, use `/skills reload` to refresh the discovered Skills.”，改 `SKILL.md` 后同样 “run `/skills reload` to refresh the discovered Skills”；排障页把重载按对象拆开——“use `/memory` for memory, `/skills reload` for skills, and `/agents reload` for Agents; use `/commands` for custom commands”，并写 “If the above methods do not work, restart Qoder CLI; some loading-related configurations are marked as \'requires restart\' and require a restart after modification.”。Plugin Skills 随插件加载。',
           permissions:
-            'Skill 要求的工具调用继续走 Qoder CLI permission rules。',
+            'Skill 要求的工具调用继续走 Qoder CLI permission rules；官方 Activation 一步区分 “Some Skills can run without an extra confirmation; Skills that need additional capabilities may ask for approval.”。另有门禁：`/skills` “Requires Skills support and administrator permissions to be enabled.”，Skills 属 “only appear when the corresponding capabilities are enabled” 的功能开关项，被管理策略关闭时 “`/skills` will prompt that they are disabled”。',
           conditions:
-            '项目目录适合随仓库共享，用户目录适合个人复用；同名覆盖需要结合来源检查。独立 user/project Skill 无设置级软禁用，官方文档只给出删除目录；插件携带的 Skill 随插件停用（`enabledPlugins` 或 `qodercli plugins disable`，停用插件在新会话不再加载）。',
-          sources: ['qoder-skills', 'qoder-plugins'],
+            '同名冲突的官方建议只有描述层面——“When the CLI confuses similar Skills, use different trigger terms in descriptions to distinguish them.”；另有 Conditional Skill 机制：“Activated only when the file path matches; otherwise, it does not appear.”。内置 Skill 有前置条件，不满足时不出现在可用列表（如 `batch` 要求当前目录是 Git 仓库、`workflow-authoring` 要求 workflows 与 Skills 可用），且 `/debug`、`/security-scan`、`/batch` 只能显式调用。软禁用方面：现行文档没有任何 Skill 软禁用键，官方 Skills 页只给出编辑或删除目录；更新日志 CLI 1.1.30 有 “Fixed settings.skills.disabled not applying to built-in bundled skills”，说明存在 `settings.skills.disabled`，但设置参考页在核对日期没有任何 `skills.*` 行，键名与取值未确认。插件携带的 Skill 随插件停用（`enabledPlugins` 或 `qodercli plugins disable`，停用插件在新会话不再加载）。更新日志另有 `.agents/skills` 兼容来源的三条——CLI 1.1.6 “Added settings configuration to control skill loading from the .agents directory”、CLI 1.1.7 “Added the .agents/skills compatibility toggle to /settings”、CLI 1.1.11 “The .agents/skills compatibility source is now enabled by default”，以及 CLI 1.1.9 “Skill directories are now scanned recursively, with a visible warning when a declared directory contains no skills”，这些在现行 Skills 页与设置参考里都没有对应文字，开关名与递归范围未确认。',
+          sources: [
+            'qoder-skills',
+            'qoder-skill-source-priority',
+            'qoder-builtin-skills',
+            'qoder-add-dir-skills',
+            'qoder-plugins',
+          ],
         },
       },
       related: [
