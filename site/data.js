@@ -114,6 +114,11 @@ window.matrixData = {
       label: 'Claude Code Manage sessions',
       url: 'https://code.claude.com/docs/en/sessions',
     },
+    'claude-sessions-branch': {
+      label:
+        'Claude Code Manage sessions 的 “Branch a session” 一节与相关段落（2026-11-04 以 `.md` 形式复核，全页 34,259 字节）：节首逐字为 “Branching creates a copy of the conversation so far and switches you into it, leaving the original intact. Use it to try a different approach without losing the path you were on.”、“From inside a session, run `/branch` with an optional name:”（示例 `/branch try-streaming-approach`）、“If you omit the name, Claude Code names the new branch after the first prompt in the conversation.”、“From the command line, combine `--continue` or `--resume` with `--fork-session`:”（示例 `claude --continue --fork-session`）；确认信息逐字为 “The `/branch` confirmation prints two session IDs: the new branch you are now in and the original. The original is unchanged on disk and remains in the session picker; return to it with `/resume <original-name>` or by passing its ID to `/resume`.”；继承表 `| State | After /branch |` 四行逐字为 “Conversation history | Copied into the branch up to the point you ran `/branch`”、“"Allow for this session" permission grants | Carried over; the branch runs in the same process, so your existing grants still apply. If you fork into a separate process with `--fork-session`, the new process starts without them and you re-approve there”、“In-flight background subagents and background Bash commands | Keep running. Their output appears in the new branch you switched into, not in the original session” 与 “Remote Control connection | Stays connected. A phone or browser connected to the session follows you into the branch and keeps receiving new messages there”；选择器一节写 “Sessions created with `/branch` or `--fork-session` get their own session IDs and appear as separate rows. When the picker finds more than one entry for the same session, it groups them under a single row. Press `→` to expand a group.”，同表另有 `Ctrl+B` “Filter to sessions from the current git branch. Press again to show all branches”；恢复运行中后台会话一节写 “Add `--fork-session` to resume a copy of the conversation instead.”；权限模式一节写 “If you pass `--permission-mode`, `--dangerously-skip-permissions`, or `--fork-session`, Claude Code doesn\'t restore plan mode.”，恢复表 `plan` + Terminal 行为 “Plan mode. With `--fork-session`, the permission mode a new session would start in”，`-p` 恢复 plan 模式列出的条件之一是 “You don\'t pass `--fork-session`”；一节末尾警告 “If you resume the same session in two terminals without forking, messages from both interleave into one transcript.”',
+      url: 'https://code.claude.com/docs/en/sessions#branch-a-session',
+    },
     'claude-checkpointing': {
       label: 'Claude Code Checkpointing',
       url: 'https://code.claude.com/docs/en/checkpointing',
@@ -910,8 +915,29 @@ window.matrixData = {
       url: 'https://github.com/openai/codex/commit/2801d12661bea3c7ff1a6a39c810348222453a27',
     },
     'codex-exec-fork': {
-      label: 'Codex exec session fork',
+      label:
+        'Codex exec session fork 合入提交（`80858a8cce7f3ba0aaf6a76ad9462dca1604daeb`，2026-08-07 合入 main）：此前记录为「尚未进入 Release、官方非交互文档未列出」，2026-11-04 复核后作废——官方 Developer commands 页已把 `codex exec fork <SESSION_ID> [PROMPT]` 写进 `### codex exec` 一节，且 `codex-rs/exec/src/lib.rs` 在最新稳定 Release rust-v0.166.0（2026-10-29T19:50:20Z）的代码树里已有 `ExecCommand::Fork` 分支与三条 fork 报错',
       url: 'https://github.com/openai/codex/commit/80858a8cce7f3ba0aaf6a76ad9462dca1604daeb',
+    },
+    'codex-fork-doc': {
+      label:
+        'Codex Developer commands 页的 `### codex fork` 与 `### codex exec` 两节（2026-11-04 以 `.md` 形式复核，58,726 字节）：`codex fork` 一节逐字为 “Fork a previous interactive session into a new chat. By default, `codex fork` opens the session picker. Use `--last` to fork the most recent session in the current directory. Use `--last --all` to fork the most recent session across all directories.”、“When the current and saved session directories differ, `codex fork` uses the same working-directory prompt and `tui.resume_cwd` setting as `codex resume`.” 与 “To fork into a managed Git worktree, run `codex fork <SESSION_ID> --worktree`. This requires an explicit session ID and local execution; it doesn\'t support `--last` or the session picker.”；`codex exec` 一节逐字为 “Use `codex exec fork <SESSION_ID> [PROMPT]` to copy a saved session into a new session. The session argument accepts a UUID or name. With no prompt, Codex creates the fork without starting a turn. Pass `-` as the prompt to read it from stdin, or add `--image` to attach images.”、“A prompt is required when using images, `--output-schema`, `--output-last-message`, or `--ephemeral`.”、“Add `--worktree` to a new or forked run to create a managed Git worktree:”（示例 `codex exec fork <SESSION_ID> --worktree "try an alternative approach"`）与 “`--worktree` requires local execution. Don\'t combine it with `resume`, `review`, `--ephemeral`, or `--ignore-user-config`.”；`### Fork the current chat with /fork` 一节逐字为 “1. Type `/fork` and press Enter. 2. If Codex offers a checkout choice, choose the current directory or a new worktree.” 与 “Expected: Codex clones the current chat into a new chat with a fresh ID, leaving the original transcript untouched so you can explore an alternative approach in parallel.”，并写 “If you need to fork a saved session instead of the current one, run `codex fork` in your terminal to open the session picker.”；Slash 命令表 `/fork` 行逐字为 “Fork the current chat into a new chat.” 与 “Branch the active session to explore a new approach without losing the current transcript.”；Interactive shortcuts 一节另有 “Press Escape twice with an empty composer to edit the previous user message and fork the chat from that point.”；`### Start a side chat with /side` 一节写 “Use `/side` to start an ephemeral fork from the current chat without switching away from the main chat.” 且 “`/side` is unavailable inside another side chat and during review mode.”',
+      url: 'https://developers.openai.com/codex/cli/slash-commands#codex-fork',
+    },
+    'codex-fork-v0166-cli': {
+      label:
+        'Codex rust-v0.166.0 的 `codex-rs/cli/src/main.rs`（183,678 字节）：`Subcommand` 枚举含 `Fork(ForkCommand)`，doc comment 逐字为 “Fork a previous interactive session (picker by default; use --last to fork the most recent).”；`struct ForkCommand` 字段为 `session_id: Option<String>`（`#[arg(value_name = "SESSION_ID")]`，注释 “Conversation/session id (UUID). When provided, forks this session. If omitted, use --last to pick the most recent recorded session.”）、`last: bool`（`#[arg(long = "last", default_value_t = false)]`，注释 “Fork the most recent session without showing the picker.”）、`all: bool`（`#[arg(long = "all", default_value_t = false)]`，注释 “Show all sessions (disables cwd filtering and shows CWD column).”）加 `InteractiveRemoteOptions` 与 `SessionTuiCli`；`reject_unsupported_worktree_for_subcommand()` 的报错逐字为 “`codex fork --worktree` requires an explicit session ID”、“`--worktree` cannot resume an existing session; use `codex exec fork --worktree`”、“`--worktree` is not supported for code review” 与 “`--worktree` supports new interactive sessions, `codex fork`, `codex exec`, and `codex exec fork`”',
+      url: 'https://github.com/openai/codex/blob/rust-v0.166.0/codex-rs/cli/src/main.rs',
+    },
+    'codex-fork-v0166-exec': {
+      label:
+        'Codex rust-v0.166.0 的 `codex-rs/exec/src/lib.rs`（92,377 字节）：`ExecCommand::Fork(args)` 分支在无提示词时产出 `InitialOperation::ForkOnly` 与空提示词，三条报错逐字为 “Forking with images requires a prompt”、“Forking with output options requires a prompt” 与 “Ephemeral forks require a prompt”，另有 “Forking with --cyber-access-program requires a prompt”；fork 通过 app-server 的 `ClientRequest::ThreadFork` 发送并读取 `ThreadForkResponse`，`worktree::fork_source(...)` 与 `worktree::ForkNetwork` 负责 `--worktree` 分支的工作区来源',
+      url: 'https://github.com/openai/codex/blob/rust-v0.166.0/codex-rs/exec/src/lib.rs',
+    },
+    'codex-v0166-release': {
+      label:
+        'Codex rust-v0.166.0 Release（2026-11-04 由官方 releases.atom 复核，`<published>` 为 2026-10-29T19:50:20Z）：核对日期最新的非 alpha Release，其代码树同时包含 `codex fork` 与 `codex exec fork`；更新的 rust-v0.167.0-alpha.1 至 rust-v0.167.0-alpha.5 与 rust-v0.168.0-alpha.1 都是 alpha 通道',
+      url: 'https://github.com/openai/codex/releases/tag/rust-v0.166.0',
     },
     'codex-v0162-release': {
       label: 'Codex rust-v0.162.0 发布说明（apply_patch 无条件保留换行）',
@@ -1540,6 +1566,16 @@ window.matrixData = {
       label: 'Qwen Code current commands',
       url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/commands.md',
     },
+    'qwen-branch-recheck-20261104': {
+      label:
+        'Qwen Code 命令文档在提交 `8e9b429ff85d5c17f0bf8c33955dbca62664810b`（2026-11-04T16:51:22Z，核对日期的 main HEAD）下的 `docs/users/features/commands.md`（79,175 字节）：会话分支相关两行逐字未变，第 31 行为 “| `/branch`        | Fork the current conversation into a new session                         | `/branch`                                                     |”，第 32 行为 “| `/fork`          | Spawn a background agent that inherits the full conversation             | `/fork <directive>`                                           |”；据此确认 `/branch` 仍是会话分支入口、`/fork` 仍是继承完整对话的后台 Agent',
+      url: 'https://github.com/QwenLM/qwen-code/blob/8e9b429ff85d5c17f0bf8c33955dbca62664810b/docs/users/features/commands.md',
+    },
+    'qwen-branch-route-recheck-20261104': {
+      label:
+        'Qwen Code 在提交 `8e9b429ff85d5c17f0bf8c33955dbca62664810b` 下的 `packages/cli/src/serve/routes/session.ts`（414,985 字节）：`atRecordId` 出现 23 次，`branch_point_invalid` 与 `session_busy` 仍是分支路由的错误种类（第 5689、6066、6068 行），`runtime.bridge.branchSession(...)` 在带与不带 `atRecordId` 两条路径上都被调用（第 5995、6127 行），第 738 行的报错文案是 “`atRecordId` must be a non-empty record id”、第 5688 行是 “`atRecordId` must be a string”；据此确认 v0.21.13 引入的历史分支路由在核对日期仍然存在',
+      url: 'https://github.com/QwenLM/qwen-code/blob/8e9b429ff85d5c17f0bf8c33955dbca62664810b/packages/cli/src/serve/routes/session.ts',
+    },
     'qwen-memory-current': {
       label: 'Qwen Code current memory',
       url: 'https://github.com/QwenLM/qwen-code/blob/8a44b1b9f79341a0faca9814fb1b57f0f1b354a2/docs/users/features/memory.md',
@@ -2090,16 +2126,64 @@ window.matrixData = {
       url: 'https://github.com/MoonshotAI/kimi-code/blob/c9f01f07388abc2cdca40c9c5267f58c65086710/docs/zh/reference/slash-commands.md',
     },
     'kimi-fork-stay': {
-      label: 'Kimi Code /fork stay-in-session commit',
+      label:
+        'Kimi Code `/fork` 不再切换到派生会话的提交（`54c04bf03ddbeb46d02b2edb460ea091ae194509`，PR #2565）：官方 CHANGELOG 在 `## 0.33.0` 段逐字记 “`/fork` no longer switches to the forked session: the current session stays active and its background tasks keep running. Find the fork in `/sessions`.”',
       url: 'https://github.com/MoonshotAI/kimi-code/commit/54c04bf03ddbeb46d02b2edb460ea091ae194509',
     },
     'kimi-fork-resume-command': {
-      label: 'Kimi Code /fork resume command print commit',
+      label:
+        'Kimi Code `/fork` 恢复命令打印提交（`6b72345f8bb03487e3bcc05b541e65484818428c`，PR #2940，2026-08-15 合入 main）：官方 CHANGELOG 在 `## 0.37.0` 段逐字记 “Print and copy the full `kimi --resume` command after `/fork`.”；此前记录为「尚未发布」，2026-11-04 复核后作废——npm 上 `@moonshot-ai/kimi-code@0.37.0` 的发布时间是 2026-08-18T11:23:08.390Z，且 2.4.1 与 2.5.0 两个 tag 下 `apps/kimi-code/src/tui/commands/session.ts` 都仍含 `forkResumeCommand` 与三条剪贴板提示',
       url: 'https://github.com/MoonshotAI/kimi-code/commit/6b72345f8bb03487e3bcc05b541e65484818428c',
     },
     'kimi-v0361-release': {
-      label: 'Kimi Code 0.36.1 release notes',
+      label:
+        'Kimi Code 0.36.1 release notes：官方 CHANGELOG 在 `## 0.36.1` 段逐字记 “Show a clear error when forking a session while its turn is running, instead of copying a partially written turn.”（PR #2916，提交 `7475c2e2e3dd86ac0b8a8d51d4f1d233ed7df797`），该提交新增的 `.changeset/fork-busy-rejection.md` 与 `.changeset/sdk-v2-fork-turn.md` 逐字分别为 “Show a clear error when forking a session while its turn is running, instead of copying a partially written turn.” 与 “Support forking a session from a specific turn in the v2-backed client, and reject forking a live session while its turn is running.”，实现里抛出的消息是 `Session "<id>" cannot be forked while a turn is running`；**这条「回合运行中 fork 报错」的行为已被 2.5.0（PR #4544）移除**，npm 上 0.36.1 的发布时间是 2026-08-14T12:53:34.177Z',
       url: 'https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%400.36.1',
+    },
+    'kimi-v250-release': {
+      label:
+        'Kimi Code 2.5.0 Release（GitHub `<published>` 为 2026-11-04T11:52:02Z，Release 页指向提交 `41c341434ae24e45bfe0f2232ec11b80531ac717`；npm `@moonshot-ai/kimi-code@2.5.0` 发布于 2026-11-04T11:59:13.163Z 且是当前 `latest` dist-tag）：核对日期最新稳定版，会话分支相关条目是 Minor Changes 里的 “Add support for forking running sessions and forking from a selected historical turn.”（PR #4544，提交 `e24e1e1`）、“Allow /model and /effort while the agent is working…” 与 “Merge skills from every configured directory…”；Patch Changes 里另有 “Fix forked sessions getting their titles overwritten by auto-generated titles.” 属 2.1.0、“Cron tasks from the source session no longer fire inside a forked session.” 属 2.2.0',
+      url: 'https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%402.5.0',
+    },
+    'kimi-fork-running-turns': {
+      label:
+        'Kimi Code PR #4544 合并提交（`e24e1e1919d729edaa8fe0d60b820cd8f4fdd2b5`，author date 2026-11-02T05:26:33Z）：提交信息为 “feat(agent-core-v2): support running session forks by turn (#4544)”，分提交含 “feat(agent-core-v2): support forking running sessions / Keep source turns running while forking only completed history. Expose historical turn selection through klient and the server API.”、“fix(agent-core-v2): allow forks before the first turn completes”、“feat(agent-core-v2): preserve active prompts in running forks” 与 “chore(changeset): add session fork release note”；新增 `.changeset/fork-running-session-turns.md`（127 字节）的 frontmatter 为 `"@moonshot-ai/kimi-code": minor`、正文逐字为 “Add support for forking running sessions and forking from a selected historical turn.”；`sessionLifecycleService.ts` 的 diff 删除了整段 `if (agentHandle.accessor.get(IAgentLoopService).snapshot().state === \'running\') { throw new Error2(ErrorCodes.SESSION_FORK_ACTIVE_TURN, `Session "${sourceId}" cannot be forked while a turn is running`, …) }`，并把 `tryAcquireQuiescence()` 失败时的消息由 “cannot be forked while a turn is running or queued, or while another fork is copying it” 改为 “cannot be forked while another session history operation is in progress”，同时按 `activeTurnId !== undefined || snapshot.hasPendingRequests` 决定改用 `loop.tryAcquireHistorySnapshot()`；新增 `sliceMainRecordsForRunningFork`、`sliceRecordsBeforePendingWork` 与 `sliceMainRecordsAtTurn` 三个切片函数；`docs/en/reference/server-api.md` 与 `docs/zh/reference/server-api.md` 各 +6/-4，删除两行 “`40901`: the session has an active turn and cannot be forked”',
+      url: 'https://github.com/MoonshotAI/kimi-code/commit/e24e1e1919d729edaa8fe0d60b820cd8f4fdd2b5',
+    },
+    'kimi-server-api-fork': {
+      label:
+        'Kimi Code 中文服务 API 参考（2.5.0 Release 提交 `41c341434ae24e45bfe0f2232ec11b80531ac717`，158,601 字节，与 main 同字节数）：`#### POST /api/v1/sessions/{session_id}:fork` 一节逐字为 “将会话——其转录、Agent 状态与文件——复制到同一工作区中的新会话，并广播 `event.session.created`。源会话会继续运行；如果存在进行中的轮次，fork 会保留该轮次之前最近一个已完成的边界，并将当前轮次的用户 prompt 保存为一个仅含 prompt 的 `cancelled` 轮次，不包含 Assistant 输出、工具活动、排队输入或后续事件。”（2.5.0 之前该句是 “当会话中任一 Agent 有进行中的轮次时，fork 会被拒绝。”），参数表三行为 `title`（body，string，“fork 的标题（至少 1 个字符）。默认 `Fork: <source title>`”）、`metadata`（body，object，“fork 的自定义元数据”）与新增的 `turn_index`（body，integer，“要保留到的持久化 engine `turnId`（包含该轮次），允许编号空洞。必须是非负安全整数，且该轮次已经完成”），错误码为新增的 “`40001`：`turn_index` 无效、不存在或选中了进行中的轮次” 与改写后的 “`40901`：另一个会话历史操作正在进行”（英文页对应 “`40901`: another session history operation is in progress”）；`#### POST /api/v1/sessions/{session_id}/children` 一节逐字为 “创建子会话：fork 当前会话并记录为其子会话，因此会出现在 `GET /api/v1/sessions/{session_id}/children` 下。运行中的源会话采用与 `:fork` 相同的已完成轮次边界，以及仅含 prompt 的 `cancelled` 当前轮次；创建子会话不接受历史 `turn_index` 参数。”；`#### POST /api/v1/sessions/{session_id}:btw` 一节写 “把 main agent fork 成一个仅可使用只读工具（`Read`、`Grep`、`Glob`）的子 Agent”，属旁路对话而非会话分支；服务由 `kimi web` 启动，REST 在 `/api/v1`（另有 `/api/v2/sessions`）、WebSocket 在 `/api/v1/ws`',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/41c341434ae24e45bfe0f2232ec11b80531ac717/docs/zh/reference/server-api.md',
+    },
+    'kimi-fork-tui-source': {
+      label:
+        'Kimi Code 2.5.0 Release 提交 `41c341434ae24e45bfe0f2232ec11b80531ac717` 下的 `apps/kimi-code/src/tui/commands/session.ts`（7,444 字节，与 main 同字节数，该路径最后一次改动是 `5f3ab5fac81e050fc2fa10787dd560655f377d16`，2026-10-29T12:43:07Z）：`handleForkCommand(host, args)` 首行即 `void args;`，只调用 `host.harness.forkSession({ id: session.id })`，**既不传 `turnIndex` 也没有任何回合运行中的前置判断**；注释逐字为 “Stay in the source session: switching to the fork would close the source, killing its in-flight turn and background tasks. The fork is an independent copy the user can switch to explicitly via /sessions, or enter from a new CLI process with the printed resume command.”；`forkResumeCommand(workDir, forkId)` 生成 `${changeDir} && kimi --resume ${quoteShellArg(forkId)}`，其中 `const changeDir = process.platform === \'win32\' ? `pushd ${dir}` : `cd ${dir}`;`，注释解释 cmd.exe 的 `cd` 只更新该盘符记住的目录、`pushd` 在 cmd.exe 与 PowerShell 都能同时切盘符和目录；剪贴板三条提示逐字为 `Command copied to clipboard`（`method === \'native\'`）、`Command copied via terminal escape sequence (unverified)`（OSC 52 回退，注释写 “OSC 52 delivery is fire-and-forget”）与 `Failed to copy command to clipboard`；状态消息为 `Session forked (${forkId}). Still in the original session; switch to the fork via /sessions.` 加两行缩进提示，另有两条错误 `Session forked (${forkId}), but failed to release its environment: ${msg}` 与 `Failed to fork session: ${msg}`（2.4.1 tag 下同一句是 “failed to release its runtime”）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/41c341434ae24e45bfe0f2232ec11b80531ac717/apps/kimi-code/src/tui/commands/session.ts',
+    },
+    'kimi-fork-lifecycle-source': {
+      label:
+        'Kimi Code 2.5.0 Release 提交 `41c341434ae24e45bfe0f2232ec11b80531ac717` 下的 `packages/agent-core-v2/src/workspace/sessionLifecycle/sessionLifecycleService.ts`（42,578 字节）：`async fork(opts: ForkSessionOptions): Promise<SessionMeta>` 先 `assertForkTurnIndex(opts.turnIndex)`，再对每个源 Agent 取 `const requiresHistorySnapshot = activeTurnId !== undefined || snapshot.hasPendingRequests;` 并据此选 `loop.tryAcquireHistorySnapshot()` 或 `loop.tryAcquireQuiescence()`，取不到 hold 时抛 `ErrorCodes.SESSION_FORK_ACTIVE_TURN` 且消息为 `Session "${sourceId}" cannot be forked while another session history operation is in progress`——**全文件已不含 “cannot be forked while a turn is running”**；`const runningFork = historySnapshotAgentIds.size > 0;` 决定切片方式：`opts.turnIndex !== undefined` 走 `sliceMainRecordsAtTurn(completedMainRecords!, sourceId, opts.turnIndex)`，`runningFork` 走 `sliceMainRecordsForRunningFork(mainRecords!, sourceId, activeTurnIds…, queuedPromptIds…)`，两者都不成立时不切片；标题默认值为 `const title = opts.title ?? `Fork: ${sourceMeta?.title || sourceId}`;`，元数据经 `forkCustomMetadata(sourceMeta?.custom, opts.metadata)` 合并，新会话的 `state.json` 由 `this.docs.set(sessionScopeOf(this.handlerScope, targetId), \'state.json\', encodeSessionMeta(meta))` 写入',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/41c341434ae24e45bfe0f2232ec11b80531ac717/packages/agent-core-v2/src/workspace/sessionLifecycle/sessionLifecycleService.ts',
+    },
+    'kimi-klient-fork': {
+      label:
+        'Kimi Code 2.5.0 Release 提交 `41c341434ae24e45bfe0f2232ec11b80531ac717` 下的 `packages/klient/src/core/facade/session.ts`（7,934 字节）：`SessionFacade` 的签名逐字为 `fork(input?: { title?: string; metadata?: Record<string, unknown>; turnIndex?: number; }): Promise<SessionMeta>;` 与 `createChild(input?: { title?: string; metadata?: Record<string, unknown> }): Promise<SessionMeta>;`，实现里 `spawn(\'fork\' | \'createChild\', input)` 把 `{ sourceSessionId: sessionId, title: input.title, metadata: input.metadata, turnIndex: input.turnIndex }` 交给 `sessionManager`——`createChild` 不接受 `turnIndex`；文件头注释说明该 facade 覆盖 “restore/delete/fork/createChild”',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/41c341434ae24e45bfe0f2232ec11b80531ac717/packages/klient/src/core/facade/session.ts',
+    },
+    'kimi-sdk-fork': {
+      label:
+        'Kimi Code 2.5.0 Release 提交 `41c341434ae24e45bfe0f2232ec11b80531ac717` 下的 `packages/node-sdk/src/sdk-rpc-client-v2.ts`（142,503 字节）：`override async forkSession(input: ForkSessionInput): Promise<SessionSummary>` 经 App 作用域的 `ISessionManager.fork({ sourceSessionId: input.id, newSessionId: input.forkId, title: input.title, metadata: input.metadata, turnIndex: input.turnIndex })` 调用引擎，方法上方注释逐字为 “Through `engineAccessor` (the App-scoped `ISessionManager.fork`) because the klient facade fork takes no explicit target id. `turnIndex` truncation and live-source history conflicts (v1\'s `SESSION_FORK_ACTIVE_TURN`) are the engine\'s own now, so their failures cross the in-process call with v1\'s codes and details (`request.invalid` with `{turnIndex, availableTurns}` / `session.fork_active_turn`). The default title still differs by design (v1: "New Session", v2: "Fork: <source>") — pass an explicit title for identical results.”；TUI 的 `SlashCommandHost.harness` 类型即该包的 `KimiHarness`（`apps/kimi-code/src/tui/commands/dispatch.ts` 第 5 行 `import type { KimiHarness, Session, ThinkingEffort } from \'@moonshot-ai/kimi-code-sdk\';`），因此 TUI `/fork` 走的是同一条引擎路径',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/41c341434ae24e45bfe0f2232ec11b80531ac717/packages/node-sdk/src/sdk-rpc-client-v2.ts',
+    },
+    'kimi-npm-publish-times': {
+      label:
+        'npm registry 上 `@moonshot-ai/kimi-code` 的 `time` 字段（2026-11-04 抓取，458,790 字节 JSON）：0.36.1 为 2026-08-14T12:53:34.177Z、0.37.0 为 2026-08-18T11:23:08.390Z、2.0.0 为 2026-09-17T05:28:50.465Z、2.1.0 为 2026-09-23T12:39:56.279Z、2.2.0 为 2026-10-14T15:35:26.375Z、2.3.0 为 2026-10-21T05:55:55.979Z、2.4.0 为 2026-10-28T11:50:24.885Z、2.4.1 为 2026-10-30T09:55:26.630Z、2.5.0 为 2026-11-04T11:59:13.163Z，`dist-tags` 为 `{ latest: 2.5.0, canary: 2.5.0-canary.20261104024245-8fc5e22 }`；用于把 CHANGELOG 的 changeset 段落对应到实际发布时间',
+      url: 'https://registry.npmjs.org/@moonshot-ai/kimi-code',
+    },
+    'kimi-v220-release': {
+      label:
+        'Kimi Code 2.2.0 release notes（npm 发布时间 2026-10-14T15:35:26.375Z）：官方 CHANGELOG 在 `## 2.2.0` 段逐字记 “Cron tasks from the source session no longer fire inside a forked session.”（PR #4083，提交 `f409caa21e71ce7beb158d29ffca1fed76216a64`）；`## 2.1.0` 段（npm 2026-09-23T12:39:56.279Z）另有 “Fix forked sessions getting their titles overwritten by auto-generated titles.”（PR #3974，提交 `994287acb3a7428b580c09cabd5aba1b5a818aaa`），`## 0.40.0` 段另有 “Make session forks much faster.”（PR #3421，提交 `9c37feb473cddb0b8bfe2552ad481f83f83fe6d0`）',
+      url: 'https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai/kimi-code%402.2.0',
     },
     'kimi-goal-limit-commit': {
       label: 'Kimi Code /goal objective length limit commit',
@@ -2131,7 +2215,12 @@ window.matrixData = {
     },
     'kimi-sessions-current': {
       label: 'Kimi Code current sessions',
-      url: 'https://github.com/MoonshotAI/kimi-code/blob/6b72345f8bb03487e3bcc05b541e65484818428c/docs/zh/guides/sessions.md',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/5f3ab5fac81e050fc2fa10787dd560655f377d16/docs/zh/guides/sessions.md',
+    },
+    'kimi-sessions-fork-doc': {
+      label:
+        'Kimi Code 中文会话文档 `docs/zh/guides/sessions.md`（坐标由 `6b72345f8bb0` 前移到 `5f3ab5fac81e050fc2fa10787dd560655f377d16`，2026-10-29T12:43:07Z，随 PR #4062；6,029 字节，2026-11-04 复核 main 同字节数）：`## 派生会话` 一节逐字为 “想在不破坏当前对话的前提下尝试新思路，使用 `/fork`：”、“fork 后你仍停留在原会话，对话不受影响、可以直接继续；派生出的副本与原会话彼此独立，可以随时通过 `/sessions` 切换过去。已保存的 `/goal` 不会复制到派生会话。如果你想在派生会话中进行自主 goal 工作，需要在那里开始一个新 goal。” 与 “fork 完成后，CLI 会打印一条可直接运行的 `kimi --resume` 命令（并自动复制到剪贴板），方便你在新终端进程直接进入派生会话。”；`## 在 TUI 中切换会话` 的两行为 “**`/sessions`**（别名 `/resume`）：浏览并恢复历史会话。” 与 “**`/fork`**：派生当前会话（详见下文）。”；`## 会话存储` 的目录树给出 `~/.kimi-code/sessions/<workDirKey>/<sessionId>/state.json` 与 `agents/main/wire.jsonl`、`agents/<subagentId>/wire.jsonl`，并写 “`state.json`：会话标题、创建时间等元数据。”；**该页在核对日期没有描述运行中 fork 或历史回合 fork**，这两项只出现在服务 API 参考、2.5.0 更新日志与源码里',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/5f3ab5fac81e050fc2fa10787dd560655f377d16/docs/zh/guides/sessions.md',
     },
     'kimi-commands-current': {
       label: 'Kimi Code current slash commands',
@@ -2912,6 +3001,31 @@ window.matrixData = {
     'qoder-sdk-reference': {
       label: 'Qoder CLI SDK Reference',
       url: 'https://docs.qoder.com/en/cli/sdk/references',
+    },
+    'qoder-sdk-reference-fork-recheck': {
+      label:
+        'Qoder CLI SDK Reference 页的 `forkSession` 复核（`https://docs.qoder.com/en/cli/sdk/references`，2026-11-04 抓取 791,866 字节）：全页已不出现 `forkSession` 字样，能力索引表只留一行 “Fine-grained control over what a resumed session loads and keeps” 指向 `resumeSessionAt`；`forkSession` 的签名与选项说明改由 TypeScript 参考页 `https://docs.qoder.com/cli/sdk/references-typescript` 承载，因此此前「SDK 文档未明确 `forkSession` 能否与 `resumeSessionAt` 组合」的取证位置需要改到后者',
+      url: 'https://docs.qoder.com/en/cli/sdk/references',
+    },
+    'qoder-sdk-typescript-fork': {
+      label:
+        'Qoder CLI TypeScript SDK 参考（`https://docs.qoder.com/cli/sdk/references-typescript`，2026-11-04 抓取 3,365,304 字节）：`## Session management functions` 一节开头写 “These functions read or modify local sessions by default. Pass `sessionStore` in their options to operate on an external store. See External Session Storage for setup and behavior.”，函数签名逐字为 `function forkSession(sessionId: string, options?: ForkSessionOptions): Promise<{ sessionId: string }>;`；用途表 `forkSession` 行逐字为 “Create an independent session from existing history” 且外部存储要求列为 “`load` and `append`”；节末一句逐字为 “The option types share `dir` and `sessionStore`. List and message functions also support pagination through `limit` and `offset`. `listSessions` supports `includeWorktrees` for local sessions. `forkSession` additionally supports `upToMessageId` and `title`; `getSessionMessages` supports `includeSystemMessages`.”——**即独立的 `forkSession()` 带消息锚点 `upToMessageId`，可按历史消息分支**；`query()` 选项表另有三行逐字为 “`forkSession` | `boolean` | `false` | Fork into a new session ID when used with `resume`”、“`resume` | `string` | `undefined` | Session ID to resume”、“`resumeSessionAt` | `string` | `undefined` | Resume from a specified message UUID” 与 “`resumeDropsTurn` | `string` | `undefined` | With `resumeSessionAt`, require the discarded range to belong to this prompt UUID”，同表还有 “`persistSession` | `boolean` | `true` | Persist the local session so it can be resumed later. Cannot be `false` when `sessionStore` is set”；页面没有说明 `query()` 的 `forkSession` 能否与 `resumeSessionAt` 组合，`ForkSessionOptions` 类型本身也未在该页展开',
+      url: 'https://docs.qoder.com/cli/sdk/references-typescript',
+    },
+    'qoder-sessions-fork': {
+      label:
+        'Qoder CLI Sessions 页的 `## Forking Sessions` 一节（`https://docs.qoder.com/cli/sessions`，2026-11-04 抓取 853,532 字节）：逐字为 “Use `--fork-session` to fork a resumed session into a new branch instead of continuing the original session. This allows you to explore different directions from a historical point while keeping the original session intact:”，代码块为 `qoder -r <session-id> --fork-session`，紧接一句 “In an interactive session, you can also use `/branch` to create a branch from the current session.”；同页 `## Resuming a Specific Session` 写 “Running `qoder --resume` without an ID opens the Session Browser, allowing you to select the session to resume from a list. In an interactive session, the `/resume` command also opens the Session Browser; `/continue` continues the most recent session.”，页面自带的启动参数与命令表把 `--fork-session` 描述为 “Create a branch from a resumed session”、`/branch` 描述为 “Create a branch from the current session”',
+      url: 'https://docs.qoder.com/cli/sessions#forking-sessions',
+    },
+    'qoder-cli-reference-fork': {
+      label:
+        'Qoder CLI Commands and Parameters 页的 `## Session Management` 表（`https://docs.qoder.com/cli/cli-reference`，2026-11-04 抓取 853,876 字节）：`--fork-session` 行逐字为 “`--fork-session` | | boolean | Fork a new session from a restored session (use with `--resume`/`--session-id`).”；同表相邻行为 “`--continue` | `-c` | boolean | Resume the most recent session.”、“`--resume` | `-r` | `[id]` | Restore a Historical session by identifier; if no ID is provided, select from a list.”、“`--session-id` | | string | Resume the session with the specified ID.”、“`--name` | `-n` | string | Set or override the current session name.”、“`--list-sessions` | | boolean | List all historical sessions and exit.” 与 “`--delete-session <index>` | | | Delete a specific session by its index number.”；表后 “**Conflict Rules**: `--continue`, `--resume`, `--remote`, and `--remote-session` cannot be used simultaneously.”',
+      url: 'https://docs.qoder.com/cli/cli-reference#session-management',
+    },
+    'qoder-slash-reference-branch': {
+      label:
+        'Qoder CLI Slash 命令参考的 “Sessions and Conversations” 分组（`https://docs.qoder.com/cli/slash-reference`，2026-11-04 抓取 829,315 字节）：`/branch` 行逐字为 “`/branch` | Branch a new session from the current one.”，同组还有 “`/new` | Create a new empty session.”、“`/continue` | Resume the most recent session for the current project.”、“`/resume` | Restore a historical session.”、“`/rename` | Rename the current session.”、“`/copy` | Copy the last response.”、“`/compact` | Compress context to free up space.”、“`/btw` | Ask a side question without interrupting the main conversation.”、“`/subtask` | Dispatch a background subagent with the current context; results return here (requires Agent sessions).”、“`/rewind` | Roll back to a specific checkpoint.” 与 “`/quit` | Exit the CLI.”；页末 “Conditional Commands” 只列 `/agents`、`/plan`、`/workflows`、`/marketplace`（feature flag）、`/skills`（需 Skills 支持与管理权限）、`/mcp`（禁用时给提示）与 `/setup-github`（CN 版不可用），**`/branch` 不在条件命令里**；本页没有给出 `/branch` 的参数、是否切换会话或保存位置',
+      url: 'https://docs.qoder.com/cli/slash-reference#sessions-and-conversations',
     },
     'qoder-sdk-errors': {
       label:
@@ -4408,7 +4522,7 @@ window.matrixData = {
       category: 'commands',
       capability: '分支会话',
       description: '复制当前上下文并形成独立会话分支。',
-      values: { claude: '`/branch` · `/fork`', codex: '`/fork`', qwen: '`/branch` · `/fork`', kimi: '`/fork`', qoder: '—' },
+      values: { claude: '`/branch` · `/fork`', codex: '`/fork`', qwen: '`/branch` · `/fork`', kimi: '`/fork`', qoder: '`/branch`' },
     },
     {
       id: 'cmd-compact',
@@ -4791,7 +4905,7 @@ window.matrixData = {
       category: 'sessions',
       capability: '会话分支',
       description: '从当前上下文复制出独立会话。',
-      values: { claude: '`/branch` · `--fork-session`', codex: '`/fork` · `codex exec fork`（条件：main 分支，尚未发布）', qwen: '`/branch` · 条件：Web Shell 可从任意已完成 Assistant 响应分支（v0.21.13 起）', kimi: '`/fork` · 条件：fork 后打印 `kimi --resume` 命令并复制到剪贴板（main 分支，尚未发布）', qoder: 'SDK：`resume` + `forkSession`' },
+      values: { claude: '`/branch` · `--fork-session`', codex: '`/fork` · `codex fork` · `codex exec fork`', qwen: '`/branch` · 条件：Web Shell 可从任意已完成 Assistant 响应分支（v0.21.13 起）', kimi: '`/fork` · 条件：klient/SDK/服务 API 可用 `turnIndex`（`turn_index`）从历史回合分支（2.5.0 起）', qoder: '`/branch` · `--fork-session` · 条件：SDK `forkSession()` 的 `upToMessageId` 历史锚点' },
     },
     {
       id: 'session-naming',

@@ -103,7 +103,7 @@
 | 适用界面 | 交互式 TUI 与 CLI 启动参数。 |
 | 条件与边界 | 官方文档未列出运行中会话查看；不据此推断底层能力不存在。 |
 | 证据状态 | 未确认 |
-| 来源 | [Kimi Code current sessions](https://github.com/MoonshotAI/kimi-code/blob/6b72345f8bb03487e3bcc05b541e65484818428c/docs/zh/guides/sessions.md) |
+| 来源 | [Kimi Code current sessions](https://github.com/MoonshotAI/kimi-code/blob/5f3ab5fac81e050fc2fa10787dd560655f377d16/docs/zh/guides/sessions.md) |
 
 ### Qoder CLI
 
@@ -134,7 +134,7 @@
 - [Qwen Code sessions ps command source](https://github.com/QwenLM/qwen-code/blob/a1e046eb6c5546e6aab2a004367e67c2af1673fd/packages/cli/src/commands/sessions/ps.ts)
 - [Qwen Code session registry source](https://github.com/QwenLM/qwen-code/blob/a1e046eb6c5546e6aab2a004367e67c2af1673fd/packages/core/src/services/session-registry.ts)
 - [Qwen Code v0.21.14 release notes](https://github.com/QwenLM/qwen-code/releases/tag/v0.21.14)
-- [Kimi Code current sessions](https://github.com/MoonshotAI/kimi-code/blob/6b72345f8bb03487e3bcc05b541e65484818428c/docs/zh/guides/sessions.md)
+- [Kimi Code current sessions](https://github.com/MoonshotAI/kimi-code/blob/5f3ab5fac81e050fc2fa10787dd560655f377d16/docs/zh/guides/sessions.md)
 - [Qoder CLI slash commands](https://docs.qoder.com/cli/slash-reference)
 
 ## 关联能力
