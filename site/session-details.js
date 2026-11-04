@@ -344,43 +344,55 @@
       includes: ['复制历史到新会话', '新旧会话独立保存', '分支时继承的状态边界'],
       excludes: ['Git 分支或 Worktree', '后台 Subagent 委派', '在同一会话中回退到检查点'],
       facts: [
-        'Claude Code、Codex、Qwen Code 和 Kimi Code 都有直接会话分支入口；Qoder CLI 当前只在 SDK 公开了同类选项。',
-        'Claude Code 和 Codex 还在 Headless 流程提供会话分支：Claude Code 用 `--fork-session`，Codex 用 `codex exec fork`（条件：main 分支，尚未发布）。',
-        'Qwen Code 的 `/fork` 是继承完整对话的后台 Agent，不是会话分支；会话分支入口是 `/branch`。',
-        'Qwen Code v0.21.13 起支持从任意已完成 Assistant 响应分支：Web Shell Branch 动作、Daemon `POST /session/:id/branch` 携带 `atRecordId`、TypeScript SDK `branchSession` 历史分支重载都以持久 `branch_checkpoint` 记录为分支依据。其余四家的分支入口以当前对话或会话状态为分支点；Qoder SDK 文档未明确 `forkSession` 能否与 `resumeSessionAt` 消息锚点组合。',
-        '会话分支复制的是对话状态，不代表复制所有进程内授权、Goal、后台任务或工作区状态。',
+        '五家都有直接的会话分支入口：Claude Code 用 `/branch` 加 `--fork-session`，Codex 用 `/fork`、`codex fork` 与 `codex exec fork`，Qwen Code 用 `/branch`，Kimi Code 用 `/fork`，Qoder CLI 用 `/branch` 加 `--fork-session`。此前记录的「Qoder CLI 只在 SDK 公开同类选项、TUI 命令表未列出 `/fork` 或 `/branch`」已作废：官方 Slash 命令参考的 “Sessions and Conversations” 分组列出 `/branch`（“Branch a new session from the current one.”），Sessions 页有 `## Forking Sessions` 一节，CLI 参数页有 `--fork-session` 行。',
+        '命令行侧的分支入口有四家：Claude Code 用 `--continue`/`--resume` 配合 `--fork-session`，Codex 用 `codex exec fork <SESSION_ID> [PROMPT]` 并有独立的顶层 `codex fork`（默认打开会话选择器，`--last`/`--last --all` 选最近会话），Qoder CLI 用 `qoder -r <session-id> --fork-session`；Qwen Code 与 Kimi Code 的 CLI 没有等价的分支旗标，历史时点分支分别走 Daemon/SDK 与 klient/SDK/服务 API。',
+        '历史时点分支有四种互不相同的锚点：Qwen Code 用 `atRecordId` 并要求目标响应有持久 `branch_checkpoint` 记录，Kimi Code 用 `turnIndex`（服务 API 的 `turn_index`，取值为持久化 engine `turnId`、允许编号空洞且该回合必须已完成），Qoder CLI 的 SDK `forkSession()` 用 `upToMessageId`，Codex 在交互式提供「空输入框连按两次 Escape 编辑上一条用户消息并从该点 fork」。Claude Code 的 `/branch` 只复制到运行命令的时点，没有历史锚点参数。',
+        '回合运行中能否分支分三种口径：Claude Code 的在途后台 Subagent 与后台 Bash 继续运行、输出进入新分支；Kimi Code 自 2.5.0 起源会话继续运行，fork 只保留该回合之前最近一个已完成边界，并把当前回合的用户 prompt 存成一个仅含 prompt 的 `cancelled` 回合；Qwen Code 在回合进行中返回 `session_busy`。Codex 与 Qoder CLI 的官方资料没有说明运行中分支的行为，记为未确认。',
+        '`/fork` 这个名字在四家指四种不同能力：Kimi Code 与 Codex 的 `/fork` 是会话分支，Qwen Code 的 `/fork <directive>` 是继承完整对话的后台 Agent（会话分支入口是 `/branch`），Claude Code 的 `/fork` 复制到独立后台会话而 `/branch` 才是切换式分支；Codex 另有 `/side`（别名 `/btw`）是临时旁路聊天，Kimi Code 的 `:btw` 是只读工具旁路对话，两者都不计作持久会话分支。',
+        '会话分支复制的是对话状态，不代表复制所有进程内授权、Goal、定时任务或工作区状态：Claude Code 的 “Allow for this session” 授权只在同进程 `/branch` 继承、`--fork-session` 新进程需重新批准，且 `--fork-session` 会阻止恢复 plan 模式；Kimi Code 不复制已保存的 `/goal`，2.2.0 起源会话的 cron 任务不再在派生会话触发。',
       ],
       products: {
         claude: {
           entry:
-            '`/branch [name]` 在当前进程复制并切换；命令行用 `--continue` 或 `--resume` 配合 `--fork-session`。',
+            '`/branch [name]` 在当前进程复制并切换；命令行用 `--continue` 或 `--resume` 配合 `--fork-session`。恢复一个仍在后台运行的会话时，官方给出的分支办法也是加 `--fork-session`（“Add `--fork-session` to resume a copy of the conversation instead.”）。',
           behavior:
-            '创建新会话 ID，复制截至分支点的对话，原会话磁盘记录保持不变。`/branch` 完成后当前进程写入新会话。',
+            '创建新会话 ID，复制截至运行 `/branch` 时点的对话，原会话磁盘记录保持不变并留在会话选择器。`/branch` 完成后当前进程写入新会话；确认信息打印两个会话 ID（当前所在的新分支与原会话），回到原会话用 `/resume <original-name>` 或把它的 ID 传给 `/resume`。',
           scope:
-            '同进程 `/branch` 继承本会话临时授权；新进程 `--fork-session` 不继承。运行中的后台 Agent 和 Bash 继续执行，输出进入新分支。',
+            '官方继承表四行：对话历史复制到运行 `/branch` 的时点；“Allow for this session” 授权随同进程分支继承，而 `--fork-session` 起的新进程不带这些授权、需要重新批准；在途的后台 Subagent 与后台 Bash 命令继续运行，输出进入切换过去的新分支而不是原会话；Remote Control 连接保持不断，连到该会话的手机或浏览器跟随进入分支并继续在那里收到新消息。',
           automation:
-            '未指定名称时根据会话首个提示生成名称。',
+            '未指定名称时，按会话中的首个提示为新分支命名。',
           persistence:
-            '新旧会话都进入会话选择器，并分别遵循会话保留策略。',
+            '`/branch` 与 `--fork-session` 产生的会话各有独立会话 ID，在选择器中各占一行；选择器发现同一会话有多个条目时把它们折叠成一行，按 `→` 展开。新旧会话分别遵循会话保留策略。',
+          surfaces:
+            '本页以 CLI 为准。桌面端、Web 和 VS Code 各自维护会话历史；`claude -p` 与 Agent SDK 会话可按 ID 恢复，但不出现在 CLI 选择器中。Remote Control 连接会跟随 `/branch` 进入新分支。',
           conditions:
-            '不要在两个终端直接恢复同一会话来模拟分支，否则消息会交错写入同一记录。',
-          sources: ['claude-sessions'],
+            '不要在两个终端直接恢复同一会话来模拟分支，否则两边的消息会交错写入同一份记录。`--fork-session` 还会改变权限模式恢复：从启动选择器恢复时，传 `--permission-mode`、`--dangerously-skip-permissions` 或 `--fork-session` 都不恢复 plan 模式；恢复表里 `plan` + Terminal 一行写 “Plan mode. With `--fork-session`, the permission mode a new session would start in”；`claude -p --resume` 要以 plan 模式恢复的条件之一也是不传 `--fork-session`。',
+          sources: ['claude-sessions', 'claude-sessions-branch'],
         },
         codex: {
           entry:
-            '`/fork` 把当前本地聊天复制为新的本地聊天；非交互流程使用 `codex exec fork <SESSION_ID> [PROMPT]`，`SESSION_ID` 接受会话 UUID 或线程名称。',
+            '交互式 `/fork` 把当前聊天克隆为带新 ID 的聊天；终端另有顶层 `codex fork [SESSION_ID] [--last] [--all]`，默认打开会话选择器、`--last` 派生当前目录最近一个会话、`--last --all` 跨所有目录派生最近一个；非交互流程用 `codex exec fork <SESSION_ID> [PROMPT]`，`SESSION_ID` 接受会话 UUID 或名称，`-` 从 stdin 读取提示词。',
           behavior:
-            '`/fork` 使新聊天获得独立线程标识并带入当前可见上下文，原聊天仍可继续或重新打开。`codex exec fork` 从既有会话创建新会话且原会话保持不变；不带提示词时只创建新线程、不开始回合，输出包含 `forked_from_id` 的会话配置后立即退出，带提示词时（`-` 从 stdin 读取）立即在派生会话中继续执行。',
+            '`/fork` 让新聊天获得独立线程标识并带入当前上下文，原转录保持不变；如果 Codex 询问 checkout，可在当前目录与新建 worktree 之间选择。`codex fork` 从已保存的交互会话派生新聊天，当前目录与会话保存目录不同时使用与 `codex resume` 相同的工作目录询问和 `tui.resume_cwd` 设置。`codex exec fork` 不带提示词时只创建 fork、不开始回合（源码里走 `InitialOperation::ForkOnly` 加空提示词）后立即退出，带提示词时立刻在派生会话中继续；两条路径都经 app-server 的 `ClientRequest::ThreadFork` 完成并读取 `ThreadForkResponse`。',
           scope:
-            '复制的是本地聊天上下文；不表示创建 Git 分支、Worktree 或云任务。`codex exec fork` 可用 `--image`/`-i`（逗号分隔）为 fork 后的提示词附加图片。',
+            '复制的是本地聊天上下文，本身不创建 Git 分支或云任务；`--image`/`-i`（逗号分隔）可为 fork 后的提示词附加图片。加 `--worktree` 时把 fork 落到托管 Git worktree：`codex fork <SESSION_ID> --worktree` 要求显式会话 ID 与本地执行、不支持 `--last` 或会话选择器，`codex exec fork <SESSION_ID> --worktree "<prompt>"` 同理。',
           automation:
-            '无自动分支；由用户在需要保留原路径时显式触发。',
+            '无自动分支，由用户显式触发。交互式另有一条快捷键路径：输入框为空时连按两次 `Escape` 可编辑上一条用户消息并从该点 fork 聊天。',
           persistence:
-            '新线程作为独立本地会话进入 Codex 的会话存储；`codex exec fork` 输出的会话配置用 `forked_from_id` 记录来源会话。',
+            '新线程作为独立本地会话进入 Codex 的会话存储；`codex exec fork` 不带提示词时输出的会话配置用 `forked_from_id` 记录来源会话。',
+          surfaces:
+            '本页区分交互式 Codex（`/fork`、Escape 两次）、终端子命令（`codex fork`）与 `codex exec`。`/side`（别名 `/btw`）是临时旁路聊天、在另一个 side chat 内或 review 模式下不可用，不计作持久会话分支。',
           conditions:
-            '命令可用性取决于当前 Codex 客户端 Surface 和版本；本页不把 `/side` 临时旁路聊天计作持久分支。条件：`codex exec fork` 于 2026-08-07 合入 main 分支，尚未进入 Release，官方非交互文档未列出；不带提示词的 fork 不能搭配 `--image`、`--output-schema`/`--output-last-message` 等输出参数或 ephemeral 模式，否则报错。',
-          status: '源码确认',
-          sources: ['codex-commands', 'codex-exec-fork'],
+            '不带提示词的 fork 不能搭配图片或输出参数：源码报错逐字为 “Forking with images requires a prompt”、“Forking with output options requires a prompt”、“Ephemeral forks require a prompt” 与 “Forking with --cyber-access-program requires a prompt”，官方文档对应一句 “A prompt is required when using images, `--output-schema`, `--output-last-message`, or `--ephemeral`.”。`--worktree` 要求本地执行，不能与 `resume`、`review`、`--ephemeral`、`--ignore-user-config` 同用，源码报错为 “`codex fork --worktree` requires an explicit session ID”、“`--worktree` cannot resume an existing session; use `codex exec fork --worktree`”、“`--worktree` is not supported for code review” 与 “`--worktree` supports new interactive sessions, `codex fork`, `codex exec`, and `codex exec fork`”。**此前记录的「`codex exec fork` 于 2026-08-07 合入 main、尚未进入 Release、官方非交互文档未列出」已作废**：官方 Developer commands 页（`.md` 形式 58,726 字节）已收录 `codex fork` 与 `codex exec fork`，且两者都在核对日期最新稳定 Release rust-v0.166.0（2026-10-29T19:50:20Z）的代码树里；仓库 `CHANGELOG.md` 在 main 仍只有一条与 fork 无关的 `## Unreleased`，各 Release 发布说明正文没有 fork 条目。',
+          status: '官方确认',
+          sources: [
+            'codex-commands',
+            'codex-fork-doc',
+            'codex-fork-v0166-cli',
+            'codex-fork-v0166-exec',
+            'codex-v0166-release',
+            'codex-exec-fork',
+          ],
         },
         qwen: {
           entry:
@@ -396,7 +408,7 @@
           surfaces:
             'TUI 只提供从当前对话分支的 `/branch`；历史分支在 Web Shell、Daemon HTTP API 与 TypeScript SDK 中可用。ACP bridge 在 `end_turn` 于 `_meta` 转发 `branchPoint`，但标准 `session/fork` 适配器仍使用无锚点 v1 操作，不走历史分支。',
           conditions:
-            '不要把 `/branch` 与 Git 分支或 `/fork` 后台 Agent 混为同一能力。无效、失效或格式错误的检查点返回 `branch_point_invalid`（HTTP 409），不回退到会话尾部；`atRecordId` 不是字符串返回 HTTP 400；回合进行中返回 `session_busy`。Web Shell 按源会话、标题与检查点 UUID 去重请求，超时 120 秒；SDK 请求同样限 120 秒。改动来自 PR #8817（合并提交 `9f8f65dde043`，2026-08-15 合入 main），随 v0.21.13 发布。',
+            '不要把 `/branch` 与 Git 分支或 `/fork` 后台 Agent 混为同一能力。无效、失效或格式错误的检查点返回 `branch_point_invalid`（HTTP 409），不回退到会话尾部；`atRecordId` 不是字符串返回 HTTP 400（报错文案 “`atRecordId` must be a string”、“`atRecordId` must be a non-empty record id”）；回合进行中返回 `session_busy`。Web Shell 按源会话、标题与检查点 UUID 去重请求，超时 120 秒；SDK 请求同样限 120 秒。改动来自 PR #8817（合并提交 `9f8f65dde043`，2026-08-15 合入 main），随 v0.21.13 发布。2026-11-04 复核提交 `8e9b429ff85d`（核对日期 main HEAD）：命令文档 79,175 字节，`/branch` 行仍逐字为 “Fork the current conversation into a new session”、`/fork` 行仍为 “Spawn a background agent that inherits the full conversation”；`packages/cli/src/serve/routes/session.ts` 414,985 字节，`atRecordId` 出现 23 次、`branch_point_invalid` 与 `session_busy` 仍是分支路由的错误种类，历史分支能力未变；TUI 侧仍没有历史时点分支入口。',
           sources: [
             'qwen-session-commands',
             'qwen-branch-any-commit',
@@ -404,44 +416,66 @@
             'qwen-branch-any-route',
             'qwen-branch-any-sdk',
             'qwen-v02113-release',
+            'qwen-branch-recheck-20261104',
+            'qwen-branch-route-recheck-20261104',
           ],
         },
         kimi: {
           entry:
-            '`/fork` 在 TUI 派生当前会话；fork 后停留在原会话，派生副本之后用 `/sessions` 打开。条件：fork 后 CLI 打印可在新终端进程进入派生会话的恢复命令，并复制到剪贴板（main 分支，尚未发布）。',
+            '`/fork` 在 TUI 派生当前会话，源码 `handleForkCommand(host, args)` 首行是 `void args;`，即**不接受任何参数**，只调用 `host.harness.forkSession({ id: session.id })`；fork 后停留在原会话，副本之后用 `/sessions` 打开，同时打印可在新终端进程进入副本的 `kimi --resume` 命令并复制到剪贴板（自 0.37.0 起已发布）。条件：历史回合分支要走其他入口——klient 的 `session(id).fork({ title?, metadata?, turnIndex? })`、node-sdk 的 `forkSession({ id, forkId?, title?, metadata?, turnIndex? })`，以及 `kimi web` 服务 API 的 `POST /api/v1/sessions/{session_id}:fork`（body 参数 `title`、`metadata`、`turn_index`），三者都自 2.5.0 起可用。',
           behavior:
-            '复制完整对话历史创建独立会话，新旧会话互不影响；原会话保持活跃，后台任务继续运行，可随时用 `/sessions` 切换到副本。fork 完成后状态消息附加一条可直接运行的命令：非 Windows 为 `cd <工作目录> && kimi --resume <会话 ID>`，Windows 用 `pushd` 代替 `cd` 以同时切换盘符与目录；路径和会话 ID 均带 Shell 引号，`--resume` 是 `--session` 的隐藏别名。命令自动复制到剪贴板：原生复制成功提示 `Command copied to clipboard`，回退 OSC 52 终端转义序列时提示 `Command copied via terminal escape sequence (unverified)`，复制失败提示 `Failed to copy command to clipboard`。',
+            '把会话的转录、Agent 状态与文件复制到同一工作区的新会话并广播 `event.session.created`；原会话保持活跃、后台任务继续运行，新旧会话互不影响。**2.5.0 起源会话有进行中回合时也能 fork**：fork 只保留该回合之前最近一个已完成边界，并把当前回合的用户 prompt 存成一个仅含 prompt 的 `cancelled` 回合，不含 Assistant 输出、工具活动、排队输入或后续事件；引擎侧按 `activeTurnId !== undefined || snapshot.hasPendingRequests` 决定改用 `loop.tryAcquireHistorySnapshot()`，再由 `sliceMainRecordsForRunningFork`、`sliceRecordsBeforePendingWork` 与 `sliceMainRecordsAtTurn` 三个切片函数产出副本历史（传 `turnIndex` 时走按回合切片，运行中 fork 走 running-fork 切片，两者都不成立时不切片）。fork 完成后状态消息为 `Session forked (<id>). Still in the original session; switch to the fork via /sessions.` 加两行缩进提示：非 Windows 为 `cd <工作目录> && kimi --resume <会话 ID>`，Windows 用 `pushd` 代替 `cd` 以同时切换盘符与目录（源码注释解释 cmd.exe 的 `cd` 只更新该盘符记住的目录），路径和会话 ID 均带 Shell 引号，`--resume` 是 `--session` 的隐藏别名。剪贴板三条提示逐字为 `Command copied to clipboard`（原生复制）、`Command copied via terminal escape sequence (unverified)`（OSC 52 回退，注释写 “OSC 52 delivery is fire-and-forget”）与 `Failed to copy command to clipboard`。',
           scope:
-            '复制对话，但不复制已保存的 `/goal`；需要在新会话重新启动 Goal。',
+            '复制对话，但不复制已保存的 `/goal`，需要在新会话重新启动 Goal；2.2.0 起源会话的 cron 任务不再在派生会话里触发；2.1.0 起派生会话的标题不再被自动生成的标题覆盖。副本标题默认 `Fork: <source title>`（引擎在 `opts.title` 缺省时回落到源会话标题、再回落到源会话 ID；node-sdk 注释另记 v1 引擎默认标题是 “New Session”、v2 是 “Fork: <source>”，要一致结果需显式传 title）。历史回合锚点 `turnIndex`/`turn_index` 取值为持久化 engine `turnId`、包含该回合、允许编号空洞，必须是非负安全整数且该回合已完成，否则 `assertForkTurnIndex` 抛 `REQUEST_INVALID` 并附 “forkSession turnIndex must be a non-negative safe integer”。',
           automation:
-            '无自动分支；由用户在 Agent 空闲时显式执行。',
+            '无自动分支；由用户显式执行 `/fork` 或调用 fork 接口。2.5.0 之后不再要求 Agent 空闲。',
           persistence:
-            '新会话目录的 `state.json` 记录 `forkedFrom`，并拥有独立 Agent 事件流。',
+            '新会话目录写入自己的 `state.json`（引擎 `this.docs.set(sessionScopeOf(...), \'state.json\', encodeSessionMeta(meta))`）并记录 `forkedFrom: sourceId`，同时拥有独立的 `agents/*/wire.jsonl` 事件流；自定义元数据经 `forkCustomMetadata(sourceMeta?.custom, opts.metadata)` 与源会话元数据合并。',
+          surfaces:
+            '本页以交互式 TUI 与 `kimi` CLI 为主。TUI `/fork` 经 node-sdk 的 `KimiHarness.forkSession`（`apps/kimi-code/src/tui/commands/dispatch.ts` 从 `@moonshot-ai/kimi-code-sdk` 导入该类型）进入引擎的 `ISessionManager.fork`，与 klient、服务 API 是同一条路径。历史回合选择在 klient facade、node-sdk 与 `kimi web` 服务 API 暴露；VS Code 扩展另有 `apps/vscode/shared/fork-turn-index.ts`，属其他 Surface。`POST /api/v1/sessions/{session_id}/children` 创建子会话（fork 并记为子会话），运行中源会话采用与 `:fork` 相同的已完成回合边界与仅含 prompt 的 `cancelled` 当前回合，但**不接受历史 `turn_index`**；`:btw` 把 main agent fork 成只能用 `Read`/`Grep`/`Glob` 的旁路子 Agent，不计作会话分支。',
           conditions:
-            '这是会话级派生，不会自动创建 Git 分支或隔离工作目录；0.33.0 起 fork 不再自动切换到派生会话；0.36.1 起在回合运行中 fork 会报错，不再复制未写完的回合。条件：恢复命令打印与剪贴板复制于 2026-08-15 合入 main（提交 `6b72345f8bb0`，PR #2940），尚未发布。',
+            '这是会话级派生，不会自动创建 Git 分支或隔离工作目录；0.33.0 起 fork 不再自动切换到派生会话（源码注释解释切过去会关闭源会话、杀掉其在途回合与后台任务）。**此前记录的两条状态已作废**：其一「0.36.1 起在回合运行中 fork 会报错」——2.5.0（PR #4544，提交 `e24e1e1919d7`）删除了 `snapshot().state === \'running\'` 即抛错的整段判断，`SESSION_FORK_ACTIVE_TURN` 现在只在拿不到历史快照/静默持有时抛出，消息改为 `Session "<id>" cannot be forked while another session history operation is in progress`，服务 API 对应 `40901`「另一个会话历史操作正在进行」；其二「恢复命令打印与剪贴板复制尚未发布」——官方 CHANGELOG 把该条列在 `## 0.37.0`（PR #2940，提交 `6b72345f8bb0`），npm 上 0.37.0 发布于 2026-08-18T11:23:08.390Z，2.4.1 与 2.5.0 两个 tag 下的 `session.ts` 都仍含 `forkResumeCommand`。其余失败码：`turn_index` 无效、不存在或选中进行中回合返回 `40001`（SDK 侧为 `request.invalid` 且 details 带 `{turnIndex, availableTurns}`），会话不存在返回 `SESSION_NOT_FOUND`；TUI 侧另有 `Session forked (<id>), but failed to release its environment: <msg>`（2.4.1 tag 下同一句是 “failed to release its runtime”）与 `Failed to fork session: <msg>`。官方中文会话文档（`docs/zh/guides/sessions.md`，坐标 `5f3ab5fac81e`，6,029 字节）在核对日期仍只写「fork 后仍停留在原会话」「已保存的 `/goal` 不会复制」与「打印并复制 `kimi --resume` 命令」，**没有描述运行中 fork 与历史回合 fork**，这两项的一手证据是服务 API 参考、2.5.0 更新日志与源码。',
           sources: [
-            'kimi-sessions-current',
+            'kimi-sessions-fork-doc',
             'kimi-data-current',
             'kimi-fork-stay',
             'kimi-cli-current',
             'kimi-fork-resume-command',
             'kimi-v0361-release',
+            'kimi-v250-release',
+            'kimi-fork-running-turns',
+            'kimi-server-api-fork',
+            'kimi-fork-tui-source',
+            'kimi-fork-lifecycle-source',
+            'kimi-klient-fork',
+            'kimi-sdk-fork',
+            'kimi-npm-publish-times',
+            'kimi-v220-release',
           ],
         },
         qoder: {
           entry:
-            'Agent SDK 在 `query()` 中同时设置 `resume: <sessionId>` 与 `forkSession: true`。',
+            'TUI `/branch`（官方 Slash 命令参考 “Sessions and Conversations” 分组，描述逐字为 “Branch a new session from the current one.”，不在页末 Conditional Commands 列表里）；命令行 `qoder -r <session-id> --fork-session`（CLI 参数页 Session Management 表逐字为 “Fork a new session from a restored session (use with `--resume`/`--session-id`).”）；Agent SDK 有两处——`query()` 选项 `resume: <sessionId>` 配合 `forkSession: true`，以及独立的 `forkSession(sessionId, options?)`。',
           behavior:
-            '从指定会话恢复上下文，但生成新的会话 ID，后续消息写入新会话。',
+            'Sessions 页的 `## Forking Sessions` 一节逐字为 “Use `--fork-session` to fork a resumed session into a new branch instead of continuing the original session. This allows you to explore different directions from a historical point while keeping the original session intact:”，并补一句 “In an interactive session, you can also use `/branch` to create a branch from the current session.”。SDK 侧 `query()` 的 `forkSession` 是 boolean、默认 `false`、描述为 “Fork into a new session ID when used with `resume`”；独立的 `forkSession(sessionId: string, options?: ForkSessionOptions): Promise<{ sessionId: string }>` 用途为 “Create an independent session from existing history”，默认操作本地会话、传 `sessionStore` 时操作外部存储（外部存储需具备 `load` 与 `append` 能力），另有 `upToMessageId` 与 `title` 两个选项。',
           scope:
-            '能力属于 SDK 宿主接口；当前 TUI 内置命令表未列出 `/fork` 或 `/branch`。',
+            'TUI `/branch` 从当前会话分支；`--fork-session` 只对被恢复的会话生效（与 `--resume`/`--session-id` 同用）；SDK 的 `upToMessageId` 提供消息级历史锚点。官方资料没有说明 `/branch` 是否接受参数、是否切换到新会话，也没有说明 `query()` 的 `forkSession` 能否与 `resumeSessionAt`（“Resume from a specified message UUID”）或 `resumeDropsTurn` 组合。',
           automation:
-            '`forkSession` 默认 `false`，必须由 SDK 调用方显式打开。',
+            '`forkSession` 默认 `false`，必须由调用方显式打开；没有自动分支。',
           persistence:
-            '新会话 ID 由 SDK/CLI 运行时返回；具体 TUI 存储目录未公开。',
+            '新会话 ID 由 CLI 运行时或 SDK 返回（`forkSession()` 的返回值就是 `{ sessionId }`）；公开 TUI 文档未列出固定的会话存储目录。',
+          surfaces:
+            '本页以 Qoder CLI TUI 与命令行参数为主，Agent SDK 能力单独标注。注意规格位置已迁移：`https://docs.qoder.com/en/cli/sdk/references`（791,866 字节）在核对日期已不出现 `forkSession` 字样，只在能力索引表留一行指向 `resumeSessionAt`；`forkSession` 的签名、用途表与选项说明改由 TypeScript 参考页 `https://docs.qoder.com/cli/sdk/references-typescript`（3,365,304 字节）承载。',
           conditions:
-            '只有与 `resume` 组合时构成会话分支；不能据此推断 TUI 存在同名命令。官方 SDK 文档未明确 `forkSession` 能否与 `resumeSessionAt` 消息锚点组合从历史消息分支。',
-          sources: ['qoder-sdk-reference'],
+            '**此前记录的「能力属于 SDK 宿主接口，当前 TUI 内置命令表未列出 `/fork` 或 `/branch`」「只有与 `resume` 组合时构成会话分支」已作废**：官方 Slash 命令参考列出 `/branch`，CLI 参数页列出 `--fork-session`，Sessions 页有专门的 `## Forking Sessions` 一节。仍未确认的三项：`ForkSessionOptions` 类型没有在参考页展开，`upToMessageId` 的取值校验与失败码未公开；`/branch` 的引入版本官方 Release Notes 没有写明；CLI 参数页的 “Conflict Rules” 只写 `--continue`、`--resume`、`--remote` 与 `--remote-session` 不能同用，没有说明 `--fork-session` 与 `--continue` 组合时的行为。',
+          sources: [
+            'qoder-commands',
+            'qoder-slash-reference-branch',
+            'qoder-sessions-fork',
+            'qoder-cli-reference-fork',
+            'qoder-sdk-typescript-fork',
+            'qoder-sdk-reference-fork-recheck',
+          ],
         },
       },
       related: ['session-resume', 'agent-background', 'agent-worktree'],
