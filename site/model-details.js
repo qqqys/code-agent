@@ -1005,82 +1005,183 @@
     'auth-status': createDetail({
       id: 'auth-status',
       definition:
-        '显示当前账号、认证方式、Provider 配置或运行诊断状态，并区分专用认证状态与通用运行状态。',
+        '显示当前账号、认证方式、Provider 配置或运行诊断状态，并区分专用认证状态入口、通用运行状态页里的认证行、安装诊断命令里的认证检查项，以及凭据到期的提示与机器可读输出。',
       includes: [
-        '登录状态命令',
-        '运行状态页中的认证信息',
-        '认证与 Provider 诊断入口',
+        '会话内与非交互的认证／登录状态命令',
+        '运行状态页里的账号、Provider 与凭据行',
+        '安装诊断命令中与认证直接相关的检查项',
+        '凭据到期与即将到期的提示',
+        '认证状态的机器可读输出与退出码',
       ],
       excludes: [
-        '服务端账号管理后台',
-        '模型调用的完整网络抓包',
-        '只显示版本号而不检查认证的命令',
+        '登录、登出与凭据存储本身（见关联能力）',
+        '组织级 SSO 与受管策略（见关联能力）',
+        'MCP Server 的 OAuth 授权状态',
+        '模型调用是否成功的实际验证',
+        '只显示版本号而不涉及认证的行',
       ],
       facts: [
-        'Codex 提供专用 `codex login status`；其他产品多在 `/status` 或 `/doctor` 中展示。',
-        'Qwen Code 应使用 `/doctor` 诊断认证；它的 `/status` 主要是版本与路径状态。',
-        'Kimi Code `/status` 是运行状态入口，公共命令目录没有独立 auth status 命令。',
+        '不进入会话就能读认证状态的只有两家：Claude 的 `claude auth status` 输出 JSON（官方 CLI 参考写 “Exits with code 0 if logged in, 1 if not.”，`authMethod` 取值枚举为 `none`、`claude.ai`、`oauth_token`、`api_key`、`api_key_helper`、`third_party`，另有 v2.1.268 起的 `configDirectory`），Codex 的 `codex login status` 把结果写到 **stderr** 而不是 stdout、按 `AuthMode` 各打印一行、有凭据退出 0 而 `Not logged in` 退出 1，且 `LoginCommand` 没有任何输出格式旗标。Qwen 的独立 `qwen auth` CLI 已被移除、`qwen auth status` 只打印迁移通知；Kimi 的 `kimi login` 逐字为 “该子命令没有任何 flag”；Qoder 有 `qoder status`，但官方描述只有 “Display session status.”。',
+        '凭据到期只有 Claude 报告，而且三个 Surface 用两个阈值：交互会话在到期前 3 天于启动时打印 `Your login expires in 3 days · run /login to renew`（官方 Authentication 页），`claude -p` 的文本输出从 v2.1.318 起在到期前 10 天打一行 stderr 警告（只有更新日志一处记录），机器可读侧 v2.1.318 给 `claude auth status` 加 `loginExpiresAt`、给 `claude -p` 的 JSON 结果加 `credential_expires_at`。到期本身不阻断，官方写 “The warning is informational and never blocks a request: authentication keeps working until the login actually expires.”',
+        '其余四家都没有面向用户的凭据到期显示：Codex 官方 Authentication 页唯一相关的句子是自动刷新（“Codex refreshes tokens automatically during use before they expire”），而 `auth.json` 的 `TokenData` 记录只有 `id_token`、`access_token`、`refresh_token`、`oauth_provenance`、`login_owner_id` 与 `account_id`、没有任何到期字段；Qwen 的 `/doctor` 只判 `configured`／`invalid`／`not configured`；Kimi 的 CLI 与 TUI 都不显示到期，只有 `kimi web` 服务 API 的 `GET /api/v1/auth` 会报托管供应商登录态，而它的唯一实现只产出 `authenticated` 与 `unauthenticated` 两个值——文档与 schema 列出的 `expired`／`revoked` 在 2.5.1 运行时不可达（设备码流程的 `expires_in`／`expires_at` 是授权时限、不是凭据有效期）；Qoder 全站 185 条 Release Notes 里唯一的到期日期是 CLI 0.1.18（December 23, 2025）的 “Added plan expiration date to /usage command”，那是套餐到期日、落在 `/usage` 而不是 `/status`。',
+        '`/status` 在五家都是「运行状态页」而不是认证状态命令：Claude 的 `/status` 打开 Settings 界面的 Status 页签（与 `/config` 是同一对话框的不同页签），认证相关的行有 `Login method`、替代它的 `Profile`、`Organization`、`Email`、`API key`、`Auth token`、`apiKeyHelper` 与 `Login`；Codex 的 `/status` 官方描述是 “Display session configuration and token usage.”、检查项写的是模型、审批策略、可写根与 token 用量，但源码里它还渲染 `Account` 行（ChatGPT 登录为 `email (plan)`、API Key 登录为 `API key configured (run codex login to use ChatGPT)`）与条件性的 `ChatGPT workspace` 行，且 ChatGPT 订阅账号下会隐藏 `Token usage` 行；Qwen 的 `/status`（别名 `about`）描述为 “Display version information”，但**在 `-p` 与 ACP 模式下会打印一行 `Auth: <authType>`**，交互面板的十三项里另有 `Auth` 与 `Base URL` 两行（OAuth 登录时 Base URL 刻意留空）；Kimi 的 `/status` 由 `buildStatusReportLines` 渲染，行集合里没有任何账号、登录、供应商或凭据行；Qoder 的 `/status` 是 “View account and session status.”，Quick Start 写成 “View version, model, account, and API Connectivity”。',
+        '安装诊断与认证检查在五家不是一回事：Claude 的 `/doctor` 是 bundled Skill（别名 `/checkup`），官方列出的五类检查项是 Installation health、Extensions、`CLAUDE.md` files、Permissions 与 Usage，**没有一类检查凭据**，检查凭据存储可写性的是 shell 侧的 `claude doctor`（Keychain 拒绝写入时报告以 `macOS Keychain is not writable` 开头的警告）；Codex 的 `codex doctor` 官方描述明确把 authentication 列入检查范围，源码里对应 id 为 `auth.credentials`、分组为 `auth` 的检查行；Qwen 的 `/doctor` 有 `Authentication` 组，`checkAuth` 给出三种结果并附 Provider、Base URL、Model 与 API key 是否已设；Kimi 的 `kimi doctor` 逐字只 “校验 `config.toml` 和 `tui.toml`”，与认证无关；Qoder 没有任何 `/doctor` 一类命令，登录问题放在文档站单独的 “Sign-in and Authentication Issues” 排障页。',
+        '机器可读口径各不相同：Claude 有 `claude auth status` 的 JSON 与 `claude -p` 的 JSON 结果两条路；Codex 的 `codex login status` 只有 stderr 文本加退出码，机器可读报告要靠 `codex doctor --json`（“Emit a redacted machine-readable report.”）；Qwen 的 `/status` 在 `-p` 与 ACP 下输出固定行文本，而 `/doctor` 在非交互模式下整个报告直接以 `JSON.stringify({ checks, summary }, null, 2)` 返回、不需要任何旗标；Kimi 的机器可读认证状态只在 `kimi web` 服务 API 上，官方并写明 `GET /api/v1/auth` “不做凭据校验，因此此后的对话请求仍可能以 `40111` / `40112` 失败”；Qoder 的 `qoder status` 没有 `--json`，脚本化认证靠 PAT 与实际请求结果。',
+        '五家的状态入口都只读、不改凭据，但脱敏程度不同：Codex 的 API Key 经 `safe_format_key` 只保留前 8 与后 5 字符（长度 ≤13 时整体替换为 `***`），Qwen 的 `/config` 输出对 API Key、token 与 base URL 打码，Kimi 的 `/logout` 选择列表实际上就是当前凭据清单（无凭据时打印 `Nothing to logout.`），Claude 的 `/status` 在登录与 API Key 同时存在时会标出未被使用的那一个、`apiKeyHelper` 行还会显示脚本的退出码与错误输出，Qoder 官方没有公开任何打印 PAT 的命令。',
       ],
       products: {
         claude: {
-          entry: '`/status`、`/doctor`。',
-          mechanism: '`/status` 显示版本、模型、账号和连接；`/doctor` 检查安装与配置健康度。',
-          behavior: '帮助识别当前账号、Provider 与配置问题。',
-          scope: '当前进程和本机配置。',
-          persistence: '只读，不修改凭据。',
-          automation: '脚本应优先验证实际模型请求或使用非交互诊断输出。',
-          security: '分享诊断信息前移除账号、组织和路径等敏感字段。',
-          conditions: '显示字段随 Provider 与客户端版本变化。',
-          sources: ['claude-commands', 'claude-auth'],
+          entry:
+            '会话内 `/status`（打开 Settings 界面的 Status 页签，与 `/config` 是同一对话框的不同页签）；shell 侧 `claude auth status`（默认 JSON，`--text` 人类可读）、`claude doctor`（只读安装与设置诊断）与 `claude setup-token`（生成长期 OAuth 令牌，只打印不保存）。`/doctor [prompt-audit [path]]` 是 bundled Skill、别名 `/checkup`。',
+          mechanism:
+            '官方 CLI 参考的 `claude auth status` 行逐字为 “Show authentication status as JSON. Use `--text` for human-readable output. Exits with code 0 if logged in, 1 if not. The JSON includes a `configDirectory` field naming the configuration directory the CLI uses. The field requires Claude Code v2.1.268 or later. The JSON\'s `authMethod` field is one of `none`, `claude.ai`, `oauth_token`, `api_key`, `api_key_helper`, or `third_party`”。`/status` 的认证相关行散落在四页官方文档里：`Profile` 行 “names the source in place of the `Login method` row. When the profile is the credential in use, `Organization` and `Email` rows show its account.”；`API key` 行 “An approved `ANTHROPIC_API_KEY` in your environment routes requests through that key instead of your subscription.”；`Auth token` 行 “shows this credential as an `Auth token` row reading `CLAUDE_CODE_OAUTH_TOKEN`”；`apiKeyHelper` 行 “shows `Failing` with the last failure\'s detail, such as the exit code and the command\'s error output, and disappears after the next successful run. Before v2.1.274, `/status` showed only the credential source, not the failure.”；`Login` 行 “reading `Expired — log in again`, plus the organization and email it has saved for the expired login … The row requires Claude Code v2.1.210 or later.”；`Setting sources` 与 `Skipped sources` 两行报受管设置来源，括号取值为 `(remote)`、`(plist)`／`(HKLM)`、`(file)`／`(drop-ins)`／`(file + drop-ins)`、以 `, merged` 结尾的组合、`(HKCU)`、`(parent process)` 与 `(helper)`，均 v2.1.242 起。`claude doctor` 行逐字为 “Print read-only installation and settings diagnostics from the terminal without starting a session, including install health, settings-file validation errors, and Remote Control eligibility.”，并会报告以 `macOS Keychain is not writable` 开头的凭据存储警告。',
+          behavior:
+            '到期分三个 Surface 报告：交互会话在 `/login` 创建的登录距到期三天内于启动时打印 `Your login expires in 3 days · run /login to renew`；v2.1.318 起 `claude -p` 的文本输出在到期前 10 天打一行 stderr 警告；机器可读侧 v2.1.318 逐字为 “Added the date a stored claude.ai sign-in ends to `claude auth status` (`loginExpiresAt`) and to `claude -p` JSON results (`credential_expires_at`)”。到期本身不阻断——“The warning is informational and never blocks a request: authentication keeps working until the login actually expires.”；真正过期且无法刷新后每次模型请求在本地失败，交互文案是 `Login expired · Please run /login`，`-p` 与 Agent SDK 改为 `Failed to authenticate: OAuth session expired and could not be refreshed` 且结构化错误码为 `authentication_failed`。同版还把到期时的登录失败文案改成会说明原因、“in `claude -p` names `claude auth login` and `claude setup-token`”。登录与 API Key 同时存在时 “`/status` marks the credential that isn\'t in use.”',
+          scope:
+            '当前进程与本机配置目录（JSON 里的 `configDirectory`）。`Profile` 行只在读取 profile 与 federation 变量的会话出现：“Claude Code doesn\'t read profiles or federation variables in bare mode, in Claude Desktop, or in cloud sessions. In those sessions, `/status` shows no `Profile` row.”。`Login` 行 “appears only when the saved login is your active credential and can no longer be refreshed. Sessions authenticated another way don\'t show the row, even if an expired login remains saved.”；三天的启动警告同样 “appears only when a claude.ai login is the active credential, and not when a cloud provider, `ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN`, or `apiKeyHelper` supplies the credential.”。`Session kind` 行在后台会话读 `background job · attached` 或 `background job · unattended`、其余会话读 `interactive`（v2.1.221 起）。',
+          persistence:
+            '全部只读、不改凭据，但 `claude auth status` 会触发一次令牌刷新并等待其落盘：v2.1.301 修过 “Fixed sign-in refresh timeouts and unexpected sign-outs after a short command such as `claude auth status` or `claude plugin list` exited in the middle of a token refresh”，v2.1.317 又修过 “Fixed `claude auth status` exiting before a slow token refresh was saved, which could sign you out on the next run”。`/status` 在 Claude 响应期间也能运行（官方写 “Works while Claude is responding”，页首并举例 “Claude Code runs some commands immediately without interrupting the response, such as `/status`, `/tasks`, and `/usage`.”）。',
+          automation:
+            '`claude auth status` 是脚本化入口：退出码 0/1 直接区分登录与否，JSON 里有 `authMethod` 与 `configDirectory`，`--text` 给人看。`claude -p --output-format json` 的结果里 v2.1.318 起另有 `credential_expires_at`。无人值守场景官方特别点名两条：“A background session in agent view or a Remote Control session that outlives the login stops making progress once the credential expires and can\'t recover until you sign in again.”，因此 CI 与长跑会话更常用 `claude setup-token` 生成的长期 OAuth 令牌（“Prints the token to the terminal without saving it. Requires a Claude subscription.”）。',
+          security:
+            '官方对分享诊断输出的口径是先移除账号、组织与路径字段。`/status` 会显示 `Organization` 与 `Email`，`claude auth status` 的 JSON 含 `configDirectory`，`apiKeyHelper` 行会把脚本的退出码与错误输出显示出来，转发前应检查其中是否含 Key 片段。受管环境下 `/status` 的 `Setting sources` 与 `Skipped sources` 两行是给管理员定位策略来源用的，官方建议 “run `/status` at the Claude Code prompt and copy the `Setting sources` line … If a `Skipped sources` line appears, copy it too”。',
+          conditions:
+            '**v2.1.318 的两个新字段名到核对日期只有更新日志一处记录**：官方 CLI 参考（51,772 字节）的 `claude auth status` 行没有 `loginExpiresAt`，Headless 页（37,835 字节）对 `--output-format json` 只写 “structured JSON with result, session ID, and metadata”，Agent SDK TypeScript 参考（331,024 字节）的 `SDKResultMessage` success 与 error 两个分支也都没有 `credential_expires_at`。因此这两个字段的取值格式、`credential_expires_at` 出现在 `json` 还是 `stream-json`、10 天警告的具体文案，以及两项是否覆盖 `apiKeyHelper`／`ANTHROPIC_API_KEY`／云厂商凭据，都记为未确认。**`/doctor` 不是认证检查命令**：官方 Skills 页列出的五类检查项是 Installation health、Extensions、`CLAUDE.md` files、Permissions 与 Usage，没有一类检查账号、登录、凭据或到期，此前把它与 `/status` 并列为认证状态入口的记法过宽；检查凭据存储可写性的是 shell 侧的 `claude doctor`。Commands 页的 `/status` 行没有同页 `/color`、`/config`、`/effort`、`/mcp`、`/reload-plugins`、`/rename` 等行都带的 “Also available in non-interactive mode (`-p`)” 一句，因此 `/status` 记为交互会话专用。核对日期最新 Release 为 v2.1.318（2026-11-04T00:01:03Z），更新日志固定在提交 `646b74189c735abbccf78ef5cb7ddd38a07a36eb`（1,155,046 字节）。',
+          status: '官方确认',
+          sources: [
+            'claude-cli-reference-auth-status',
+            'claude-v21318-credential-expiry-changelog',
+            'claude-auth-renew-expiring-login',
+            'claude-status-credential-rows',
+            'claude-status-setting-sources',
+            'claude-doctor-checkup-scope',
+            'claude-doctor-keychain',
+            'claude-commands-status-row',
+            'claude-sdk-result-message-fields',
+          ],
         },
         codex: {
-          entry: '`codex login status`、交互式 `/status`。',
-          mechanism: '启动级命令专门报告登录；`/status` 显示当前线程配置与 token 使用。',
-          behavior: '区分未登录、ChatGPT/API 凭据和当前运行配置。',
-          scope: '当前 Codex home 与线程。',
-          persistence: '只读。',
-          automation: 'CI 可在任务前运行 `codex login status`。',
-          security: '不要在公开日志输出令牌值。',
-          conditions: 'Provider 环境变量是否有效仍需实际请求验证。',
-          sources: ['codex-auth', 'codex-commands'],
+          entry:
+            'shell 侧 `codex login status`（`codex login` 的唯一子命令，源码里的文档注释就是 “Show login status.”）与 `codex doctor`；会话内 `/status`，配 `/copy` 复制整份状态或单个字段；相邻的 `/usage` 与 `/debug-config` 分别报账号用量与配置分层。',
+          mechanism:
+            '官方 Developer commands 页对 `codex login` 只写 “Authenticate the CLI with a ChatGPT account, API key, or access token. With no flags, Codex opens a browser for the ChatGPT OAuth flow.”，旗标表由客户端组件 `<ConfigTable client:load options={loginOptions} />` 渲染、不在 Markdown 正文里，状态口径只有一句 “`codex login status` exits with `0` when credentials are present, which is helpful in automation scripts.”。Authentication 页的 CLI 分支写 “Run `codex login status` to see the active authentication method.”，并补 “When the process selects workload identity, Codex rejects `codex login` and `codex logout` because the process environment controls authentication.”（app 与 ide 两个分支改为 “Open the profile menu to see the active account or API key status.”）。源码侧 `pub async fn run_login_status(cli_config_overrides: CliConfigOverrides) -> !` 的**所有输出走 `eprintln!` 到 stderr**，按 `AuthMode` 各打印一行：`Logged in using ChatGPT`（`Chatgpt` 与 `ChatgptAuthTokens` 共用）、`API key configured - <前8>***<后5>` 再加一行 `Authentication is checked when you send a request.`、`Logged in using access token`（`AgentIdentity`）、`Logged in using personal access token`、`Logged in using Amazon Bedrock API key`、`Logged in using Amazon Bedrock AWS access keys`、`Logged in using workload identity`；`Ok(None)` 打印 `Not logged in`。`codex doctor` 官方描述逐字为 “Generate a local diagnostic report before filing a support issue or while investigating a broken Codex installation. The report checks installation, configuration, authentication, runtime, Git, terminal, app-server, and thread inventory health.”，源码里对应 `DoctorCheck::new("auth.credentials", "auth", status, summary)`，`CheckStatus::Ok` 时的摘要文案是 “auth is configured”。',
+          behavior:
+            '退出码：有任何凭据时 0；`Not logged in`、`Error checking login status: {err}` 与 `Unexpected error retrieving API key: {e}` 三种情况都是 1，即官方那句 “exits with `0` when credentials are present” 的反面同样成立。`codex doctor` 的检查状态分 `Ok`／`Warning`／`Fail` 三档，公开旗标为 `--json`（“Emit a redacted machine-readable report.”）、`--network-only`（“Run config, network environment, provider HTTP, and Responses WebSocket checks.”）、`--summary`（“Only show grouped check rows and the final count summary.”）、`--all`（“Expand long lists in detailed human output.”）、`--no-color` 与 `--ascii`，另有隐藏的 `--probe-filesystem-path` 与 `--feedback`。TUI `/status` 的官方两步是 “In any chat, type `/status`.” 与 “Review the output for the active model, approval policy, writable roots, and current token usage. When the TUI connects remotely, the output also shows the remote address and the server version.”，预期结果 “Codex prints a summary confirming that it\'s operating where you expect.”。**官方描述没有提到账号，但源码里 `/status` 确实渲染账号行**：`card.rs`（38,685 字节）的固定标签是 `Model`、`Directory`、`Permissions`、`Agents.md`，其后按条件追加 `Model provider`、**`Account`**、**`ChatGPT workspace`**、`Thread name`、`Session`、`Forked from` 等；`Account` 的取值由 `account.rs`（209 字节）的 `StatusAccountDisplay` 决定——`ChatGpt { email, plan, .. }` 时按 `(Some, Some)`→`{email} ({plan})`、`(Some, None)`→`email`、`(None, Some)`→`plan`、`(None, None)`→`ChatGPT`，`ApiKey` 时固定为 `API key configured (run codex login to use ChatGPT)`；`Token usage` 行带注释 “Hide token usage only for ChatGPT subscribers”，即 ChatGPT 订阅登录时不渲染该行。',
+          scope:
+            '当前 `CODEX_HOME`（默认 `~/.codex`）与当前线程。`run_login_status` 读的是存储凭据：两个分支都传 `load_auth(/*enable_codex_api_key_env*/ false)` 与 `AuthManager::shared_from_config(&config, /*enable_codex_api_key_env*/ false)`，即**该命令不把 `OPENAI_API_KEY` 环境变量当作已登录凭据**；`AuthMode::Headers` 在这条路径上是 `unreachable!("header auth cannot be loaded from auth storage")`，说明请求头式认证不进入状态报告。`/status` 的范围是当前 chat 与线程配置，其 `Account` 与 `ChatGPT workspace` 两行只在拿到 ChatGPT 账号信息时出现，`/debug-config` 另给配置分层顺序、开关状态与 `allowed_approval_policies`、`allowed_sandbox_modes`、`mcp_servers`、`rules`、`network_proxy` 等策略来源。',
+          persistence:
+            '只读。`doctor.rs` 的文件头注释逐字为 “Doctor is intentionally read-mostly: checks inspect the current installation, configuration, authentication, terminal, state paths, and bounded reachability probes without attempting repair or starting long-lived services.” 与 “A failing check should describe the problem and remediation, but it should not mutate user state. That keeps the command safe to run before filing a support issue or while diagnosing a broken local installation.”。`codex login` 的直接运行会另写一份日志，官方 Authentication 页的 `## Login diagnostics` 一节逐字为 “Direct `codex login` runs write a dedicated `codex-login.log` file under your configured log directory. Use it when you need to debug browser-login or device-code failures, or when support asks for login-specific logs.”',
+          automation:
+            'CI 用 `codex login status` 的退出码做前置门禁，但**输出在 stderr、没有 `--json`**，脚本要取状态文本得捕获 stderr，否则只能依赖退出码；需要机器可读报告时改用 `codex doctor --json`（“Emit a redacted machine-readable report.”）。非交互执行侧官方只写 “Codex writes formatted output by default. Add `--json` to receive newline-delimited JSON events (one per state change).”，Developer commands 页没有给出这些事件的字段清单，因此 `codex exec --json` 的事件里是否携带认证或账号信息记为未确认；同页唯一带 `auth` 字样的 JSON 字段是 `codex plugin add --json` 打印的 `authPolicy`，那是插件的鉴权策略、不是账号凭据状态。',
+          security:
+            'API Key 只以 `fn safe_format_key` 脱敏后出现：`if key.len() <= 13 { return "***".to_string(); }`，否则 `format!("{prefix}***{suffix}")` 取前 8 与后 5 字符。`codex doctor` 的每一行都被描述为 redacted，且注释写明 “PATH entries are untrusted data: checks may inspect them, but must not execute the programs they select.”。`codex login status` 把结果写到 stderr 而不是 stdout，转发终端记录时要注意它不会出现在管道数据里。存储侧官方写 “Codex caches login details locally in a plaintext file at `~/.codex/auth.json` or in your OS-specific credential store.”',
+          conditions:
+            '**Codex 没有任何面向用户的凭据到期显示**：`run_login_status` 的全部输出分支里没有时间字段，Authentication 页唯一与到期相关的句子是 “For sign in with ChatGPT sessions, Codex refreshes tokens automatically during use before they expire, so active sessions usually continue without requiring another browser login.”，说的是自动刷新；`auth.json` 的持久化记录 `pub struct TokenData`（`codex-rs/login/src/token_data.rs`，7,316 字节）字段只有 `id_token`、`access_token`、`refresh_token`、`oauth_provenance`、`login_owner_id` 与 `account_id`，**没有任何到期或刷新时间字段**；到期信息只以 JWT 声明的形式存在于 `access_token` 内部，供登录库自己解析并决定何时静默刷新，不进入任何用户可见输出。`codex login status` 没有 `--json`（`struct LoginCommand` 的完整旗标只有 `--with-api-key`、`--with-access-token`、隐藏且已弃用的 `--api-key`、`--device-auth` 与隐藏的 `--experimental_issuer`、`--experimental_client-id`），`codex auth status`、`codex whoami` 与 `codex login status --json` 在标签树里都不存在。`codex doctor` 与 `codex login status` 还有一处口径差异——前者构造 `AuthManager` 时把 `enable_codex_api_key_env` 传 `true`、后者传 `false`，即 doctor 会把 API Key 环境变量算作有效认证而 login status 不会。官方文档没有逐字段列出 `codex login status` 的输出，因此各条消息文本与 `Not logged in` 退出 1 这两点属源码确认。核对日期最新非 alpha Release 仍是 rust-v0.166.0（2026-10-29T19:47:53Z（GitHub API `published_at`；官方 releases.atom 的 `<published>` 记为 2026-10-29T19:50:20Z），标签提交 `6ff1e1ca3b30fc8b914720681fcf5fe62e95f856`）；更新的 rust-v0.167.0-alpha.2 至 alpha.5、rust-v0.167.0-alpha.3.1／alpha.3.2 与 rust-v0.168.0-alpha.1 至 alpha.3 都是 alpha 通道，仓库 `CHANGELOG.md` 在 main 只有一条与认证无关的 `## Unreleased`（330 字节）。',
+          status: '官方确认',
+          sources: [
+            'codex-login-status-doc',
+            'codex-status-tui-doc',
+            'codex-status-account-source',
+            'codex-auth-cli-status',
+            'codex-login-status-source',
+            'codex-login-cli-args',
+            'codex-doctor-source',
+            'codex-v0166-release',
+          ],
         },
         qwen: {
-          entry: '`/doctor`。',
-          mechanism: '诊断认证、Provider 与运行环境；`/status` 主要显示版本和路径。',
-          behavior: '检查当前认证配置并提示问题。',
-          scope: '当前进程、项目与 Qwen 配置层。',
-          persistence: '诊断本身只读。',
-          automation: 'Headless 可通过启动验证和实际请求确认 Provider Key。',
-          security: '报告诊断内容时避免暴露 Key 与环境值。',
-          conditions: '不能把 `/status` 单独当作专用登录状态命令。',
-          sources: ['qwen-model-commands-current', 'qwen-model-auth-current'],
-          status: '条件项',
+          entry:
+            '会话内 `/doctor`（官方认证文档把 “Check current authentication” 唯一指向它）与 `/status`（命令名就是 `status`、别名 `about`，另有 `paths` 子命令）。独立的 `qwen auth` CLI 子命令已被移除，`qwen auth status` 只打印移除通知与迁移指引。',
+          mechanism:
+            '官方 `docs/users/configuration/auth.md` 的 `## Removed qwen auth CLI command` 一节逐字为 “The standalone `qwen auth` CLI command has been removed. Use these replacements instead:”，迁移表八行里与状态检查直接相关的一行逐字为 “Check current authentication | Run `/doctor` inside Qwen Code”，节末为 “Legacy invocations such as `qwen auth status` print a removal notice that summarizes these migration paths, including a Token Plan entry with the base URLs for both regions.”。命令文档的 `### 1.12 Authentication Commands` 一节逐字为 “Use `/auth` inside a Qwen Code session to configure authentication. Use `/doctor` to inspect the current authentication and environment status.”，表内 `/auth` 为 “Configure authentication interactively (aliases: `/connect`, `/login`)”、`/doctor` 为 “Show authentication and environment checks”，节末 NOTE 为 “The standalone `qwen auth` CLI command has been removed. Legacy invocations such as `qwen auth status` print a removal notice with migration guidance.”。源码侧 `doctorChecks.ts` 的 `// Authentication` 分组依次调用 `checkAuth` 与 `checkApiClient`：`checkAuth` 在 `config?.getAuthType()` 为空时返回 `status: \'fail\'`、`message: t(\'not configured\')`、`detail: t(\'Run /auth to configure authentication.\')`；`validateAuthMethod(authType, config)` 返回错误时 `status: \'fail\'`、`message: t(\'invalid ({{authType}})\', { authType })`、`detail` 是错误文本；否则 `status: \'pass\'`、`message: t(\'configured ({{authType}})\', { authType })`，`detail` 由 `findProviderByCredentials(baseUrl, envKey)` 命中的 `Provider: {{provider}}`、`Base URL: {{baseUrl}}`、`Model: {{model}}` 与 `API key: configured ({{envKey}})` 或 `API key: {{envKey}} not set` 按需拼成。`checkApiClient` 另给 `config not loaded`（fail）、`client initialized`（pass）、`client not initialized`（warn，detail 为 “The API client has not been initialized yet.”）与 `error`（warn）。',
+          behavior:
+            '`/status` 的描述只有 “Display version information”，但源码在非交互路径上会多打一行认证方式：`aboutCommand.ts` 里 `context.executionMode !== \'interactive\'` 时返回的行集合逐字为 `Qwen Code v${systemInfo.cliVersion}`、`Model: ${systemInfo.modelVersion}`、`Fast Model: ${systemInfo.fastModel ?? \'not set\'}`、`Auth: ${authLabel}`、`Platform: ${systemInfo.osPlatform} ${systemInfo.osArch} (${systemInfo.osRelease})`、`Node.js: ${systemInfo.nodeVersion}`、`Session: ${systemInfo.sessionId}`，以及条件行 `Git commit:`、`IDE:`、`LSP:`，其中 `authLabel` 为 `systemInfo.selectedAuthType === \'qwen-subscription\' ? \'Qwen Subscription\' : systemInfo.selectedAuthType`；交互模式改为 `context.ui.addItem({ type: MessageType.ABOUT, systemInfo }, Date.now())` 交给 TUI 渲染，面板字段由 `systemInfoFields.ts`（3,783 字节）的 `getSystemInfoFields()` 逐字按顺序给出十三项——`Qwen Code`、`Runtime`、`IDE Client`、`LSP`、`OS`、**`Auth`**、**`Base URL`**、`Model`、`Fast Model`、`Session ID`、`Sandbox`、`Proxy`、`Memory Usage`；`formatAuth` 在 `selectedAuthType` 为 `qwen-subscription` 时返回 `Qwen Subscription`、`findProviderByCredentials(baseUrl, apiKeyEnvKey)` 命中时返回该 Provider 的 label、`selectedAuthType` 以 `oauth` 开头或等于 `qwen-oauth` 时返回 `Qwen OAuth`、其余返回 `API Key - <authType>`，而 `formatBaseUrl` 在同样两种 OAuth 情形下**返回空串**（刻意隐藏）；`Proxy` 经 `redactProxy` 把 URL 的用户名与密码各替换为 `***`。`/status paths` 的描述为 “show paths for current session files and logs”。`/doctor` 另有三个子命令 `memory`（`[--json] [--sample] [--snapshot]`）、`cpu-profile`（`[--duration <seconds>]`）与 `rollback`，都是运行时或安装诊断、与认证无关。',
+          scope:
+            '当前进程、项目与 Qwen 配置层。`/status` 与 `/status paths` 的 `supportedModes` 都是 `[interactive, non_interactive, acp]` 且 `canRunDuringStreaming: true`，因此 `-p`、stream-json 与 ACP 三种非交互形态都能取到那段固定行文本。`checkAuth` 读的是 `context.services.config` 的 `getAuthType()`、`getContentGeneratorConfig()` 与 `getModel()`，即生效配置层解析后的结果，不是某一个设置文件。',
+          persistence:
+            '诊断本身只读，不写凭据也不写设置。`/config` 的官方 NOTE 逐字为 “Sensitive values (API keys, tokens, base URLs) are masked in output, and setting `tools.approvalMode` to `yolo` is blocked.”，即读取路径上也做了打码。`/doctor memory --snapshot` 是唯一的写盘例外，官方 WARNING 逐字为 “writes a V8 heap snapshot that may contain prompts, file contents, API keys, and tool results from the current session. Review the file before sharing it.”',
+          automation:
+            '非交互认证状态只有 `/status` 在 `-p` 与 ACP 下打印的那一行 `Auth: <authType>`，它只给认证方式名称、不校验凭据也没有到期字段；要判断 Key 是否真的可用仍需发起一次最小模型请求。**机器可读出口其实是 `/doctor` 本身**：`doctorCommand.ts` 的 `supportedModes` 含 `non_interactive` 与 `acp`，非交互路径直接返回 `content: JSON.stringify({ checks, summary }, null, 2)`、`messageType` 按 `summary.fail > 0 ? \'error\' : \'info\'` 取值，因此 `qwen -p "/doctor"` 得到的就是含 `Authentication` 分组全部检查行的 JSON，不需要任何 `--json` 旗标（`--json` 只出现在 `/doctor memory` 这个内存诊断子命令上）；官方 `headless.md` 没有记录这一用法，属源码确认。官方对 CI 的口径是 “For CI, containers, or scripts, configure Coding Plan with environment variables or `settings.json` instead of the removed `qwen auth coding-plan` command.”',
+          security:
+            '报告诊断内容时避免暴露 Key 与环境值：`checkAuth` 的 detail 只打印环境变量名（`API key: configured ({{envKey}})` 或 `API key: {{envKey}} not set`）而不打印其值，`/config` 输出对 API Key、token 与 base URL 打码。`/doctor memory --snapshot` 的堆快照可能含 API Key，官方要求先审阅再分享。',
+          conditions:
+            '不能把 `/status` 单独当作专用登录状态命令：它的官方描述是 “Display version information”，认证行只在非交互与 ACP 路径出现，且只是 `selectedAuthType` 的名称。`/doctor` 也只判断认证方式是否配置得合法——`validateAuthMethod` 是本地校验，不发模型请求、不报告凭据是否仍然有效，更没有任何到期字段。独立的 `qwen auth` CLI 在 v0.26.7 与 v0.26.8 两个标签下都已是移除状态（`auth.md` 分别为 31,378 与 32,534 字节、同一节都在），因此移除早于 v0.26.8、具体版本记为未确认。核对日期最新稳定 Release 为 v0.26.8（2026-11-05T16:23:57Z，标签提交 `21ed8f1efbb351b973d96e2bc9efa78f278df99c`），其发布说明里没有 `/status`、`/doctor`、`qwen auth` 或凭据到期条目；`commands.md` 相对 v0.26.7 的全部差异是新增 `/logout` 与 `/upgrade` 两行（都标注 “available with Qwen Subscription login”），`auth.md` 的另一处变化是 `/auth` 菜单由四项改为五项、新增 “Qwen Account with Subscription” 的 Qwen OAuth 浏览器登录并删除原 “Option 2: Qwen OAuth (Discontinued)” 整节——这三项属 `auth-browser`、`auth-logout` 与 `model-provider` 字段、本次未处理。来源坐标按本字段单独前移到 v0.26.8，共享来源 `qwen-model-commands-current` 与 `qwen-model-auth-current` 仍固定在提交 `7f8adc659ebe2d2f809ef31c79fea5638f3bf5ab`、被多个模型字段引用，故本次不移动。',
+          status: '官方确认',
+          sources: [
+            'qwen-auth-commands-v0268',
+            'qwen-auth-removed-cli-v0268',
+            'qwen-status-auth-line-v0268',
+            'qwen-status-panel-fields-v0268',
+            'qwen-doctor-auth-checks-v0268',
+            'qwen-doctor-json-v0268',
+            'qwen-v0268-release',
+          ],
         },
         kimi: {
-          entry: '`/status`。',
-          mechanism: '显示当前运行、Provider、模型和会话相关状态。',
-          behavior: '可辅助判断当前 Provider，但没有独立的 auth status 子命令。',
-          scope: '当前会话。',
-          persistence: '只读。',
-          automation: '自动化应发起最小模型请求或验证配置文件，而非依赖交互页。',
-          security: '分享状态输出前检查 Provider 名和路径。',
-          conditions: '静态 Key 是否有效仍由真实请求结果确认。',
-          sources: ['kimi-model-commands-current', 'kimi-model-cli-current'],
+          entry:
+            'CLI 上没有专用认证状态入口：`kimi login` 是 device-code 登录且 “该子命令没有任何 flag”，`kimi doctor` 只 “校验 `config.toml` 和 `tui.toml`”。会话内 `/status` 是运行状态页，实际能读出凭据状态的只有 `/login`（已登录时回报）与 `/logout`（列出可登出项）。机器可读的鉴权状态在 `kimi web` 服务 API 上。',
+          mechanism:
+            '中文 Slash 命令参考的 `## 账号与配置` 组只有 `/login`（“选择账号或平台并登录：Kimi Code 走 OAuth 验证码流程，Kimi Platform 通过 API 密钥登录”，随时可用列为「否」）、`/logout`（“清除当前所选账号的凭据”，「否」）、`/provider`、`/provider refresh [providerId]`、`/model` 与 `/secondary-model`，**没有任何 auth、whoami 或 login status 条目**；`## 信息与状态` 组的 `/status` 行逐字为 “显示当前会话运行时状态：版本、模型、工作目录、权限模式等”、随时可用列为「是」，同组 `/usage` 为 “显示 token 用量、上下文占用以及配额信息”。源码侧 `status-panel.ts` 的文件头注释逐字为 “Status report line builder for `/status`. It mirrors `/usage` visual language but keeps runtime status formatting separate from the TUI orchestration layer.”，`buildStatusReportLines` 的 `rows` 数组按顺序只有 `Model`、`Directory`、`Permissions`、`Plan mode`、条件性的 `Tower mode`（仅 `options.towerAvailable`）、`Session`、条件性的 `Title` 与条件性的 `Warning`（`severity: \'error\'`），表头是 `>_ {PRODUCT_NAME} (v{version})`，其后是 `Context window` 段与托管配额、按量付费两段。`StatusReportOptions` 的字段里没有任何账号、邮箱、供应商名、登录状态或到期字段。`/status` 里唯一与认证相关的数据来自 `info.ts` 的 `loadManagedUsageReport`：先取当前模型的 `provider`，`if (!isManagedUsageProvider(providerKey)) return undefined;`，命中才 `await host.harness.auth.getManagedUsage(providerKey)`。',
+          behavior:
+            'CLI 上读出凭据状态的两条实际路径都在 auth 命令里：`/login` 走 `handleKimiCodeOAuthLogin`，先 `const status = await host.harness.auth.status(DEFAULT_OAUTH_PROVIDER_NAME);` 再 `alreadyLoggedIn = status.providers.some((provider) => provider.providerName === DEFAULT_OAUTH_PROVIDER_NAME && provider.hasToken)`，登录成功后 `if (alreadyLoggedIn)` 时打印 `Already logged in. Model configuration refreshed.`，spinner 文案为 `Logged in.`／`Login cancelled.`／`Login failed.`，刷新配置失败则打印 `Authentication successful, but failed to refresh config: <message>`；`/logout` 用同一个 `auth.status` 加 `config.providers[DEFAULT_OAUTH_PROVIDER_NAME] !== undefined` 算出 `hasManagedRemnant`，再把其余 API Key 供应商按 id 排序成选项（`description` 取其 `baseUrl`），**这个选择列表实际上就是当前凭据清单**，选项为空时打印 `Nothing to logout.`、成功时打印 `Logged out from <label>.`。内部还有一个 `auth.status()` 探测被 `/feedback` 用来决定走已认证通道还是 GitHub Issues 回退，但不对外暴露为状态命令。',
+          scope:
+            '当前会话与本机 Kimi Code home。`/status` 与 `/usage` 的「随时可用」列都是「是」，即流式输出期间也能运行；`/login` 与 `/logout` 是「否」，按页首说明 “部分命令仅在空闲（idle）状态下可用。会话正在流式输出或压缩上下文时执行这些命令会被拦截，需先按 `Esc` 或 `Ctrl-C` 中断。”。`kimi doctor` 默认检查 `KIMI_CODE_HOME` 下的文件、未设置该环境变量时检查 `~/.kimi-code`，“默认路径缺失时会显示为跳过，因为内置默认值仍可生效”。托管配额段只在当前模型的 provider 满足 `isManagedUsageProvider` 时出现。',
+          persistence:
+            '只读。`/status`、`/usage` 与 `kimi doctor` 都不写凭据；`kimi doctor` 逐字为 “不会启动 TUI，也不会修改任一文件”，退出码口径为 “显式传入路径时，文件必须存在。所有被检查的文件都有效或被跳过时，退出码为 `0`；任何指定文件缺失或配置无效时，退出码为 `1`。”。`kimi login` 会写盘，官方写 “生成的 token 写入与 TUI `/login` 相同的本地位置，下次启动 `kimi` 时会自动加载。”，取消或失败退出码 `1`、成功 `0`。',
+          automation:
+            'CLI 侧没有可脚本化的认证状态出口：`kimi login` 无旗标无子命令，`kimi -p` 也没有认证状态输出，官方对非交互登录只给 device-code 流程（“通过 RFC 8628 device-code 流程登录 Kimi Code OAuth，无需进入 TUI。命令会发起一次 device authorization 请求，将验证地址和用户码打印到 stderr，然后轮询直到浏览器侧完成授权。”）。自动化应改为发起一次最小模型请求，或在起了 `kimi web` 的环境里读服务 API。',
+          security:
+            '全 CLI 源码里 `/login` 与 `/logout` 都不打印令牌值、到期时间或账号邮箱；`/logout` 的选项 `description` 只取供应商 `baseUrl`。分享 `/status` 输出前需要注意的是 `Directory` 行会给工作目录绝对路径、托管配额段会给账号级用量。`kimi web` 的 `--dangerous-bypass-auth` 会关掉全部 REST 与 WebSocket 路由的 bearer token 鉴权，官方写 “任何能访问该端口的人都能完全控制你的会话、文件系统和 shell。”',
+          conditions:
+            '**CLI 与 TUI 侧「没有认证状态命令」这条结论由穷举确认**：中文 CLI 参考的子命令清单逐字为 “`kimi` 提供以下子命令：`login`（非交互式登录）、`acp`（ACP IDE 模式）、`web`（前台运行本地 REST/WebSocket/web 服务并打开 web UI）、`doctor`（校验配置文件）、`export`（导出会话）、`migrate`（迁移旧版数据）、`import-sessions`（导入 Claude Code 和 Codex 会话）、`upgrade`（检查更新）、`provider`（管理供应商）。”，九个动词里没有 status、auth 或 whoami；`## 主命令选项` 的 23 个 flag 与 `### flag 冲突规则` 的五条都不涉及认证状态；`docs/zh/` 与 `docs/en/` 两个子树里同时含 `login status` 或 `auth status` 的文件数为 0；`docs/zh/release-notes/changelog.md` 全文没有 “login status” 或 “auth status”。**机器可读的鉴权状态只在 `kimi web` 服务 API 上，属另一个 Surface**：中文服务 API 参考的 `### 登录与用量` 一节节首逐字为 “这组端点驱动托管 Kimi OAuth 登录的生命周期，并暴露账号级信息。托管供应商名为 `managed:kimi-code`；下面每个端点上可选的 `provider` 参数都默认取它。”，`GET /api/v1/auth` 一节逐字为 “鉴权状态快照：默认模型能否解析到可用的供应商配置，以及托管供应商的登录状态。… 它不做凭据校验，因此此后的对话请求仍可能以 `40111` / `40112` 失败。”，成功 `data` “携带 `models_ready`（布尔值）、`providers_count`（已配置供应商数量）与 `managed_provider`（`null`，或 `{ name, status }`，其中 `status` 为 `authenticated` / `expired` / `revoked` / `unauthenticated` 之一）”，**但该端点的唯一实现 `authLegacyService.ts`（2,420 字节）只会写 `status: loggedIn ? \'authenticated\' : \'unauthenticated\'`，且 `managedLoggedIn()` 把任何异常都 `catch` 成 `false`，因此 `expired` 与 `revoked` 两个取值在 2.5.1 运行时不可达、凭据被服务端拒绝也会报告为 `unauthenticated`**；`GET /api/v1/oauth/userinfo` 的 `userInfo` “始终携带 `userId`、`nickname`、`status`、`region`、`userLevel`、`userLevelName`、`domain`、`domainName`，并可能附加 `globalId`、`bio`、`avatar`、`username`、`email`、`phone`（`{ countryCode, number }`）、`createdTime` 与 `lastLoginTime`”；`POST /api/v1/oauth/login` 的进行中形态含 `expires_in`、`interval` 与 `expires_at`，但那是设备码授权流程的时限、不是凭据有效期。凭据到期在 CLI 上完全不显示，`GET /api/v1/auth` 的 `expired`／`revoked` 也只由 `kimi web` 暴露。核对日期最新稳定 Release 为 2.5.1（2026-11-05T09:53:44Z，标签提交 `1b02030d8c2c6b00131b23ebb67a231614877827`），其正文八条 Patch 与前一版 2.5.0 的条目都不涉及登录、认证状态、凭据或到期；`apps/kimi-code/CHANGELOG.md` 在该标签下为 464,329 字节、最新段为 `## 2.5.1`。来源坐标按本字段前移到 2.5.1 标签提交，共享来源 `kimi-model-commands-current` 与 `kimi-model-cli-current` 仍固定在提交 `77618e38c35a81e26134b3f83eb7f2b460c0ee05`、被多个模型字段引用，故本次不移动。',
           status: '条件项',
+          sources: [
+            'kimi-slash-commands-auth-251',
+            'kimi-cli-doctor-251',
+            'kimi-status-panel-source',
+            'kimi-info-command-source-251',
+            'kimi-auth-command-source-251',
+            'kimi-server-api-auth-251',
+            'kimi-auth-legacy-service-source',
+            'kimi-v251-release',
+          ],
         },
         qoder: {
-          entry: '`/status`。',
-          mechanism: '显示版本、模型、账号和运行状态。',
-          behavior: '确认当前 Qoder 登录与会话配置。',
-          scope: '当前 TUI 会话与本地账号。',
-          persistence: '只读。',
-          automation: 'SDK/CI 通过 PAT 和请求结果验证认证。',
-          security: '公开日志中不要暴露 PAT 或账号细节。',
-          conditions: '公共文档未列独立 `qodercli login status`。',
-          sources: ['qoder-commands', 'qoder-quick-start'],
+          entry:
+            '会话内 `/status`（Slash 参考 “Account and Status” 组；官方认证页另设 `## Checking Authentication Status` 专章）；shell 侧 `qoder status`（CLI 参考 Commands 表）。命令名是 `qoder`，`qodercli` 只是 npm 包名与 SDK 文档里的进程名。没有 `/doctor` 一类诊断命令，也没有 `qoder login status`、`qoder auth` 或 `qoder whoami`。',
+          mechanism:
+            '官方 Slash 命令参考的 `## Account and Status` 一组九行逐字为 “`/login` | Sign in or switch authentication methods (alias `/signin`).”、“`/logout` | Sign out and clear locally cached credentials (alias `/signout`).”、“`/status` | View account and session status.”、“`/profile` | View and control performance profiling.”、“`/usage` | View usage statistics.”、“`/upgrade` | Upgrade the account subscription plan.”、“`/insights` | View insight analysis.”、“`/privacy` | Manage privacy settings.” 与 “`/permissions` | Manage permissions (view and adjust permission rules).”；Quick Start 的 `## Quick Reference` 表给出更具体的一句 “`/status` | View version, model, account, and API Connectivity”，同表另有 “`/usage` | View Credits usage”。CLI 参考页首写 “This page lists all startup parameters and flags for the `qoder` command.”，`## Commands` 一节写 “In addition to startup parameters, `qoder` also provides several subcommands in the form of `qoder <subcommand>`”，子命令表里与认证相关的两行逐字为 “`login` | Sign in to your account.” 与 “`status` | Display session status.”，同表另有 `mcp`、`plugins`、`skills`、`hooks`、`agents`、`commit`、`rollback`、`update`、`remote-control`、`sites`、`feedback` 与 `wiki`。**`status` 一行没有给出任何旗标，全页没有 `--json` 与 `status` 同用的写法**。官方认证页的 `## Checking Authentication Status` 一节逐字为 “Enter `/status` in an interactive session to open the status panel, which includes two tabs: Usage and Status. The Usage tab displays the API quota and token usage for the current session (plan type, quota usage, session duration, total code changes, etc.), while the Status tab shows the current CLI status information. This is the most direct entry point for troubleshooting if you suspect an authentication issue.”，同页 `### Automatic Token Refresh` 写 “After signing in via the browser, Qoder CLI automatically refreshes the token in the background, so you don\'t need to manually sign in again for daily use.”，并给出 PAT 优先级 “authentication uses the PAT from the environment variable first; to use the credentials saved by `/login`, you must clear this environment variable first.”',
+          behavior:
+            '`/status` 打开含 Usage 与 Status 两个页签的状态面板，官方称其为 “the most direct entry point for troubleshooting if you suspect an authentication issue”；`qoder status` 的官方描述只有 “Display session status.”，因此它是否等价于 `/status`、是否显示账号与 API 连通性记为未确认。`/usage` 面板有一行 “Plan Expiration Date | The expiration date of the current Plan”，且官方写 “Viewing usage requires valid account Authentication. If you are not signed in or have not set an Access Token, `/usage` will prompt you to complete Authentication first.”，因此 `/usage` 也能当作「是否已登录」的间接探针。页末 Conditional Commands 只列 `/agents`、`/plan`、`/workflows`、`/marketplace`（“Available only when the corresponding feature flags are enabled.”）、`/skills`（“Requires Skills support and administrator permissions to be enabled.”）、`/mcp`（“Displays a disabled prompt when MCP is disabled.”）与 `/setup-github`（“Not available in the CN edition.”），**`/status` 不在其中**，即它不受 feature flag 或版本条件影响。`/usage` 自 CLI 0.1.18（December 23, 2025）起显示套餐到期日。',
+          scope:
+            '当前 TUI 会话与本机账号。`/status` 是会话内命令；`qoder status` 是不进入交互界面的子命令，但官方没有说明它读取的是会话状态还是本机账号状态。CLI 参考的 `--remote`／`--remote-session` 会把会话交给远端，`## Conflict Rules` 只列 `--continue`、`--resume`、`--remote` 与 `--remote-session` 互斥，未涉及 `status`。',
+          persistence:
+            '只读。`/logout` 才 “clear locally cached credentials”，`/status` 与 `qoder status` 都不改凭据。官方没有公开登录缓存的后端与路径。',
+          automation:
+            '`qoder status` 是唯一不进入交互界面的状态入口，但没有 `--json`，脚本只能解析文本。Qoder 的脚本化认证走 PAT：CLI 0.1.7（November 1, 2025，标题 “Qoder Personal Access Token Support for Headless Mode”）逐字为 “Added Qoder Personal Access Token login support”，CI 里通常直接以 PAT 加一次实际请求的结果验证认证，而不是依赖状态命令。',
+          security:
+            '公开日志中不要暴露 PAT 或账号细节。CLI 1.1.27（August 20, 2026）的一条修复说明官方对 PAT 失败文案的口径是 “Fixed the failure message for an invalid PAT so it names the environment variable it came from and the priority that applied”，即失败信息会点名来源环境变量与生效优先级；CLI 1.1.25（August 18, 2026，标题 “Session Mentions, Settings Redesign, and Login Fixes”）另有 “Fixed login being blocked for a long time by a credential lock held by another process, and leftover locks are now recovered automatically with a retryable prompt”。官方没有公开任何打印 PAT 值的命令。',
+          conditions:
+            '**Qoder 没有任何凭据到期报告**：Slash 参考、CLI 参考、Quick Start、Configuration 与 Troubleshooting 各页都没有 credential expiry、token expiry、expiring soon 或 re-login prompt 一类条目，全部 185 条 CLI Release Notes 里唯一的到期日期是 CLI 0.1.18（December 23, 2025，标题 “Improvements and Bug Fixes”）的 “Added plan expiration date to /usage command”，那是套餐到期日而不是凭据到期，且落在 `/usage` 而不是 `/status`——官方 usage 页（`.md` 2,726 字节）的 `## Usage Panel Contents` 表里就有一行 “Plan Expiration Date | The expiration date of the current Plan”，与该 Release 条目互相印证；CLI 1.1.38（August 31, 2026）的 “Fixed MCP authentication expiration not being recognized correctly, and improved the pending-authentication hints in /mcp” 是 MCP Server 的 OAuth、不是账号凭据。Release Notes 的两种官方渲染在核对日期不一致：HTML 形式（744,635 字节）最新条目为 **CLI 1.1.83／November 4, 2026，标题 “Session Reliability Improvements and Enterprise Mode Controls”**，`.md` 形式（116,633 字节）最新条目仍是 **CLI 1.1.82／November 3, 2026**、没有 1.1.83；1.1.83 的八条里没有登录、认证、账号、状态、令牌或凭据条目，唯一与账号管理相关的是 “Added support for enterprise admins to disable Auto and YOLO modes”（属 `auth-enterprise` 与权限模式字段）。Quick Start 的规范地址已由 `en/cli/quick-start` 改为 `cli/quickstart`，旧地址的 `.md` 只剩 322 字节兼容占位。认证页把 Status 页签的内容只写成 “the current CLI status information”、没有逐项列出，因此 `/status` 的 Status 页签具体显示哪些行、`qoder status` 的输出格式与退出码、以及登录缓存的后端与路径，官方都没有公开，四点记为未确认。',
+          status: '官方确认',
+          sources: [
+            'qoder-slash-reference-auth-status',
+            'qoder-authentication-status-doc',
+            'qoder-cli-reference-status',
+            'qoder-quickstart-status',
+            'qoder-usage-plan-expiration',
+            'qoder-release-notes-auth-recheck',
+          ],
         },
       },
-      related: ['auth-browser', 'auth-logout', 'cmd-status'],
+      related: [
+        'auth-browser',
+        'auth-logout',
+        'auth-storage',
+        'auth-api-key',
+        'auth-enterprise',
+        'cmd-status',
+      ],
     }),
 
     'auth-enterprise': createDetail({
