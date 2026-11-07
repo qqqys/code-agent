@@ -13,7 +13,7 @@
 | 功能 | Claude Code | Codex | Qwen Code | Kimi Code | Qoder CLI |
 | --- | --- | --- | --- | --- | --- |
 | 登录 | `/login` | — | `/auth`、`/connect`、`/login` | `/login` | `/login` |
-| 退出登录 | `/logout` | `/logout` | `/auth logout` | `/logout` | `/logout` |
+| 退出登录 | `/logout` | `/logout` | `/logout`（条件：仅 Qwen Subscription 登录时出现；Provider Key 配置无退出命令） | `/logout` | `/logout` |
 | 选择模型 | `/model` | `/model` | `/model` | `/model`、`/secondary-model`（别名 `/subagent-model`） | `/model` |
 | 推理强度 | `/effort` | `/model`、`/fast` | `/effort` | — | `/effort`、`/fast` |
 | 权限设置 | `/permissions`、`/allowed-tools` | `/permissions` | `/approval-mode`、`/permissions` | `/permission`、`/yolo`、`/auto` | `/config` |
@@ -91,11 +91,11 @@ Qwen Code 的固定命令面由两套加载器共同组成。只扫描硬编码�
 
 #### 硬编码命令
 
-源码中共有 69 个主命令定义：
+源码中共有 73 个主命令定义（按 v0.26.9 标签的 `BuiltinCommandLoader.ts` 复核）：
 
-`/advisor`、`/agents`、`/approval-mode`、`/arena`、`/auth`、`/branch`、`/btw`、`/bug`、`/cd`、`/clear`、`/compress`、`/compress-fast`、`/config`、`/context`、`/copy`、`/curator`、`/delete`、`/diff`、`/directory`、`/docs`、`/doctor`、`/dream`、`/editor`、`/effort`、`/export`、`/extensions`、`/forget`、`/fork`、`/goal`、`/help`、`/history`、`/hooks`、`/ide`、`/import-config`、`/init`、`/insight`、`/language`、`/learn`、`/lsp`、`/mcp`、`/memory`、`/model`、`/peers`、`/permissions`、`/plan`、`/quit`、`/recap`、`/reload-plugins`、`/remember`、`/rename`、`/restore`、`/resume`、`/rewind`、`/settings`、`/setup-github`、`/skills`、`/stats`、`/status`、`/statusline`、`/summary`、`/tasks`、`/terminal-setup`、`/theme`、`/tools`、`/trust`、`/update`、`/vim`、`/voice`、`/workflows`。
+`/advisor`、`/agents`、`/approval-mode`、`/arena`、`/auth`、`/branch`、`/btw`、`/bug`、`/cd`、`/clear`、`/commit`、`/compress`、`/compress-fast`、`/config`、`/context`、`/copy`、`/curator`、`/delete`、`/diff`、`/directory`、`/docs`、`/doctor`、`/dream`、`/editor`、`/effort`、`/export`、`/extensions`、`/forget`、`/fork`、`/goal`、`/help`、`/history`、`/hooks`、`/ide`、`/import-config`、`/init`、`/insight`、`/language`、`/learn`、`/logout`、`/lsp`、`/mcp`、`/memory`、`/model`、`/output-style`、`/peers`、`/permissions`、`/plan`、`/quit`、`/recap`、`/reload-plugins`、`/remember`、`/rename`、`/restore`、`/resume`、`/rewind`、`/settings`、`/setup-github`、`/skills`、`/stats`、`/status`、`/statusline`、`/summary`、`/tasks`、`/terminal-setup`、`/theme`、`/tools`、`/trust`、`/update`、`/upgrade`、`/vim`、`/voice`、`/workflows`。
 
-其中 6 个受条件控制：
+其中 8 个受条件控制：
 
 | 命令 | 出现条件 |
 | --- | --- |
@@ -104,6 +104,7 @@ Qwen Code 的固定命令面由两套加载器共同组成。只扫描硬编码�
 | `/trust` | Folder Trust 开启 |
 | `/restore` | File Checkpointing 开启 |
 | `/lsp` | LSP 开启 |
+| `/logout`、`/upgrade` | 仅 Qwen Subscription 登录（认证类型 `qwen-subscription` 且本地凭据有效）时出现在命令列表 |
 
 v0.21.8（2026-08-08 发布）起，`/workflows` 增加 `p <runId>` 形式（提交 `88a325bce9db`）：Background Tasks 对话框的 `p` 键或 `/workflows p <runId>` 协作暂停/恢复后台 Workflow 运行，运行状态在 running、pausing、paused 之间迁移。暂停控制只在交互式 TUI 提供，且只作用于后台运行；暂停期间不启动新 Agent，已在运行的 Agent 收敛后进入 paused，暂停状态只保留在当前进程。
 
@@ -114,6 +115,10 @@ v0.21.8（2026-08-08 发布）起，`/workflows` 增加 `p <runId>` 形式（提
 `/advisor`（会话二次意见审查）于 2026-08-17 合入 main 分支（提交 `18c9763f46ce`，PR #7567），随 v0.21.14（2026-08-19 发布）发布：`/advisor [focus]` 以工具全部移除的只读旁路单轮查询（官方文档：至多最近 40 条消息上下文）请审查模型对当前对话给出二次意见，固定输出 Verdict、Risks、Missing evidence、Recommendation 四节，执行期间阻塞输入直到审查返回；`advisorModel` 设置可指定审查模型（可跨 Provider），未设置时用主模型；命令只在交互式与 ACP 模式可用，内置 `/advisor` 不写入 ACP 会话记录。`/curator`（Auto Skill 维护，提供 status、`run [--dry-run]`、`pin`/`unpin`、`restore` 子命令）由 2026-08-01 提交 `e569734a1e12`（PR #7846）注册为硬编码命令，本目录此前漏记。
 
 `/peers`（审查其他会话发来的保留消息）于 2026-08-26 合入 main 分支（PR #9576，合并提交 `f9470f570a21`）并随当日发布的 v0.22.2 进入正式通道：`/peers` 或 `/peers list` 列出等待审查的消息（短句柄、发送方、内容预览与保留原因），`/peers accept <id|all>` 放行，`/peers deny <id|all>` 丢弃；`accept`/`deny` 只在保留集合与最近一次列表一致时生效，否则要求重新运行 `/peers`。命令无条件注册，但只在交互式模式可用（内置命令未声明 `supportedModes` 时默认仅交互式）；只有 `agents.crossSessionMessaging` 开启、收件箱成功绑定后才有消息可审查，未启用时命令提示服务不可用。消息门禁、套接字收件箱与投递行为详见跨会话消息详情。
+
+`/logout` 与 `/upgrade`（Qwen Subscription 账号命令）于 2026-11-05 经 PR #16378（merge commit `0cc37bf44474`，“feat: add Qwen subscription support across CLI, VS Code, and Desktop”）合入 main，随当日发布的 v0.26.8 首次进入 stable 通道：两个命令都只在交互式模式提供，且在当前认证类型为 `qwen-subscription`、本地凭据有效之前被 `filterSubscriptionCommands` 从命令列表整体过滤。`/logout` 先删 `~/.qwen/subscription_credentials.json` 再向 `https://auth.qwen.ai/api/oauth/revoke` 撤销 refresh token，退出后取消旁路问题与全部后台任务、清除计划缓存但保留模型与 Provider 选择；`/upgrade` 打开 chat.qwen.ai 订阅计划页（浏览器被抑制或打开失败时保留可复制 URL）。官方命令文档对两行的描述逐字为 “Sign out of the active Qwen Subscription account (available with Qwen Subscription login)” 与 “Open Qwen subscription plans (available with Qwen Subscription login)”。登录流程、凭据存储与退出边界详见[浏览器账号登录](./capabilities/models/auth-browser.md)与[退出与撤销本地凭据](./capabilities/models/auth-logout.md)。
+
+本次按 v0.26.9 标签（提交 `600aff0592bc`）的 `BuiltinCommandLoader.ts` 复核目录时，另确认加载器还注册了 `/commit`（“Create a git commit with an AI-drafted message”，仅交互式，动作是提交内置 commit 提示词）与 `/output-style`（`argumentHint` 为 `[Concise|Proactive|Explanatory|Learning|<custom>|default]`，交互式/非交互式/ACP），两者都没有别名，主命令定义因此由 69 个增至 73 个。这两个命令所属能力字段（Git 操作、输出风格）在对应矩阵里的 Qwen 列仍是旧结论，属整表刷新、留作后续单元。
 
 #### 随产品提供的 Skill 命令
 
