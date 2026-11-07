@@ -344,9 +344,9 @@
         },
         qwen: {
           entry:
-            '`/auth` 的四个顶层入口（QwenCloud、Alibaba ModelStudio、Third-party Providers、Custom Provider）；配置文件侧是 `~/.qwen/settings.json` 的 `modelProviders`、`providerProtocol`、`security.auth.selectedType` 与 `model.name`；运行时用 `/model` 切换。',
+            '`/auth` 的五个顶层入口（Qwen Account with Subscription、QwenCloud、Alibaba ModelStudio、Third-party Providers、Custom Provider）；配置文件侧是 `~/.qwen/settings.json` 的 `modelProviders`、`providerProtocol`、`security.auth.selectedType` 与 `model.name`；运行时用 `/model` 切换。',
           mechanism:
-            '协议层为 `openai`（按每条模型的 `wireApi` 走 Chat Completions 或 Responses）、`anthropic`、`gemini`、`vertex-ai`（用 gemini 协议与 `@google/genai` SDK 的 Vertex 模式，选中即设 `GOOGLE_GENAI_USE_VERTEXAI=true`）与硬编码、不可在 `modelProviders` 覆盖的 `qwen-oauth`；自定义 provider id 必须用顶层 `providerProtocol` 映射到内置协议，未映射的整条被跳过并告警、模型不会出现在 `/model` 里。',
+            '协议层为 `openai`（按每条模型的 `wireApi` 走 Chat Completions 或 Responses）、`anthropic`、`gemini`、`vertex-ai`（用 gemini 协议与 `@google/genai` SDK 的 Vertex 模式，选中即设 `GOOGLE_GENAI_USE_VERTEXAI=true`）与硬编码、不可在 `modelProviders` 覆盖的 `qwen-oauth`；v0.26.8 起另有认证类型 `qwen-subscription` 的订阅通道，不经 `modelProviders` 预设，固定网关 `https://api.qwen.ai/compatible-mode/v1` 与模型目录由服务端 `GET /models` 提供，激活时经 `applyProviderInstallPlan` 写入设置；自定义 provider id 必须用顶层 `providerProtocol` 映射到内置协议，未映射的整条被跳过并告警、模型不会出现在 `/model` 里。',
           behavior:
             'QwenCloud 入口下有 `qwencloud-token-plan` 与 `qwencloud-standard` 两个预设，各自再显式选平台（China — 千问AI平台 / International — QwenCloud）决定四个端点之一，逐字写 “so the UI language never decides your endpoint”；Alibaba ModelStudio 下有 Coding Plan、Token Plan、Standard API Key；Third-party Providers 是 DeepSeek、Grok、MiniMax、Z.AI、Kimi（moonshot）、Idealab、ModelScope、OpenRouter、Requesty 九家；Custom Provider 手填本地服务、代理或不受支持的厂商。每个预设决定 `envKey`、种子模型目录、`modelNamePrefix`、Key 前缀校验与 `webSearch` 后端，`modelsEditable` 与 `supportsModelDiscovery` 都为真。',
           scope:
@@ -358,7 +358,7 @@
           security:
             'QwenCloud 与 Alibaba ModelStudio 是两组独立入口、独立 Key 变量与独立端点，选 QwenCloud 不会改写或删除已保存的 ModelStudio 凭据、端点与模型选择；Key 前缀在向导内即校验（按量付费要求以 `sk-` 开头且不是 `sk-sp-`，Token Plan 要求 `sk-sp-`），错误提示会指向另一个入口；官方建议敏感 Key 放 `.env` 或 shell，而不是可能被共享或同步的 `settings.json`；新增读取新环境变量的预设要同步 no-AK CI 门禁的清空列表，否则门禁会泄漏 runner 凭据。',
           conditions:
-            'QwenCloud 入口自 v0.25.3-preview.0（2026-10-16 发布，GitHub 标记 `prerelease: true`，标签指向提交 `d407c0bb3823118281fbfc178494f4525a2241b8`）起存在，stable v0.25.2 的预设目录里没有 `qwencloud-*`；Qwen OAuth 免费层 2026-04-15 停止且不再是可选对话框入口；`modelProviders` 编辑在运行中的交互会话里热加载（文件监听约 300ms 去抖，重开 `/model` 可见、当前选择保留），而 `providerProtocol` 只在启动读取、改动需重启；QwenCloud 的两种访问方式都自动启用内置 `web_search`，Coding Plan 主机被排除在自动激活之外；手写条目不带 `capabilities` 时 `/effort` 只给通用档位，拿不到 QwenCloud 策划的 `low`/`medium`/`xhigh`；Vertex 条目可用 ADC，任何 API Key 到达该条目会切到忽略 project、location 与 ADC 的 Vertex Express 模式。',
+            'Qwen Account with Subscription 入口自 v0.26.8（2026-11-05 发布）起存在，需 chat.qwen.ai 的有效 Plus 或 Pro 订阅，认证文档同版删除原 “Option 2: Qwen OAuth (Discontinued)” 一节、免费层 2026-04-15 停止，遗留 `qwen-oauth` 硬编码仍是独立枚举值；QwenCloud 入口自 v0.25.3-preview.0（2026-10-16 发布，GitHub 标记 `prerelease: true`，标签指向提交 `d407c0bb3823118281fbfc178494f4525a2241b8`）起存在，stable v0.25.2 的预设目录里没有 `qwencloud-*`；`modelProviders` 编辑在运行中的交互会话里热加载（文件监听约 300ms 去抖，重开 `/model` 可见、当前选择保留），而 `providerProtocol` 只在启动读取、改动需重启；QwenCloud 的两种访问方式都自动启用内置 `web_search`，Coding Plan 主机被排除在自动激活之外；手写条目不带 `capabilities` 时 `/effort` 只给通用档位，拿不到 QwenCloud 策划的 `low`/`medium`/`xhigh`；Vertex 条目可用 ADC，任何 API Key 到达该条目会切到忽略 project、location 与 ADC 的 Vertex Express 模式。',
           status: '条件项',
           sources: [
             'qwen-auth-qwencloud',
@@ -369,6 +369,9 @@
             'qwen-qwencloud-pr',
             'qwen-v0253-preview0-release',
             'qwen-websearch-provider-table',
+            'qwen-subscription-auth-doc',
+            'qwen-subscription-design',
+            'qwen-subscription-v0268-release',
           ],
         },
         kimi: {
@@ -518,9 +521,9 @@
         'IDE 自身的独立登录 UI',
       ],
       facts: [
-        'Claude Code、Codex、Kimi Code 和 Qoder CLI 都有产品账号登录流程。',
-        'Qwen Code 当前 `/auth` 是 Provider/Key 配置入口；旧 Qwen OAuth 免费层已于 2026-04-15 停止，不应再标成可用浏览器账号登录。',
-        'Kimi Code 的 `kimi login` 可用设备码完成 Headless 登录。',
+        '五家现在都有产品账号登录流程；Qwen Code 的账号登录自 v0.26.8（2026-11-05 发布）起步且要求付费订阅。',
+        'Qwen Code 的 `/auth` 首选入口是 Qwen Account with Subscription（Qwen OAuth 浏览器授权，需 chat.qwen.ai 的有效 Plus 或 Pro 订阅）；旧免费层 Qwen OAuth 已于 2026-04-15 停止，属另一条 `qwen-oauth` 遗留通道，与新的 `qwen-subscription` 分开存储。',
+        'Kimi Code 的 `kimi login` 可用设备码完成 Headless 登录，Codex 另有 `--device-auth`；Qwen 订阅登录同样走 OAuth 设备码授予，但入口只在交互式 `/auth`，官方让非交互环境改用 API Key 认证。',
       ],
       products: {
         claude: {
@@ -546,15 +549,24 @@
           sources: ['codex-auth', 'codex-config-reference'],
         },
         qwen: {
-          entry: '`/auth`。',
-          mechanism: '当前入口选择 ModelStudio 计划/API Key、第三方 Provider 或 Custom Provider。',
-          behavior: '配置模型服务认证；不是当前可用的产品账号浏览器 OAuth 登录。',
-          scope: 'Provider 配置和本机 Key 来源。',
-          persistence: '可写入 Settings 或由环境与 `.env` 提供。',
-          automation: 'Headless 使用 Provider 环境变量或 Settings。',
-          security: '旧 OAuth 凭据不应被当作当前免费登录路径。',
-          conditions: 'Qwen OAuth 免费层已于 2026-04-15 停止并不再可选。',
-          sources: ['qwen-model-auth-current', 'qwen-model-commands-current'],
+          entry: '首次运行菜单或 `/auth` 对话框的第一个顶层入口 **Qwen Account with Subscription**（官方设计文档：“The CLI `/auth` menu initially highlights Qwen Account with Subscription”）；v0.26.8 起提供，此前 `/auth` 只有 Provider/Key 配置入口。',
+          mechanism: 'Qwen OAuth 走 OAuth 2.0 设备码授予：CLI 向 `https://auth.qwen.ai/api/oauth/device/code` 请求设备码（`client_id: qwen-code-cli`、`scope: model:invoke profile:read`），组装 `https://chat.qwen.ai/authorize?user_code=…&client=cli&entry=qwen_code&paywallScene=cli` 授权链接并展示/自动打开浏览器（浏览器启动被抑制时保留链接手动打开），同时轮询 `/api/oauth/token` 换取令牌；换到令牌后查询 `/api/oauth/userinfo` 校验 `member_type`，大小写不敏感的 plus 或 pro 才激活，其他计划进入购买等待（每 5 秒复查、自首次确认未付费起至多 2 分钟，另可手动 Check again、打开计划页或退出）。每次显式登录都重新走设备码授权，即使本地凭据仍有效。',
+          behavior: '登录成功后自动激活订阅 Provider：固定网关 `https://api.qwen.ai/compatible-mode/v1`（OpenAI Chat Completions），模型目录从 `GET /models` 全量加载、无允许清单，显式登录优先选 `qwen3.8-max`（缺席时取目录第一个），配置只存认证选择器、模型 ID、固定网关与占位凭据 `QWEN_SUBSCRIPTION_DYNAMIC_TOKEN`，Bearer 令牌在传输层动态供给；内置 `web_search` 走订阅 MCP 网关 `https://api.qwen.ai/api/v1/mcp/web_search`；订阅路由全部模型思考档位默认 medium。',
+          scope: '本机用户的 Qwen home（`QWEN_HOME` 优先，否则 `~/.qwen`）；CLI、Desktop 与 VS Code 共享同一套 Core 订阅凭据、会员查询与推理，仅相同 `QWEN_HOME` 的端之间共享会话。',
+          persistence: '令牌对（access + refresh）写 `~/.qwen/subscription_credentials.json`（0600、目录 0700、原子写、`O_NOFOLLOW` 拒绝符号链接、`proper-lockfile` 跨进程锁），与遗留 Qwen OAuth 存储分离；Provider 选择（auth type `qwen-subscription`、模型、固定端点）在受信任项目写入该项目 settings，在 home 目录启动时写入用户 settings。',
+          automation: '官方明确：CI、无人值守容器等无法完成浏览器授权的非交互环境改用 API Key 认证；OAuth 不能只靠环境变量配置（“OAuth cannot be configured with env vars alone”）。`/logout` 与 `/upgrade` 也只在交互模式提供。',
+          security: '激活要求 workspace trust（未受信任时抛 “Workspace is not trusted.”）；`security.auth.enforcedType` 指定其他认证类型时按策略拒绝；access token 在到期前 30 秒内或收到 401 时刷新（单请求只重试一次），刷新遇 `invalid_grant` 即删除凭据；令牌与设备码不进入 GUI 响应。',
+          conditions: '需 chat.qwen.ai 的有效 Plus 或 Pro 订阅，免费账号登录后进入购买等待页；v0.26.8 首发、v0.26.9 只把浏览器链接加 `entry=qwen_code&paywallScene=cli` 参数。与 2026-04-15 停止的免费层 Qwen OAuth（`qwen-oauth`）是两条通道，认证类型与凭据存储各自独立。配额耗尽（HTTP 402 且 `error.code = insufficient_quota`）时 lite/plus 给每周额度指引并引导 `/upgrade`，pro 提示等待重置。',
+          sources: [
+            'qwen-subscription-auth-doc',
+            'qwen-subscription-commands-doc',
+            'qwen-subscription-design',
+            'qwen-subscription-oauth-src',
+            'qwen-subscription-session-src',
+            'qwen-subscription-ui-src',
+            'qwen-subscription-models-src',
+            'qwen-subscription-v0268-release',
+          ],
           status: '条件项',
         },
         kimi: {
@@ -857,6 +869,7 @@
       facts: [
         'Claude Code 在 macOS 使用 Keychain；Codex 可显式选择 file、keyring 或 auto。',
         'Kimi Code 的 OAuth 凭据文件使用 0600，但静态 Provider Key 可明文写在 `config.toml`。',
+        'Qwen Code 的 Subscription 令牌自 v0.26.8 起单独存 0600 的 `subscription_credentials.json`，而 Provider Key 仍可明文写在 `settings.json` 或 `.env`。',
         'Qoder CLI 公共文档说明登录可复用，但未公开准确存储后端和路径，因此保留边界而不猜测。',
       ],
       products: {
@@ -883,15 +896,20 @@
           sources: ['codex-auth', 'codex-config-reference'],
         },
         qwen: {
-          entry: 'Provider Settings、项目 `.env`、系统环境。',
-          mechanism: 'Key 可在 `settings.json.env`、`.env` 或进程环境；当前认证流程不依赖可用的 Qwen OAuth 浏览器缓存。',
-          behavior: '按优先级读取 Provider Key。',
-          scope: '项目、用户、系统设置或当前进程。',
-          persistence: 'Settings 与 `.env` 为明文文件；进程环境不由 Qwen 持久化。',
-          automation: 'CI 用环境变量，不需要写本地认证文件。',
-          security: '文档推荐把向导保存的 Key 从 Settings 移到 `.env`，并避免提交。',
-          conditions: '系统 override Settings 可覆盖项目/用户值；旧 OAuth 数据不代表当前登录可用。',
-          sources: ['qwen-model-auth-current', 'qwen-model-settings-current'],
+          entry: 'Provider Key：Settings、项目 `.env`、系统环境。Qwen Subscription 令牌：`~/.qwen/subscription_credentials.json`（`QWEN_HOME` 优先于默认目录）。',
+          mechanism: 'Key 按优先级 CLI 旗标 > shell 环境 > `.env` > `settings.json` 的 `env` 字段读取；Subscription 凭据由 Core 的原子私有存储写入——文件 0600、目录 0700、`atomicWriteFile` 加 `noFollow`、读取 `O_NOFOLLOW` 拒绝符号链接、`proper-lockfile` 跨进程互斥（stale 60 秒），设计文档逐字为 “Core owns private atomic storage, restoration, cross-process refresh locking and revocation” 与 “Subscription storage is separate from legacy OAuth”。',
+          behavior: 'Provider Key 按优先级生效；Subscription 会话从凭据文件读令牌对并自动刷新（`expiresAt` 前 30 秒内或 401 触发），模型目录缓存也写回同一文件。',
+          scope: 'Key：项目、用户、系统设置或当前进程；凭据文件：本机用户的 Qwen home，CLI、Desktop 与 VS Code 仅在相同 `QWEN_HOME` 下共享。',
+          persistence: 'Settings 与 `.env` 为明文文件；进程环境不由 Qwen 持久化；凭据文件跨会话保留，直到 `/logout`、刷新被拒（`invalid_grant` 删除凭据）或手工删除。',
+          automation: 'CI 用环境变量注入 Key，不需要写本地认证文件；订阅登录没有非交互入口，自动化改用 API Key。',
+          security: '凭据文件 0600 且拒绝符号链接；令牌与设备码不进入 GUI 响应；文档推荐把向导保存的 Key 从 Settings 移到 `.env`，并避免提交到版本控制。',
+          conditions: '系统 override Settings 可覆盖项目/用户值；凭据文件的 `baseUrl` 与 `clientId` 必须匹配当前 OAuth 环境配置才被视为已登录，不匹配按未登录处理；遗留 Qwen OAuth 数据与订阅凭据分开存放、互不代表。',
+          sources: [
+            'qwen-subscription-session-src',
+            'qwen-subscription-design',
+            'qwen-model-auth-current',
+            'qwen-model-settings-current',
+          ],
           status: '条件项',
         },
         kimi: {
@@ -937,8 +955,8 @@
         '轮换第三方 API Key 的完整流程',
       ],
       facts: [
-        'Claude Code、Codex、Kimi Code 和 Qoder CLI 都有明确退出入口。',
-        'Qwen Code 当前基于 Provider Key 配置，没有独立 logout；撤销本地使用需要重配 Provider 或删除对应 Key。',
+        '五家都有 `/logout` 或等价的退出命令；Qwen Code 的 `/logout` 自 v0.26.8 起提供，且只在 Qwen Subscription 账号登录下出现。',
+        'Qwen Code 的 `/logout` 先删本地凭据再远程撤销 refresh token；API Key/Provider 配置仍没有退出命令，撤销本地使用需要重配 Provider 或删除对应 Key。',
         '退出账号通常不会自动删除手工写入配置或环境中的第三方 Provider Key。',
       ],
       products: {
@@ -965,15 +983,22 @@
           sources: ['codex-auth'],
         },
         qwen: {
-          entry: '无独立 logout；使用 `/auth` 重选 Provider，并从 Settings、`.env` 或系统环境删除 Key。',
-          mechanism: '当前认证是 Provider 配置，不是可统一注销的 Qwen 账号 OAuth。',
-          behavior: '删除实际生效的最高优先级 Key 后，Provider 请求不再获得该凭据。',
-          scope: '进程、项目、用户和系统各层。',
-          persistence: '必须修改保存该 Key 的具体来源。',
-          automation: 'CI 在任务结束时销毁临时 Secret 环境。',
-          security: '需要按优先级检查，避免低层已删但高层系统环境仍生效。',
-          conditions: '旧 OAuth 免费层停止后，不能用历史 logout 语义描述当前流程。',
-          sources: ['qwen-model-auth-current', 'qwen-model-settings-current'],
+          entry: '`/logout`（条件：当前认证类型为 `qwen-subscription` 且本地凭据有效时才出现在命令列表，仅交互模式）；Provider Key 配置没有退出命令，用 `/auth` 重选 Provider，并从 Settings、`.env` 或系统环境删除 Key。',
+          mechanism: '`QwenSubscriptionSession.signOut()`：在凭据锁内先删除 `~/.qwen/subscription_credentials.json`，再向 `POST /api/oauth/revoke` 撤销 refresh token（`token_type_hint=refresh_token`）；官方设计口径为 “Signout deletes local credentials before remote revocation”。',
+          behavior: '非订阅认证下运行只提示 “This connection does not require /logout. Use /auth to switch model providers.”；主响应进行中运行提示 “Wait for the current response to finish before signing out.”。退出成功后取消旁路问题（`cancelBtw`）、中止全部后台任务（持久化状态 cancelled）并清除计划缓存，但保留模型、Provider 选择与已保存设置，不弹对话框、不自动切换 Provider。',
+          scope: '本机 Qwen home 的订阅凭据与账号/计划状态；远程撤销作用于该账号的 refresh token。其他 Provider 的 API Key 与设置不受影响。',
+          persistence: '跨会话生效；外部直接删除凭据文件同样生效——可见性钩子以 500ms 轮询凭据文件，删除后清掉计划缓存并隐藏 `/logout` 与 `/upgrade`。',
+          automation: '远程撤销失败不回滚本地退出，只警告 “You are signed out locally, but the remote session could not be revoked.”；本地文件删除失败报 “Could not remove local Qwen credentials. Check local file permissions.” 且不宣布已退出。CI 临时环境可直接丢弃整个 `QWEN_HOME`。',
+          security: 'access token 过期但 refresh token 仍在时视为已登录，直到刷新被拒（`invalid_grant` 即删除凭据）；退出不撤销写在 Settings、`.env` 或环境里的任何 API Key，也不替代服务端吊销泄露令牌之外的凭据。',
+          conditions: '自 v0.26.8（2026-11-05 发布）。旧结论「无独立 logout」只适用于该版本之前或 Provider Key 配置；退出后模型列表隐藏订阅条目、同名 API Key 模型仍可用，重新登录后订阅条目恢复。',
+          sources: [
+            'qwen-subscription-commands-doc',
+            'qwen-subscription-commands-src',
+            'qwen-subscription-session-src',
+            'qwen-subscription-design',
+            'qwen-subscription-v0268-release',
+            'qwen-model-auth-current',
+          ],
           status: '条件项',
         },
         kimi: {
