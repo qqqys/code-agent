@@ -1046,99 +1046,157 @@
       excludes: [
         '模型或推理强度选择',
         '项目指令文件（CLAUDE.md、AGENTS.md、QWEN.md）',
-        'Agent 定义中的 systemPrompt',
+        'Agent 定义中的系统提示词',
+        '整体替换系统提示词的入口（`--system-prompt`、`QWEN_SYSTEM_MD`、`SYSTEM.md`、`model_instructions_file`）',
         '主题与配色',
       ],
       facts: [
-        'Claude Code 与 Qoder CLI 都把输出风格实现为向系统提示词追加指令的预设，支持用户级与项目级自定义 Markdown 风格，并可由插件携带；两家都有插件强制风格覆盖用户选择的机制。',
-        '生效时机不同：Claude Code 选择后需 `/clear` 或新会话（系统提示词只在会话启动时读取一次）；Qoder CLI 修改 `outputStyle` 配置项需重启 CLI，`--output-style` 命令行参数则对当前会话立即生效。',
-        'Codex 没有自定义风格文件机制，相近能力是 `personality` 沟通风格（`none`/`friendly`/`pragmatic`），仅对宣告 `supportsPersonality` 的模型生效，`/personality` 可按线程或单轮覆盖。',
-        'Qwen Code 官方设置文档与扩展组件清单均未列出输出风格；Kimi Code `config.toml` 无风格、语气或 persona 配置键，`[identity]` 只改系统提示词自称与协议字段机器标识。',
-        'Claude Code 自 v2.1.237 起新增内置 Concise 风格（先给结果、省略铺垫与过程叙述）；Qoder CLI 官方示例取值也有 `concise`，两者为各自独立的实现。',
+        '完整的输出风格机制只有三家：Claude Code、Qwen Code 与 Qoder CLI 都把风格实现为叠加到内置系统提示词上的一段命名指令，都支持用户级与项目级自定义 Markdown 风格文件。Codex 与 Kimi Code 当前都没有风格预设机制。',
+        '插件携带风格只有两家：Claude Code 插件可在包内放 `output-styles/`，并用 frontmatter `force-for-plugin: true` 覆盖用户的 `outputStyle`（多个启用插件同时强制时取最先加载者）；Qoder CLI 插件按 `output-styles/` 目录约定自动发现，也可在 manifest 用 camelCase 的 `outputStyles` 显式声明，插件强制风格优先于 `outputStyle` 设置。Qwen Code 扩展的 `qwen-extension.json` 组件字段只有 `mcpServers`、`channels`、`contextFileName`、`commands`、`skills`、`agents`、`workflows` 与 `settings`，核心类型 `OutputStyleSource` 虽保留 `extension` 取值，但目录加载器只读内置、用户与项目三级。',
+        '会话中切换的生效时机三家不同：Qwen Code 的 `/output-style` 保存设置后调用 `refreshSystemInstruction()` 就地重建系统提示词，官方写 “the next turn already answers in the new style”；Claude Code 自 v2.1.251 起 “Claude uses the new style starting with your next message”，此前需 `/clear` 或新会话；Qoder CLI 的 `/output-style` 官方描述是 “Choose this project\'s output style for the next conversation. Run `/clear` or `/new` to apply it.”，而修改配置里的 `outputStyle` 还要重启 CLI。',
+        '自定义风格文件的重读时机也不同：Qwen Code 每次打开选择器或给定名字时重读目录，官方写 “a new file needs no restart”；Claude Code 官方写 “In the terminal, Claude Code reads style files when it starts, so if you create or edit one during a running session, restart Claude Code to pick up the change.”',
+        '内置风格名高度重合但各自独立实现：Claude Code 官方写 “four built-in styles besides its default”（Default、Proactive、Concise、Explanatory、Learning，Concise 需 v2.1.237 及以上）；Qwen Code 的 `BUILT_IN_OUTPUT_STYLES` 是 Concise、Proactive、Explanatory、Learning 加 `default`（v0.23.0 起）；Qoder CLI 官方始终只给 `concise` 一个示例取值，没有公布完整内置清单。',
+        '风格都只作用于主对话：Claude Code 官方写风格适用于主对话与 fork、“Other subagents run their own system prompt, so styles don\'t change how they respond.”；Qwen Code 官方写 “Styles apply to the main conversation only.”，arena peer 只在风格保留 coding instructions 时才继承会话风格；Qoder CLI 官方写 Output Style “does not alter Qoder\'s core identity or security constraints”。',
+        '项目级风格与项目级配置都以工作区信任为前提：Qwen Code 只在 `config.isTrustedFolder()` 为真时传入 `projectRoot`，官方另写 “Trust is checked whenever the style is used, not only when the file is read”；Qoder CLI 官方写项目级与本地级设置 “only applied when the current working directory is trusted”（`security.folderTrust.enabled` 默认开启）；Codex 的项目级 `config.toml` 同样 “loaded only when you trust the project”。',
       ],
       products: {
         claude: {
           entry:
-            'CLI 运行 `/config` 选择 Output style；桌面 App 中 `/config` 打开 Settings > Claude Code，需在设置文件中手动写字段；也可直接在任意设置 JSON 中设置 `"outputStyle"`。独立 `/output-style` 命令自 v2.1.73 弃用、v2.1.91 移除。',
+            '四个入口：`/output-style [style]`（官方命令表逐字 “List output styles or switch to one, for example `/output-style concise`. See Change your output style. Requires Claude Code v2.1.269 or later”，不带参数时列出可选风格并标出当前项）；终端 `/config` 选 **Output style**（`/config` 行描述含 “Open the Settings interface to adjust theme, model, output style, and other preferences”，别名 `/settings`，`key=value` 形式也可用于非交互 `-p`）；VS Code 扩展用 `/` 打开命令菜单选 **Output styles**（需 v2.1.257 及以上，v2.1.261 起菜单内另有 “Build a custom style” 向导，可直接写出自定义风格文件并立即列出）；桌面 App 没有风格菜单，只能在设置文件手写 `outputStyle`（桌面端 `/config` 打开 Settings > Code 或 Settings > Claude Code）。官方命令表对 `/pr-comments`、`/vim` 等仍保留 “Removed in v2.1.91”、“Removed in v2.1.92” 行，而 `/output-style` 行没有任何弃用或移除标注。',
           location:
-            '自定义风格为 Markdown 文件：用户级 `~/.claude/output-styles`、项目级 `.claude/output-styles`、受管策略目录的 `.claude/output-styles`、插件包内 `output-styles/`。项目风格自工作目录至仓库根之间的每个 `.claude/output-styles/` 都加载，重名取最接近工作目录的文件。',
+            '自定义风格为 Markdown 文件，官方给出三级加插件：用户 `~/.claude/output-styles`、项目 `.claude/output-styles`、受管策略目录内的 `.claude/output-styles`，插件另可在包内 `output-styles/` 携带。项目风格逐字为 “Project output styles load from every `.claude/output-styles/` between the working directory and the repository root. When more than one of these nested directories defines a style with the same name, Claude Code uses the one closest to the working directory.”',
           behavior:
-            '风格通过修改系统提示词定义角色、语气与输出格式，不改变知识库。内置风格：Default、Proactive、Explanatory、Learning；v2.1.237 新增内置 Concise——回答先给结果、省略铺垫与过程叙述，工作深度不变。自定义风格可选保留内置软件工程指令。',
+            '官方首句为 “Claude Code includes four built-in styles besides its default, and you can write your own.”，内置为 Default、Proactive、Concise、Explanatory、Learning；Concise 行描述 “Responses lead with the result and leave out preamble, narration, and recaps”，正文写 “In the Concise style, the first sentence of a response states what happened or what the answer is… Requires Claude Code v2.1.237 or later.”。风格改的是角色、语气与输出格式，不改知识库。自定义风格默认不保留内置软件工程指令，需 frontmatter `keep-coding-instructions: true`，且官方注明要依赖该字段须把 `CLAUDE_CODE_SIMPLE_SYSTEM_PROMPT` 设为 `0`。v2.1.311 起 Explanatory 风格在用户要求解释时另给一条提示。',
           scope:
-            '选择保存在设置文件：`/config` 菜单选择写入 `.claude/settings.local.json`（本地项目级）；手动编辑可把 `"outputStyle"` 写入任意有效设置文件。',
+            '`/output-style` 与两个菜单都把选择保存到本地项目级的 `.claude/settings.local.json`（官方逐字 “The command and both menus save your choice to `.claude/settings.local.json` at the local project level.”）；手写 `"outputStyle"` 可放进任意设置文件（官方设置参考的作用域列为 “Any file”），优先级为 managed → `--settings` → `.claude/settings.local.json` → `.claude/settings.json` → `~/.claude/settings.json`。风格作用于主对话与 fork（fork 继承父会话的完整对话与系统提示词），其他 Subagent 跑自己的系统提示词因而不受影响。',
           components:
-            '自定义风格 frontmatter：`name`（默认取文件名）、`description`（`/config` 选择器显示）、`keep-coding-instructions`（默认 false，为 true 时保留内置软件工程指令）、`force-for-plugin`（默认 false）。',
+            'frontmatter 四键：`name`（“Default: the file name”）、`description`（选择器中显示）、`keep-coding-instructions`（“Default: `false`”，为真时保留内置软件工程指令）、`force-for-plugin`（“Plugin output styles only… Overrides the user\'s `outputStyle` setting. If multiple enabled plugins set this, Claude Code uses the first one loaded. Default: `false`”）。',
           loading:
-            '系统提示词在会话启动时读取一次，改风格后需 `/clear` 或新会话生效。插件风格 `force-for-plugin: true` 时插件启用即自动应用并覆盖用户 `outputStyle`；多个插件同时强制时最先加载者生效。',
+            '选择本身在会话中即时生效——官方逐字 “When you switch styles mid-session, Claude uses the new style starting with your next message. … Before v2.1.251, the new style applied only after you ran `/clear` or started a new session.”；但风格文件只在启动时读取，逐字 “In the terminal, Claude Code reads style files when it starts, so if you create or edit one during a running session, restart Claude Code to pick up the change.”。设置值大小写敏感（内置名要写 `Proactive`、`Concise`、`Explanatory`、`Learning`），而 `/output-style` 命令忽略大小写。v2.1.286 起选择器打开时停在当前风格而不是 Default、在名字下一行显示描述，且数字键不再用于选择。插件风格 `force-for-plugin: true` 时插件启用即自动应用并覆盖用户 `outputStyle`，多个插件同时强制时最先加载者生效。',
+          surfaces:
+            '以 Claude Code CLI 为准。`/output-style` 官方注明也在非交互模式、Agent SDK 会话与经 Remote Control 的手机 App/Web 可用，但那些 Surface “you can list and select only built-in styles”；VS Code 扩展自 v2.1.257 起在命令菜单提供 Output styles 选择（含自定义风格）；桌面 App 没有风格菜单，只能写设置文件。',
           permissions:
-            '风格只改系统提示词，不改权限设置；Proactive 风格自主执行更强，但仍遵守当前权限设置。',
+            '风格只改系统提示词，不改权限设置；Proactive 风格自主执行更强，但仍遵守当前权限设置。v2.1.295 修复了 `/model`、`/fast` 与 `/output-style` 保存设置时不询问插件 `config.set` Hook 的问题，即风格保存现在会经过插件 Hook；v2.1.283 修复了 `claude plugin validate` 放过 `outputStyles` 路径缺失或指向插件目录之外的插件。',
           conditions:
-            '官方文档页的内置风格清单尚未列入 Concise；Concise 以 v2.1.237 更新日志为准。',
-          sources: ['claude-output-styles', 'claude-concise-v237'],
+            '官方 Settings 概览页（45,734 字节）已不含 `outputStyle` 或 “output style” 字样，该键移到 Settings reference 页（449,263 字节）；Remote Control、手机 App、Web 与非交互会话只能选内置风格；`CLAUDE_CODE_SIMPLE_SYSTEM_PROMPT` 未设为 `0` 时不能依赖 `keep-coding-instructions`；v2.1.251 之前的版本切换风格需 `/clear` 或新会话；v2.1.238 修复过自定义、项目与插件风格在会话中漂移回默认语气的问题。',
+          sources: [
+            'claude-output-styles',
+            'claude-output-styles-recheck',
+            'claude-commands-output-style-row',
+            'claude-settings-reference-outputstyle',
+            'claude-output-styles-changelog-0ed9469',
+          ],
         },
         codex: {
           entry:
-            '`config.toml` 的 `personality` 键或 `/personality` 命令；`features.personality`（布尔，stable，默认开）控制 personality 选择控件是否可用。',
+            '`config.toml` 的 `personality` 键，官方配置参考现把它记为兼容设置；`/personality` 命令已不在官方 CLI Slash 命令参考中——该页（522,553 字节，标题 “Slash commands in Codex CLI”）任何位置都不出现 “personality” 一词，`/style`、`/output-style`、`/tone`、`/persona` 同样不存在，与外观有关的只有 `/theme`；`features.personality` 开关已被移除。',
           location:
-            '用户级 `~/.codex/config.toml`；项目级覆盖 `.codex/config.toml`。',
+            '用户级 `~/.codex/config.toml`；项目级覆盖 `.codex/config.toml`，官方逐字 “Codex loads project-scoped config files only when you trust the project.”',
           behavior:
-            '`personality` 设定默认沟通风格，取值 `none`、`friendly`、`pragmatic`，仅对宣告 `supportsPersonality` 的模型生效。无从目录加载自定义风格文件的机制。',
+            '官方配置参考的 `personality` 行逐字为 “Deprecated compatibility setting. `friendly` and `pragmatic` no longer select a style. `none` omits the built-in Personality section from model instructions; explicit instruction overrides are unchanged.”，即只有 `none` 还有可观察作用（省掉内置 Personality 段），`friendly` 与 `pragmatic` 不再选择任何风格；`features.personality` 行逐字为 “Removed feature flag. Accepted for compatibility and ignored.”；`supportsPersonality`、`output_style` 与 `outputStyle` 三个字符串在该页任何位置都不出现。没有从目录加载自定义风格文件的机制。',
           scope:
-            '配置值按用户或项目作用域持久；`/personality` 覆盖可按线程或单轮生效。',
-          components: '无自定义风格文件与 frontmatter。',
+            '`personality` 按用户或项目 `config.toml` 作用域持久；已没有命令级的按线程或单轮覆盖入口。',
+          components:
+            '无自定义风格文件与 frontmatter。官方仓库 `docs/` 目录 15 个文件都没有 style、personality、tone、persona 或 output 相关内容，其中 `docs/config.md`（726 字节）与 `docs/slash_commands.md`（145 字节）已改成指向文档站的跳转存根，后者逐字为 “For an overview of Codex CLI slash commands, see [this documentation](https://developers.openai.com/codex/cli/slash-commands).”',
           loading:
-            '`personality` 配置值随 config.toml 生效；`/personality` 覆盖按线程或单轮应用。',
-          permissions: '不涉及权限变化。',
+            '`config.toml` 随启动读取；`features.personality` 即使写进配置也被忽略。官方 Advanced configuration 页任何位置都不出现 `personality`、`style`、`tone` 或 `persona`。',
+          permissions:
+            '不涉及权限变化；项目级 `config.toml` 仅在项目受信任时加载。',
           conditions:
-            '官方配置参考未描述自定义风格目录或插件风格；`developer_instructions`、`model_instructions_file` 与 `model_verbosity` 是指令或参数覆盖，不是风格预设。',
-          sources: ['codex-config-reference'],
+            '相邻但不是风格预设的键：`model_verbosity`（`low`/`medium`/`high`，官方写 “Optional GPT-5 Responses API verbosity override; when unset, the selected model/preset default is used.”，高级配置页另注明 “applies only to providers using the Responses API. Chat Completions providers will ignore the setting.”）、`model_reasoning_summary`（`auto`/`concise`/`detailed`/`none`，官方写 “Select reasoning summary detail or disable summaries entirely.”，取值里的 `concise` 是推理摘要详略档位、与输出风格无关）、`developer_instructions`（“Additional developer instructions injected into the session (optional).”）与 `model_instructions_file`（“Replacement for built-in instructions instead of `AGENTS.md`.”）。`/personality` 的移除坐标：`codex-rs/tui/src/slash_command.rs` 的 `Personality` 变体在 rust-v0.154.0（12,532 字节）与 rust-v0.155.0（2026-09-17T23:14:43Z 发布，12,342 字节）仍存在，自 rust-v0.156.0（2026-09-22T19:51:01Z 发布，13,711 字节）起消失，rust-v0.158.0、rust-v0.162.1、rust-v0.163.0、rust-v0.166.0 与 rust-v0.167.0 中 “personality” 一词完全不出现；核对日期最新非 alpha Release 为 rust-v0.167.0（2026-11-06T01:40:00Z），其发布说明没有风格相关条目。最接近的自定义文件机制是 custom prompts，官方只写 “Custom prompts appear as `/prompts:<name>` commands.”',
+          sources: [
+            'codex-personality-deprecated',
+            'codex-cli-slash-commands-recheck',
+            'codex-personality-enum-removal',
+            'codex-config-advanced-verbosity',
+          ],
         },
         qwen: {
-          entry: '官方文档未列出输出风格入口。',
-          location: '官方文档未列出输出风格目录。',
+          entry:
+            '交互式 `/output-style` 打开选择器（命令返回 `{ type: \'dialog\', dialog: \'output-style\' }`）、`/output-style <name>` 直接设定、`/output-style default` 回到无风格；`argumentHint` 逐字为 `[Concise|Proactive|Explanatory|Learning|<custom>|default]`，`supportedModes` 为 `[\'interactive\', \'non_interactive\', \'acp\']`，非交互与 ACP 下不带参数时只打印当前风格与可选清单。设置键为 `general.outputStyle`（string，默认 `undefined`）；单次运行用 `qwen -p "..." --output-style Concise`，官方 Headless 文档写它 “overrides the `general.outputStyle` setting; `default` selects no style”。官方命令文档行逐字为 “Choose the output style that shapes how responses are written”，示例列 `/output-style` (opens picker)、`/output-style Concise`、`/output-style default` (no style)。命令无别名，`--bare` 与 `--safe-mode` 下运行直接报 “Output styles are unavailable in --bare and --safe-mode.”',
+          location:
+            '自定义风格是 Markdown 文件、正文即提示词，两个目录：用户级 `~/.qwen/output-styles/<name>.md`（全部项目可用，`QWEN_HOME` 改变时随之移动）、项目级 `<project>/.qwen/output-styles/*.md`（只在工作区受信任时读取）。目录名来自常量 `OUTPUT_STYLES_DIR_NAME = \'output-styles\'`；加载器只读目录内直接的 `*.md`（`/\\.md$/i`），不递归子目录。',
           behavior:
-            '设置文档无风格、personality 或语气类设置键；`output` 节仅含 `output.format`（`text`/`json`）与 `output.showTimestamps`，属于输出格式与显示项。',
-          scope: '无输出风格选择与保存位置。',
+            '风格是叠加到内置系统提示词上的一段命名指令：`renderOutputStyleSection` 渲染为 `# Output Style: <name>` 加正文，`applyOutputStyle` 把它追加到基础提示词末尾，源码注释逐字为 “The section lands last in the stable layer — after the mandates it refines, and ahead of every context/volatile layer, so a session\'s prompt prefix stays stable for its whole life.”；每轮另发一条提醒，`getOutputStyleTurnReminder` 返回 “<name> output style is active.” 加风格自带或通用的 “Remember to follow the specific guidelines for this style.”。内置为 `Concise`、`Proactive`、`Explanatory`、`Learning`（`BUILT_IN_OUTPUT_STYLES`，四者 `keepCodingInstructions` 全为 `true`）加 `default`（不追加任何风格）。Proactive 提示词末段逐字为 “This style changes how much you plan and ask; it does not change what you are allowed to do.”，官方文档结尾逐字为 “Styles adjust tone and workflow, not knowledge or permissions.”。`Learning` 在 headless 下被丢弃：`resolveEffectiveOutputStyle` 只在 `interactionMode === \'headless\' && style.source === \'built-in\' && style.name === \'Learning\'` 时返回 `undefined`，源码注释说明该规则认定义而不认显示名，所以用户自写的 `Learning.md` 不受影响。',
+          scope:
+            '`general.outputStyle` 按设置文件作用域持久。`/output-style` 的选择写回设置文件：受信工作区的项目设置已经拥有 `general.outputStyle` 键时写 Workspace 作用域，否则写 User 作用域（官方逐字 “If a trusted project setting currently owns `general.outputStyle`, the command updates that project setting; otherwise it updates your user setting.”）；该键属于项目但 `allowWorkspaceSettingsWrite === false` 时抛 “Project output style settings are not available in this session.”。`--output-style` 只覆盖本次运行。作用范围官方逐字为 “Styles apply to the main conversation only. Subagents run their own system prompts, and an arena peer inherits the session\'s style only when that style keeps the coding instructions — a peer is judged on the diff it produces, so it never runs with the software-engineering guidance removed.”',
           components:
-            '扩展组件为 prompts、MCP servers、subagents、skills、custom commands、channels、上下文文件与设置，不含输出风格。',
-          loading: '无风格加载流程。',
-          permissions: '不涉及权限。',
+            'frontmatter 可选，`KNOWN_FRONTMATTER_KEYS` 只有 `name`、`description` 与 `keep-coding-instructions`，未知键写 debug 日志并忽略。`name` 默认取去掉 `.md` 的文件名，`default` 保留，空名、超过 64 字符（`MAX_OUTPUT_STYLE_NAME_LENGTH`）或含 `\\p{Cc}`/`\\p{Cf}` 控制与格式字符的名字被拒绝；`description` 默认取正文第一行散文（剥掉 Markdown 标记、上限 120 字符、经 `stripAnsiAndControl` 与去 `\\p{Cf}` 清理），声明与派生都取不到时回退 `Custom <name> output style`；`keep-coding-instructions` 未声明时继承同名内置风格的取值、无同名内置时默认 `false`，声明值只认 true/false（字符串大小写不敏感），其他取值告警并按 `false`。官方写 `false` 只去掉软件工程工作流那一段，“Everything else in the built-in prompt — identity, safety rules, tool guidance — stays in force under every style.”',
+          loading:
+            '每次打开选择器或给定名字时重读目录（`loadSessionOutputStyles` → `loadOutputStyleCatalog`），源码注释为 “re-read on every call so a file added mid-session is picked up without a restart”；`projectRoot` 只在 `config.isTrustedFolder()` 为真时传入，官方另写 “Trust is checked whenever the style is used, not only when the file is read, so revoking trust mid-session stops a project style from shaping the conversation.”。名字大小写不敏感且唯一，胜出顺序为项目 > 用户 > 内置，选择器显示顺序为内置 → 用户 → 项目并标注来源。单个文件不可加载时跳过并写 debug 日志、不影响其他文件：正文为空、名字非法、大于 25,000 字节（`MAX_OUTPUT_STYLE_FILE_BYTES`，注释说这个尺寸已相当于每次请求约 6k token）、非 UTF-8 文本（注释点名 PowerShell `>` 与记事本写出的 UTF-16）、整篇正文只是 HTML 注释；正文里的 HTML 注释会被剥掉。链接防护：项目风格文件是符号链接即跳过，用户风格文件可以是符号链接但 `realpath` 必须落在用户主目录（或设了 `QWEN_HOME` 时的该目录）内，两级都拒绝 `nlink > 1` 的硬链接，源码注释给出的威胁模型是 “`.qwen/output-styles/notes.md -> ~/.aws/credentials` is committable, survives `git clone`, and needs no user action beyond starting the CLI.”。同一目录内按文件名排序读取，与已在集合中的名字重复的后者被跳过。',
+          surfaces:
+            '以 Qwen Code CLI 为准。`/output-style` 声明 `supportedModes: [\'interactive\', \'non_interactive\', \'acp\']`，`--output-style` 记录在官方 Headless 文档的 Configuration Options 表；官方 VS Code 集成文档（1,482 字节）的 Features 清单只有原生 IDE 体验、自动接受编辑、文件管理、会话历史与多会话五项，没有输出风格入口；桌面端与 Web Shell 的风格入口当前一手资料未列出。',
+          permissions:
+            '`--bare` 与 `--safe-mode` 下命令直接报错、设置值也被忽略，官方写这两种模式 “keep the built-ins only”；项目风格只在工作区受信任时读取。`--system-prompt` 或 `QWEN_SYSTEM_MD` 整体替换系统提示词时风格与其每轮提醒都不生效，此时 `/output-style` 仍保存选择并追加 “It is saved but has no effect in this session because the system prompt is replaced (--system-prompt or QWEN_SYSTEM_MD).”；风格不改权限，Proactive 的提示词明确保留 “Executing actions with care” 规则与当前权限策略。',
           conditions:
-            '当前一手资料不足以确认 Qwen Code 提供输出风格；本页以官方设置文档与扩展文档当前内容为准。',
-          sources: ['qwen-settings-current', 'qwen-extension-intro-current'],
+            '扩展不携带输出风格——`qwen-extension.json` 的组件字段为 `mcpServers`、`channels`、`contextFileName`、`commands`、`skills`、`agents`、`workflows` 与 `settings`，官方扩展总览（28,416 字节）没有出现 “output styles” 或 “output-styles”，核心类型 `OutputStyleSource` 虽保留 `extension` 取值但 `loadOutputStyleCatalog` 只加载内置、用户与项目三级。切换风格会让已缓存的提示词前缀失效一次（官方 “Changing the style mid-session invalidates the cached prompt prefix once; after that, caching works as usual.”）。headless 下未知的风格名只打印警告并按默认风格继续。作用域与风格来源不匹配时命令只提示不搬移（个人风格写进项目设置文件、项目风格写进用户设置各有一条跨作用域解析警告）。版本时间线：`c7c4dc80e0ec`（2026-08-24，PR #9565）建立提示词中的 output-style 层 → `ed6fc69ae9b4`（2026-08-31，PR #10282）加入每轮提醒 → PR #10283 加入 `general.outputStyle` 与 `--output-style` → `1772e14812a3`（2026-09-02，PR #10683）加入 `/output-style` 命令与选择器，以上随 v0.23.0（2026-09-03T11:03:15Z，标签提交 `98a9c9641586`）进入 stable，该标签下官方文档只有 3,407 字节、没有 `## Custom styles` 一节，v0.22.3 下该文件不存在 → `d0847308f15e`（2026-09-04，PR #10761）加入两个自定义目录，随 v0.23.1（2026-09-08T15:56:16Z，标签提交 `d9331e6fcf7f`）进入 stable；此后 `output-styles.ts`（9,871 字节）与 `output-style-files.ts`（17,667 字节）再无提交，官方文档在 v0.23.1 与 v0.26.9（标签提交 `600aff0592bc`）都是 6,589 字节。',
+          status: '官方确认',
+          sources: [
+            'qwen-output-styles-doc',
+            'qwen-output-styles-core',
+            'qwen-output-style-files-src',
+            'qwen-output-style-command-src',
+            'qwen-output-style-utils-src',
+            'qwen-output-styles-settings-row',
+            'qwen-output-styles-commands-row',
+            'qwen-output-styles-headless',
+            'qwen-output-styles-extension-intro',
+            'qwen-output-styles-v0230-release',
+            'qwen-output-styles-v0231-release',
+            'qwen-output-style-layer-commit',
+            'qwen-vscode-integration-current',
+          ],
         },
         kimi: {
           entry:
-            '官方配置文档与命令表未列出输出风格入口；`/theme`、`/custom-theme` 为配色主题。',
-          location: '官方文档未列出输出风格目录。',
+            '官方 Slash 命令参考（main `eb2035f3cad5`，13,171 字节）没有 `/output-style`、`/style`、`/personality` 或 `/tone`，与外观有关的只有 `/theme`（“切换终端 UI 配色主题”）与 `/custom-theme [<text>]`（“创建或编辑自定义 TUI 配色主题”，原行另带一个指向 `customization/themes.md` 的站内链接）；`/import-from-cc-codex` 行逐字为 “从 Claude Code 和 Codex 导入 instructions、skills 和 MCP 设置”，即从 Claude Code 迁移也不导入输出风格。',
+          location:
+            '没有风格目录。最接近的提示词级入口是 `$KIMI_CODE_HOME/SYSTEM.md`（默认 `~/.kimi-code/SYSTEM.md`）、自定义 Agent 的 `.md` 文件、指令文件 `$KIMI_CODE_HOME/AGENTS.md` 与项目 `AGENTS.md`，以及 plugin 的 `systemPrompt`/`systemPromptPath`；都不是按名字选择的风格预设目录。',
           behavior:
-            '`config.toml` 无风格、语气或 persona 配置键；最接近的 `[identity]` 中 `name` 设定系统提示词中的自称（填充 `${product_name}` 变量）、`slug` 设定协议字段的机器标识（如 User-Agent 产品名、MCP 客户端名），均不改变回复风格。',
-          scope: '`[identity]` 随配置文件作用域生效。',
-          components: '无自定义风格文件与 frontmatter。',
-          loading: '无风格加载流程。',
-          permissions: '不涉及权限。',
+            '`config.toml` 官方文档（main 48,662 字节、stable 2.5.2 下 47,824 字节）没有任何表名或键包含 style、tone、persona、personality、verbosity 或“风格”。`## identity` 一节逐字为 “自定义 Agent 的身份标识。不设置时行为完全不变。”，只有 `name`（“Agent 在系统提示词中的自称（填充 `${product_name}` 变量，你自己的 `SYSTEM.md` 和 agent 文件同样适用）”）与 `slug`（默认“由 `name` 派生”，“协议字段中的机器标识：`User-Agent` 产品名与 MCP 客户端名；省略时由 `name` 派生（转小写，非字母数字折叠为 `-`）”）两键，两者也可用 `KIMI_CODE_IDENTITY_NAME`/`KIMI_CODE_IDENTITY_SLUG` 设置（优先级高于 `config.toml`、不写回文件），名字不含 ASCII 字母或数字时 slug 回退为 `agent`，身份在启动时解析一次、进程生命周期内不变，均不改变回复风格。`SYSTEM.md` 的作用逐字为 “文件存在且非空期间，它整体替换内置默认 main agent 的系统提示词；但只替换提示词，描述、工具集与允许委派的 subagent 列表仍沿用内置默认值。”',
+          scope:
+            '`[identity]` 随配置文件作用域生效，官方写 “修改本节配置在下次启动时对新会话生效；resume 的会话保留录制时的系统提示词”。`SYSTEM.md` 在用户作用域内优先于 `agents/` 目录中扫描到的同名文件，但项目作用域中声明 `override: true` 的同名 Agent 文件与 `--agent-file` 传入的文件排在它之前，用 `--agent` 选择其他 Agent 时它不生效；绑定的 Agent 即会话身份，会话首次绑定后不可切换。',
+          components:
+            '无自定义风格文件与 frontmatter。自定义 Agent 文件的 frontmatter 只有 `name`、`description`、`whenToUse`、`override`、`tools`、`disallowedTools` 与 `subagents` 七个字段，正文即该 Agent 的系统提示词；`SYSTEM.md` 是纯 Markdown 正文、“不需要也不读取 Frontmatter”，正文按模板渲染并支持 `${skills}`、`${agents_md}`、`${cwd}`、`${cwd_listing}`、`${os}`、`${shell}`、`${now}`、`${additional_dirs_info}`、`${base_prompt}`、`${plugin_sections}` 等变量。',
+          loading:
+            '无风格加载流程。`SYSTEM.md` 文件缺失或为空时不生效、读取失败时告警并回退内置提示词，在包括交互式 TUI 会话在内的所有启动方式下生效；plugin 的 `systemPrompt` 与 `systemPromptPath` 各限 32 KB（UTF-8 字节），一次提示词构建所有已启用 plugin 合计上限 64 KB，超限内容被忽略并写进 diagnostics。',
+          permissions: '不涉及权限变化。',
           conditions:
-            '当前一手资料不足以确认 Kimi Code 提供输出风格；Plugin Agent 的 `systemPrompt` 属于 Agent 定义，不属于本字段。',
-          sources: ['kimi-config-files-current', 'kimi-commands-current'],
+            '官方文档树在核对日期没有 style、tone、persona、personality、output 或 prompt 相关的独立页面，`docs/zh` 与 `docs/en` 下与外观相关的只有 `customization/themes.md`（5,888 字节，全部 token 都是界面配色）；`docs/zh/customization/plugins.md`（27,123 字节）与 `docs/zh/customization/agents.md`（16,307 字节）都不出现 style、风格、tone、persona 或 personality；官方 CHANGELOG（`apps/kimi-code/CHANGELOG.md`，465,236 字节，最新段 `## 2.5.2`）近期段落没有风格相关条目。坐标：最新 stable `@moonshot-ai/kimi-code@2.5.2`（2026-11-06T07:48:19Z），main HEAD `eb2035f3cad57cc12d4d5082ec626f7f0ea5f651`（2026-11-06T12:19:30Z）。`systemPrompt`/`systemPromptPath` 是 plugin manifest 字段而不是 Agent 定义字段，旧记录把两者混为一处已作废。',
+          sources: [
+            'kimi-config-files-eb2035f',
+            'kimi-commands-eb2035f',
+            'kimi-agents-system-md',
+            'kimi-plugins-system-prompt',
+            'kimi-themes-eb2035f',
+          ],
         },
         qoder: {
           entry:
-            '`settings.json` 顶层 `outputStyle` 键（兼容 `general.outputStyle`，两处同时配置时顶层优先）；命令行 `qoder --output-style <name>`。',
+            '`settings.json` 顶层 `outputStyle` 键（官方逐字 “Name of the active Output Style (requires restart). Compatible with the `general.outputStyle` syntax, with top-level taking precedence.”）；命令行 `qoder --output-style <name>`；交互式 `/output-style`，官方 Slash 命令参考逐字为 “Choose this project\'s output style for the next conversation. Run `/clear` or `/new` to apply it.”，该命令自 CLI 1.1.47（September 8, 2026）起提供，更新日志条目逐字为 “Added the `/output-style` command to select an output style for the current project in the interactive interface”。',
           location:
-            '自定义风格为 `.md` 文件：用户级 `~/.qoder/output-styles/`（全部项目生效）、项目级 `<project>/.qoder/output-styles/`（仅当前项目）。`outputStyle` 设置写在 `~/.qoder/settings.json`（用户）、`<project>/.qoder/settings.json`（项目）或 `<project>/.qoder/settings.local.json`（本地），按内置默认→用户→项目→本地→`--settings` 合并。',
+            '自定义风格为 `.md` 文件：用户级 `~/.qoder/output-styles/`（全部项目生效）、项目级 `<project>/.qoder/output-styles/`（仅当前项目）；插件另可在包内 `output-styles/` 目录携带，manifest 也可用 camelCase 的 `outputStyles` 显式声明以覆盖目录约定或使用内联内容，未声明时按约定自动发现。`outputStyle` 设置写在 `~/.qoder/settings.json`（用户）、`<project>/.qoder/settings.json`（项目）或 `<project>/.qoder/settings.local.json`（本地），官方应用顺序五层逐字为 “Built-in defaults (Schema defaults)”、“User Level settings (`~/.qoder/settings.json`)”、“Project-Level settings (`<project>/.qoder/settings.json`)”、“Local Level settings (`<project>/.qoder/settings.local.json`)” 与 “Configurations specified via command-line `--settings` (Highest precedence)”。',
           behavior:
-            '向系统提示词追加指令，调整回复语气、冗长度与结构；只改表达方式，不改核心身份与安全约束。未设置或设为 default 时使用内置默认表达、不追加风格；官方示例取值为 `concise`，官方文档未给出完整内置风格清单。',
+            '向系统提示词追加指令，调整回复语气、冗长度与结构；官方逐字 “Output Style only affects the "way of expression" and does not alter Qoder\'s core identity or security constraints—it merely appends additional instructions on top of the System Prompt, and cannot replace or bypass built-in behavioral guidelines.”。未设置或设为 default 时使用内置默认表达、不追加风格，官方逐字 “If this item is not set, or if it is set to the default style, Qoder uses its built-in default expression without appending any additional style.”；官方示例取值为 `concise`，文档只写 “Built-in style: Preset styles provided with Qoder CLI.” 而始终没有给出完整内置风格清单。',
           scope:
-            '`outputStyle` 配置项按设置文件作用域持久；`--output-style` 仅当前会话生效且优先于配置项。',
+            '`/output-style` 选的是“当前项目”的风格，且官方要求 `/clear` 或 `/new` 才应用；`outputStyle` 配置项按设置文件作用域持久但需重启 CLI；`--output-style` 仅当前会话生效且优先于配置项。',
           components:
-            '自定义风格 frontmatter 可选：`name`（默认取去掉 `.md` 的文件名）、`description`（默认取正文第一个非标题行）。',
+            '自定义风格 frontmatter 可选：`name`（默认取去掉 `.md` 的文件名）、`description`（默认取正文第一个非标题行）；插件 manifest 的风格字段名为 camelCase `outputStyles`，而约定目录名仍是 `output-styles/`。',
           loading:
-            '修改配置中的 `outputStyle` 需重启 CLI 生效；`--output-style` 无需重启立即生效。同名风格按内置→插件→用户级→项目级顺序后者覆盖前者；插件风格以 `plugin-name:style-name` 引用；插件强制风格优先于 `outputStyle` 设置，多个强制风格时第一个生效并记录警告。',
+            '修改配置中的 `outputStyle` 需重启 CLI 生效；`--output-style` 官方写 “This parameter only applies to the current session, takes precedence over configuration items, and does not require a restart.”。同名风格按 Built-in → Plugin → User-Level → Project-Level 顺序后者覆盖前者；插件风格以 `plugin-name:style-name` 引用；插件强制风格优先于 `outputStyle` 设置，多个强制风格时第一个生效并记录警告。',
+          surfaces:
+            '以 Qoder CLI 为准；`/output-style` 的更新日志条目明确写 “in the interactive interface”，Agent SDK、ACP 与 Qoder IDE 的风格入口官方未单独说明。',
           permissions:
-            '官方文档明确输出风格不改变核心身份与安全约束。',
+            '官方明确输出风格不改变核心身份与安全约束、不能替换或绕过内置行为准则；项目级与本地级设置只在当前工作目录受信任时应用，官方逐字 “If the working directory is not trusted, Qoder CLI only loads User Level configurations and ignores `settings.json` and `settings.local.json` within the project. Folder Trust is controlled by `security.folderTrust.enabled` (enabled by default).”',
           conditions:
-            '官方文档页未标注输出风格的引入版本；以当前文档站内容为准。',
-          sources: ['qoder-output-styles', 'qoder-settings'],
+            '官方 Output Style 文档页（822,658 字节）在核对日期完全没有提到 `/output-style` 命令，该命令只出现在 Slash 命令参考（833,050 字节）与 CLI 1.1.47 更新日志；文档页也未标注输出风格的引入版本。更新日志的两种官方渲染仍不一致：`https://docs.qoder.com/release-notes/qoder-cli` 现以 307 跳转到 `https://changelog.qoder.com/cli`（HTML 782,354 字节，最新条目 CLI 1.1.84／November 6, 2026），`.md` 渲染（116,633 字节）仍停在 CLI 1.1.82／November 3, 2026；1.1.82 至 1.1.84 都没有输出风格条目。',
+          sources: [
+            'qoder-output-styles',
+            'qoder-settings-output-style-row',
+            'qoder-output-style-slash-row',
+            'qoder-output-style-command-1147',
+            'qoder-plugins-detail',
+          ],
         },
       },
       related: [
