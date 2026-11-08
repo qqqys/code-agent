@@ -9,6 +9,7 @@
 | 能力 | 网页 | Markdown |
 | --- | --- | --- |
 | MCP 客户端 | [打开](https://qqqys.github.io/code-agent/capability.html?id=extension-mcp) | [查看](./extension-mcp.md) |
+| MCP 异步任务 | [打开](https://qqqys.github.io/code-agent/capability.html?id=extension-mcp-tasks) | [查看](./extension-mcp-tasks.md) |
 | Agent Skills | [打开](https://qqqys.github.io/code-agent/capability.html?id=extension-skills) | [查看](./extension-skills.md) |
 | Skill 生成与维护 | [打开](https://qqqys.github.io/code-agent/capability.html?id=extension-skill-generation) | [查看](./extension-skill-generation.md) |
 | 生命周期 Hooks | [打开](https://qqqys.github.io/code-agent/capability.html?id=extension-hooks) | [查看](./extension-hooks.md) |
