@@ -228,6 +228,164 @@
       ],
     }),
 
+    'extension-mcp-tasks': createDetail({
+      id: 'extension-mcp-tasks',
+      definition:
+        'MCP Server 用 tasks 扩展把一次 `tools/call` 变成服务端长任务：客户端拿到任务句柄后立即返回，之后按轮询间隔向 Server 取回状态与结果。本字段比较五家客户端是否接受这种异步应答、长时间工具调用会不会被移到后台、任务在哪里查看和停止，以及在只支持同步调用时各自用哪个超时键界定长调用。',
+      includes: [
+        'Server 以任务句柄应答 `tools/call` 时客户端的处理',
+        '长时间 MCP 工具调用是否自动移到后台，后台任务在何处查看与停止',
+        '任务的轮询、结果投递、输入请求与跨退出、恢复的跟踪范围',
+        '只支持同步调用时用哪个超时键界定长调用，以及连接中断后的重放条件',
+      ],
+      excludes: [
+        'MCP Server 的传输、配置作用域、认证与信任（见 MCP 客户端）',
+        'Bash、Subagent 与 Skill 的后台执行（见后台任务）',
+        '工具声明的按需加载与延迟声明（见工具延迟声明与按需发现）',
+        '产品自己的定时任务与循环',
+      ],
+      facts: [
+        '只有 Claude Code 有一手资料记录 MCP tasks 扩展：官方 MCP 文档给出 `resultType: "task"` 应答、`tasks/get` 轮询、`tasks/update` 回答输入与 `tasks/cancel` 停止；Codex、Qwen Code、Kimi Code 与 Qoder CLI 的官方 MCP 文档在核对日期都没有 `resultType`、`taskId`、`tasks/get` 与 `pollInterval` 任何命中。',
+        '另外四家都用同步超时界定长调用，但键名与默认值各不相同：Codex `tool_timeout_sec` 默认 60 秒、Qwen Code per-server `timeout` 默认 600,000 毫秒（10 分钟）、Kimi Code `toolTimeoutMs`（文档未给独立默认值，可用 `[mcp] tool_timeout_ms` 或 `KIMI_MCP_TOOL_TIMEOUT_MS` 设全局默认）、Qoder CLI `timeout`（毫秒，文档未给默认值，更新日志 CLI 1.1.3 只写 “Added timeout control for MCP tools” 而没给键名）。',
+        'Claude Code 把两件事分开：Server 侧的 MCP task，与「主会话任何 MCP 工具调用满两分钟自动移成后台任务」。后者自 v2.1.212 起存在、由 `CLAUDE_CODE_MCP_AUTO_BACKGROUND_MS` 控制且移成后台的普通调用不跨会话退出存活，而远程 Server 上的 MCP task 在退出后继续运行。',
+        '「后台发现」与「后台执行」不是一回事：Qwen Code 的 Progressive availability 是在 UI 可交互后于后台发现 MCP Server（`discoveryTimeoutMs` 只覆盖 `connect` + `tools/list` + `prompts/list` + `resources/list` 握手），Codex 的 `mcp_optional_startup_grace_ms` 只影响启动期工具目录且官方写明 “Tool calls still need a live connection.”，两者都不改变 `tools/call` 的同步语义。',
+        '连接中断后的处理只有一家有明文条件：Qwen Code 的 Connection-loss replay 要求 `trust: true`、工作区受信且工具声明 `idempotentHint: true` 或一致的只读注解才重连并重放当前调用，否则报结果可能未知；Claude Code 的 MCP task 走另一条路径——Server 断开时先从 `/mcp` 重连，否则取消请求发不出去且客户端直接忘掉该任务、无法再跟踪。',
+        'Claude Code 的版本坐标存在冲突：官方 MCP 页与环境变量页都写 MCP tasks 与 `CLAUDE_CODE_DISABLE_MCP_TASK_BACKGROUND` 需 v2.1.304 及以上，但更新日志 `## 2.1.304` 一节没有任何 MCP tasks 条目，全文检索 `MCP task`／`MCP_TASK`／`MCP_AUTO_BACKGROUND`／`tasks/get` 只在 v2.1.319 命中三条、在 v2.1.212 命中一条。',
+      ],
+      products: {
+        claude: {
+          entry:
+            '`/tasks` 查看与停止（选中后按 `x`，或让 Claude 停）；底部状态栏显示 `1 MCP task` 一类计数；Server 断开时先从 `/mcp` 重连或重新认证，否则取消请求发不出去。没有 MCP 任务专属 Slash 命令。让 Claude 在工具调用内等待结果的开关是 `CLAUDE_CODE_DISABLE_MCP_TASK_BACKGROUND=1` 或 `CLAUDE_CODE_MCP_AUTO_BACKGROUND_MS=0`，可写进 `settings.json` 的 `env` 块；v2.1.319 起整套终端 MCP tasks 的关闭开关是 `CLAUDE_CODE_DISABLE_MCP_TASKS=1`。Server 作者侧的入口是 `tools/call` 应答里的 `resultType: "task"`。',
+          location:
+            '没有任务专属配置文件：四个环境变量按 Claude Code 常规作用域读取（进程环境或 `settings.json` 的 `env` 块）。任务状态跟着会话走，官方要求恢复跟踪时 “Keep the server\'s name and connection settings unchanged”，`/tasks` 里服务端任务的详情行写 `runs on the server; survives exiting this session`；Server 被改名、移除、没进 `--mcp-config`，或 URL、command、args、env、headers、timeout 变了，都会在 `/tasks` 条目上留下配置类状态消息。',
+          behavior:
+            'Server 用 `resultType: "task"` 加 `taskId` 回答 `tools/call`，Claude 的调用在 Server 接受作业后立即返回；Claude Code 随即发一次 `tasks/get`（`{ "taskId": ... }`），之后按 `pollIntervalMs` 重复（该值夹到 250–30000 毫秒，缺失或为 `null` 时用 2000，且每次 `tasks/get` 响应都会重读）。`status` 的处理是：`working` 继续轮询；`completed` 把顶层 `result` 当普通 `tools/call` 结果交给 Claude，其中 `isError: true` 报为失败；`failed` 告诉 Claude 顶层 `error` 对象的 `message`，没有 `message` 时用 `statusMessage`、再没有就 `Task failed`；`cancelled` 用 `statusMessage` 否则 `Task was cancelled by the server`；`input_required` 读 `inputRequests` 并通过 `tasks/update` 的 `{ taskId, inputResponses }` 每个 key 只回答一次；其他 `status` 值请求取消并报为失败。结果只给 Claude、不进 transcript，transcript 只出现 `MCP task <server task id> (<server>/<tool>) completed.` 一行，因此要看结果得问 Claude；Claude 空闲时结果到达会不经提示自行开始处理。停止时 Claude Code 停止跟踪并发 `tasks/cancel`，但 Server 可能已完成部分或全部工作。另有一条与任务无关但相邻的机制：主会话任何 MCP 工具调用运行满两分钟会移成后台任务，Claude 立刻拿到 task ID 继续工作、结果以 task notification 送达，`/tasks` 条目显示 Server 报来的最新进度，停止该任务会取消调用并告诉 Claude 不会有结果。永不自动后台的调用有三类——Subagent 发起的调用（只后台主会话调用）、IDE Server 的调用、非交互模式的调用（除非 `CLAUDE_AUTO_BACKGROUND_TASKS=1`）；正在等 elicitation 对话框输入的调用在对话框关闭前不移，因为 Server 是在等输入而不是慢。时限方面，后台 MCP task 默认没有 Claude Code 时间上限，墙钟上限（per-server `timeout` 或 `MCP_TOOL_TIMEOUT`，未设时约 28 小时）与空闲超时（`CLAUDE_CODE_MCP_TOOL_IDLE_TIMEOUT`，网络类默认 300000 毫秒、stdio 默认 1800000 毫秒）只在 Server 用 task 应答该调用之前适用，让 Claude 等待时它们覆盖整个任务，成功应答的状态检查算作空闲超时的活动。',
+          scope:
+            '`CLAUDE_CODE_MCP_AUTO_BACKGROUND_MS` 对所有 Server 的主会话 MCP 调用统一生效，官方没有给 per-server 或 per-tool 的任务豁免键；一次调用能否成为 MCP task 由 Server 是否支持 tasks、连接所用的协议修订版与会话类型共同决定。`CLAUDE_CODE_DISABLE_MCP_TASK_BACKGROUND`、`CLAUDE_CODE_DISABLE_MCP_TASKS` 与 `CLAUDE_AUTO_BACKGROUND_TASKS` 都是会话级环境变量，不是 per-server 设置。输入请求的 key 数量按任务计，单任务超过 16 个 key 被忽略。',
+          components:
+            'tasks 扩展的四个方法（`tools/call` 的任务应答、`tasks/get`、`tasks/update`、`tasks/cancel`）· `/tasks` 面板与 `x` 停止键 · 状态栏任务计数 · 任务应答字段 `resultType`、`taskId`、`status`、`statusMessage`、`createdAt`、`lastUpdatedAt`、`ttlMs`、`pollIntervalMs`、`inputRequests` 与顶层 `result`／`error` · `CLAUDE_CODE_MCP_AUTO_BACKGROUND_MS`、`CLAUDE_CODE_DISABLE_MCP_TASK_BACKGROUND`、`CLAUDE_CODE_DISABLE_MCP_TASKS`、`CLAUDE_AUTO_BACKGROUND_TASKS` 与 `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS` 五个环境变量 · 运行时与协议选择键 `MCP_SDK_GENERATION`、`MCP_PROTOCOL_NEGOTIATION`。官方明确不使用 `tasks/result`、`tasks/list` 与 `notifications/tasks`。',
+          loading:
+            '客户端运行时在每次启动时选定并保持到退出：v1 运行时基于 MCP TypeScript SDK 1.x，v2 运行时是同一份代码基于 MCP TypeScript SDK 2.0 并带来协议修订 2026-07-28。会获取 feature flags 的会话在 v2.1.232 及以上用 v2；不获取 flags 的会话（Amazon Bedrock、Claude Platform on AWS、Google Cloud\'s Agent Platform、Microsoft Foundry 且宿主未设 `CLAUDE_CODE_PROVIDER_MANAGED_BY_HOST`，经 Claude apps gateway 登录，关掉 telemetry 或 feature-flag fetching）在 v2.1.274 及以上默认也用 v2。协议修订 2026-07-28 的默认协商按连接类型分批打开：直连 HTTP 在 v2.1.274、本地 stdio 在 v2.1.292（含 Bedrock/Vertex/Foundry）、claude.ai connector 在 v2.1.295、云会话与 Remote Control connector 在 v2.1.299。`MCP_PROTOCOL_NEGOTIATION` 未设时 Claude Code 可能七天不再询问某个 stdio Server，要让升级后的 Server 尽早被询问需显式设 `auto`。任务应答到达后立即开始轮询，不需要额外加载步骤。',
+          surfaces:
+            '官方逐字写 v2.1.304 及以上覆盖终端 CLI 会话、Agent SDK 会话与 GitHub Actions 运行，而 “Other surfaces, such as the VS Code extension and the desktop app, don\'t have MCP tasks”。一次性 `claude -p "<prompt>"` 不获得 MCP tasks；Agent SDK 会话或用 `--input-format stream-json` 的 `claude -p` 需要同时满足 `CLAUDE_AUTO_BACKGROUND_TASKS=1`、`CLAUDE_CODE_DISABLE_MCP_TASK_BACKGROUND` 不为 `1`、`CLAUDE_CODE_MCP_AUTO_BACKGROUND_MS` 不为 `0`，并且输入要保持打开，因为输入关闭后运行不等 MCP tasks。v2.1.319 起终端 MCP tasks 也不再需要 feature-flag fetching，覆盖 Bedrock、Vertex、Foundry、LLM gateway 与 `DISABLE_TELEMETRY`。',
+          permissions:
+            '官方没有为 MCP tasks 设独立审批规则或权限键，工具调用照常过权限系统。任务索取输入时走 elicitation 对话框；非交互会话中请求输入的任务直接被请求取消，且 “without running your `Elicitation` hooks or calling the Agent SDK\'s `onElicitation` callback”。`tasks/cancel` 由 Claude 或用户在 `/tasks` 里触发，退出时不发送。`elicitation/create` 只在交互终端会话中受理，`roots/list` 到处受理，Claude Code 无法受理时请求 Server 取消任务。',
+          conditions:
+            '六个条件全满足才成为 MCP task：Server 支持 tasks；Server 是 HTTP、stdio 或 claude.ai connector 且连在协议修订 2026-07-28 上（`MCP_SDK_GENERATION=v1` 或 `MCP_PROTOCOL_NEGOTIATION=legacy` 排除）；会话获取 feature flags（v2.1.319 起终端不再要求）；Anthropic 已为该类会话打开；调用来自主会话而非 Subagent；会话是交互式或满足上述三个环境变量的 Agent SDK／stream-json 运行。版本坐标冲突未解决：文档写 v2.1.304，更新日志首次宣布终端 MCP tasks 与该环境变量在 v2.1.319，`## 2.1.304` 一节没有相关条目。v2.1.319 另有一处文档未同步：更新日志逐字为 “Changed MCP tasks to work in the terminal without feature-flag fetching (Bedrock, Vertex, Foundry, LLM gateways, `DISABLE_TELEMETRY`); set `CLAUDE_CODE_DISABLE_MCP_TASKS=1` to turn them off”，而官方 MCP 页的条件清单在核对日期仍写会话必须获取 feature flags；`CLAUDE_CODE_DISABLE_MCP_TASKS`、`MCP_TIMEOUT`、`MCP_SDK_GENERATION`、`MCP_PROTOCOL_NEGOTIATION` 与同版新增的 `CLAUDE_CODE_DISABLE_FEATURE_FLAGS` 在环境变量页（188,724 字节）都没有独立条目，`MCP_TOOL_TIMEOUT` 只作为字符串出现在空闲超时行的说明里。`CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` 或 bare mode 本身不会让 Claude 等待 MCP tasks，该变量下 MCP tasks 与 Monitor 工具仍在后台运行。退出与恢复：远程 Server 上的任务在退出后继续运行，但没有任何退出选项能取消它，即使退出对话框把它列在 `The following will stop when you exit:` 下；stdio Server 的进程随 Claude Code 退出而停止，尽管 `/tasks` 仍显示 `runs on the server; survives exiting this session`，因此除非该 Server 的文档说作业能超出进程存活，应先让它跑完或在 `/tasks` 里停掉。`/clear`、`/branch` 或 `/resume` 到别的会话时，只要 Claude Code 还开着结果仍到达当前对话；退出后要 `claude --resume` 当初启动任务的那个会话才重新跟踪；用一次性 `claude -p "<prompt>"` 加 `--resume`/`--continue` 恢复该会话不跟踪；新开会话或 `--fork-session` 不跟踪。Server 作者侧的失败行为：请求没带 `params._meta["io.modelcontextprotocol/clientCapabilities"]` 下 `extensions` 里的 `"io.modelcontextprotocol/tasks": {}` 时用 task 应答会失败并给出工具错误 `Unsupported result type \'task\' for tools/call`，应答缺 `taskId` 或 `status` 无效也是同样错误；`taskId` 超过 128 个不含空格的可打印 ASCII 字符时报 `MCP server "<name>" returned a malformed task handle for tool "<tool>"`；`ttlMs` 过期不会让 Claude Code 丢弃任务；v2.1.317 之前省略 `createdAt`/`lastUpdatedAt`/`ttlMs` 或把 `pollIntervalMs` 设为 `null` 会失败；HTTP 与 claude.ai connector 上任务应答必须在 per-request 计时器内开始。JSON-RPC 错误 `-32602` 读作未知任务 ID，后台任务最多再问五分钟后把结果报为 unknown，第二次调用可能重复已完成的工作，因此再调用前要先用该 Server 的其他工具查清做过什么。`/tasks` 打开期间任务的 elicitation 对话框是隐藏的，要先关掉 `/tasks` 才能回答；`status` 为 `working` 时 `/tasks` 显示最近一次 `tasks/get` 的 `statusMessage` 而不是首次应答里的那个，省略该字段的响应会清空它。',
+          status: '条件项',
+          sources: [
+            'claude-mcp-tasks-doc',
+            'claude-mcp-auto-background-doc',
+            'claude-env-vars-mcp-tasks',
+            'claude-mcp-tasks-changelog-0ed9469',
+            'claude-mcp-protocol-changelog-0ed9469',
+            'claude-mcp',
+          ],
+        },
+        codex: {
+          entry:
+            '没有 MCP 任务入口。Server 在 `config.toml` 的 `[mcp_servers.<name>]` 声明，`/mcp` 查看状态；`tools/call` 同步等待，长调用只能靠 `tool_timeout_sec` 界定。',
+          location:
+            '`[mcp_servers.<name>]` 下的 `startup_timeout_sec`（默认 10）与 `tool_timeout_sec`（默认 60），单位是秒；顶层 `mcp_optional_startup_grace_ms`（默认 1000 毫秒，设 `0` 改为等每个 Server 的 `startup_timeout_sec`）。没有任务句柄、轮询间隔或后台任务的配置键。',
+          behavior:
+            '官方 MCP 页把工具调用写成同步，逐字为 “tool_timeout_sec (optional): Timeout (seconds) for the server to run a tool. Default: 60.” 与 “startup_timeout_sec (optional): Timeout (seconds) for the server to start. Default: 10.”，示例配置写 `startup_timeout_sec = 20` 与 `tool_timeout_sec = 45`。`mcp_optional_startup_grace_ms` 只决定构建初始工具目录时等可选 Server 多久，其所在段落另写 “Tool calls still need a live connection.”。全页 `resultType`、`taskId`、`tasks/get`、`pollInterval`、`input_required` 与 `elicitation` 六个字符串的命中数都是 0，`task`／`tasks` 只出现在 ChatGPT Work task、Scheduled tasks、Teams and Team Tasks、Tasks and memory 等导航与提示词语境，也没有把长调用移到后台再取回结果的机制。',
+          scope:
+            '`tool_timeout_sec` 与 `startup_timeout_sec` 按 `[mcp_servers.<name>]` 条目设置，同条目另有 `enabled_tools`、`disabled_tools`、`default_tools_approval_mode`、`tools.<tool>.approval_mode` 与 `tools.<tool>.output_token_limit`；`mcp_optional_startup_grace_ms` 是顶层键，只作用于 optional Server，`required = true` 的 Server 仍用自身启动超时。没有任务级作用域。',
+          components:
+            '两个 per-server 秒级超时键与一个顶层启动宽限键。没有任务组件。',
+          loading:
+            '不适用：没有异步任务组件需要加载。启动宽限只影响初始工具目录的构建时机，官方另记缓存的工具目录可以让启动先通过而 Server 仍在连接。',
+          surfaces:
+            '官方 MCP 页同时覆盖 ChatGPT 桌面 App、ChatGPT Web、Codex CLI、Codex IDE 扩展与 Codex Cloud，页面没有就任一 Surface 描述 MCP 任务。站点侧栏的 “Async tool calling”（`/api/docs/guides/async-tool-calling`）与 “Background mode”（`/api/docs/guides/background`）都属 API 段（分别在 Tools → Build tool workflows 与 Core concepts 下），按 Surface 规则不计入 Codex CLI 的 MCP 客户端行为。',
+          permissions:
+            '没有任务专属审批。工具审批仍按 `default_tools_approval_mode`（取值 `auto`、`prompt`、`writes`、`approve`，其中 `writes` 只对未标记只读的工具提示）与 `tools.<tool>.approval_mode` 逐工具覆盖。',
+          conditions:
+            '本条按官方 MCP 文档的缺失记录「没有 MCP tasks」，未逐文件核对 `openai/codex` 源码，因此客户端在协议层收到 `resultType: "task"` 应答时的具体失败行为记为未确认。核对坐标是 2026-11-08 的官方文档站；同期仓库 Release 为 rust-v0.167.0（2026-11-06T01:40:00Z）与 rust-v0.169.0-alpha.3（2026-11-07T19:31:41Z），近期提交集中在 Bazel 测试分片、agent tree ID、Code Mode 工具消息的模型覆盖、登录期创建自定义 Provider 与侧栏标签键盘导航，没有 MCP tasks 条目。',
+          status: '官方确认',
+          sources: ['codex-mcp-timeouts', 'codex-mcp'],
+        },
+        qwen: {
+          entry:
+            '没有 MCP 任务入口。`/mcp` 与 `qwen mcp add|list|get|remove` 管理 Server，`qwen mcp add --timeout <ms>` 写入超时；`tools/call` 同步等待，长调用靠 per-server `timeout` 界定。',
+          location:
+            'Server 从 `settings.json` 的 `mcpServers` 读取，用户作用域默认在 `~/.qwen/settings.json`、项目作用域在 `<project>/.qwen/settings.json`；`timeout`、`discoveryTimeoutMs`、`versionNegotiation`、`appResourceTimeoutMs` 与 `trust` 都是 `mcpServers.<name>` 条目字段，`qwen mcp add` 与直接编辑 `settings.json` 产生同样的条目。回退旧同步发现行为用环境变量 `QWEN_CODE_LEGACY_MCP_BLOCKING=1`。没有任务句柄或轮询间隔键。',
+          behavior:
+            '官方 MCP 文档逐字写 “The existing `timeout` field is **tool-call** timeout (used for each `tools/call` request, default 10 minutes) and is unaffected by `discoveryTimeoutMs` — a long-running tool invocation is not a startup pathology.”，即长调用只有同步超时上限。唯一被官方描述为「后台」的 MCP 行为是 Server 发现：“Qwen Code discovers MCP servers in the background after the UI is already interactive.”，交互模式下右下角状态胶囊显示 `N/M MCP servers ready`、在就绪前发提示词只让模型看到当下已就绪的工具，非交互模式（`--prompt`、stream-json、ACP）仍等发现结束再发第一条提示词；`discoveryTimeoutMs` 只覆盖 `connect` + `tools/list` + `prompts/list` + `resources/list` 握手，默认 stdio 30 秒、远程 HTTP/SSE 5 秒。与长调用最接近的 resilience 机制是 “Connection-loss replay”：只有 Server 写了 `trust: true`、工作区受信且工具显式声明 `idempotentHint: true` 或一致的只读注解时，Qwen Code 才重连并重放当前 MCP 工具调用；注解缺失、注解冲突（只读注解与 `destructiveHint: true` 或 `idempotentHint: false` 冲突）、Server 不受信或工作区不受信时不重放，并报告结果可能未知，因为 Server 可能在响应丢失前已完成操作，官方要求先核实结果再重试，同时注明这与早期版本对未注解工具透明重试的行为不同。全页 `resultType`、`taskId`、`tasks/get`、`pollInterval`、`async` 与 `poll` 的命中数都是 0，`tasks` 只在 “Automate workflows (repeatable tasks exposed as tools/prompts)” 出现一次。',
+          scope:
+            '`timeout` 与 `discoveryTimeoutMs` 都按 `mcpServers.<name>` 条目设置；`appResourceTimeoutMs` 显式设置时夹到 100–120,000 毫秒，未覆盖时取通用 `timeout` 与 10,000 毫秒中较小者，且与工具执行相互独立。重放条件里的 `trust: true` 是 per-server 字段、工作区信任是另一层门禁。没有任务级作用域。',
+          components:
+            '四个时长键（`timeout`、`discoveryTimeoutMs`、`appResourceTimeoutMs` 与 CLI `--timeout`）、一个协议协商键 `versionNegotiation`（stdio 默认走单进程 legacy initialize 流程，写 `"auto"` 才自动协商，协商会先跑一个短命的 server 副本、最多占用发现预算五秒）、一个重放门禁字段 `trust` 加工具注解 `idempotentHint`／`destructiveHint`／只读注解，以及一个回退环境变量 `QWEN_CODE_LEGACY_MCP_BLOCKING`。没有任务组件。',
+          loading:
+            '不适用：没有异步任务组件需要加载。发现阶段的后台化在 UI 可交互后开始，工具列表在每个 Server 完成握手后约一帧（~16 毫秒）内更新；`QWEN_CODE_LEGACY_MCP_BLOCKING=1` 回到「等所有 Server 再显示任何 UI」的旧同步行为。',
+          surfaces:
+            '以 Qwen Code CLI 为准。官方 MCP 文档区分交互模式与非交互模式（`--prompt`、stream-json、ACP）在发现阶段的等待行为，但没有就任一 Surface 描述 MCP 任务。',
+          permissions:
+            '没有任务专属审批。`trust: true` 只在受信任工作区里跳过该 Server 的确认提示，官方标注 use sparingly，并写明注解是 Server 提供的行为提示、“not permissions or an authorization boundary”，只应对自己控制且已核实注解的 Server 打开。',
+          conditions:
+            '本条按 v0.27.0 标签下的官方 MCP 文档记录「没有 MCP tasks」，未逐文件核对源码。v0.27.0（2026-11-07T20:45:25Z，标签提交 `03b0c2435be1890a21b117860eaf389076787275`）的发布说明里与 MCP 相关的条目是 GitHub channel 的 Repository Filter 允许/阻止清单、绑定 PR 投递可靠性与 daemon 的单 PR 状态视图，另有为本地非托管会话新增 `FileChanged` Hook，都没有 MCP tasks。`QWEN_CODE_LEGACY_MCP_BLOCKING` 官方写 “is kept as an escape hatch for at least one release”，即该键有被移除的时间窗。连接丢失重放只覆盖当前那一次调用，不是把调用转成后台任务，官方也没有给出重放的次数或间隔上限。',
+          status: '官方确认',
+          sources: ['qwen-mcp-v0270'],
+        },
+        kimi: {
+          entry:
+            '没有 MCP 任务入口。`/mcp` 查看连接、`/mcp-config` 编辑配置；`tools/call` 同步等待，长调用靠 `toolTimeoutMs` 界定。',
+          location:
+            'server 条目的 `startupTimeoutMs` 与 `toolTimeoutMs`；全局默认在 `config.toml` 的 `[mcp] startup_timeout_ms`／`[mcp] tool_timeout_ms`，或环境变量 `KIMI_MCP_STARTUP_TIMEOUT_MS`／`KIMI_MCP_TOOL_TIMEOUT_MS`；重连退避在 `[mcp] reconnect_initial_delay_ms`（默认 5000）／`[mcp] reconnect_max_delay_ms`（默认 300000）与 `KIMI_MCP_RECONNECT_INITIAL_DELAY_MS`／`KIMI_MCP_RECONNECT_MAX_DELAY_MS`。没有任务句柄或轮询间隔键。',
+          behavior:
+            '官方中文 MCP 文档全页没有 `task`、`异步`、`后台`、`轮询`、`poll`、`resultType`、`taskId` 与 `progress` 任何命中。与长调用有关的只有两个超时字段——`toolTimeoutMs` 逐字为 “单次工具调用超时，取值范围为 `1` 到 `2147483647` 毫秒”（文档未给独立默认值）、`startupTimeoutMs` 逐字为 “连接超时，取值范围为 `1` 到 `2147483647` 毫秒，默认 `30000`”，两者适用于全部传输方式。断线时的行为是 “workspace 级 MCP server 启动时连不上或意外断连时，会自动按指数退避（每次尝试后等待时间翻倍）重连”，那是连接恢复，不是把进行中的工具调用移到后台或换成任务句柄。',
+          scope:
+            '优先级逐字为 “server 字段 > 环境变量 > `config.toml` > 内置默认”，即全局默认键只在不逐个 server 设置时兜底；重连退避的两个键明确只针对 workspace 级 MCP server。没有任务级作用域。',
+          components:
+            '两个 per-server 超时键、两个 `[mcp]` 全局默认键、两个超时环境变量，以及两个重连退避键加两个对应环境变量。没有任务组件。',
+          loading:
+            '不适用：没有异步任务组件需要加载。workspace 级 MCP Server 启动连不上或意外断连时按上述指数退避自动重连，首次重试等待 `reconnect_initial_delay_ms`、等待上限为 `reconnect_max_delay_ms`。',
+          surfaces:
+            '以 Kimi Code CLI 为准。官方 MCP 文档没有区分 ACP、Web UI、外部编辑器或 SDK 下的长调用与任务行为。',
+          permissions:
+            '没有任务专属审批。官方 MCP 文档没有为长任务列出独立的审批规则或免确认键。',
+          conditions:
+            '本条按 main `eb2035f3cad57cc12d4d5082ec626f7f0ea5f651`（2026-11-06T12:19:30Z）下的官方中文 MCP 文档记录「没有 MCP tasks」，未逐文件核对源码。`toolTimeoutMs` 的内置默认值文档未给出，因此未显式配置时长调用的实际上限记为未确认。同期最新 stable Release 为 `@moonshot-ai/kimi-code@2.5.2`（2026-11-06T07:48:19Z），另有 2.6.0 canary（`2.6.0-canary.20261106122412-eb2035f`）；2.5.2 的变更日志同步提交与近期仓库提交（web dist 同步、从自定义 registry 导入 google-genai provider、kap-server 以 turns 与 items 流式输出、agent-core-v2 不动态加载也刷新工具）都没有 MCP tasks 条目。',
+          status: '官方确认',
+          sources: ['kimi-mcp-eb2035f'],
+        },
+        qoder: {
+          entry:
+            '没有 MCP 任务入口。`/mcp` 与 `qoder mcp` 子命令管理 Server；官方两页都没有描述长调用的异步处理。',
+          location:
+            'MCP reference 的 “Common Optional Fields” 表里与时长有关的只有 `timeout` 一行，逐字为 “timeout | number | Connection/request timeout (in milliseconds).”，既没给默认值也没拆出单独的工具调用超时键；同表其余字段是 `type`、`description`、`trust`、`includeTools`、`excludeTools`、`disabled`、`alwaysAllow`、`oauth` 与 `qoder_url`。官方 MCP Servers 页没有任何超时配置键。没有任务句柄或轮询间隔键。',
+          behavior:
+            '官方 MCP Servers 页（836,033 字节）与 MCP reference 页（846,779 字节）的 `resultType`、`taskId`、`tasks/get`、`poll`、`async`、`background`、`progress` 与 `elicit` 命中数都是 0；`task`／`tasks` 只出现在站点导航（“How Task Execution Works”、“Starting a Task”、“Task Automation”、“Scheduled Task Reference”），与 MCP 协议无关。传输为 `stdio`、`sse`、`http`、`ws` 四种，未指定类型时 “local command servers should use the default stdio behavior”。MCP reference 的 “Lazy Loading Mode” 段（`mcp.lazyLoad: true` 或 `QODER_MCP_LAZY=1` 时只暴露 `mcp_list`／`mcp_get`／`mcp_call` 三个 Meta Tools、按需加载真实工具）是工具声明的按需加载，不是异步任务。更新日志 `changelog.qoder.com/cli` 同样没有任务句柄或轮询条目，与长调用有关的只有 CLI 1.1.3（July 22, 2026）的 “Added timeout control for MCP tools” 一句；CLI 1.1.81（October 29, 2026）的 CodeMode 工具（`QODER_ENABLE_CODE_MODE=1`，在 `/settings` 选 on 或 only 模式）是 “multi-step tool orchestration and on-demand invocation of MCP tools to reduce context usage”，也不改变 `tools/call` 的同步语义。',
+          scope:
+            '`timeout` 按 server 条目设置；它的默认值，以及 “Connection/request timeout” 究竟指连接超时、请求超时还是两者，官方没有拆开说明，都记为未确认。没有任务级作用域。',
+          components:
+            '一个未给默认值的 `timeout` 字段，以及更新日志 CLI 1.1.3 提到但未给键名的 “timeout control for MCP tools”。没有任务组件。',
+          loading:
+            '不适用：没有异步任务组件需要加载。`mcp.lazyLoad` 在官方 Settings 参考里标注 Restart 为 “Yes”、改动需重启 Qoder CLI，但那改的是工具声明的加载方式。',
+          surfaces:
+            '以 Qoder CLI 为准。官方文档没有区分 ACP（`qodercli --acp`）、Agent SDK、Cloud Mode 或 Remote Control 下的长调用与任务行为。',
+          permissions:
+            '没有任务专属审批。server 条目的 `trust` 字段逐字为 “Trusts the server, skipping confirmation when its tools are called.”，`alwaysAllow` 列出无需确认的工具名，`includeTools`／`excludeTools` 缩小暴露范围；MCP 工具其余情况与内置工具一样走权限系统。',
+          conditions:
+            '官方 MCP Servers 页、MCP reference 页与更新日志 `changelog.qoder.com/cli`（最新条目 CLI 1.1.84／November 6, 2026）都没有 MCP 任务或任务句柄的记录，`resultType`、`taskId`、`tasks/get` 与 `MCP task` 三处命中数都是 0，因此 Qoder CLI 是否支持 tasks 扩展、是否有进度通知、连接中断后是否重放都记为未确认；本条不按其他四家推断。工具调用超时只有一个坐标：更新日志 CLI 1.1.3（July 22, 2026）逐字写 “Added timeout control for MCP tools”，但既没给键名、单位也没给默认值，而 MCP reference 的 `timeout` 字段只写 “Connection/request timeout (in milliseconds).” 且未给默认值，两处是否指同一个键无法从一手资料确认，因此未显式配置时长调用的实际上限记为未确认。',
+          status: '未确认',
+          sources: [
+            'qoder-mcp-reference-timeout',
+            'qoder-changelog-mcp-timeout',
+            'qoder-mcp-reference-lazy-load',
+            'qoder-settings-reference-lazy-load',
+            'qoder-mcp',
+          ],
+        },
+      },
+      related: [
+        'extension-mcp',
+        'extension-tool-discovery',
+        'execution-background',
+        'cmd-tasks',
+        'agent-mcp',
+      ],
+    }),
+
     'extension-skills': createDetail({
       id: 'extension-skills',
       definition:
