@@ -2,7 +2,7 @@
 
 [返回 Subagent 详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=agent-deny-tools)
 
-> 核对日期：2026-11-08
+> 核对日期：2026-11-11
 
 ## 定义
 
@@ -101,7 +101,7 @@
 | 运行限制 | `[subagent] timeout_ms` 限制单个 `Agent` subagent 的最长运行时间，默认 7200000 ms（2 小时）、`0` 表示无超时，超时以 `timed_out` 收尾，`KIMI_SUBAGENT_TIMEOUT_MS` 的优先级高于配置文件；`AgentSwarm` 自 0.39.0（2026-08-27 发布）起改用与 `[subagent]` 相互独立的 `[swarm] timeout_ms`（默认同为 7200000 ms、`0` 无超时，`KIMI_CODE_SWARM_TIMEOUT_MS` 覆盖），超时后中止并在聚合报告里标记 `Subagent timed out.`；print 模式（`kimi -p`）下两键未显式设置时都按 `0` 处理，后台 subagent 不受墙钟超时约束。Agent 定义 frontmatter 无独立轮数或超时字段。 |
 | 条件与边界 | Subagent 模型池自 0.42.0（2026-09-09 发布）起始终开启，官方逐字为“模型池始终可用，无需任何开启动作；未配置 `[secondary_model]` 时，subagent 继承调用方模型”，`KIMI_CODE_EXPERIMENTAL_SECONDARY_MODEL` 与实验总开关的退出选项都已移除。旧版 `agent-core` v1 包在同一版被删除，`KIMI_CODE_LEGACY_FLAG` 与只由旧引擎读取的 `model_preference` 字段在当前的 agents、config-files、env-vars 与 slash-commands 四份官方文档里都不再出现；Agent 文件字段表没有 `model`，官方逐字写“其他 Agent 工具的字段（如 Claude Code 的 `model`、OpenCode 的 `mode`）同样会被忽略”。 |
 | 证据状态 | 官方确认 |
-| 来源 | [Kimi Code Agents 文档（Agent 文件字段表没有 `model`，逐字写 “其他 Agent 工具的字段（如 Claude Code 的 `model`、OpenCode 的 `mode`）同样会被忽略”）](https://github.com/MoonshotAI/kimi-code/blob/c9f01f07388abc2cdca40c9c5267f58c65086710/docs/zh/customization/agents.md)、[Kimi Code subagent and secondary model configuration（`[secondary_model]` 模型池已始终开启、`default_effort`、`force` 约束、`/secondary-model` 写入 `default_model`、配置错误直接启动失败）](https://github.com/MoonshotAI/kimi-code/blob/c9f01f07388abc2cdca40c9c5267f58c65086710/docs/zh/configuration/config-files.md)、[Kimi Code 官方变更记录（0.36.0 引入模型池为实验性、0.40.0 “子代理设置（`[secondary_model]`）功能由实验性转为正式”、0.42.0 “子 Agent 模型池（`[secondary_model]`）现已始终开启，实验开关与 `KIMI_CODE_EXPERIMENTAL_SECONDARY_MODEL` 退出选项已移除”、0.39.0 新增 `[swarm] timeout_ms`）](https://github.com/MoonshotAI/kimi-code/blob/c9f01f07388abc2cdca40c9c5267f58c65086710/docs/zh/release-notes/changelog.md) |
+| 来源 | [Kimi Code Agents 文档（Agent 文件字段表没有 `model`，逐字写 “其他 Agent 工具的字段（如 Claude Code 的 `model`、OpenCode 的 `mode`）同样会被忽略”）](https://github.com/MoonshotAI/kimi-code/blob/c9f01f07388abc2cdca40c9c5267f58c65086710/docs/zh/customization/agents.md)、[Kimi Code subagent and secondary model configuration（2026-10-10 坐标 `c9f01f07388a`：`[secondary_model]` 模型池已始终开启、`default_effort`、`/secondary-model` 写入 `default_model`、配置错误直接启动失败；该坐标仍有 `force` 字段，`force` 与 `model` 参数的 `"primary"` 取值已于 2.5.0 移除，现行证据见 `kimi-secondary-model-config-250`）](https://github.com/MoonshotAI/kimi-code/blob/c9f01f07388abc2cdca40c9c5267f58c65086710/docs/zh/configuration/config-files.md)、[Kimi Code 官方变更记录（0.36.0 引入模型池为实验性、0.40.0 “子代理设置（`[secondary_model]`）功能由实验性转为正式”、0.42.0 “子 Agent 模型池（`[secondary_model]`）现已始终开启，实验开关与 `KIMI_CODE_EXPERIMENTAL_SECONDARY_MODEL` 退出选项已移除”、0.39.0 新增 `[swarm] timeout_ms`）](https://github.com/MoonshotAI/kimi-code/blob/c9f01f07388abc2cdca40c9c5267f58c65086710/docs/zh/release-notes/changelog.md) |
 
 ### Qoder CLI
 
@@ -125,7 +125,7 @@
 - [Codex Subagents](https://learn.chatgpt.com/docs/agent-configuration/subagents)
 - [Qwen Code Subagents](https://github.com/QwenLM/qwen-code/blob/412eae24b48ff16f54166c2b17eb4d4a9cdcdd1e/docs/users/features/sub-agents.md)
 - [Kimi Code Agents 文档（Agent 文件字段表没有 `model`，逐字写 “其他 Agent 工具的字段（如 Claude Code 的 `model`、OpenCode 的 `mode`）同样会被忽略”）](https://github.com/MoonshotAI/kimi-code/blob/c9f01f07388abc2cdca40c9c5267f58c65086710/docs/zh/customization/agents.md)
-- [Kimi Code subagent and secondary model configuration（`[secondary_model]` 模型池已始终开启、`default_effort`、`force` 约束、`/secondary-model` 写入 `default_model`、配置错误直接启动失败）](https://github.com/MoonshotAI/kimi-code/blob/c9f01f07388abc2cdca40c9c5267f58c65086710/docs/zh/configuration/config-files.md)
+- [Kimi Code subagent and secondary model configuration（2026-10-10 坐标 `c9f01f07388a`：`[secondary_model]` 模型池已始终开启、`default_effort`、`/secondary-model` 写入 `default_model`、配置错误直接启动失败；该坐标仍有 `force` 字段，`force` 与 `model` 参数的 `"primary"` 取值已于 2.5.0 移除，现行证据见 `kimi-secondary-model-config-250`）](https://github.com/MoonshotAI/kimi-code/blob/c9f01f07388abc2cdca40c9c5267f58c65086710/docs/zh/configuration/config-files.md)
 - [Kimi Code 官方变更记录（0.36.0 引入模型池为实验性、0.40.0 “子代理设置（`[secondary_model]`）功能由实验性转为正式”、0.42.0 “子 Agent 模型池（`[secondary_model]`）现已始终开启，实验开关与 `KIMI_CODE_EXPERIMENTAL_SECONDARY_MODEL` 退出选项已移除”、0.39.0 新增 `[swarm] timeout_ms`）](https://github.com/MoonshotAI/kimi-code/blob/c9f01f07388abc2cdca40c9c5267f58c65086710/docs/zh/release-notes/changelog.md)
 - [Qoder CLI Subagent](https://docs.qoder.com/en/cli/subagent)
 
