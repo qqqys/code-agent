@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-11-08',
+  updatedAt: '2026-11-11',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -2408,8 +2408,23 @@ window.matrixData = {
     },
     'kimi-subagent-config': {
       label:
-        'Kimi Code subagent and secondary model configuration（`[secondary_model]` 模型池已始终开启、`default_effort`、`force` 约束、`/secondary-model` 写入 `default_model`、配置错误直接启动失败）',
+        'Kimi Code subagent and secondary model configuration（2026-10-10 坐标 `c9f01f07388a`：`[secondary_model]` 模型池已始终开启、`default_effort`、`/secondary-model` 写入 `default_model`、配置错误直接启动失败；该坐标仍有 `force` 字段，`force` 与 `model` 参数的 `"primary"` 取值已于 2.5.0 移除，现行证据见 `kimi-secondary-model-config-250`）',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/c9f01f07388abc2cdca40c9c5267f58c65086710/docs/zh/configuration/config-files.md',
+    },
+    'kimi-secondary-model-config-250': {
+      label:
+        'Kimi Code `[secondary_model]` 配置（2.5.0 标签提交 `41c341434ae24e45bfe0f2232ec11b80531ac717` 的 `docs/zh/configuration/config-files.md`，47,824 字节：字段表只剩 `default_model`/`models`/`default_effort` 三键，逐字写 “原来的 `force` 字段已移除：单独一行 `default_model` 已经能把所有 subagent 固定到同一个模型。仍设置了 `force` 的配置会在加载时给出警告，该字段被忽略。”；`model` 参数 “只接受池中别名。main agent 自己的模型不是隐含选项”，单条目池 “同样不提供该参数”、“池中有两个及以上条目时启用模型选择”，`primary` 仍是不能作为池 key 的保留字）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/41c341434ae24e45bfe0f2232ec11b80531ac717/docs/zh/configuration/config-files.md',
+    },
+    'kimi-secondary-model-250-commit': {
+      label:
+        'Kimi Code 移除 `[secondary_model] force` 与 `model` 参数隐含 `"primary"` 选择的提交（PR #4418，合并提交 `e3efbb9d3b2241412edfe9b704fc33b09a4c2054`，随 2.5.0 发布；GitHub compare 确认该提交是 2.5.0 标签提交 `41c341434` 的祖先、落后 0 个提交）',
+      url: 'https://github.com/MoonshotAI/kimi-code/commit/e3efbb9d3b2241412edfe9b704fc33b09a4c2054',
+    },
+    'kimi-app-changelog-250': {
+      label:
+        'Kimi Code 2.5.0 更新日志（`apps/kimi-code/CHANGELOG.md`，固定到 2.5.0 标签提交 `41c341434ae24e45bfe0f2232ec11b80531ac717`，Release 于 2026-11-04T11:52:02Z 发布、`prerelease: false`；同标签的 `docs/zh/release-notes/changelog.md` 尚未同步 2.5.0 段、最新只到 2.4.1）：#4418 两条逐字为 "Remove `[secondary_model] force`, which is now ignored with a warning: a lone `default_model` still pins every subagent to that model." 与 "Stop offering Agent and AgentSwarm subagents an implicit `primary` choice that ran them on your current model and thinking level, and hide the model choice entirely when `[secondary_model]` names only one model; list two or more aliases in `[secondary_model.models]` to choose again, noting a listed main model uses `default_effort` and does not follow `/model` switches."',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/41c341434ae24e45bfe0f2232ec11b80531ac717/apps/kimi-code/CHANGELOG.md',
     },
     'kimi-secondary-model-ga-commit': {
       label:
@@ -5221,7 +5236,7 @@ window.matrixData = {
       category: 'subagents',
       capability: 'Agent 单独选模型',
       description: '单个 Agent 能否覆盖主会话模型。',
-      values: { claude: '`model`：`sonnet`/`opus`/`haiku`/`fable` · 完整模型 ID · `inherit`；解析顺序为每次调用 `model` 参数 → frontmatter → `CLAUDE_CODE_SUBAGENT_MODEL` → 主会话模型；`CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1` 强制统一（v2.1.257）；v2.1.296 另加只统一 workflow agent 的 `CLAUDE_CODE_WORKFLOW_SUBAGENT_MODEL`', codex: '`model`；解析顺序为显式 spawn 值 → `agents.default_subagent_model` → 父会话值，Agent 文件里写了 `model` 时文件值最后覆盖', qwen: '`model`: inherit · fast · modelId · authType:modelId · `modelGrades` 名称；`agents.builtin.exploreModel` 单独覆盖内置 Explore', kimi: '`[secondary_model]` 池别名 · 保留值 `"primary"` · `force = true` 固定到 `default_model`；模型池自 0.42.0 起始终开启，无需开关', qoder: '`model`：任意模型名或 `inherit`/`auto`/`lite`/`efficient`/`performance` 别名；省略即 `inherit`' },
+      values: { claude: '`model`：`sonnet`/`opus`/`haiku`/`fable` · 完整模型 ID · `inherit`；解析顺序为每次调用 `model` 参数 → frontmatter → `CLAUDE_CODE_SUBAGENT_MODEL` → 主会话模型；`CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1` 强制统一（v2.1.257）；v2.1.296 另加只统一 workflow agent 的 `CLAUDE_CODE_WORKFLOW_SUBAGENT_MODEL`', codex: '`model`；解析顺序为显式 spawn 值 → `agents.default_subagent_model` → 父会话值，Agent 文件里写了 `model` 时文件值最后覆盖', qwen: '`model`: inherit · fast · modelId · authType:modelId · `modelGrades` 名称；`agents.builtin.exploreModel` 单独覆盖内置 Explore', kimi: '`[secondary_model]` 模型池：`model` 参数只接受池中别名，主模型不是隐含选项（要用主模型须把其别名显式写进池）· 只写 `default_model` 的单条目池把所有 subagent 固定到该模型且不提供 `model` 参数，`models` 列出两个及以上别名才启用按次选择 · 解析顺序为显式 `model` → `default_model`；`force` 字段与保留值 `"primary"` 自 2.5.0 起移除（仍写 `force` 加载时告警并忽略）；模型池始终开启、无需开关', qoder: '`model`：任意模型名或 `inherit`/`auto`/`lite`/`efficient`/`performance` 别名；省略即 `inherit`' },
     },
     {
       id: 'agent-effort',
