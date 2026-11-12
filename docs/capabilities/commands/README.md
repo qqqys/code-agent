@@ -25,6 +25,7 @@
 | 查看 Diff | [打开](https://qqqys.github.io/code-agent/capability.html?id=cmd-diff) | [查看](./cmd-diff.md) |
 | 代码审查 | [打开](https://qqqys.github.io/code-agent/capability.html?id=cmd-review) | [查看](./cmd-review.md) |
 | 导出会话 | [打开](https://qqqys.github.io/code-agent/capability.html?id=cmd-export) | [查看](./cmd-export.md) |
+| 跨工具导入 | [打开](https://qqqys.github.io/code-agent/capability.html?id=cmd-import) | [查看](./cmd-import.md) |
 | 配置 | [打开](https://qqqys.github.io/code-agent/capability.html?id=cmd-config) | [查看](./cmd-config.md) |
 | 状态与用量 | [打开](https://qqqys.github.io/code-agent/capability.html?id=cmd-status) | [查看](./cmd-status.md) |
 | MCP | [打开](https://qqqys.github.io/code-agent/capability.html?id=cmd-mcp) | [查看](./cmd-mcp.md) |
