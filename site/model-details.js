@@ -286,8 +286,8 @@
       facts: [
         '五家都区分「厂商托管目录」与「自带 Key」两条路，但入口形状不同：Claude Code 与 Codex 用配置键和环境变量声明 Provider，Qwen Code 与 Kimi Code 用 `/auth`、`/provider` 向导加配置文件，Qoder CLI 只允许从 `/model` 的 Custom 向导添加。',
         '只有 Qwen Code 与 Kimi Code 把「导入第三方 Provider」做成产品能力：Qwen 在源码里内置 15 个预设（`ALL_PROVIDERS` 的显示顺序，按 `uiGroup` 分 qwencloud、alibaba、third-party 三组），Kimi 从公开 models.dev 目录或自定义 registry `api.json` 导入、目录不可达时回退内置快照。',
-        '协议边界不同：Codex 的自定义 Provider 只接受 `wire_api = "responses"`，官方 Models 页写明当前版本不支持 `wire_api = "chat"` 或仅 Chat Completions 的端点；Qwen 的 `openai` 协议按每条模型的 `wireApi` 在 `chat-completions` 与 `responses` 之间选；Kimi 把两种 OpenAI 协议拆成 `openai` 与 `openai_responses` 两个 `type`；Claude Code 只在 Messages 协议内换部署位置，不做任意协议适配。',
-        '云平台 Provider 的覆盖不同：Claude Code 有 Amazon Bedrock（Invoke API 或 Mantle 端点）、Claude Platform on AWS、Google Cloud\'s Agent Platform（原 Vertex AI）与 Microsoft Foundry 四个云部署；Codex 内置 `amazon-bedrock` 一个云 Provider；Qwen 的 `vertex-ai` 与 Kimi 的 `vertexai` 都走 Google ADC；Qoder 公开文档没有任何云厂商 Provider 入口。',
+        '协议边界不同：Codex 的自定义 Provider 只接受 `wire_api = "responses"`，官方 Models 页写明当前版本不支持 `wire_api = "chat"` 或仅 Chat Completions 的端点；Qwen 的 `openai` 协议按每条模型的 `wireApi` 在 `chat-completions` 与 `responses` 之间选；Kimi 把两种 OpenAI 协议拆成 `openai` 与 `openai_responses` 两个 `type`，唯一例外是新加的 `bedrock`——一个 `type` 按每个模型的 Bedrock 模型 ID 推断走 Anthropic Messages 还是 OpenAI 兼容协议；Claude Code 只在 Messages 协议内换部署位置，不做任意协议适配。',
+        '云平台 Provider 的覆盖不同：Claude Code 有 Amazon Bedrock（Invoke API 或 Mantle 端点）、Claude Platform on AWS、Google Cloud\'s Agent Platform（原 Vertex AI）与 Microsoft Foundry 四个云部署；Codex 内置 `amazon-bedrock` 一个云 Provider；Qwen 的 `vertex-ai` 走 Google ADC；Kimi 的 `vertexai` 走 Google ADC，另在 2026-11-13 合入 `bedrock` 类型走 AWS CLI 凭证链，但尚未随任何 Release 发布；Qoder 公开文档没有任何云厂商 Provider 入口。',
         '凭据落盘口径不同：Qwen 的 Model Providers 文档写 “Credentials are never persisted in settings; the runtime reads them from `process.env[envKey]`.”，而认证文档同时把 Key 写进 `settings.json` 的 `env` 字段作为最低优先级兜底并提示明文风险；Kimi 的 `api_key` 与 `api_key_env` 互斥，二者都不存在时才读 `[providers.<name>.env]` 子表；Codex 用 `env_key` 或 `[model_providers.<id>.auth]` 的命令式 token，`experimental_bearer_token` 被官方标注为 discouraged；Qoder 由 BYOK 向导保存并明确要求不要手工编辑 `settings.json`。',
         '「Provider 目录的事实来源」定义不同：Qwen 的预设、端点与 Key 前缀校验固定写在源码里并随版本发布，QwenCloud 两个预设自 v0.25.3-preview.0 起才存在、stable v0.25.2 没有；Kimi 的第三方目录来自远端 models.dev 或私有 registry，同一 registry 地址下的供应商在后续启动时一起刷新；Qoder 的 Custom 向导以「当前账号可见的实时 BYOK 目录」为准，文档点名的六家厂商只是示例。',
       ],
@@ -376,26 +376,39 @@
         },
         kimi: {
           entry:
-            '`config.toml` 的 `[providers.<name>]`（`type` 决定协议）与 `[models.<alias>]`；TUI 里 `/provider` 打开供应商管理器；shell 里 `kimi provider add|remove|list|catalog list|catalog add`；OAuth 托管账号用 `/login` 与 `/logout`。',
+            '`config.toml` 的 `[providers.<name>]`（`type` 决定协议）与 `[models.<alias>]`；TUI 里 `/provider` 打开供应商管理器；shell 里 `kimi provider add|remove|list|catalog list|catalog add`；OAuth 托管账号用 `/login` 与 `/logout`；`type = "bedrock"` 的条目既不能从 `/provider` 的 models.dev 路径也不能从 `kimi provider catalog add` 导入，只能手写 `config.toml`，或经服务 API `POST /api/v1/providers` 传 `type: "bedrock"` 创建。',
           mechanism:
-            '六类 `type`：`kimi`（OpenAI 兼容，Kimi Code 托管服务与 Kimi Platform API 密钥，默认 `base_url` `https://api.moonshot.ai/v1`）、`anthropic`（Anthropic Messages）、`openai`（Chat Completions）、`openai_responses`（Responses API，始终流式）、`google-genai`、`vertexai`；第三方厂商不是内置预设，而是从公开 models.dev 目录或自定义 registry `api.json` 导入，目录未声明协议的厂商按 OpenAI 兼容导入并标 “guessed”，Amazon Bedrock、Cohere 等专有协议与无法识别的显式协议被拒绝导入。',
+            '七类 `type`：`kimi`（OpenAI 兼容，Kimi Code 托管服务与 Kimi Platform API 密钥，默认 `base_url` `https://api.moonshot.ai/v1`）、`anthropic`（Anthropic Messages）、`openai`（Chat Completions）、`openai_responses`（Responses API，始终流式）、`bedrock`（Amazon Bedrock，同一条目按每个模型的 Bedrock 模型 ID 逐个推断线路协议，走 Anthropic Messages 或 OpenAI 兼容 API，因此 Claude、GPT 与 Kimi 模型可共用一个供应商条目）、`google-genai`、`vertexai`；`provider-definition.ts` 为 `bedrock` 注册 `openai`、`openai_responses`、`anthropic` 三条定义，三条都带 `bedrockEndpoint` 与 `bedrockModelCapability`，只有 `anthropic` 那条额外换成 `bedrockAnthropicRequester`；第三方厂商不是内置预设，而是从公开 models.dev 目录或自定义 registry `api.json` 导入，目录未声明协议的厂商按 OpenAI 兼容导入并标 “guessed”，Amazon Bedrock、Cohere 等专有协议与无法识别的显式协议被拒绝导入。',
           behavior:
-            '所有供应商默认以流式方式交互，thinking、视觉、工具调用能力按模型名前缀自动匹配；`openai` 协议自动处理 `reasoning_content` 与 `reasoning_effort` 注入，网关用非标准字段名时在模型别名上设 `reasoning_key` 覆盖；`vertexai` 与 `google-genai` 共用实现，`base_url` 只能填主机根地址，否则 SDK 会把路径拼成 `/v1beta/v1beta/…`；registry 模型可声明 `upgrade`、`migration_markdown` 与可选 `retirement_at`，启动时对当前模型显示 Markdown 迁移提示（`Enter` 确认、空格不接受），registry 删除默认模型时若 `upgrade` 目标仍在则自动切换并保留 Thinking 设置、否则连同该设置一起清空。',
+            '所有供应商默认以流式方式交互，thinking、视觉、工具调用能力按模型名前缀自动匹配；`openai` 协议自动处理 `reasoning_content` 与 `reasoning_effort` 注入，网关用非标准字段名时在模型别名上设 `reasoning_key` 覆盖；`vertexai` 与 `google-genai` 共用实现，`base_url` 只能填主机根地址，否则 SDK 会把路径拼成 `/v1beta/v1beta/…`；registry 模型可声明 `upgrade`、`migration_markdown` 与可选 `retirement_at`，启动时对当前模型显示 Markdown 迁移提示（`Enter` 确认、空格不接受），registry 删除默认模型时若 `upgrade` 目标仍在则自动切换并保留 Thinking 设置、否则连同该设置一起清空；`bedrock` 的模型 ID 形如 `<vendor>.<model>` 并可带跨区域推理 profile 前缀，`routing.ts` 的 `GEO_INFERENCE_PROFILE_PREFIX_RE` 只认两个小写字母、`apac` 与 `global` 三类前缀，剥掉后按 `anthropic.*` → Anthropic Messages、`openai.gpt-oss*` → Chat Completions、其余 `openai.*` → Responses、`moonshotai.*`/`moonshot.*` → Chat Completions 推断，都不匹配时回落 Chat Completions，也可在模型别名上写 `protocol`（取值 `anthropic`/`openai`/`openai_responses`）显式覆盖；能力探测 `bedrockModelCapability` 再剥掉厂商命名空间后委派给对应协议的档案匹配，`withAnthropicProfile` 同样先剥前缀，因此 `global.anthropic.claude-sonnet-4-6` 能拿到 Claude 的 thinking 与 effort 特征；base URL 默认按区域拼 `https://bedrock-runtime.<region>.amazonaws.com` 再按协议追加 `/anthropic` 或 `/openai/v1`。',
           scope:
-            '用户配置 `~/.kimi-code/config.toml`（`KIMI_CODE_HOME` 可搬移数据目录）；`KIMI_MODEL_*` 临时模型通道可完全覆盖单次运行。',
+            '用户配置 `~/.kimi-code/config.toml`（`KIMI_CODE_HOME` 可搬移数据目录）；`KIMI_MODEL_*` 临时模型通道可完全覆盖单次运行；`bedrock` 的区域与 profile 先取 `[providers.<name>.env]` 子表的 `AWS_REGION`（再退 `AWS_DEFAULT_REGION`）与 `AWS_PROFILE`，子表没有时回落 shell 同名变量，而端点推导用的环境是 `{ ...process.env, ...provider.env }`，即子表覆盖 shell。',
           persistence:
             '长期 Provider 与模型别名写进 `config.toml`；从 registry 导入的条目另存 `source` 元数据（私有 registry 的 Bearer token 存为 `source.apiKey` 供刷新使用），后续启动时同一 registry 地址下的供应商一起刷新；`kimi provider add` 遇到同 id 先删再写且不自动设默认模型，`remove` 连带删除该供应商的全部模型 alias、命中 `default_model` 时同时清空它。',
           automation:
-            '`kimi provider` 的五个动作面向脚本化部署、CI 初始化与新机器一行配置：`--api-key` 未传时回退环境变量 `KIMI_REGISTRY_API_KEY`，`list --json` 输出原始 `providers` 与 `models` 表，`catalog list` 的 `--url` 可换目录地址、`--filter` 按 id 或 name 子串过滤，`catalog add` 的 `--default-model <modelId>` 把默认模型设为 `<providerId>/<modelId>`；`kimi doctor` 校验配置文件。',
+            '`kimi provider` 的五个动作面向脚本化部署、CI 初始化与新机器一行配置：`--api-key` 未传时回退环境变量 `KIMI_REGISTRY_API_KEY`，`list --json` 输出原始 `providers` 与 `models` 表，`catalog list` 的 `--url` 可换目录地址、`--filter` 按 id 或 name 子串过滤，`catalog add` 的 `--default-model <modelId>` 把默认模型设为 `<providerId>/<modelId>`；`kimi doctor` 校验配置文件；服务 API 创建与更新供应商两个端点的 `type` 枚举都含 `bedrock`，`models` 条目可带 `protocol` 覆盖，只配了区域、既无 API Key 也无 OAuth 令牌的 `bedrock` 供应商在 `GET /api/v1/providers` 里直接报 `connected`（`supportsAmbientCredential` 为真），认证摘要也不再因缺少凭据报错，因此 CI 只要注入 AWS 环境凭证即可；`kimi migrate` 的 `SUPPORTED_PROVIDER_TYPES` 已含 `bedrock`，旧配置迁移不会丢掉该条目。',
           security:
-            '凭证优先级为 `api_key` 或 `api_key_env`（互斥替代项，只能设其一）> `[providers.<name>.env]` 子表键（前两者都不存在时才读）> 全部缺失即启动报错；除显式声明的 `api_key_env` 外，CLI 不从 shell 环境变量自动取凭证；registry 条目声明的 `env` 变量名只作提示打印，绑定永不自动发生，因为 registry 同时决定变量名与凭证发往的端点；`vertexai` 的项目 ID 与区域必须写在 `[providers.vertexai.env]` 子表，直接 `export GOOGLE_CLOUD_PROJECT` 不被读取。',
+            '凭证优先级为 `api_key` 或 `api_key_env`（互斥替代项，只能设其一）> `[providers.<name>.env]` 子表键（前两者都不存在时才读）> 全部缺失即启动报错；除显式声明的 `api_key_env` 外，CLI 不从 shell 环境变量自动取凭证；registry 条目声明的 `env` 变量名只作提示打印，绑定永不自动发生，因为 registry 同时决定变量名与凭证发往的端点；`vertexai` 的项目 ID 与区域必须写在 `[providers.vertexai.env]` 子表，直接 `export GOOGLE_CLOUD_PROJECT` 不被读取；`bedrock` 是第二条绕过配置表的凭证通道，它用标准 AWS CLI 凭证链（SSO、实例角色、环境变量、共享配置）换短期 bearer token，`AWS_ACCESS_KEY_ID`、`AWS_SECRET_ACCESS_KEY`、`AWS_SESSION_TOKEN` 与 `~/.aws/credentials` 由 AWS SDK 直接从 shell 读取，写进 `[providers.<name>.env]` 不受支持也不生效，CLI 只把区域与 profile 传给令牌生成器；也可用 `api_key`、`api_key_env` 或子表的 `AWS_BEARER_TOKEN_BEDROCK` 配长期 Bedrock API 密钥，官方转述 AWS 的建议是不要用长期密钥，且已配置的密钥始终优先于环境凭证链；令牌由 `@aws/bedrock-token-generator` 生成，默认 TTL 43200 秒并留 15 分钟提前量，并发请求合并成一次取令牌，HTTP 401 触发 `invalidate()` 强制换新令牌而 500 不触发；Bedrock 的 Anthropic 通道把令牌放进 `Authorization: Bearer` 且不发 `x-api-key`，与原生 `anthropic` 供应商的认证互相隔离。',
           conditions:
-            'models.dev 不可达时回退内置目录快照，离线或网络受限环境也能导入；deprecated 与 alpha 状态的模型不出现在导入列表；通过 `/login` 登录的 OAuth 托管账号不在 `/provider` 显示；`api_key_env` 自 2.0.1（2026-09-18）起可用、目录快照回退自 0.32.0（2026-08-04）起、`kimi provider` 子命令自 0.8.0（2026-06-02）起、`/provider` 自 0.7.0 起取代已废弃的 `/connect`；registry 的 `upgrade` 迁移字段是 Kimi 扩展、不属于 models.dev schema，官方变更记录里没有对应版本条目；核对日期最新 Release 2.2.0（2026-10-14）没有 Provider 类型或导入路径变化。',
-          status: '官方确认',
+            'models.dev 不可达时回退内置目录快照，离线或网络受限环境也能导入；deprecated 与 alpha 状态的模型不出现在导入列表；通过 `/login` 登录的 OAuth 托管账号不在 `/provider` 显示；`api_key_env` 自 2.0.1（2026-09-18）起可用、目录快照回退自 0.32.0（2026-08-04）起、`kimi provider` 子命令自 0.8.0（2026-06-02）起、`/provider` 自 0.7.0 起取代已废弃的 `/connect`；registry 的 `upgrade` 迁移字段是 Kimi 扩展、不属于 models.dev schema，官方变更记录里没有对应版本条目；`bedrock` 由 PR #4895（合并提交 `88e3c20739a20a9a4003e366db7ecad9b88e10bd`，2026-11-13T08:20:37Z）合入 main，changeset `.changeset/bedrock-provider.md` 标 `"@moonshot-ai/kimi-code": minor` 且到 main HEAD `f082f04a093a3e71a2263c5461d52507dc31f83a` 仍未被消费，2.6.2（2026-11-13T17:20:51Z，核对日期最新 stable）的发布说明没有任何 Bedrock 或 AWS 条目、其标签与该提交 compare 为 `diverged`，因此截至 2026-11-15 还没有包含它的 Release；区域必须能从 `AWS_REGION` 或 `AWS_DEFAULT_REGION` 解析，不支持从 `~/.aws/config` 推断默认区域，解析不出即抛配置错误 `Provider "<id>" could not resolve an AWS region to build the endpoint URL.`；自定义 `base_url` 或 `AWS_BEDROCK_BASE_URL` 必须是含线路路径（`/anthropic` 或 `/openai/v1`）的完整 URL，CLI 原样使用不再追加后缀；`config-files.md` 的 `models` 字段表仍未列出 `protocol` 行，`protocol` 的取值集合只见于 `providers.md` 与 `server-api-service.md`；`packages/core` 为此新增依赖 `@aws/bedrock-token-generator@^1.1.0`，native bundle 检查脚本把 `@aws-sdk/signature-v4a` 加进可选运行时依赖，Node SDK 的 `protocol` 枚举由 `anthropic`/`openai_responses` 放宽到再加 `openai`。',
+          status: '条件项',
           sources: [
-            'kimi-providers-head',
+            'kimi-providers-bedrock',
             'kimi-provider-cli-head',
             'kimi-changelog-providers',
+            'kimi-config-files-bedrock',
+            'kimi-server-api-bedrock',
+            'kimi-bedrock-commit',
+            'kimi-bedrock-changeset',
+            'kimi-262-release',
+            'kimi-bedrock-routing-source',
+            'kimi-bedrock-credentials-source',
+            'kimi-bedrock-anthropic-source',
+            'kimi-bedrock-test',
+            'kimi-bedrock-model-auth-source',
+            'kimi-bedrock-catalog-source',
+            'kimi-bedrock-provider-definition-source',
+            'kimi-bedrock-sdk-schema',
           ],
         },
         qoder: {
@@ -703,7 +716,8 @@
       ],
       facts: [
         'Claude Code 对 Bedrock、Vertex 和 Foundry 有明确云部署认证路径。',
-        'Codex 的 Bedrock Provider 使用 AWS SigV4；Kimi Code 的 VertexAI Provider 使用 Google ADC。',
+        'Codex 的 Bedrock Provider 使用 AWS SigV4；Kimi Code 的 `vertexai` Provider 使用 Google ADC，2026-11-13 合入 main 的 `bedrock` Provider 改用 AWS CLI 凭证链，但尚未随任何 Release 发布。',
+        '同在 AWS 上两家的实现路径不同：Codex 的 `amazon-bedrock` 只接受嵌套 `[model_providers.amazon-bedrock.aws]` 里的 `profile` 与 `region` 并对请求做 SigV4 签名；Kimi 的 `bedrock` 把 `AWS_REGION`/`AWS_PROFILE` 写在 `[providers.<name>.env]` 子表，由 AWS SDK 解析凭据后生成短期 bearer token，秘密凭证写进子表不生效。',
         'Qoder CLI 公共模型文档未公开通用云厂商凭据链，不能从其 BYOK 厂商目录外推。',
       ],
       products: {
@@ -742,15 +756,36 @@
           status: '条件项',
         },
         kimi: {
-          entry: '`vertexai` Provider，`GOOGLE_APPLICATION_CREDENTIALS` 与项目/位置字段。',
-          mechanism: '使用 Google Application Default Credentials。',
-          behavior: '按配置的 project、location 和 ADC 身份请求 Vertex AI。',
-          scope: '本机 gcloud ADC、服务账号文件或工作负载环境。',
-          persistence: '身份由 Google ADC 管理；Kimi 配置保存 Provider 元数据。',
-          automation: 'CI 设置工作负载身份或 `GOOGLE_APPLICATION_CREDENTIALS`。',
-          security: '优先使用工作负载身份；服务账号文件需要限制权限。',
-          conditions: '仅 VertexAI Provider 使用该凭据链。',
-          sources: ['kimi-model-providers-current', 'kimi-model-env-current'],
+          entry:
+            '`vertexai` Provider 的 `[providers.vertexai.env]` 项目与位置字段加 `GOOGLE_APPLICATION_CREDENTIALS`；`bedrock` Provider 的 `[providers.bedrock.env]` 里的 `AWS_REGION`（或 `AWS_DEFAULT_REGION`）与可选 `AWS_PROFILE`。',
+          mechanism:
+            '`vertexai` 使用 Google Application Default Credentials，由 Google SDK 自行读取、CLI 不参与；`bedrock` 使用标准 AWS CLI 凭证链（SSO、实例角色、环境变量、共享配置），由 `@aws/bedrock-token-generator` 的 `getTokenProvider` 生成短期 bearer token，CLI 只把 region 与 profile 传给它，凭据解析全在 AWS SDK 内部完成，因此不对每个请求做 SigV4 签名。',
+          behavior:
+            '`vertexai` 按配置的 project、location 和 ADC 身份请求 Vertex AI；`bedrock` 按解析出的区域拼 `https://bedrock-runtime.<region>.amazonaws.com`，Anthropic Messages 模型追加 `/anthropic`、OpenAI 兼容模型追加 `/openai/v1`，令牌放进 `Authorization: Bearer` 而不发 `x-api-key`。',
+          scope:
+            '本机 gcloud ADC、服务账号文件或工作负载环境；`bedrock` 侧为 shell 里的 AWS 环境凭证、`~/.aws/credentials`、SSO 缓存或实例角色，区域与 profile 由 `[providers.<name>.env]` 子表优先、shell 兜底。',
+          persistence:
+            '身份由 Google ADC 与 AWS SDK 各自管理，Kimi 配置只保存 Provider 元数据（区域、profile 与可选的长期密钥）；AWS 秘密凭证从不写进 `config.toml`，写进 `[providers.<name>.env]` 也不生效。',
+          automation:
+            'CI 设置工作负载身份或 `GOOGLE_APPLICATION_CREDENTIALS`；`bedrock` 侧只需注入 AWS 环境凭证与区域——既无 API Key 也无 OAuth 令牌时 `supportsAmbientCredential` 为真，`GET /api/v1/providers` 直接报 `connected`，认证摘要也不再因缺少凭据报错。',
+          security:
+            '优先使用工作负载身份，服务账号文件需要限制权限；`bedrock` 的 bearer token 默认 TTL 43200 秒并留 15 分钟提前量，并发请求合并成一次取令牌，HTTP 401 触发强制换新令牌而 500 不触发，取令牌失败（例如 SSO 过期）原样冒泡且下一次调用会重试；官方转述 AWS 的建议是不要用长期 API 密钥，但已配置的 `api_key`、`api_key_env` 或 `AWS_BEARER_TOKEN_BEDROCK` 始终优先于环境凭证链。',
+          conditions:
+            '`vertexai` 的项目 ID 与区域必须写在 `[providers.vertexai.env]` 子表，直接 `export GOOGLE_CLOUD_PROJECT` 不被读取；`bedrock` 的区域必须能从 `AWS_REGION` 或 `AWS_DEFAULT_REGION` 解析，不支持从 `~/.aws/config` 推断默认区域，解析不出即抛配置错误；`bedrock` 由 PR #4895（合并提交 `88e3c20739a20a9a4003e366db7ecad9b88e10bd`，2026-11-13）合入 main，changeset 标 minor 且到 main HEAD `f082f04a093a3e71a2263c5461d52507dc31f83a` 仍未被消费，2.6.2 的发布说明没有 Bedrock 条目，截至 2026-11-15 尚无包含它的 Release。',
+          status: '条件项',
+          sources: [
+            'kimi-model-providers-current',
+            'kimi-model-env-current',
+            'kimi-providers-bedrock',
+            'kimi-env-vars-bedrock',
+            'kimi-bedrock-commit',
+            'kimi-bedrock-changeset',
+            'kimi-262-release',
+            'kimi-bedrock-credentials-source',
+            'kimi-bedrock-model-auth-source',
+            'kimi-bedrock-catalog-source',
+            'kimi-bedrock-test',
+          ],
         },
         qoder: {
           entry: '公共 CLI 文档未列通用 AWS/GCP/Azure 凭据入口。',
