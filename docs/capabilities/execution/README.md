@@ -18,3 +18,4 @@
 | CI 自动化 | [打开](https://qqqys.github.io/code-agent/capability.html?id=execution-ci) | [查看](./execution-ci.md) |
 | 并行 Worktree | [打开](https://qqqys.github.io/code-agent/capability.html?id=execution-worktree) | [查看](./execution-worktree.md) |
 | 桌面与浏览器控制 | [打开](https://qqqys.github.io/code-agent/capability.html?id=execution-computer-use) | [查看](./execution-computer-use.md) |
+| 代码模式调用工具 | [打开](https://qqqys.github.io/code-agent/capability.html?id=execution-code-mode) | [查看](./execution-code-mode.md) |

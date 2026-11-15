@@ -5185,6 +5185,286 @@ window.matrixData = {
         'Qoder 桌面端更新日志 `https://changelog.qoder.com/app`（2026-11-11 核对，HTML 240,213 字节）：在 “October 30, 2026 · Qoder 0.5.1” 段内逐字为 “**Codex data import**: Detect and selectively import Codex conversations, compatible local automations, memory, and supported Skill, MCP, and plugin configurations. Imported plugins start disabled; application-specific capabilities are excluded.”，同段其余条目是同设备连接、跨设备协作与 Needs Me 收件箱；这是 Qoder 家族里唯一一条从非 Qoder 产品导入数据的公告，且属于桌面端而不是 CLI',
       url: 'https://changelog.qoder.com/app',
     },
+    'claude-code-mode-doc': {
+      label:
+        'Claude Code 官方专页 “Run tool calls from code with Code Mode” `https://code.claude.com/docs/en/code-mode`（2026-11-15 核对，`.md` 孪生体 15,659 字节）：首段逐字为 “Code Mode changes how Claude uses its tools. Without Code Mode, Claude asks for tool calls such as Bash, Read, or Edit directly and reads each result before it decides what to do next. With Code Mode, Claude writes a piece of JavaScript that makes the tool calls, and Claude Code runs that code in your session.”，并标注 “Code Mode is experimental and off by default. It may change or be removed in any release.”；示例代码用 `$` 模板串跑 `rg` 与 `npm test`、用 `edit(target, "maxAttempts: 3", "maxAttempts: 5")` 改文件，最后一行返回给 Claude；“In the conversation, you see the tool calls, such as the edit\'s diff, and not the code. To read the code, press `Ctrl+O` to open the transcript viewer. Each piece of code appears there as a collapsed **Code** row”；限制清单逐条为 Resuming（“you can resume a Code Mode session only in the terminal, with Code Mode on”）、Auto mode（分类器审代码而不是每个工具调用）、Long-running code（“you wait for it to finish, and it stops after ten minutes”）、Hooks 与 Unavailable features（“you can\'t use Remote Control, Claude in Chrome, or computer use”）、Moving the session（“you can\'t move the session to the Desktop app or turn it into a background session, and `/fork` can\'t start a background copy”）；Requirements 六项逐字为版本 “Claude Code v2.1.323 or later, on either release channel”、账号 “a Claude subscription or Console account. You can\'t use Code Mode through a gateway, Amazon Bedrock, Claude Platform on AWS, Google Cloud\'s Agent Platform, or Microsoft Foundry”、组织 “your organization doesn\'t use the HIPAA configuration or zero data retention”、模型 “Claude Opus 5.5, Sonnet 5.5, Haiku 5.5, or Fable 5.2”、Surface “an interactive `claude` session in a terminal. Code Mode doesn\'t work with `-p`, the Agent SDK, the VS Code panel, the Desktop app, or cloud sessions”、安装 “the native build of Claude Code”，Windows 另需 “Git for Windows is installed”，且 “You also can\'t start Code Mode with some settings on, such as an API key helper, agent teams, OpenTelemetry export, or `DISABLE_TELEMETRY`”；开启步骤给出 `CLAUDE_CODE_EXPERIMENTAL_CODE_MODE=1 claude`、PowerShell 写法与 `~/.claude/settings.json` 的 `env` 块，并写 “Claude Code ignores this variable in a project\'s settings files, so a repository you clone can\'t turn on Code Mode for you”，首次会话要选 “Yes, turn on Code Mode”、重启后顶部显示 “Code Mode (experimental) is on · this session can be resumed only with Code Mode on”；关闭是删掉变量或把它改成 `0`，“With a `0` in one place, Code Mode stays off even if you set `1` in the other”，组织级封禁是在 managed settings 里写 `0`、“You can\'t turn on Code Mode for your users from managed settings”，已在会话中的用户要退出或重启才生效；权限段逐字为 “Each tool call that Claude\'s code makes goes through your `deny` and `ask` permission rules and your `PreToolUse` hooks. You don\'t need to change a rule or matcher for a tool such as `Bash`.”，检查代码本身要写匹配 `REPL`（“the tool that runs Claude\'s code”）的 `PreToolUse` Hook 并读 `tool_input.code`；长任务分 Waiting（“the code stops after ten minutes, including time you spend at permission prompts”）与 Background（“you can keep talking to Claude, and the code can run for up to two hours”，需以 auto 或 `bypassPermissions` 模式启动）；故障排查段给出不可用行 “`Code Mode (experimental) isn\'t available`”（原因同行显示、`/status` 也显示）与 11 行原因表，含 “it isn\'t open to your account yet”、“it only works with the Anthropic API”、“it doesn\'t work with an API key helper”、“it only works with Opus 5.5, Sonnet 5.5 and later models”、“it doesn\'t work in background jobs”（要求不带 `--remote-control` 在前台启动）、“it needs settings that Claude Code downloads from Anthropic”、“OpenTelemetry is on”、“it doesn\'t yet work with an installed mod”、“it can\'t be used together with agent teams yet”（要求取消 `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS`）、“this launch\'s tool options”（要求不带 `--restricted` 启动、把 `REPL` 加进 `--tools`、并从 `--disallowedTools` 与 `deny` 规则里去掉 `REPL`）、“couldn\'t save your answer”（要求 `~/.claude.json` 可写）与 “your organization\'s settings don\'t allow it”；另有倒计时提示逐字为 “Claude Code will automatically block this request in 1:59, to avoid holding up an unattended session”，以及 Hook 失败文案 “the hook failed”／“the hook did not finish” 与 `UserPromptSubmit` 的 `source` 为 `poll_event` 时的放行办法',
+      url: 'https://code.claude.com/docs/en/code-mode',
+    },
+    'claude-code-mode-llms-index': {
+      label:
+        'Claude Code 官方文档索引 `https://code.claude.com/docs/llms.txt`（2026-11-15 核对，58,496 字节）第 391 行逐字为 “- [Run tool calls from code with Code Mode](https://code.claude.com/docs/en/code-mode.md): Try Code Mode, an experimental feature in which Claude writes JavaScript that makes several tool calls in one step.”，证明 Code Mode 专页在核对日期已列入官方文档索引而不是隐藏页面',
+      url: 'https://code.claude.com/docs/llms.txt',
+    },
+    'claude-code-mode-env-var': {
+      label:
+        'Claude Code 官方环境变量页 `https://code.claude.com/docs/en/env-vars`（2026-11-15 核对，`.md` 孪生体 192,535 字节）变量表逐字为 “| `CLAUDE_CODE_EXPERIMENTAL_CODE_MODE` | Set to `1` to start sessions in Code Mode, an experimental feature. Set to `0` to keep it off, or in managed settings to block it for an organization. The variable doesn\'t count in every settings file. See the version and account requirements |”，同页 “Features that need feature-flag fetching” 清单里也列有 “Turn on Code Mode”',
+      url: 'https://code.claude.com/docs/en/env-vars#variables',
+    },
+    'claude-code-mode-feature-flags': {
+      label:
+        'Claude Code 官方环境变量页的 “Features that need feature-flag fetching” 一节（同上 `.md` 孪生体 192,535 字节）：需要会话获取 feature flags 的功能清单里第 598 行逐字为 “* Turn on [Code Mode](https://code.claude.com/docs/en/code-mode.md#requirements)”，与同页 “Use MCP tasks” 并列；这解释了故障表里 “it needs settings that Claude Code downloads from Anthropic” 一条要求取消 `DISABLE_TELEMETRY` 一类关闭 feature-flag fetching 的变量',
+      url: 'https://code.claude.com/docs/en/env-vars#features-that-need-feature-flag-fetching',
+    },
+    'claude-code-mode-settings-scope': {
+      label:
+        'Claude Code 官方 Settings reference 的 “Variables Claude Code ignores in env” 一节（2026-11-15 核对，`.md` 孪生体 457,744 字节）逐字为 “You can turn on Code Mode with `CLAUDE_CODE_EXPERIMENTAL_CODE_MODE` from your shell, user settings, or a `--settings` file, and not from managed, project, or local settings. With a `0` in any of the first three or in managed settings, Code Mode stays off whatever you set elsewhere. When managed settings contain a `1`, set your own `1` in user settings, because a `1` in your shell is ignored”，即开启入口只有 shell、用户设置与 `--settings` 三处，项目与本地设置无效，managed settings 只能写 `0` 封禁、写 `1` 时反而让 shell 的 `1` 失效',
+      url: 'https://code.claude.com/docs/en/settings-reference#variables-claude-code-ignores-in-env',
+    },
+    'claude-code-mode-auto-mode': {
+      label:
+        'Claude Code 官方 Permission modes 页 auto mode 一节（2026-11-15 核对，`.md` 孪生体 120,362 字节）第 600 行逐字为 “With Code Mode on, Claude\'s code goes to the classifier once before it runs, and the tool calls inside it don\'t. You can still block a call with a `deny` rule or require a prompt with an `ask` rule, but Claude can run Bash commands in forms the rules don\'t match”，即 auto mode 的分类器只审整段代码一次、不逐个审嵌套调用，规则与 Hook 仍是唯一按调用生效的边界',
+      url: 'https://code.claude.com/docs/en/permission-modes#eliminate-prompts-with-auto-mode',
+    },
+    'claude-code-mode-hooks': {
+      label:
+        'Claude Code 官方 Hooks reference（2026-11-15 核对，`.md` 孪生体 293,539 字节）：`PreToolUse` 的 `timeout` 与失败两段各有一条提示，逐字为 “If you use Code Mode, timeouts on `PreToolUse` work differently. See Tool call refused by a hook.” 与 “If you use Code Mode, failures on `PreToolUse` work differently. See Tool call refused by a hook.”；`UserPromptSubmit` 一节把 “The output of Claude\'s code in a Code Mode session, for `command`, `http`, and `mcp_tool` hooks, when code can run in the background” 列为该事件的额外输入来源，`decision` 字段说明里也写 `reason` “Not added to context, except when the hook blocks Code Mode output”；全页没有 `REPL` 工具的独立条目，`REPL` 只在 Code Mode 专页里作为 Hook matcher 出现',
+      url: 'https://code.claude.com/docs/en/hooks',
+    },
+    'claude-code-mode-changelog': {
+      label:
+        'Claude Code 官方仓库 `CHANGELOG.md`（固定到 main HEAD 提交 `d75f21b168edcfceb4127eb15cfa9ce6d84e41b2`，2026-11-15 核对，1,255,016 字节）：`## 2.1.323` 段首条逐字为 “Added Code Mode, an experimental opt-in in which Claude writes JavaScript to call its tools; see https://code.claude.com/docs/en/code-mode to turn it on, or to turn it off for an organization”；最新段 `## 2.1.325` 有三条 Code Mode 修复，逐字为 “Fixed Code Mode scripts ignoring a worktree entered with `EnterWorktree`, writing `~` paths into the project, and leaving `/mcp` showing an MCP server as connected after its sign-in expired”、“Fixed words typed with a Yes at a permission dialog or plan approval not reaching Claude in Code Mode” 与 “Fixed Claude starting work by itself when you resumed a session that ended during a Code Mode script; it now waits for your next prompt”；全文 `code mode`／`CODE_MODE` 命中只有这四处（另有两处是 Bedrock 模型目录与 `/model` 选择器的无关条目），`## 2.1.324` 一节仍缺号',
+      url: 'https://github.com/anthropics/claude-code/blob/d75f21b168edcfceb4127eb15cfa9ce6d84e41b2/CHANGELOG.md',
+    },
+    'codex-code-mode-config-reference': {
+      label:
+        'Codex 官方 Configuration reference `https://learn.chatgpt.com/docs/config-file/config-reference.md`（2026-11-15 核对，152,782 字节）：`features.code_mode.enabled`（boolean）逐字为 “Enable code mode feature configuration. This feature is under development and off by default.”，`features.code_mode.excluded_tool_namespaces`（array<string>）逐字为 “Tool namespaces code mode excludes from nested code-mode tool guidance and executor exposure.”，`features.code_mode.direct_only_tool_namespaces`（array<string>）逐字为 “Tool namespaces code mode can use only through direct tool calls.”；`apps..omit_tools_from` 逐字为 “Omit this app\'s tools from the `direct`, `deferred`, or `code_mode` surfaces. App and MCP server omissions apply together.”，`mcp_servers..omit_tools_from` 逐字为 “Omit this server’s tools from selected model-facing surfaces. Choose `direct` (initial tools), `deferred` (tool search), or `code_mode` (Code Mode scripts). Use `disabled_tools` to block a tool. An empty list clears inherited omissions.”；`mcp_servers..tool_input_schema_max_bytes` 逐字为 “Compact each ordinary MCP tool\'s input schema when it exceeds this many UTF-8 bytes. The default is 5,000 bytes. Code Mode also uses an explicit value when rendering tool input types.”；该页没有 `features.code_mode_only`、`features.code_mode_host`、`[code_mode]` 或 `exec`／`wait` 工具的条目',
+      url: 'https://learn.chatgpt.com/docs/config-file/config-reference',
+    },
+    'codex-code-mode-manual': {
+      label:
+        'Codex 官方合并手册 `https://learn.chatgpt.com/docs/codex-manual.md`（2026-11-15 核对，3,462,422 字节）：`config.toml` 示例段逐字为 “# Code mode namespaces. This feature is under development and off by default.” 加 “# [features.code_mode]”、“# enabled = true”、“# excluded_tool_namespaces = [\"mcp__codex_apps\"]”、“# direct_only_tool_namespaces = [\"mcp__history\"]”；`codex app-server` 旗标表逐字为 “| `--code-mode-host` | `http://HOST[:PORT] \\| https://HOST[:PORT]` | | Share an outbound HTTP/2 gRPC connection to a remote Code Mode host across threads. Supply an HTTP or HTTPS origin without credentials, a path, a query, or a fragment. |”，正文另写 “Use `--code-mode-host https://code-mode.example.com` to connect all threads in the app-server process to a remote Code Mode host over gRPC.”；“Connect a remote Code Mode host” 一节逐字为 “By default, app-server starts a local Code Mode host. To share a remote host across threads in the same app-server process, pass the remote host\'s HTTP/2 gRPC endpoint to `--code-mode-host.” 与 “Use HTTPS for a remote host to protect tool arguments and results. Use HTTP only on loopback or through a secure tunnel.”；Hooks 章的 “Tool calls from code mode” 小节逐字为 “When a model uses code mode to call a tool from JavaScript, hook decisions apply to that nested call. `PreToolUse` can stop the tool before it runs or rewrite its input. A blocking `PostToolUse` can\'t undo the tool\'s side effects, but it can keep the original result from reaching the running script.”，并给四行对照表：`PreToolUse` blocks → “The tool promise rejects before the tool runs.”、`PreToolUse` returns `updatedInput` → “The tool runs with the rewritten input and the promise resolves with that result.”、`PostToolUse` returns `decision: \"block\"` or exits with code `2` → “The tool runs, then the promise rejects with the hook reason.”、`PostToolUse` returns `continue: false` → “Codex uses the hook feedback for the model-visible result, but doesn\'t reject the nested tool promise.”；CLI 0.146.0 一节另写 “Experimental WebSocket support also connects app-server to remote Code Mode hosts.”',
+      url: 'https://learn.chatgpt.com/docs/codex-manual',
+    },
+    'codex-code-mode-developer-commands': {
+      label:
+        'Codex 官方 Developer commands 页（CLI Surface，`https://learn.chatgpt.com/docs/developer-commands.md?surface=cli`，2026-11-15 核对，58,726 字节）：`codex app-server` 段逐字为 “Use `--code-mode-host https://code-mode.example.com` to connect all threads in the app-server process to a remote Code Mode host over gRPC. `--listen` controls how clients connect to the app server.”；全页没有开启 Code Mode 的 Slash 命令，`code mode` 只出现这两次',
+      url: 'https://learn.chatgpt.com/docs/developer-commands?surface=cli',
+    },
+    'codex-code-mode-description-source': {
+      label:
+        'Codex `codex-rs/code-mode-protocol/src/description.rs`（固定到 main HEAD 提交 `03cb329415f3abd4216181443405ef32d5da8143`，46,301 字节）：`EXEC_DESCRIPTION_TEMPLATE` 首行逐字为 “Run JavaScript code to orchestrate/compose tool calls”，要点逐字为 “Evaluates the provided JavaScript code in a fresh V8 isolate as an async module.”、“All nested tools are available on the global `tools` object, for example `await tools.exec_command(...)`. Tool names are exposed as normalized JavaScript identifiers, for example `await tools.mcp__ologs__get_profile(...)`.”、“Runs raw JavaScript -- no Node, no file system, no network access, no console.”、“Accepts raw JavaScript source text, not JSON, quoted strings, or markdown code fences.”、“You may optionally start the tool input with a first-line pragma like `// @exec: {\"yield_time_ms\": 10000, \"max_output_tokens\": 1000}`.”、“`max_output_tokens` sets the token budget for direct `exec` results. Defaults to 10000 tokens.” 与 “When the JS code is fully evaluated, the isolate\'s lifetime ends and unawaited promises are silently discarded.”；全局助手逐字列出 `exit()`、`text(value)`、`image(...)`、`audio(...)`、`generatedImage(result: { image_url: string; output_hint?: string })`（“HTTP(S) URLs are not supported.”）、`store(key, value)`（“stores a serializable value under a string key for later `exec` calls in the same session”）、`load(key)`、`notify(value)`（“immediately injects an extra `custom_tool_call_output` for the current `exec` call”）、`setTimeout`／`clearTimeout`（“Pending timeouts do not keep `exec` alive by themselves”）、`ALL_TOOLS` 与 `yield_control()`（“yields the accumulated output to the model immediately while the script keeps running”）；`WAIT_DESCRIPTION_TEMPLATE` 逐字为 “Use `wait` only after `exec` returns `Script running with cell ID ...`.” 等七条；`TOOL_SEARCH_GUIDANCE` 逐字为 “Use `await tools.tool_search({query: \"...\", limit: 8})` for BM25-ranked discovery of deferred tools (up to `limit` matches; 8 by default). It returns `{tools: [{name, description}]}` with callable names and full TypeScript declarations.”；`DEFERRED_NESTED_TOOLS_GUIDANCE` 逐字为 “Some deferred nested tools may be omitted from this description. They are still available on the global `tools` object and listed in `ALL_TOOLS`.” 加 “Tool availability can change between calls.”',
+      url: 'https://github.com/openai/codex/blob/03cb329415f3abd4216181443405ef32d5da8143/codex-rs/code-mode-protocol/src/description.rs',
+    },
+    'codex-code-mode-protocol-source': {
+      label:
+        'Codex `codex-rs/code-mode-protocol/src/lib.rs`（同上提交，2,373 字节）：末尾两行逐字为 `pub const PUBLIC_TOOL_NAME: &str = \"exec\";` 与 `pub const WAIT_TOOL_NAME: &str = \"wait\";`，即模型可见的两个入口工具名；导出项还包含 `CODE_MODE_PRAGMA_PREFIX`、`build_exec_tool_description_and_definitions`、`build_wait_tool_description`、`parse_exec_source`、`render_code_mode_sample`、`DEFAULT_INPUT_SCHEMA_MAX_BYTES`、`render_json_schema_to_typescript`、`CodeModeSession`／`CodeModeSessionOptions`／`CodeModeOutputTruncation`、`ExecuteRequest`／`WaitRequest`／`TerminateRequest` 与 `CellId`',
+      url: 'https://github.com/openai/codex/blob/03cb329415f3abd4216181443405ef32d5da8143/codex-rs/code-mode-protocol/src/lib.rs',
+    },
+    'codex-code-mode-runtime-constants': {
+      label:
+        'Codex `codex-rs/code-mode-protocol/src/runtime.rs`（同上提交，7,385 字节）：三个常量逐字为 `pub const DEFAULT_EXEC_YIELD_TIME_MS: u64 = 10_000;`、`pub const DEFAULT_WAIT_YIELD_TIME_MS: u64 = 10_000;` 与 `pub const DEFAULT_MAX_OUTPUT_TOKENS_PER_EXEC_CALL: usize = 10_000;`',
+      url: 'https://github.com/openai/codex/blob/03cb329415f3abd4216181443405ef32d5da8143/codex-rs/code-mode-protocol/src/runtime.rs',
+    },
+    'codex-code-mode-features-source': {
+      label:
+        'Codex `codex-rs/features/src/lib.rs`（同上提交，88,278 字节）：`Feature` 枚举的文档注释逐字为 “Enable JavaScript code mode backed by the standalone host process.”（`CodeMode`）、“Expose ranked tool discovery inside JavaScript code mode.”（`CodeModeToolSearch`）、“Run JavaScript code mode in the standalone host process.”（`CodeModeHost`）、“Use gRPC over stdio for the process-owned code-mode host.”（`CodeModeHostGrpc`）、“Truncate output in the process-owned code-mode host before sending it to Core.”（`CodeModeHostOutputTruncation`）、“Establish the code-mode host connection during session startup.”（`CodeModePrewarm`）、“Terminate active code mode cells when their turn is interrupted.”（`CodeModeInterrupt`）、“Restrict model-visible tools to code mode entrypoints (`exec`, `wait`).”（`CodeModeOnly`）与 “Keep eligible MCP/app and dynamic tools deferred in exec, only in Code Mode Only. Ignores deferLoading, omit_tools_from, and namespace skip settings.”（`CodeModeOnlyStrictThirdPartyTools`）；`FeatureSpec` 表给出 key 与阶段：`code_mode`／`code_mode_tool_search`／`code_mode_prewarm`／`code_mode_only`／`code_mode_only_strict_3p_tools` 都是 `Stage::UnderDevelopment` 且 `default_enabled: false`，`code_mode_host`／`code_mode_host_grpc`／`code_mode_host_output_truncation`／`code_mode_interrupt` 都是 `Stage::Stable` 且 `default_enabled: true`，`code_mode_buffered_exec` 与 `code_mode_tool_description_first` 是 `Stage::Removed`（注释写 “Removed compatibility flag …”）；`normalize_dependencies()` 逐字为 `if self.enabled(Feature::CodeModeOnly) && !self.enabled(Feature::CodeMode) { self.enable(Feature::CodeMode); }`，即开 `code_mode_only` 会自动开 `code_mode`；`FeaturesToml` 里 `code_mode` 与 `code_mode_host` 的类型是 `Option<FeatureToml<…ConfigToml>>`，既可写布尔也可写配置表',
+      url: 'https://github.com/openai/codex/blob/03cb329415f3abd4216181443405ef32d5da8143/codex-rs/features/src/lib.rs',
+    },
+    'codex-code-mode-config-source': {
+      label:
+        'Codex `codex-rs/core/src/config/mod.rs`（同上提交，224,702 字节）：`Config` 字段注释逐字为 “Configuration for the experimental code-mode tool surface.”（`pub code_mode: CodeModeConfig`）；`const DEFAULT_CODE_MODE_EXEC_YIELD_TIME_MS: u64 = 30_000;`，`resolve_code_mode_config()` 从 `features.code_mode` 配置表取 `default_exec_yield_time_ms`（缺省用 30_000）、`experimental_show_cell_overhead`、`tool_input_schema_max_bytes`、`excluded_tool_namespaces`、`direct_only_tool_namespaces`，从 `features.code_mode_host` 配置表取 `disable_in_process_fallback`，并从顶层 `[code_mode]` 取 `heartbeat_interval_s`；`CodeModeHostConfigToml.disable_in_process_fallback` 的注释逐字为 “Keep code mode fail-closed when the standalone host is unavailable.”；`MultiAgentV2Config.non_code_mode_only` 默认 `true`',
+      url: 'https://github.com/openai/codex/blob/03cb329415f3abd4216181443405ef32d5da8143/codex-rs/core/src/config/mod.rs',
+    },
+    'codex-code-mode-schema': {
+      label:
+        'Codex `codex-rs/core/config.schema.json`（同上提交，278,078 字节）：`features` 下逐字列出 `code_mode`（`$ref` 到 `FeatureToml_for_CodeModeConfigToml`）、`code_mode_buffered_exec`、`code_mode_host`（`$ref` 到 `FeatureToml_for_CodeModeHostConfigToml`）、`code_mode_host_grpc`、`code_mode_host_output_truncation`、`code_mode_interrupt`、`code_mode_only`、`code_mode_only_strict_3p_tools`、`code_mode_prewarm`、`code_mode_tool_description_first` 与 `code_mode_tool_search` 十一个键（顶层与 `ConfigProfile` 各一份）；`CodeModeConfigToml` 定义给出六个属性的描述，其中 `direct_only_tool_namespaces` 逐字为 “Exact tool namespaces to expose only as direct model tools. These tools bypass deferral, remain top-level in code-mode-only sessions, and are omitted from the nested code-mode tool surface.”、`excluded_tool_namespaces` 逐字为 “Exact tool namespaces to omit from the code-mode nested tool surface.”、`tool_input_schema_max_bytes` 逐字为 “Maximum UTF-8 bytes per rendered tool input type, with a 16,000-byte minimum and default. For ordinary MCP tools, this is also at least their server\'s explicitly configured input limit.”、`experimental_show_cell_overhead` 逐字为 “Show handler duration, code-mode host duration, and harness overhead in each code-mode cell response. Experimental: this option and the response format may change or be removed.”；`CodeModeHostConfigToml` 只有 `disable_in_process_fallback`（“Keep code mode fail-closed when the standalone host is unavailable.”）与 `enabled`；顶层 `code_mode` 指向 `CodeModeToml`、描述逐字为 “Code Mode session settings.”，其中 `heartbeat_interval_s` 逐字为 “Idle seconds between gRPC stream heartbeats. Zero (the default) disables them.”；`ToolExposureSurface` 枚举含 `code_mode`，描述逐字为 “Nested tools available to Code Mode scripts.”',
+      url: 'https://github.com/openai/codex/blob/03cb329415f3abd4216181443405ef32d5da8143/codex-rs/core/config.schema.json',
+    },
+    'codex-code-mode-v8-source': {
+      label:
+        'Codex `codex-rs/code-mode-runtime/src/v8_init.rs`（同上提交，2,665 字节）：`V8JitMode` 只有 `Enabled`（默认）与 `Disabled` 两个取值，注释逐字为 “Controls whether V8 may generate executable code at runtime.”；`initialize_v8()` 的文档注释逐字为 “Initializes the process-wide V8 platform with the requested JIT mode. Call this before executing any code-mode cells when JIT must be disabled. V8 cannot change JIT mode after initialization, so a later call requesting a different mode returns an error. Code mode initializes V8 with JIT enabled by default when this function has not been called explicitly.”；初始化时加载 ICU 数据并设 `--no-maglev --no-turbolev --no-turbo-inline-array-builtins`（注释说明是绕开 pinned V8 的 `Array.prototype.sort` 内联问题），`Disabled` 时再加 `--jitless`',
+      url: 'https://github.com/openai/codex/blob/03cb329415f3abd4216181443405ef32d5da8143/codex-rs/code-mode-runtime/src/v8_init.rs',
+    },
+    'codex-code-mode-globals-source': {
+      label:
+        'Codex `codex-rs/code-mode-runtime/src/runtime/globals.rs`（同上提交，7,089 字节）：`install_globals()` 先 `delete_global` 掉 `console`、`Atomics`、`SharedArrayBuffer` 与 `WebAssembly`，再装上 `tools`（按 `EnabledToolMetadata.global_name` 逐个建函数）、`ALL_TOOLS`、`clearTimeout`、`setTimeout`、`text`、`content`、`image`、`audio`、`generatedImage`、`store`、`load`、`notify`、`yield_control` 与 `exit`，最后编译并运行 `settled.js` 与 `content.js` 两段内置助手；同目录 `content.js`（642 字节）把 `content(value)` 包成可迭代展开多个内容块的函数',
+      url: 'https://github.com/openai/codex/blob/03cb329415f3abd4216181443405ef32d5da8143/codex-rs/code-mode-runtime/src/runtime/globals.rs',
+    },
+    'codex-code-mode-tool-source': {
+      label:
+        'Codex `codex-rs/core/src/tools/code_mode/mod.rs`（同上提交，20,931 字节）：`PUBLIC_TOOL_NAME` 与 `WAIT_TOOL_NAME` 直接取自 `codex_code_mode`，`is_exec_tool_name()` 判定默认命名空间下名为 `exec` 的调用；`CodeModeService` 持有 `default_exec_yield_time_ms`、`heartbeat_interval_s`、`shutdown_token` 与只发一次的 `unavailable_warning_emitted`，`take_unavailable_warning()` 按 `ToolMode` 给出行为文案——`ToolMode::Direct` 为 “Falling back to direct tools”，`ToolMode::CodeMode` 与 `ToolMode::CodeModeOnly` 为 “Code mode will fail closed”——并拼成 “Code Mode is unavailable because {error}. {behavior}; enable `features.code_mode_host` and install `codex-code-mode-host`.”；`execute()` 在请求未带 `yield_time_ms` 时补配置默认值，`interrupt_active_cells()` 逐个终止被中断回合的 cell，另有 `wait()`、`terminate()`、`shutdown()` 与按 cell 分派的 `CodeModeDispatchBroker`；同目录 `delegate.rs`（18,658 字节）、`execute_handler.rs`（9,641 字节）、`wait_handler.rs`（10,000 字节）与 `telemetry.rs`（5,713 字节）分别负责嵌套调用分派、两个工具的 handler 与遥测',
+      url: 'https://github.com/openai/codex/blob/03cb329415f3abd4216181443405ef32d5da8143/codex-rs/core/src/tools/code_mode/mod.rs',
+    },
+    'codex-code-mode-exec-spec': {
+      label:
+        'Codex `codex-rs/core/src/tools/code_mode/execute_spec.rs`（同上提交，1,654 字节）：`create_code_mode_tool()` 返回的是 `ToolSpec::Freeform`，名字取 `codex_code_mode::PUBLIC_TOOL_NAME`，`format` 为 `{ type: \"grammar\", syntax: \"lark\", definition: CODE_MODE_FREEFORM_GRAMMAR }`，语法逐字为 `start: pragma_source | plain_source` / `pragma_source: PRAGMA_LINE NEWLINE SOURCE` / `plain_source: SOURCE` / `PRAGMA_LINE: /[ \\t]*\\/\\/ @exec:[^\\r\\n]*/` / `NEWLINE: /\\r?\\n/` / `SOURCE: /[\\s\\S]+/`，即 `exec` 收原始 JavaScript 文本而不是 JSON 参数，并允许首行 `// @exec:` pragma',
+      url: 'https://github.com/openai/codex/blob/03cb329415f3abd4216181443405ef32d5da8143/codex-rs/core/src/tools/code_mode/execute_spec.rs',
+    },
+    'codex-code-mode-wait-spec': {
+      label:
+        'Codex `codex-rs/core/src/tools/code_mode/wait_spec.rs`（同上提交，4,727 字节）：`create_wait_tool()` 声明的 `wait` 是普通 Function 工具，四个参数逐字为 `cell_id`（“Identifier of the running exec cell.”，唯一必填）、`yield_time_ms`（“Wait before yielding more output. Defaults to 10000 ms.”）、`max_tokens`（“Output token budget for this wait call. Defaults to 10000 tokens.”）与 `terminate`（“True stops the running exec cell; false or omitted waits for output.”），描述模板为 “Waits on a yielded `exec` cell and returns new output or completion.” 接 `build_wait_tool_description()`；`parameters_override` 解析失败时记 warning 并回落内置参数',
+      url: 'https://github.com/openai/codex/blob/03cb329415f3abd4216181443405ef32d5da8143/codex-rs/core/src/tools/code_mode/wait_spec.rs',
+    },
+    'codex-code-mode-warning-source': {
+      label:
+        'Codex `codex-rs/core/src/session/code_mode_warning.rs`（同上提交，933 字节）：`unsupported_code_mode_warning()` 只在 `features.enabled(Feature::CodeMode) || features.enabled(Feature::CodeModeOnly)` 为真、且模型元数据 `model_info.tool_mode.is_none()`、且 `model_info.origin != ModelOrigin::Synthetic` 时返回文案，逐字为 “Code Mode is enabled in configuration, but model `{model}` does not advertise Code Mode support. This may degrade model performance. Disable `features.code_mode` and `features.code_mode_only`, or select a model whose metadata enables Code Mode.”',
+      url: 'https://github.com/openai/codex/blob/03cb329415f3abd4216181443405ef32d5da8143/codex-rs/core/src/session/code_mode_warning.rs',
+    },
+    'codex-code-mode-tui-warning-snapshot': {
+      label:
+        'Codex TUI 快照 `codex-rs/tui/src/chatwidget/tests/snapshots/codex_tui__chatwidget__tests__status_and_layout__unsupported_code_mode_warning.snap`（同上提交，365 字节，来源测试 `tui/src/chatwidget/tests/status_and_layout.rs`）：渲染结果逐字为 “⚠ Code Mode is enabled in configuration, but model `gpt-5.4` does not advertise Code Mode support. This may degrade model performance. Disable `features.code_mode` and `features.code_mode_only`, or select a model whose metadata enables Code Mode.”，证明该警告确实出现在终端 TUI 会话里、不只是 app-server 日志',
+      url: 'https://github.com/openai/codex/blob/03cb329415f3abd4216181443405ef32d5da8143/codex-rs/tui/src/chatwidget/tests/snapshots/codex_tui__chatwidget__tests__status_and_layout__unsupported_code_mode_warning.snap',
+    },
+    'codex-code-mode-host-cargo': {
+      label:
+        'Codex `codex-rs/code-mode-host/Cargo.toml`（同上提交，1,487 字节）：包名与二进制名都是 `codex-code-mode-host`（`[[bin]] name = \"codex-code-mode-host\"`、`path = \"src/main.rs\"`），库名 `codex_code_mode_host`；依赖含 `tonic`（features `router`、`transport`、`zstd`）、`prost`、`axum`（features `http1`、`tokio`、`ws`）、`tokio`（features 含 `io-std`、`net`、`process`）、`codex-code-mode-protocol`、`codex-code-mode-runtime` 与 `codex-otel-trace-websocket`，即独立宿主进程同时支持 stdio 与 gRPC/WebSocket 传输；同目录 `src/lib.rs` 28,114 字节、`src/grpc/mod.rs` 21,260 字节、`src/peer.rs` 18,748 字节',
+      url: 'https://github.com/openai/codex/blob/03cb329415f3abd4216181443405ef32d5da8143/codex-rs/code-mode-host/Cargo.toml',
+    },
+    'codex-v0114-release': {
+      label:
+        'Codex Release [rust-v0.114.0](https://github.com/openai/codex/releases/tag/rust-v0.114.0)（2026-03-11T00:28:42Z，`prerelease: false`，正文 3,876 字节）：New Features 首条逐字为 “Added an experimental code mode for more isolated coding workflows. (#13418)”，同段还有 hooks 引擎与 app-server 健康探针条目；这是全部 Release 里最早出现 code mode 的一版（按发布说明全文检索，rust-v0.114.0 之前没有任何 code mode 条目）',
+      url: 'https://github.com/openai/codex/releases/tag/rust-v0.114.0',
+    },
+    'codex-v0115-release': {
+      label:
+        'Codex Release [rust-v0.115.0](https://github.com/openai/codex/releases/tag/rust-v0.115.0)（2026-03-16T19:37:37Z，`prerelease: false`）：明细条目逐字含 “#14437 Dispatch tools when code mode is not awaited directly”、“#14476 Move code mode tool files under tools/code_mode and split functionality”、“#14484 Add default code-mode yield timeout”、“#14496 Reuse tool runtime for code mode worker”、“#14517 Expose code-mode tools through globals” 与 “#14526 code mode: single line tool declarations”，即引入后一周内定下目录结构、默认 yield 超时与 `tools` 全局对象形态',
+      url: 'https://github.com/openai/codex/releases/tag/rust-v0.115.0',
+    },
+    'codex-v0166-release-code-mode': {
+      label:
+        'Codex Release [rust-v0.166.0](https://github.com/openai/codex/releases/tag/rust-v0.166.0)（2026-11-15 复核 Release 正文的 code mode 条目，`published_at` 为 2026-10-29T19:47:53Z，`prerelease: false`）：code mode 相关条目逐字为 “#57212 Enable zstd compression for code-mode gRPC responses”、“#57229 Simplify code-mode cell completion delivery”、“#57272 Add code-mode output truncation protocol contracts”、“#57462 Always put Code Mode tool descriptions before namespace descriptions”、“#57782 Restrict code-mode host replacement to session admission”、“#57836 Declare the image generation result type in code mode” 与 “#57841 Add optional process metrics sampling for code-mode hosts”；同一 Release 的坐标与 fork 相关结论另见来源 `codex-v0166-release`',
+      url: 'https://github.com/openai/codex/releases/tag/rust-v0.166.0',
+    },
+    'codex-v0167-release': {
+      label:
+        'Codex Release [rust-v0.167.0](https://github.com/openai/codex/releases/tag/rust-v0.167.0)（2026-11-06T01:40:00Z，`prerelease: false`）：code mode 相关条目逐字为 “#57848 Add bounded Code Mode output collection and rendering”、“#57850 Wire bounded output collection into the code mode runtime”、“#57870 Enable server-side output truncation for Code Mode sessions”、“#58125 Support negotiated server-side truncation in Code Mode clients” 与 “#58159 Add a feature flag for code-mode host output truncation”，对应 `code_mode_host_output_truncation` 这个开关',
+      url: 'https://github.com/openai/codex/releases/tag/rust-v0.167.0',
+    },
+    'codex-v0168-release': {
+      label:
+        'Codex Release [rust-v0.168.0](https://github.com/openai/codex/releases/tag/rust-v0.168.0)（2026-11-13T03:54:29Z，`prerelease: false`）：code mode 相关条目逐字为 “#59025 Remove strict third-party tool deferral in Code Mode Only”、“#59071 Enforce strict third-party tool deferral in Code Mode Only” 与 “#59590 Increase shared code-mode host capacity safely”，对应 `code_mode_only_strict_3p_tools` 开关的来回调整与共享宿主容量',
+      url: 'https://github.com/openai/codex/releases/tag/rust-v0.168.0',
+    },
+    'codex-v0169-release': {
+      label:
+        'Codex Release [rust-v0.169.0](https://github.com/openai/codex/releases/tag/rust-v0.169.0)（2026-11-13T08:37:05Z，`prerelease: false`，核对日期最新非 alpha Release）：code mode 相关条目逐字为 “#59783 Tie gRPC code-mode connection lifetime to live sessions”、“#59973 Enable gRPC and host output truncation by default for Code Mode”、“#60122 Preserve code mode dispatch errors in rollout traces”、“#60157 Add support for incremental code mode tool definitions”、“#60163 Wire incremental exec tool updates into Code Mode sessions”、“#60188 Allow model overrides for incremental Code Mode tool messages”、“#60496 Preserve typed gRPC code-mode session admission errors” 与 “#60665 Add a content helper for forwarding MCP blocks in Code Mode”，说明该能力在核对日期仍在高频迭代',
+      url: 'https://github.com/openai/codex/releases/tag/rust-v0.169.0',
+    },
+    'qwen-code-mode-settings-doc': {
+      label:
+        'Qwen Code 官方设置文档 `docs/users/configuration/settings.md`（固定到 main HEAD 提交 `6e3b2dcc19f5c66125fc8e643d1c5d889a0d6ae7`，416,824 字节）`#### tools` 小节逐字为 “Set `tools.codeModeOnly` to `true` to enable experimental Code Mode with lazy tool discovery. It defaults to `false` and requires a restart.” 与 “Set `tools.freeform` to `true` to send Code Mode\'s `exec` input as raw text on OpenAI Responses models. It takes effect only when `tools.codeModeOnly` is also `true` and the selected model uses `wireApi: \"responses\"`. Enable it only for endpoints that support Responses Custom Tools. This setting is intentionally hidden from the Settings dialog; edit it in the settings file. It defaults to `false` and requires a restart.”；同节还逐字为 “The bridge-availability and missing-bridge warning rules below describe direct tool mode. CodeModeOnly discovers deferred descriptions and schemas through top-level `tool_search`, then invokes tools through `exec`. Search results do not change the tool declarations. It skips deferred preload and startup catalogs; `tools.eager` also reduces the initial `exec` description. When search is unavailable in the current scope, `exec` includes all allowed tool signatures.”；设置项表格只列了 `tools.freeform`、`tools.sandbox` 等行，没有 `tools.codeModeOnly` 的独立表行',
+      url: 'https://github.com/QwenLM/qwen-code/blob/6e3b2dcc19f5c66125fc8e643d1c5d889a0d6ae7/docs/users/configuration/settings.md',
+    },
+    'qwen-code-mode-schema-source': {
+      label:
+        'Qwen Code `packages/cli/src/config/settingsSchema.ts`（同上提交，250,862 字节）：`tools.codeModeOnly` 逐字为 `{ type: \'boolean\', label: \'Code Mode Only (Experimental)\', category: \'Tools\', requiresRestart: true, default: false, description: \'Expose ordinary tools through the isolated exec JavaScript tool. Load deferred descriptions and schemas on demand with tool_search; if search is unavailable, include all allowed signatures in exec. Direct control tools remain available. Ignored in safe and bare modes.\', showInDialog: true }`；紧随其后的 `tools.freeform` 逐字为 `{ type: \'boolean\', label: \'Freeform Tool Input (Experimental)\', category: \'Tools\', requiresRestart: true, default: false, description: \'Use raw text input for the Code Mode exec tool on OpenAI Responses models. Effective only when tools.codeModeOnly is true and the selected model uses wireApi \"responses\". Enable only for endpoints that support Responses Custom Tools.\', showInDialog: false }`；`tools.eager` 与 `tools.toolSearch.threshold` 两个条目的长描述里也各有一句 Code Mode 规则，逐字为 “CodeModeOnly discovers deferred schemas through top-level tool_search and invokes them through exec. It skips deferred preload and startup catalogs; tools.eager also reduces the initial exec description. When search is unavailable in the current scope, exec includes all allowed tool signatures.”',
+      url: 'https://github.com/QwenLM/qwen-code/blob/6e3b2dcc19f5c66125fc8e643d1c5d889a0d6ae7/packages/cli/src/config/settingsSchema.ts',
+    },
+    'qwen-code-mode-tool-source': {
+      label:
+        'Qwen Code `packages/core/src/tools/code-mode.ts`（同上提交，11,111 字节）：`ToolMode` 逐字为 `{ Direct: \'direct\', CodeModeOnly: \'code_mode_only\' }`，`ToolExposure` 四个取值是 `exec`／`direct-only`／`code-mode-callable`／`hidden`；`HIDDEN_TOOLS` 只有 `tool_call`，`DIRECT_ONLY_TOOLS` 十三项为 `tool_search`、`agent`、`ask_user_question`、`structured_output`、`enter_plan_mode`、`exit_plan_mode`、`send_message`、`enter_worktree`、`exit_worktree`、`create_sub_session`、`autofix_pr`（旁边注释逐字为 “Its confirmations are the user\'s consent to push and to run unattended.”）、`speak_to_user` 与 `wait_threads`，其余注册工具默认 `code-mode-callable`；`normalizeCodeModeToolName()` 把非法标识符字符换成 `_` 并给数字开头的名字加前缀，`planCodeModeBindings()` 按规范名排序、冲突时保留字典序第一个并记录 `collisions`；`buildExecDescription()` 生成的 `exec` 描述首行逐字为 “Execute JavaScript in a fresh isolated runtime and wait for it to finish.”，正文逐字含 “Calls use the same validation, permissions, approvals, hooks, telemetry, cancellation, concurrency, and output limits as direct tool calls.”、“Batch independent searches and reads with await Promise.allSettled([...]) and inspect every result”、“Await every tool promise; unawaited calls are cancelled when the script finishes.”、“The exec tool, direct control tools, tool_search, and tool_call are not callable through tools.”、“Nested tool results stay in JavaScript values and are not automatically added to the exec response. Use text(value) to return text, image(value) or audio(value) to return media, and generatedImage(value) for the result of tools.image_gen(...). Only explicit helper calls are returned; bare return values and successful script completion produce no output.”、“A terminal update_goal result ends the script and prevents further tool calls.”，全局清单逐字为 `tools`、`ALL_TOOLS`、`text(value)`、`image(imageUrlOrItem)`、`audio(dataUrl)`、`generatedImage(result)`、`setTimeout`、`clearTimeout`、`exit()`，并逐字声明 “There is no Node.js, process, require, filesystem, network, import, console, WebAssembly, Atomics, or persistent state. Static and dynamic imports are unsupported. Every exec call gets a new runtime.”；`searchAvailable` 为真时改插一段懒发现说明，逐字为 “Deferred tool signatures and descriptions are omitted below. Invoke tool_search as a separate top-level tool call, outside exec; it is not a JavaScript global or a tools binding.”',
+      url: 'https://github.com/QwenLM/qwen-code/blob/6e3b2dcc19f5c66125fc8e643d1c5d889a0d6ae7/packages/core/src/tools/code-mode.ts',
+    },
+    'qwen-code-mode-host-source': {
+      label:
+        'Qwen Code `packages/core/src/code-mode/host.ts`（同上提交，18,784 字节）：顶部导入 `variant from \'@jitl/quickjs-singlefile-mjs-release-sync\'` 与 `quickjs-emscripten-core` 的 `newQuickJSWASMModuleFromVariant`、`QuickJSContext`、`QuickJSDeferredPromise`、`QuickJSHandle`，`createHost()` 里 `const quickjs = await newQuickJSWASMModuleFromVariant(variant);` 后 `quickjs.newRuntime()`；四个常量逐字为 `const MEMORY_LIMIT_BYTES = 64 * 1024 * 1024;`、`const STACK_LIMIT_BYTES = 1024 * 1024;`、`const MAX_LIVE_TIMERS = 1024;` 与 `const MAX_TIMER_DELAY_MS = 2 ** 31 - 1;`；宿主进程只用 `process.stdout.write(encodeFrame(message))` 与父进程通信，自己不带任何工具实现',
+      url: 'https://github.com/QwenLM/qwen-code/blob/6e3b2dcc19f5c66125fc8e643d1c5d889a0d6ae7/packages/core/src/code-mode/host.ts',
+    },
+    'qwen-code-mode-protocol-source': {
+      label:
+        'Qwen Code `packages/core/src/code-mode/protocol.ts`（同上提交，3,984 字节）：七个常量逐字为 `CODE_MODE_MAX_CONTROL_FRAME_BYTES = 1_048_576`、`CODE_MODE_MAX_FRAME_BYTES = 16 * 1024 * 1024`、`CODE_MODE_MAX_MEDIA_BYTES = 10 * 1024 * 1024`、`CODE_MODE_MAX_MEDIA_ITEMS = 16`、`CODE_MODE_MAX_SOURCE_CHARS = 131_072`、`CODE_MODE_MAX_OUTPUT_CHARS = 100_000` 与 `CODE_MODE_TIMEOUT_MS = 30_000`；消息类型只有 `execute`（带 `source`、`tools`、`timeoutMs`、`maxOutputChars`）、`tool_result`、`terminate`、`tool_call`、`complete` 与 `error`；`maxFrameBytes()` 给 `complete`／`error` 与带合规图片内容的帧 16 MiB 上限、其余控制帧 1 MiB，超限抛 “Code mode protocol frame exceeds the size limit.”，帧格式是 4 字节大端长度前缀加 JSON',
+      url: 'https://github.com/QwenLM/qwen-code/blob/6e3b2dcc19f5c66125fc8e643d1c5d889a0d6ae7/packages/core/src/code-mode/protocol.ts',
+    },
+    'qwen-code-mode-tool-names': {
+      label:
+        'Qwen Code `packages/core/src/tools/tool-names.ts`（同上提交，10,425 字节）：`ToolNames.EXEC` 逐字为 `EXEC: \'exec\'`，对应显示名 `EXEC: \'Exec\'`；同文件还有 `TOOL_CALL: \'tool_call\'` 与 `TOOL_SEARCH: \'tool_search\'`（显示名 `ToolCall`、`ToolSearch`）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/6e3b2dcc19f5c66125fc8e643d1c5d889a0d6ae7/packages/core/src/tools/tool-names.ts',
+    },
+    'qwen-code-mode-only-design': {
+      label:
+        'Qwen Code 设计文档 `docs/design/code-mode-only.md`（同上提交，9,907 字节，状态逐字为 “Implemented for #10377. The feature is opt-in and defaults off.”，并注明 “Partly superseded by Lazy Code Mode”）：Goal 逐字为 “Add a `tools.codeModeOnly` setting that replaces the ordinary model-facing tool surface with one `exec` JavaScript tool plus the small set of tools that must remain direct control-plane calls. `exec` code can call ordinary tools through `tools.<name>(args)` without bypassing Qwen Code\'s validation, permissions, approvals, hooks, telemetry, cancellation, concurrency, or output budgets.”；Non-goals 逐字列出 “Hybrid direct/code exposure.”、“Persistent cells, globals, or values between `exec` calls.”、“Background jobs, `wait`, `yield`, `store`, or `load`.”、“Raw/freeform provider calls.”、“Making `tool_search` or a `tool_call` bridge available inside code mode.” 与 “A Node.js-compatible sandbox.”；暴露策略表四行为 `exec`（只在 CodeModeOnly 顶层、不可嵌套）、Direct control（顶层可见、不可嵌套）、Ordinary registered tool（顶层不可见、可嵌套）与 Hidden bridge（都不可见）；Sandbox 段逐字为 “`exec` runs QuickJS compiled to WebAssembly in a dedicated child process. Each call creates a fresh QuickJS runtime and context. The child process receives a small framed JSON protocol over stdio; it has no tool implementations or Qwen configuration.” 与 “QuickJS\'s interrupt hook enforces a guest CPU budget. That budget and the parent\'s fallback watchdog pause while the guest is suspended on registered host tools, whose own scheduler/ACP timeouts remain authoritative”；重入分派段逐字为 “`CoreToolScheduler.schedule()` cannot be called recursively: a child call would queue behind its still-running parent and deadlock. Scheduler execution therefore binds an async-local `ToolCallRuntime` context at the invocation boundary.”、“Code Mode Bash calls bypass the read-only command classifier, with the model responsible for keeping dependent calls sequential.” 与 “Nested request ids include the parent id and carry `source: code_mode` plus `parentCallId`.”；Provider 段逐字为 “In CodeModeOnly it is the exposure-policy view, so Gemini/Qwen, OpenAI-compatible, and Anthropic adapters all receive the structured `exec` declaration without provider-specific prompting.”，并说明只读 teammate 或带执行白名单的 fork 用 `exec` 作为受审网关；失败与回滚段逐字为 “Unknown, collided, hidden, direct-only, and recursively requested tools fail closed before scheduling.” 与 “Rollback is setting `tools.codeModeOnly` to false. No session migration or registry cleanup is required because code mode has no persistent state”；Verification 段列出要覆盖 “Gemini/Qwen, OpenAI-compatible, Anthropic, headless, interactive, subagent, and ACP surfaces”',
+      url: 'https://github.com/QwenLM/qwen-code/blob/6e3b2dcc19f5c66125fc8e643d1c5d889a0d6ae7/docs/design/code-mode-only.md',
+    },
+    'qwen-lazy-code-mode-design': {
+      label:
+        'Qwen Code 设计文档 `docs/design/lazy-code-mode.md`（同上提交，6,894 字节，另有同名 `.zh-CN` 版 6,006 字节）：问题段逐字为 “CodeModeOnly currently puts every callable tool\'s signature and description in the initial `exec` declaration, including deferred tools. This removes the prompt-size benefit of deferral.”，并说明 “This change makes the existing experimental `tools.codeModeOnly` mode load deferred descriptions and schemas through `tool_search`. Direct mode keeps its current protocol.”；设计段逐字为 “Expose `tool_search` at the top level alongside `exec` and existing direct controls. Keep `tool_call` hidden. When search is available in the current tool scope, include only eager or explicitly visible bindings in the `exec` description”、“When search is disabled or excluded from an agent\'s scope, retain full signatures in that scope\'s `exec` declaration.”、“Deferred preloading and startup tool-list reminders stay disabled in CodeModeOnly.” 与 “Search cannot broaden execution permissions.”；还逐字说明发现结果作为工具输出进入对话、“With otherwise unchanged configuration, searching and invoking deferred tools leave the provider tool array unchanged.”，以及上下文压缩后需要重新发现（“if a schema is missing after compression, discover it again before constructing arguments”）；明确 “No new sandbox, provider adapter, persistent guest state, or alternate execution path is introduced.” 与 “Code Mode remains experimental and opt-in.”',
+      url: 'https://github.com/QwenLM/qwen-code/blob/6e3b2dcc19f5c66125fc8e643d1c5d889a0d6ae7/docs/design/lazy-code-mode.md',
+    },
+    'qwen-code-mode-concurrency-design': {
+      label:
+        'Qwen Code 设计文档 `docs/design/code-mode-concurrency.md`（同上提交，5,423 字节，状态 “Implemented.”，另有 `.zh-CN` 版 4,875 字节）：逐字为 “Recommend `await Promise.allSettled([...])` for independent searches and reads.”、“Within each Session `exec`, dispatch consecutive safe calls concurrently using Core\'s `isToolCallConcurrencySafe` classification. Code Mode Bash calls bypass the read-only command classifier; the model decides which commands are independent.”、“Respect `QWEN_CODE_MAX_TOOL_CONCURRENCY` (default 10). An unsafe call waits for earlier calls to settle, and later calls wait for it.” 与 “The shared safety predicate classifies skill loading as unsafe: despite its `Read` kind, it can register hooks and change session permissions. This makes skill execution a barrier in Core (including nested Code Mode), headless tool batching, and Session nested dispatch.”；另逐字说明 “Each call still re-enters `Session.runTool` for validation, permissions, hooks, progress, telemetry, and recording.”、“Model-visible results follow the submitted promise order; progress can arrive in completion order.”、“An ordinary tool error rejects that promise. `allSettled` lets independent siblings finish.” 与 “Cancellation ends the wait for a nested tool\'s execution even if its implementation ignores the abort signal.”；并记录旧行为差异 “The Core scheduler already runs safe reads concurrently, while ACP and daemon sessions serialized every nested call.”',
+      url: 'https://github.com/QwenLM/qwen-code/blob/6e3b2dcc19f5c66125fc8e643d1c5d889a0d6ae7/docs/design/code-mode-concurrency.md',
+    },
+    'qwen-code-mode-context-tools-design': {
+      label:
+        'Qwen Code 设计文档 `docs/design/code-mode-context-tools.md`（同上提交，2,397 字节，标注 “Partly superseded by Lazy Code Mode: `tool_search` is now a top-level direct control; `tool_call` stays hidden.”）：逐字为 “Only eleven registered tools remain direct: ask_user_question, agent, enter_plan_mode, exit_plan_mode, structured_output, create_sub_session, enter_worktree, exit_worktree, send_message, speak_to_user, and wait_threads. Exec is the top-level entry point; tool_search and tool_call stay hidden.”（该十一项清单是 MVP 期的，现行源码的 `DIRECT_ONLY_TOOLS` 已含 `tool_search` 与 `autofix_pr`）；另逐字为 “Exec retains skill, update_goal and capture_screen_context outputs even without text(), forwards modelOverride property presence and terminateTurn, and delivers native images outside the QuickJS protocol.”、“A goal proposal forms an execution barrier: previous nested tools finish before it and later tools wait for it.” 与 “A terminal proposal triggers a host termination message, which completes the QuickJS call with accumulated output and disposes the runtime without allowing script code to catch the termination.”',
+      url: 'https://github.com/QwenLM/qwen-code/blob/6e3b2dcc19f5c66125fc8e643d1c5d889a0d6ae7/docs/design/code-mode-context-tools.md',
+    },
+    'qwen-code-mode-media-helpers-design': {
+      label:
+        'Qwen Code 设计文档 `docs/design/code-mode-media-helpers.md`（同上提交，1,841 字节）：Goal 逐字为 “Let Code Mode consume the media shapes that Qwen Code already returns from nested MCP and `image_gen` tool calls: `image(result.content[0])` accepts a Qwen MCP image content block. `generatedImage(await tools.image_gen(...))` accepts the complete `CodeModeToolResult` returned by Qwen Code\'s built-in image generator.”；数据契约给出 `type ImageContent = { type: \'image\'; data: string; mimeType: string }`，并逐字写明 “It does not introduce Codex\'s `{ image_url, output_hint }` shape because that is not what Qwen Code returns.”；限额段逐字为 “Both helpers use the existing Code Mode media item and decoded-byte budgets. MCP image blocks must contain base64 data and an `image/*` MIME type. `generatedImage()` only accepts a successful result whose tool name is `image_gen` and which contains image content.” 与 “Media-bearing nested tool results use the existing 16 MiB media frame limit so generated images larger than the 1 MiB control limit are preserved. Tool calls and tool results without image content retain the 1 MiB control frame limit.”；Non-goals 逐字为 “Image detail hints.”、“Remote image URLs.”、“`yield_control`, persistent storage, or timers.” 与 “Changing the built-in `image_gen` tool\'s direct-call response.”',
+      url: 'https://github.com/QwenLM/qwen-code/blob/6e3b2dcc19f5c66125fc8e643d1c5d889a0d6ae7/docs/design/code-mode-media-helpers.md',
+    },
+    'qwen-code-mode-output-recovery-design': {
+      label:
+        'Qwen Code 设计文档 `docs/design/codemode-output-recovery.md`（同上提交，1,455 字节）：逐字为 “The `dragon/code-mode-only-10377` runtime already accumulates `text()` in its host process, but its error frame discards that output. Return the accumulated text and media with script errors, keep failure status, and bound the combined text and error at the exec boundary. This follows Codex\'s inline result behavior; it does not save a full-output recovery file.”；另逐字为 “Exec owns its output limit. Exempt its successful and failed results from the scheduler\'s persistence gates, and declare an empty persisted-file list so aggregate batch truncation also stays inline. Preserve both the beginning and end when truncating text, including a visible truncation marker.”、“Nested read_file calls must return file content even if a prior nested read happened, because reading inside JavaScript does not establish that the model saw it. Preserve read-before-edit tracking but mark those bytes absent from model history.” 与 “Nested shell results omit the submitted command, which is already present in the exec source, while retaining output and exit/error information.”',
+      url: 'https://github.com/QwenLM/qwen-code/blob/6e3b2dcc19f5c66125fc8e643d1c5d889a0d6ae7/docs/design/codemode-output-recovery.md',
+    },
+    'qwen-code-mode-intro-commit': {
+      label:
+        'Qwen Code 提交 [`4ec9f63d0a188b079000116a1eed8e28f9a5f1c0`](https://github.com/QwenLM/qwen-code/commit/4ec9f63d0a188b079000116a1eed8e28f9a5f1c0)（`packages/core/src/tools/code-mode.ts` 的最早提交，2026-09-11T07:40:35Z）：提交说明逐字为 “feat(core): add CodeModeOnly tool execution (#10607)”，即该文件的引入点；该路径到 main HEAD 共 6 次提交，最新一次是 2026-10-25T17:04:39Z 的 “feat(autofix-pr): run the helpers through a tool, and let a confirmed watch\'s fixes run unattended (#15548)”',
+      url: 'https://github.com/QwenLM/qwen-code/commit/4ec9f63d0a188b079000116a1eed8e28f9a5f1c0',
+    },
+    'qwen-v0234-release': {
+      label:
+        'Qwen Code Release [v0.23.4](https://github.com/QwenLM/qwen-code/releases/tag/v0.23.4)（2026-09-14T15:20:21Z，`prerelease: false`）：正文含逐字条目 “- feat(core): add CodeModeOnly tool execution ([#10607](https://github.com/QwenLM/qwen-code/pull/10607)) by @DragonnZhang”；GitHub compare 以 `4ec9f63d0a188b079000116a1eed8e28f9a5f1c0` 为 base、`v0.23.4` 为 head 的结果是 `ahead`（领先 112、落后 0），而 base 对 `v0.23.3`（2026-09-10T14:56:46Z）与 `v0.23.2` 都是 `diverged`（分别落后 31 与 89），因此 v0.23.4 是第一个包含 CodeModeOnly 的 stable Release',
+      url: 'https://github.com/QwenLM/qwen-code/releases/tag/v0.23.4',
+    },
+    'qwen-code-mode-test-deflake': {
+      label:
+        'Qwen Code 提交 [`7c114892380bb30d5bd0731361e728fb8a3e68a5`](https://github.com/QwenLM/qwen-code/commit/7c114892380bb30d5bd0731361e728fb8a3e68a5)（2026-11-15T14:42:42Z，只改 `packages/core/src/code-mode/code-mode.test.ts`，该测试文件在 main HEAD 为 30,183 字节）：提交说明逐字为 “test(core): deflake the unawaited-timer code mode test (#17344) (#17345)”，正文逐字为 “The test passed a 25ms wall-clock guest budget to the isolated code-mode host. Under CI contention, QuickJS context setup and the setup/exec evals can span more than 25ms of wall time even though the program does almost no work, so the host\'s interrupt handler fires and the test fails with CodeModeExecutionError: interrupted rather than exercising the unawaited timer. Raise the test\'s budget to 5s”，即核对日期当天仍有 Code Mode 相关提交，且确认宿主用 interrupt handler 实施 guest CPU 预算、错误类名是 `CodeModeExecutionError`',
+      url: 'https://github.com/QwenLM/qwen-code/commit/7c114892380bb30d5bd0731361e728fb8a3e68a5',
+    },
+    'kimi-tools-doc-no-code-mode': {
+      label:
+        'Kimi Code 官方中文工具文档 `docs/zh/reference/tools.md`（固定到 main HEAD 提交 `f082f04a093a3e71a2263c5461d52507dc31f83a`，2026-11-15 核对，23,005 字节）：内置工具按 File Tools、Shell、Web Tools、Plan Mode、State Management、Collaboration Tools、Skills、Background Tasks 与 Scheduled Tasks 分组，全部条目是 `Read`、`Write`、`Edit`、`Grep`、`Glob`、`ReadMediaFile`、`Bash`、`WebSearch`、`FetchURL`、`ExitPlanMode`、`TodoList`、`Agent`、`AgentSwarm`、`AskUserQuestion`、`NotifyUser`、`Skill`、`TaskList`、`TaskOutput`、`TaskStop`、`WaitFor`、`CronCreate`、`CronList` 与 `CronDelete`，没有任何执行模型生成代码的工具；全文 `code mode`／`code_mode`／`codeMode`／`quickjs` 命中数为 0，唯一的 `JavaScript` 出现在 `Read` 段“字符数和列偏移按显示文本的 JavaScript 字符串长度计算”这句里，与代码模式无关',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/f082f04a093a3e71a2263c5461d52507dc31f83a/docs/zh/reference/tools.md',
+    },
+    'kimi-tools-doc-en-no-code-mode': {
+      label:
+        'Kimi Code 官方英文工具文档 `docs/en/reference/tools.md`（同上提交，25,229 字节）：与中文版同一工具集合，`code mode`／`code_mode`／`quickjs` 命中数为 0，`JavaScript` 只出现在 `Read` 段 “Characters and column offsets use JavaScript string length in the displayed text” 这句里，作为「无该机制」的第二处独立佐证',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/f082f04a093a3e71a2263c5461d52507dc31f83a/docs/en/reference/tools.md',
+    },
+    'kimi-config-files-no-code-mode': {
+      label:
+        'Kimi Code 官方中文配置参考 `docs/zh/configuration/config-files.md`（同上提交，48,854 字节）：全文 `code mode`／`code_mode`／`codeMode`／`quickjs`／`v8`／`JavaScript` 命中数都是 0，即没有任何开启代码模式的配置键；同提交下 `packages/` 与 `apps/` 路径名匹配 `code-mode`／`codemode`／`quickjs` 的条目也是 0（仓库树 5,473 个条目）',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/f082f04a093a3e71a2263c5461d52507dc31f83a/docs/zh/configuration/config-files.md',
+    },
+    'kimi-changelog-no-code-mode': {
+      label:
+        'Kimi Code 官方中文更新日志 `docs/zh/release-notes/changelog.md`（同上提交，118,340 字节，最新段为 `## 2.6.2（2026-11-14）`）：全文 `code mode`／`code_mode`／`codeMode` 命中数为 0；同提交英文版 `docs/en/release-notes/changelog.md`（126,221 字节）唯一含 “code mode” 字面的一处是 “Route Kimi Code models on the Anthropic-compatible protocol through the beta Messages API.”，属 “Kimi Code models” 的误命中，与代码模式无关',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/f082f04a093a3e71a2263c5461d52507dc31f83a/docs/zh/release-notes/changelog.md',
+    },
+    'qoder-changelog-codemode': {
+      label:
+        'Qoder CLI 更新日志 `https://changelog.qoder.com/cli`（2026-11-15 核对，HTML 803,288 字节，去标签后正文 1,669 行，最新条目为 November 13, 2026 的 CLI 1.1.89）：“October 29, 2026 · CLI 1.1.81 · Introducing CodeMode and More Reliable Session Continuity” 段逐字为 “Added the CodeMode tool, supporting multi-step tool orchestration and on-demand invocation of MCP tools to reduce context usage. Enable it with the environment variable QODER_ENABLE_CODE_MODE=1 and select on or only mode in /settings”；“November 4, 2026 · CLI 1.1.83 · Session Reliability Improvements and Enterprise Mode Controls” 段另有一条逐字为 “Applications using CodeMode can now display individual tool-call statuses in real time and restore tool-call records from session history”；全文 `code mode`／`CodeMode` 只有这两处加上 2026-08-27 CLI 1.1.32 的 “UltraCode Mode and Startup Speedup”（那是 `/effort ultracode` 的 Workflow 多 Agent 编排，与本字段无关，不能混为一谈）',
+      url: 'https://changelog.qoder.com/cli',
+    },
+    'qoder-llms-index-no-codemode': {
+      label:
+        'Qoder 官方文档索引 `https://docs.qoder.com/llms.txt`（2026-11-15 核对，93,538 字节）：CLI 与 Agent SDK 的全部页面标题里没有任何 CodeMode 或代码模式专页，`codemode`／`code mode` 命中数为 0，即更新日志宣布的 CodeMode 在核对日期还没有对应的文档页',
+      url: 'https://docs.qoder.com/llms.txt',
+    },
+    'qoder-tools-no-codemode': {
+      label:
+        'Qoder CLI 官方 Tools 页 `https://docs.qoder.com/cli/tools.md`（2026-11-15 核对，9,127 字节）与 SDK Tools 页 `https://docs.qoder.com/cli/sdk/tools.md`（44,106 字节）：两页 `code mode`／`CodeMode`／`CODE_MODE` 命中数都是 0，内置工具介绍只提到读文件、搜索、执行命令与调用 Subagent，没有执行模型生成代码的工具',
+      url: 'https://docs.qoder.com/cli/tools',
+    },
+    'qoder-settings-reference-no-codemode': {
+      label:
+        'Qoder CLI 官方 “Configurations, Environment Variables, and File Paths” 页 `https://docs.qoder.com/cli/settings-reference.md`（2026-11-15 核对，31,992 字节）与 “Configuration Files and Application Order” 页 `https://docs.qoder.com/cli/settings.md`（12,962 字节）：两页 `code mode`／`CodeMode`／`QODER_ENABLE_CODE_MODE` 命中数都是 0，即环境变量与 `/settings` 里的 `on`／`only` 两个取值都没有进入设置参考',
+      url: 'https://docs.qoder.com/cli/settings-reference',
+    },
+    'qoder-cli-reference-no-codemode': {
+      label:
+        'Qoder CLI 官方 CLI 参考 `https://docs.qoder.com/cli/cli-reference.md`（2026-11-15 核对，13,961 字节）：`code mode`／`CodeMode`／`CODE_MODE` 命中数为 0，启动旗标表里没有开启代码模式的旗标',
+      url: 'https://docs.qoder.com/cli/cli-reference',
+    },
+    'qoder-slash-reference-settings': {
+      label:
+        'Qoder CLI 官方 Slash 命令参考 `https://docs.qoder.com/cli/slash-reference.md`（2026-11-15 核对，11,857 字节）：`/settings` 行逐字为 “| `/settings` | Open the Settings Panel (alias `/config`). |”，即更新日志说的 “select on or only mode in /settings” 指的是这个设置面板；全页 `code mode`／`CodeMode` 命中数为 0，没有 CodeMode 的独立命令或面板条目',
+      url: 'https://docs.qoder.com/cli/slash-reference',
+    },
   },
   rows: [
     {
@@ -5862,6 +6142,19 @@ window.matrixData = {
       capability: '桌面与浏览器控制',
       description: '由产品内置并分发的桌面 GUI 自动化或真实浏览器控制能力。',
       values: { claude: '无内置桌面或浏览器控制工具；经 MCP 扩展', codex: '条件：ChatGPT 桌面 App 的 Computer Use；CLI 未提供', qwen: '`computer_use__*` 内置工具；默认开启；含浏览器 `page` 工具', kimi: '条件：`/plugins` 内置 `kimi-cu` 与 `kimi-webbridge`；`kimi-cu` 支持 macOS 与 Windows x64（0.34.0 起）；v2 CLI', qoder: '内置工具表未列桌面或浏览器控制；经 MCP 扩展' },
+    },
+    {
+      id: 'execution-code-mode',
+      category: 'execution',
+      capability: '代码模式调用工具',
+      description: '模型写一段代码，在一次工具调用里编排多个嵌套工具调用，而不是逐个发起工具调用。',
+      values: {
+        claude: '条件：`CLAUDE_CODE_EXPERIMENTAL_CODE_MODE=1`（v2.1.323 起，实验性、默认关闭）· Claude 写 JavaScript，由 `REPL` 工具执行，对话里只显示工具调用、代码在 `Ctrl+O` transcript 的 **Code** 行 · 仅交互终端原生构建，`-p`、Agent SDK、VS Code 面板、桌面端与 Cloud 会话不支持',
+        codex: '条件：`features.code_mode`（开发中、默认关闭）· `exec` 与 `wait` 两个工具，代码在独立宿主进程 `codex-code-mode-host` 的新建 V8 isolate 里跑 · `features.code_mode_only` 只留 `exec`/`wait` · 模型元数据未声明支持时告警，宿主不可用时 fail closed',
+        qwen: '条件：`tools.codeModeOnly` 默认 `false`、需重启（v0.23.4 起）· `exec` 工具，代码在子进程的 QuickJS/WASM 运行时里每次调用新建 · `tools.freeform` 给 Responses 模型改用原始文本入参',
+        kimi: '无该机制：内置工具表没有执行模型代码的工具，配置与更新日志也没有对应键',
+        qoder: '条件：`QODER_ENABLE_CODE_MODE=1` 加 `/settings` 选 `on` 或 `only`（CLI 1.1.81 起）· 只有更新日志记录，文档站没有 CodeMode 页，工具名、运行时与生效 Surface 未确认',
+      },
     },
     {
       id: 'surface-headless',
