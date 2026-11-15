@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-11-11',
+  updatedAt: '2026-11-15',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -2688,6 +2688,81 @@ window.matrixData = {
     'kimi-model-env-current': {
       label: 'Kimi Code current environment variables',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/77618e38c35a81e26134b3f83eb7f2b460c0ee05/docs/zh/configuration/env-vars.md',
+    },
+    'kimi-providers-bedrock': {
+      label:
+        'Kimi Code 中文「平台与模型」文档 `docs/zh/configuration/providers.md`（PR #4895 合并提交 `88e3c20739a20a9a4003e366db7ecad9b88e10bd`，2026-11-13T08:20:37Z，13,938 字节；本仓库此前固定的提交 `18c6d64272952503baccf706bff455bb6a2c488e` 版本为 9,874 字节）：供应商类型表由六行增至七行，新增一行逐字为 “| `bedrock` | Anthropic Messages / OpenAI 兼容（按模型区分） | Amazon Bedrock |”；新增 `## bedrock` 一节，首段逐字为 “用于接入 Amazon Bedrock。一个 `bedrock` 供应商可以承载 Anthropic Messages API 或 OpenAI 兼容 API 的模型——CLI 会按 Bedrock 模型 ID 逐个推断线路协议，因此 Claude、GPT 和 Kimi 模型可以共用同一个供应商条目。”；「认证」小节逐字为 “`type = "bedrock"` 的供应商可以使用标准 AWS CLI 凭证链，基于你的 AWS 环境凭证（来自 SSO、实例角色、环境变量、共享配置等）生成短期持有者令牌（bearer token）。只需指定 AWS 区域，可选地再指定一个命名 profile”，示例为 `[providers.bedrock]` 下 `type = "bedrock"` 加 `[providers.bedrock.env]` 下 `AWS_REGION = "us-east-1"` 与可选注释行 `AWS_PROFILE = "my-profile"`；长期密钥一节逐字为 “另外，也可以改用 Amazon Bedrock API 密钥，通过 `api_key`、`api_key_env` 或 `[providers.bedrock.env]` 子表中的 `AWS_BEARER_TOKEN_BEDROCK` 键来配置。不过出于安全考虑，AWS 一般不建议使用长期 API 密钥。已配置的密钥始终优先于环境凭证链。”；区域一节逐字为 “区域必须能从 `AWS_REGION` 或 `AWS_DEFAULT_REGION`（写在子表里或在 shell 中导出）解析出来；目前不支持从 `~/.aws/config` 推断默认区域。”；「端点 URL」一节逐字为 “base URL 默认取区域化的 `bedrock-runtime.<region>.amazonaws.com` 端点——只有当你需要自定义端点（如 `bedrock-mantle`、代理或 FIPS/双栈主机名）时才设置 `base_url`（或 `AWS_BEDROCK_BASE_URL` 环境键）。自定义 `base_url` 是完整 URL：必须包含模型所用协议的线路路径（`/anthropic` 或 `/openai/v1`），CLI 会原样使用它，不会追加协议后缀。”；「模型与线路协议」一节的推断规则逐字为 “`anthropic.*` → Anthropic Messages API”、“`openai.gpt-oss*` → OpenAI Chat Completions API（这些开放权重模型在 `bedrock-runtime` 上仅提供此 API）”、“其他 `openai.*` → OpenAI Responses API（GPT-6 / GPT-5.6 系列仅提供此 API，也是 OpenAI 推荐的方向）”、“`moonshotai.*` / `moonshot.*` → OpenAI Chat Completions API（Kimi 模型卡片推荐）”，并写 “其他前缀默认使用 OpenAI Chat Completions API。要为同时提供多种 API 的模型另行选择时，请在模型别名上显式设置 `protocol`”，四个示例别名分别为 `sonnet`（`global.anthropic.claude-sonnet-4-6`）、`gpt-6`（`global.openai.gpt-6-astra`，注释「推断为 OpenAI Responses API」）、`gpt-oss`（`openai.gpt-oss-120b-1:0`，注释「推断为 OpenAI Chat Completions API」）与 `kimi-k3-responses`（`global.moonshotai.kimi-k3` 加 `protocol = "openai_responses"`，注释「显式覆盖：Kimi K3 同时提供 Responses API」）；末尾提示逐字为 “当前大多数 Bedrock 模型要求使用推理 profile ID（即 `global.` / `us.` 等前缀），而不是基础模型 ID”；同页 `/provider` 管理器的 Known third-party provider 路径仍逐字写 “Amazon Bedrock / Cohere 等专有协议和无法识别的显式协议会被拒绝导入”',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/88e3c20739a20a9a4003e366db7ecad9b88e10bd/docs/zh/configuration/providers.md',
+    },
+    'kimi-env-vars-bedrock': {
+      label:
+        'Kimi Code 中文环境变量文档 `docs/zh/configuration/env-vars.md`（同上提交，23,923 字节）：页首「API 密钥不在这里配置」warning 的例外句改为逐字 “例外包括：`KIMI_MODEL_*` 系列、供应商的 `api_key_env` 字段，以及少数由厂商 SDK 直接从 shell 读取的凭证（`GOOGLE_APPLICATION_CREDENTIALS`，以及 Amazon Bedrock 的 AWS 凭证链）。”；「供应商凭证键」表新增五行——`AWS_BEARER_TOKEN_BEDROCK`（适用 Amazon Bedrock，默认「无」）、`AWS_DEFAULT_REGION`（默认「shell 中的值（如有）」）、`AWS_REGION`（默认「已配置的 `AWS_DEFAULT_REGION` 或 shell 中的值」）、`AWS_BEDROCK_BASE_URL`（默认「按区域推导为 `bedrock-runtime.<region>.amazonaws.com`」）与 `AWS_PROFILE`（默认「回退到 shell 中的值」）；表后 warning 逐字为 “有两类凭证机制绕过配置表，直接从系统环境读取：`GOOGLE_APPLICATION_CREDENTIALS`（服务账号 JSON 路径）由 Google SDK 通过 ADC 流程读取，CLI 不参与。对于 Amazon Bedrock，AWS 秘密凭证（`AWS_ACCESS_KEY_ID`、`AWS_SECRET_ACCESS_KEY`、`AWS_SESSION_TOKEN`、SSO 或 `~/.aws/credentials`）由 AWS SDK 的标准凭证链从 shell 读取。把它们写进 `[providers.<name>.env]` 不受支持、也不生效——CLI 只把区域和 profile 传给令牌生成器，由令牌生成器自行解析凭证。”，并以 “其他所有键名都必须写在 `[providers.<name>.env]` 子表里。” 收尾',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/88e3c20739a20a9a4003e366db7ecad9b88e10bd/docs/zh/configuration/env-vars.md',
+    },
+    'kimi-config-files-bedrock': {
+      label:
+        'Kimi Code 中文配置文件参考 `docs/zh/configuration/config-files.md`（同上提交，48,854 字节）：`providers` 字段表的 `type` 行逐字改为 “供应商类型：`kimi`、`anthropic`、`openai`、`openai_responses`、`bedrock`、`google-genai`、`vertexai`”；`models` 字段表仍未列出 `protocol` 行，只在 `base_url` 行写 “模型级端点覆盖（catalog 导入网关模型时写入）；解析时优先于供应商的 `base_url`，仅与 `protocol` 配合时生效”，并在 `[models."<alias>".overrides]` 一节把 `protocol` 与 `provider`、`model`、`beta_api`、`base_url` 并列为「不接受的身份 / 路由字段」',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/88e3c20739a20a9a4003e366db7ecad9b88e10bd/docs/zh/configuration/config-files.md',
+    },
+    'kimi-server-api-bedrock': {
+      label:
+        'Kimi Code 中文服务 API 参考 `docs/zh/reference/server-api-service.md`（同上提交，86,467 字节）：创建与更新供应商两个端点的 `type` 参数说明都逐字改为 “必填。通信协议：`kimi` / `openai` / `openai_responses` / `anthropic` / `bedrock` / `google-genai` / `vertexai`”，`models` 条目字段表新增一行逐字为 “`protocol` | string | 线路协议覆盖：`anthropic`、`openai` 或 `openai_responses`；省略时按模型 ID 推断”',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/88e3c20739a20a9a4003e366db7ecad9b88e10bd/docs/zh/reference/server-api-service.md',
+    },
+    'kimi-bedrock-commit': {
+      label:
+        'Kimi Code PR #4895 合并提交 `88e3c20739a20a9a4003e366db7ecad9b88e10bd`（2026-11-13T08:20:37Z，标题 “feat(core): add Amazon Bedrock provider with AWS credential chain auth (#4895)”，改动 36 个文件，含四份英文与四份中文文档、changeset、`packages/core` 新增的 `bedrock/` 目录四个文件、`packages/agent-core-v2` 的 `authService.ts`/`catalog-service.ts`/`catalog.ts`/`model-auth.ts`/`model.types.ts`/`provider-definition.ts`、`packages/kap-server` 的 `rest-modelCatalog.ts` 与 `modelCatalog.ts`、`packages/migration-legacy/src/steps/config.ts`、`packages/node-sdk/src/config/schema.ts`、`flake.nix`、`pnpm-lock.yaml` 与 `apps/kimi-code/scripts/native/check-bundle.mjs`；提交信息正文列出四条子提交 “feat(core): add Bedrock provider with isolated Anthropic auth”、“fix(core): preserve model input cap behavior”、“docs: refine Bedrock changeset” 与 “fix(build): update pnpm deps hash”）',
+      url: 'https://github.com/MoonshotAI/kimi-code/commit/88e3c20739a20a9a4003e366db7ecad9b88e10bd',
+    },
+    'kimi-bedrock-changeset': {
+      label:
+        'Kimi Code changeset `.changeset/bedrock-provider.md`（main HEAD `f082f04a093a3e71a2263c5461d52507dc31f83a`，2026-11-13T17:32:03Z，136 字节，全文逐字为 frontmatter `"@moonshot-ai/kimi-code": minor` 加正文 “Add support for Amazon Bedrock providers, configured with `type = \"bedrock\"` and `AWS_REGION`.”）：该文件在 main HEAD 仍然存在，说明这次 minor 变更尚未被任何 Release 消费；同目录另有 `allow-resume-occupied-sessions.md`、`background-task-tail-utf8.md`、`compact-own-line-calls.md`、`feat-prompt-prediction.md`、`fix-subagent-zero-timeout.md`、`fix-tui-transcript-history.md` 与 `follow-up-behavior.md` 七个待发布 changeset',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/f082f04a093a3e71a2263c5461d52507dc31f83a/.changeset/bedrock-provider.md',
+    },
+    'kimi-262-release': {
+      label:
+        'Kimi Code Release `@moonshot-ai/kimi-code@2.6.2`（2026-11-13T17:20:51Z，核对日期最新 stable）：正文只有 Patch Changes 六条（#4875 自定义 registry 的 `search_url` 与 `feedback_url`、#4876 `/feedback` 去掉纯文本选项、#4885 长会话重开延迟、#4905 拒绝失败或未完成的知识库媒体上传、#4922 Swarm 面板缺失的实时 subagent 更新、#4927 web 交互与已知问题修复），没有任何 Bedrock 或 AWS 条目；GitHub compare 显示 2.6.2 标签与提交 `88e3c20739a20a9a4003e366db7ecad9b88e10bd` 的关系是 `diverged`（标签领先 27 个提交、落后 23 个），即 2.6.2 从发布分支切出、不包含该提交，而 main HEAD `f082f04a093a3e71a2263c5461d52507dc31f83a` 与该提交的关系是 `ahead`（领先 2 个、落后 0 个），即该提交确已在 main 上',
+      url: 'https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai%2Fkimi-code%402.6.2',
+    },
+    'kimi-bedrock-routing-source': {
+      label:
+        'Kimi Code `packages/core/src/llm/builtin/provider/bedrock/routing.ts`（同上提交，3,003 字节）：`export type BedrockWireProtocol = \'anthropic\' | \'openai\' | \'openai_responses\';`；跨区域前缀正则逐字为 `const GEO_INFERENCE_PROFILE_PREFIX_RE = /^(?:[a-z]{2}|apac|global)$/;`，`stripBedrockInferenceProfilePrefix` 只在第一个 `.` 之前的片段匹配该正则时才剥掉前缀；`inferBedrockProtocol` 先剥前缀再转小写，按 `anthropic.` → `anthropic`、`openai.gpt-oss` → `openai`、其余 `openai.` → `openai_responses`、`moonshotai.` 或 `moonshot.` → `openai` 判定，都不匹配时返回 `undefined`；`bedrockRegionOf` 逐字为 `nonEmpty(env[\'AWS_REGION\']) ?? nonEmpty(env[\'AWS_DEFAULT_REGION\'])`；`resolveBedrockBaseUrl` 的路径后缀逐字为 `const suffix = protocol === \'anthropic\' ? \'/anthropic\' : \'/openai/v1\';`，返回 `https://bedrock-runtime.${region}.amazonaws.com${suffix}`，区域解析不出时返回 `undefined`；`bedrockModelCapability` 依次剥掉跨区域前缀与厂商命名空间后，按推断出的协议分别委派给 `getAnthropicModelCapability`、`getOpenAILegacyModelCapability` 与 `getOpenAIResponsesModelCapability`',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/88e3c20739a20a9a4003e366db7ecad9b88e10bd/packages/core/src/llm/builtin/provider/bedrock/routing.ts',
+    },
+    'kimi-bedrock-credentials-source': {
+      label:
+        'Kimi Code `packages/core/src/llm/builtin/provider/bedrock/credentials.ts`（同上提交，2,413 字节）：从 `@aws/bedrock-token-generator` 导入 `getTokenProvider`，`createBedrockTokenProvider` 只把 `region`、`profile` 与 `expiresInSeconds` 传给它，常量逐字为 `const DEFAULT_TTL_SECONDS = 43_200;` 与 `const EXPIRY_MARGIN_MS = 15 * 60 * 1000;`，缓存的过期时刻按 `now() + ttlMs - EXPIRY_MARGIN_MS` 计算；并发 `resolve()` 通过 `pending` 变量合并成一次取令牌；返回的凭据提供器把令牌包成 `{ apiKey: token }`，`canRecover` 逐字为 `(error) => errorStatusCode(error) === 401`，`invalidate()` 清空缓存并用 `refreshed` 预取一个新令牌，下一次 `resolve()` 无条件采用它',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/88e3c20739a20a9a4003e366db7ecad9b88e10bd/packages/core/src/llm/builtin/provider/bedrock/credentials.ts',
+    },
+    'kimi-bedrock-anthropic-source': {
+      label:
+        'Kimi Code `packages/core/src/llm/builtin/provider/bedrock/anthropic.ts`（同上提交，878 字节）与 `packages/core/src/llm/builtin/provider/endpoints.ts`（1,229 字节）：`bedrockAnthropicProtocol` 由 `anthropicProtocol.with({ client: createClient })` 派生，`createClient` 先调 `buildDefaultHeaders(endpoint.headers)`（该函数本次由 `packages/core/src/llm/builtin/protocol/anthropic/index.ts` 改为导出），在 `defaultHeaders[\'authorization\'] === null` 时删掉该键，再以 `apiKey: null`、`authToken: endpoint.apiKey ?? null`、`baseURL: endpoint.baseUrl ?? null`、`maxRetries: 0` 构造 `@anthropic-ai/sdk` 客户端，即 Bedrock 走 Authorization Bearer 而不走 Anthropic 原生的 `x-api-key`；`bedrockEndpoint` 逐字为 `{ apiKeyEnv: \'AWS_BEARER_TOKEN_BEDROCK\', baseUrlEnv: \'AWS_BEDROCK_BASE_URL\' }`，且不像 `kimiEndpoint` 那样带 `defaultBaseUrl`',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/88e3c20739a20a9a4003e366db7ecad9b88e10bd/packages/core/src/llm/builtin/provider/bedrock/anthropic.ts',
+    },
+    'kimi-bedrock-test': {
+      label:
+        'Kimi Code `packages/core/test/llm/bedrock.test.ts`（同上提交，4,925 字节，单个用例名逐字为 “keeps token lifecycle, routing, and Anthropic authentication provider-local”）：断言 `inferBedrockProtocol` 对 `global.anthropic.claude-sonnet-4-6`、`openai.gpt-oss-120b-1:0`、`global.openai.gpt-6-astra`、`global.moonshotai.kimi-k3`、`meta.llama-4` 依次返回 `anthropic`、`openai`、`openai_responses`、`openai`、`undefined`；`stripBedrockInferenceProfilePrefix(\'apac.moonshotai.kimi-k3\')` 得 `moonshotai.kimi-k3`；`resolveBedrockBaseUrl(\'anthropic\', { AWS_REGION: \'us-west-2\' })` 得 `https://bedrock-runtime.us-west-2.amazonaws.com/anthropic`，`resolveBedrockBaseUrl(\'openai\', { AWS_DEFAULT_REGION: \'us-east-1\' })` 得 `https://bedrock-runtime.us-east-1.amazonaws.com/openai/v1`；`bedrockModelCapability(\'global.anthropic.claude-sonnet-4-6\')` 与 `getAnthropicModelCapability(\'claude-sonnet-4-6\')` 相等；令牌生命周期部分断言两个并发 `resolve()` 只触发一次取令牌、时钟前进 12 小时后重新取令牌、`canRecover({ status: 401 })` 为真而 `{ status: 500 }` 为假、`invalidate()` 后再取一次；另一段断言取令牌抛出的错误（示例文案 `run aws sso login`）原样冒泡、下一次 `resolve()` 会重试；传输层断言 Bedrock 客户端发出的请求头 `authorization` 为 `Bearer bedrock-api-key-transport` 且 `x-api-key` 为 `null`，而原生 `anthropic` 协议客户端发出 `x-api-key: upstream-key` 与自定义 `authorization: Bearer gateway-token`',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/88e3c20739a20a9a4003e366db7ecad9b88e10bd/packages/core/test/llm/bedrock.test.ts',
+    },
+    'kimi-bedrock-model-auth-source': {
+      label:
+        'Kimi Code `packages/agent-core-v2/src/llm-adapter/model/model-auth.ts`（同上提交，10,125 字节）：凭据解析在 `endpointApiKey !== undefined` 时直接返回 `{ apiKey: endpointApiKey }`，其次才是 `provider.oauth`，最后当 `args.provider?.type === \'bedrock\'` 时返回 `{ aws: { region, profile } }`，其中 `region` 逐字为 `region ?? process.env[\'AWS_REGION\'] ?? process.env[\'AWS_DEFAULT_REGION\']`（`region` 本身取子表的 `AWS_REGION` 再退 `AWS_DEFAULT_REGION`）、`profile` 逐字为 `profile ?? process.env[\'AWS_PROFILE\']`，即子表优先、shell 兜底，这与文档「已配置的密钥始终优先于环境凭证链」一致；`resolveEndpointBaseUrl` 的优先级为模型级 `base_url` → 供应商级 `base_url` → 端点声明的 `baseUrlEnv`，最后才在 `provider.type === \'bedrock\'` 时按 `{ ...process.env, ...provider.env }` 推导，协议取 `bedrockWireProtocolOf(model.protocol) ?? inferBedrockProtocol(wireName) ?? \'openai\'`，区域解析不出时抛 `CONFIG_INVALID_ERROR_CODE`，错误文案逐字为 `Provider "<id>" could not resolve an AWS region to build the endpoint URL. Set AWS_REGION (or AWS_DEFAULT_REGION) in the provider\'s [providers.<id>.env] sub-table, or export it in the environment.`；`withAnthropicProfile` 在 `providerType === \'bedrock\'` 时先剥掉跨区域前缀再匹配 Claude 模型档案，因此 `global.anthropic.claude-sonnet-4-6` 能拿到 thinking 与 effort 特征',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/88e3c20739a20a9a4003e366db7ecad9b88e10bd/packages/agent-core-v2/src/llm-adapter/model/model-auth.ts',
+    },
+    'kimi-bedrock-catalog-source': {
+      label:
+        'Kimi Code `packages/agent-core-v2/src/llm-adapter/model/catalog-service.ts`（同上提交，18,885 字节）、`catalog.ts`（5,952 字节）、`model.types.ts`（528 字节）与 `packages/agent-core-v2/src/app/auth/authService.ts`（34,065 字节）：`ResolvedModelAuthMaterial` 新增 `readonly aws?: AwsAuthMaterial;`，`AwsAuthMaterial` 只有 `region?` 与 `profile?` 两个字段；`ModelCatalog` 在 `auth.aws !== undefined` 时用 `createBedrockTokenProvider({ region: auth.aws.region, profile: auth.aws.profile })` 作为凭据提供器；`ProviderCredentialState` 新增 `readonly supportsAmbientCredential: boolean`，取值逐字为 `provider.type === \'bedrock\' && !hasApiKey && !hasOAuthToken`，`toProtocolProvider` 的 `status` 判定因此改为 `credential.hasApiKey || credential.hasOAuthToken || credential.supportsAmbientCredential ? \'connected\' : \'unconfigured\'`，即只配了区域的 `bedrock` 供应商在 `GET /api/v1/providers` 里直接报 `connected`；`AuthSummaryService` 新增 `if (auth.aws !== undefined) return;`，使认证摘要不再因为缺少 API Key 或 `api_key_env` 而报错',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/88e3c20739a20a9a4003e366db7ecad9b88e10bd/packages/agent-core-v2/src/llm-adapter/model/catalog-service.ts',
+    },
+    'kimi-bedrock-provider-definition-source': {
+      label:
+        'Kimi Code `packages/agent-core-v2/src/llm-adapter/provider/provider-definition.ts`（同上提交，5,753 字节）：为 `bedrock` 连续注册三条定义，`baseProtocol` 分别是 `openai`、`openai_responses` 与 `anthropic`，三条都带 `endpoint: bedrockEndpoint` 与 `capability: bedrockModelCapability`，只有 `anthropic` 那条额外带 `requester: bedrockAnthropicRequester`；`explainProviderEndpoint` 新增第三个参数 `protocol?: Protocol`，查找逻辑逐字为 `getProviderDefinition(providerType, protocol) ?? (protocol === undefined ? undefined : getProviderDefinition(providerType))`',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/88e3c20739a20a9a4003e366db7ecad9b88e10bd/packages/agent-core-v2/src/llm-adapter/provider/provider-definition.ts',
+    },
+    'kimi-bedrock-sdk-schema': {
+      label:
+        'Kimi Code `packages/node-sdk/src/config/schema.ts`（同上提交，14,697 字节）、`packages/migration-legacy/src/steps/config.ts`（22,869 字节）、`packages/core/package.json`（1,232 字节）与 `apps/kimi-code/scripts/native/check-bundle.mjs`（2,998 字节）：Node SDK 的 `ProviderTypeSchema` 枚举加入 `bedrock`，`ModelAliasBaseSchema` 的 `protocol` 枚举由 `z.enum([\'anthropic\', \'openai_responses\'])` 放宽为 `z.enum([\'anthropic\', \'openai\', \'openai_responses\'])`；`kimi migrate` 的 `SUPPORTED_PROVIDER_TYPES` 集合同样加入 `bedrock`；`packages/core` 依赖新增 `"@aws/bedrock-token-generator": "^1.1.0"`；native bundle 检查脚本的 `optionalRuntimeRequires` 集合新增 `\'@aws-sdk/signature-v4a\'`；同提交的 `packages/node-sdk/test/config.test.ts` 用一段含 `[providers.bedrock]`、`[providers.bedrock.env]` 的 `AWS_REGION = "us-east-1"` 与 `[models."bedrock/kimi"]`（`model = "global.moonshotai.kimi-k3"`、`protocol = "openai"`）的 TOML 断言校验通过并解析出对应字段',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/88e3c20739a20a9a4003e366db7ecad9b88e10bd/packages/node-sdk/src/config/schema.ts',
     },
     'kimi-model-config-current': {
       label: 'Kimi Code current configuration',
@@ -5884,7 +5959,7 @@ window.matrixData = {
       category: 'models',
       capability: 'Provider 类型',
       description: '连接默认服务之外的官方云平台、本地运行时或第三方模型 Provider。',
-      values: { claude: 'Anthropic（claude.ai 订阅或 Console API Key）· Amazon Bedrock（Invoke API 或 Mantle 端点）· Claude Platform on AWS · Google Cloud\'s Agent Platform（原 Vertex AI）· Microsoft Foundry · LLM 网关/Claude apps gateway', codex: '内置保留 `openai`/`ollama`/`lmstudio` · 内置 `amazon-bedrock` · 自定义 Provider 仅 `wire_api = "responses"` · `--oss` 本地 Provider', qwen: '协议 `openai`/`anthropic`/`gemini`/`vertex-ai` · `/auth` 五组入口：Qwen Account with Subscription · QwenCloud · Alibaba ModelStudio · Third-party Providers · Custom Provider · 条件：Subscription 入口自 v0.26.8；QwenCloud 入口自 v0.25.3-preview.0（预发布通道，stable v0.25.2 尚无）', kimi: '六类 `type`：`kimi`/`anthropic`/`openai`/`openai_responses`/`google-genai`/`vertexai` · `/provider` 与 `kimi provider` 从 models.dev 或自定义 registry 导入', qoder: '托管目录（Default 分档 · New Models 具体模型）· Custom 页签 BYOK 指定厂商 · 条件：BYOK 仅 Individual 计划，厂商以向导实时目录为准' },
+      values: { claude: 'Anthropic（claude.ai 订阅或 Console API Key）· Amazon Bedrock（Invoke API 或 Mantle 端点）· Claude Platform on AWS · Google Cloud\'s Agent Platform（原 Vertex AI）· Microsoft Foundry · LLM 网关/Claude apps gateway', codex: '内置保留 `openai`/`ollama`/`lmstudio` · 内置 `amazon-bedrock` · 自定义 Provider 仅 `wire_api = "responses"` · `--oss` 本地 Provider', qwen: '协议 `openai`/`anthropic`/`gemini`/`vertex-ai` · `/auth` 五组入口：Qwen Account with Subscription · QwenCloud · Alibaba ModelStudio · Third-party Providers · Custom Provider · 条件：Subscription 入口自 v0.26.8；QwenCloud 入口自 v0.25.3-preview.0（预发布通道，stable v0.25.2 尚无）', kimi: '七类 `type`：`kimi`/`anthropic`/`openai`/`openai_responses`/`bedrock`/`google-genai`/`vertexai` · `/provider` 与 `kimi provider` 从 models.dev 或自定义 registry 导入（拒绝 `bedrock`，只能手写 `config.toml`）· 条件：`bedrock` 于 2026-11-13 合入 main、尚未随任何 Release 发布', qoder: '托管目录（Default 分档 · New Models 具体模型）· Custom 页签 BYOK 指定厂商 · 条件：BYOK 仅 Individual 计划，厂商以向导实时目录为准' },
     },
     {
       id: 'model-compatible-endpoint',
@@ -5912,7 +5987,7 @@ window.matrixData = {
       category: 'models',
       capability: '云厂商凭据链',
       description: '复用 AWS、Google Cloud 或其他云平台的原生身份与短期凭据。',
-      values: { claude: 'Bedrock · Vertex · Foundry 原生凭据链', codex: 'Bedrock AWS SigV4 · Provider 命令令牌', qwen: 'Vertex 与兼容 Provider 的密钥配置', kimi: 'Vertex AI ADC · `GOOGLE_APPLICATION_CREDENTIALS`', qoder: '公开 CLI 文档未列通用云凭据链' },
+      values: { claude: 'Bedrock · Vertex · Foundry 原生凭据链', codex: 'Bedrock AWS SigV4 · Provider 命令令牌', qwen: 'Vertex 与兼容 Provider 的密钥配置', kimi: 'Vertex AI ADC · `GOOGLE_APPLICATION_CREDENTIALS` · 条件：`bedrock` 走 AWS CLI 凭证链换短期 bearer token，合入 main 尚未发布', qoder: '公开 CLI 文档未列通用云凭据链' },
     },
     {
       id: 'auth-environment',
