@@ -2,7 +2,7 @@
 
 [返回权限与沙箱详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=security-network)
 
-> 核对日期：2026-11-15
+> 核对日期：2026-11-16
 
 ## 定义
 
@@ -65,7 +65,7 @@
 | 入口与切换 | `/permissions` 与权限选择器控制当前会话；CLI 可传 `--sandbox`、`--ask-for-approval`，持久配置写入 `config.toml`。 |
 | 默认状态 | 版本库目录通常采用 `workspace-write` + `on-request`，非版本库目录通常采用 `read-only`；具体启动状态还受目录信任和配置影响。 |
 | 具体行为 | `workspace-write` 默认 `network_access = false`；开启后可再启用 `network_proxy`，用 allow/deny 域名、私网和 Unix Socket 规则限域。原生 Windows 沙箱在同一策略下另加系统级网络边界：`elevated` 用防火墙规则（含专用的 offline-user 规则），`unelevated` 改用环境级断网控制而不是那条专用规则因而网络隔离更弱，`mxc` 在被选为 executor 后端时把受管网络的 `allow_local_binding` 默认置为 `true`，只允许 IPv4 与 IPv6 回环的客户端和服务端（含专用代理监听），拒绝直接的非回环出网与一般入站访问；经代理的流量仍适用代理域名规则，直接 DNS 仍被拒绝。 |
-| 规则能力 | `approval_policy` 支持 `untrusted`、`on-request`、`never` 和 granular 分类策略；命令 Rules、MCP 注解、权限 Profile 与沙箱共同生效。 |
+| 规则能力 | `approval_policy` 的官方取值只剩 `on-request`、`never` 与 `{ granular = { sandbox_approval, rules, mcp_elicitations, request_permissions, skill_approval } }`：配置参考逐字写 “`untrusted` is unsupported, and `on-failure` is deprecated; use `on-request` for interactive runs or `never` for non-interactive runs.”，`untrusted` 只保留「项目 `trust_level = "untrusted"` 派生出的更严格审批」这一条路径且不能直接写进 `approval_policy`。命令 Rules、MCP 注解、权限 Profile 与沙箱共同生效。 |
 | 隔离边界 | 本地 CLI/IDE 使用 OS 级沙箱。`read-only`、`workspace-write`、`danger-full-access` 分别提供只读、工作区写入和无沙箱边界；工作区写入默认关闭命令网络。原生 Windows 沙箱按 `[windows] sandbox` 选出的实现给出系统级网络边界：`elevated` 走防火墙规则，`unelevated` 走环境级断网控制，`mxc` 只放行回环。MXC 下 Win32k 调用与桌面句柄仍可用于 PowerShell 启动，剪贴板、输入注入与桌面/系统控制限制保留。 |
 | 保存与作用域 | 用户配置位于 `~/.codex/config.toml`；受信任项目可加载 `.codex/config.toml`、Hooks 和 Rules；系统与管理员 Requirements 可进一步收紧。 |
 | 非交互行为 | 非交互流程无法展示新审批时，需要审批的动作失败并把错误返回给 Agent；可在启动前固定审批策略、沙箱和 Rules。 |

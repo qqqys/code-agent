@@ -2,7 +2,7 @@
 
 [返回权限与沙箱详情目录](./README.md) · [打开网页详情](https://qqqys.github.io/code-agent/capability.html?id=security-bypass)
 
-> 核对日期：2026-11-15
+> 核对日期：2026-11-16
 
 ## 定义
 
@@ -63,7 +63,7 @@
 | 入口与切换 | `/permissions` 与权限选择器控制当前会话；CLI 可传 `--sandbox`、`--ask-for-approval`，持久配置写入 `config.toml`。 |
 | 默认状态 | 版本库目录通常采用 `workspace-write` + `on-request`，非版本库目录通常采用 `read-only`；具体启动状态还受目录信任和配置影响。 |
 | 具体行为 | `approval_policy = "never"` 只关闭提示，现有沙箱仍生效；同时移除审批与沙箱需 `danger-full-access` 组合或危险快捷参数。 |
-| 规则能力 | `approval_policy` 支持 `untrusted`、`on-request`、`never` 和 granular 分类策略；命令 Rules、MCP 注解、权限 Profile 与沙箱共同生效。 |
+| 规则能力 | `approval_policy` 的官方取值只剩 `on-request`、`never` 与 `{ granular = { sandbox_approval, rules, mcp_elicitations, request_permissions, skill_approval } }`：配置参考逐字写 “`untrusted` is unsupported, and `on-failure` is deprecated; use `on-request` for interactive runs or `never` for non-interactive runs.”，`untrusted` 只保留「项目 `trust_level = "untrusted"` 派生出的更严格审批」这一条路径且不能直接写进 `approval_policy`。命令 Rules、MCP 注解、权限 Profile 与沙箱共同生效。 |
 | 隔离边界 | 本地 CLI/IDE 使用 OS 级沙箱。`read-only`、`workspace-write`、`danger-full-access` 分别提供只读、工作区写入和无沙箱边界；工作区写入默认关闭命令网络。 |
 | 保存与作用域 | 用户配置位于 `~/.codex/config.toml`；受信任项目可加载 `.codex/config.toml`、Hooks 和 Rules；系统与管理员 Requirements 可进一步收紧。 |
 | 非交互行为 | 非交互流程无法展示新审批时，需要审批的动作失败并把错误返回给 Agent；可在启动前固定审批策略、沙箱和 Rules。 |

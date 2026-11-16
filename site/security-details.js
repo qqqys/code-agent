@@ -35,7 +35,7 @@
       defaults:
         '版本库目录通常采用 `workspace-write` + `on-request`，非版本库目录通常采用 `read-only`；具体启动状态还受目录信任和配置影响。',
       rules:
-        '`approval_policy` 支持 `untrusted`、`on-request`、`never` 和 granular 分类策略；命令 Rules、MCP 注解、权限 Profile 与沙箱共同生效。',
+        '`approval_policy` 的官方取值只剩 `on-request`、`never` 与 `{ granular = { sandbox_approval, rules, mcp_elicitations, request_permissions, skill_approval } }`：配置参考逐字写 “`untrusted` is unsupported, and `on-failure` is deprecated; use `on-request` for interactive runs or `never` for non-interactive runs.”，`untrusted` 只保留「项目 `trust_level = "untrusted"` 派生出的更严格审批」这一条路径且不能直接写进 `approval_policy`。命令 Rules、MCP 注解、权限 Profile 与沙箱共同生效。',
       boundary:
         '本地 CLI/IDE 使用 OS 级沙箱。`read-only`、`workspace-write`、`danger-full-access` 分别提供只读、工作区写入和无沙箱边界；工作区写入默认关闭命令网络。',
       persistence:
@@ -173,27 +173,83 @@
       id: 'security-approval',
       definition:
         '工具在执行有副作用、越出既定边界或命中 Ask 规则前，能否暂停并把具体操作交给用户或宿主确认。',
-      includes: ['交互式 TUI 审批', 'Allow、Ask、Deny 决策', 'MCP 与工具审批'],
+      includes: [
+        '交互式 TUI 审批',
+        'Allow、Ask、Deny 决策',
+        'MCP 与工具审批',
+        '沙箱是否让命令免审批（不含沙箱边界强度）',
+      ],
       excludes: ['Plan 模式本身', 'OS 沙箱强度', '企业账号角色权限'],
       facts: [
         '五家都具备交互审批，但参与决策的工具范围、规则优先级和宿主回调不同。',
         'Claude Code、Qwen Code、Kimi Code 与 Qoder CLI 都公开了工具级规则；Codex 把审批策略与沙箱边界分开配置。',
         'Kimi Code 把内置风险询问做成三条具名策略（`dangerous-command-ask`、`sensitive-file-access-ask`、`git-control-path-access-ask`），由 `[permission] dangerous_command_guard` 一个布尔键整体开关；它们只决定要不要问用户，不替代 OS 沙箱，也不影响工具层对秘密文件的 `PATH_SENSITIVE` 硬阻断。',
         'Kimi Code 的 13 条策略按固定顺序求值、第一条命中即定案，链上位置决定豁免范围：危险命令 guard 排在 `session-approval-history` 与 `user-configured-allow` 之前，会话内放行和用户 allow 规则都不能豁免它；敏感文件与 git 控制路径两条 guard 排在这两者之后，可以被用户 allow 规则或会话内放行覆盖。',
+        'Claude Code 把「沙箱内命令是否免审批」做成一个独立开关：`sandbox.autoAllowBashIfSandboxed` 为 `true` 时是 auto-allow mode（沙箱内 Bash 不弹确认），为 `false` 时是 regular permissions mode（沙箱内命令照旧走权限流程），官方写明两种模式的文件系统与网络限制完全相同、差别只在是否自动批准；该键默认值在 v2.1.324 由 `true` 翻成 `false`，更新日志把这条改动宣布在 v2.1.325 段。',
+        'Codex 的同类耦合写在审批策略而不是沙箱里：官方逐字为 “With `on-request`, commands allowed by the sandbox can run without approval, read accessible files, and use network access if enabled.”，越出沙箱、用网络或跑受信集合外的命令才询问，granular 策略再按 `sandbox_approval`、`rules`、`mcp_elicitations`、`request_permissions`、`skill_approval` 五类分别决定询问是否浮现。',
+        'Qwen Code 只声明反方向的关系：“Approval and YOLO do not expand the filesystem or network policy.”，即审批模式不放宽沙箱策略，而沙箱也不带来免审批；Kimi Code 的三份更新日志与 Qoder CLI 的 Permissions、Settings reference 两页对 `sandbox`／`沙箱` 的命中数都是 0，两家 CLI 没有 OS 沙箱，因此不存在这一层耦合。',
       ],
       behavior: {
         claude:
-          '默认模式下，文件修改和需要授权的 Bash 调用弹出确认；规则可直接允许、强制询问或拒绝。',
+          '默认模式下，文件修改和需要授权的 Bash 调用弹出确认；规则可直接允许、强制询问或拒绝。沙箱与审批是两层：官方 Sandboxing 页开篇逐字写 “Sandboxed commands still go through the regular permission flow unless you choose auto-allow mode, which can run them without asking you.”。auto-allow mode 下 “Claude Code approves a command automatically, with no prompt, when the command runs inside the sandbox”，命令一旦落到沙箱外（命中 `excludedCommands`，或 Claude 用 `dangerouslyDisableSandbox` 重试）就回到常规权限流程；auto-allow 与权限模式相互独立，官方给出三条例外——plan mode、auto mode 下带 per-command allowed domains 的命令、auto mode 下对沙箱命令的服务端 classifier 审查，并写明开启 auto-allow 后即使在 Manual 模式，沙箱边界内改文件的 Bash 命令也不再询问而同样的文件编辑工具仍会询问。auto-allow 下仍有五类不免审批：命中 `Bash` deny 规则的形状照旧阻断、被识别为指向 critical path 的 `rm`/`rmdir` 回到常规流程、`Bash(git push *)` 这类 content-scoped ask 规则仍强制询问、裸 `Bash` 或 `Bash(*)` ask 规则只对沙箱内命令跳过（plan mode 下不跳过、连只读命令也问）、Monitor 工具的命令不自动批准（仍在沙箱内运行，要免询问得写 `Bash(npm run *)` 这类 allow 规则）。另外 `FOO=bar npm test`、`make CC=clang` 与 `eval "ls"` 这类前置变量赋值、子 shell 或 eval 形状即使在 auto-allow 下也走常规权限流程但仍在沙箱内运行，官方给的免询问写法是 `Bash(make *)`、`Bash(FOO=bar npm *)` 与 `Bash(eval "ls")`，并写 “A wildcard rule such as `Bash(eval *)` doesn\'t stop this prompt”。',
         codex:
-          '`on-request` 允许 Agent 在越出沙箱、请求网络或调用需确认工具时发起审批；可由用户或 Auto-review 处理符合条件的请求。',
+          '`on-request` 允许 Agent 在越出沙箱、请求网络或调用需确认工具时发起审批；可由用户或 Auto-review 处理符合条件的请求。官方对沙箱与审批的耦合逐字写 “With `on-request`, commands allowed by the sandbox can run without approval, read accessible files, and use network access if enabled.”，`Auto` 预设（`--sandbox workspace-write --ask-for-approval on-request`）下 “Codex can read files, make edits, and run commands in the working directory automatically”，而 “Codex asks for approval to edit files outside the workspace or to run commands that require network access.”；`approvals_reviewer` 只决定由谁审阅已经需要审批的动作，官方明确 “This setting doesn\'t change sandboxing or review actions already allowed inside the sandbox.”。granular 策略按类别开关询问：`sandbox_approval`（沙箱扩权询问）、`rules`（execpolicy `prompt` 规则触发的询问）、`mcp_elicitations`、`request_permissions` 与 `skill_approval`，为 `true` 时该类询问才会浮现、否则自动拒绝。',
         qwen:
-          'Ask Permissions 模式要求文件编辑和 Shell 命令确认；Auto 模式由分类器给出允许或阻断，显式 deny 仍优先。',
+          'Ask Permissions 模式要求文件编辑和 Shell 命令确认；Auto 模式由分类器给出允许或阻断，显式 deny 仍优先。沙箱不参与审批决定：官方沙箱文档逐字写 “Approval and YOLO do not expand the filesystem or network policy.”，即 Auto 与 YOLO 只改询问行为、不放宽 `tools.executionSandbox` 的文件系统与网络策略；同标签的审批模式文档对 `sandbox` 的命中数为 0，没有「命令在沙箱内运行即免审批」的机制。',
         kimi:
           '副作用工具弹出审批面板，可单次允许、拒绝或选「Approve for this session」放行本会话同类调用。除用户规则外还有三条内置 guard 询问策略：`dangerous-command-ask` 只看 `Bash`，用 bash 解析器（`PARSE_OPTIONS = { timeoutMs: 500, maxNodes: 10_000 }`）识别 shutdown/halt/poweroff/reboot/bcdedit/diskpart/format/restart-computer/stop-computer/mkfs 与 `mkfs.*`/wipefs、`init`/`telinit` 带操作数 `0` 或 `6`、`systemctl poweroff|reboot|halt|kexec`、`dd` 的 `of=` 指向 `/dev/` 且不在 8 个安全设备内、`rm` 同时带递归与强制标志（操作数全为 `/tmp`、`/temp` 或其下且不含 `..` 段时放行），并先剥掉 `sudo`/`doas`、`env`/`command`/`exec`/`nohup`/`builtin`/`nice`、`busybox <applet>` 外壳、再递归解析嵌套 shell 的 `-c` 载荷与 `eval` 参数（上限 `MAX_NESTED_SHELL_DEPTH = 4`）；命令名比对前去目录、转小写、去 `.exe`。解析不出来的命令在 "Always Ask" 下也询问（reason 为 `unanalyzable_command`），在 "Ask When Needed" 下放行。`sensitive-file-access-ask` 对本次调用的每个文件访问跑 `isSensitiveFile`，命中即返回不带 reason 的 ask。`git-control-path-access-ask` 要求工作区 `workDir` 非空，先看相对 cwd 的路径段里有没有小写 `.git`，否则用 `git.findWorkTree(cwd)` 取 marker 后判断路径是否落在 `dotGitPath` 或 `controlDirPath` 内，读写访问都覆盖。',
         qoder:
           '每次工具调用得到 allow、ask 或 deny；TUI 消费 ask 为确认面板，SDK 与 ACP 可转给外部宿主。',
       },
       overrides: {
+        claude: {
+          entry:
+            '`/permissions` 管理规则，`Shift+Tab` 切换常用模式；启动参数使用 `--permission-mode`。`/sandbox` 单独配置 Bash 沙箱：面板有 **Mode**、**Overrides**、**Config** 三个页签（Linux 缺可选 seccomp 过滤器时多一个 **Dependencies** 页签，只显示该页签表示沙箱还起不来），**Mode** 页签在 auto-allow 与 regular permissions 两种沙箱模式之间选择，**Overrides** 页签对应 `allowUnsandboxedCommands`，**Config** 页签显示解析后的沙箱设置。',
+          defaults:
+            '默认权限模式为 `default`。只读工具通常直接运行；Bash 和文件修改按权限规则与当前模式决定是否询问。沙箱侧默认是 regular permissions mode：`sandbox.autoAllowBashIfSandboxed` 默认 `false`，官方设置参考逐字写 “**Default**: `false`. Before v2.1.324, the default was `true`”，因此只打开 `sandbox.enabled` 时沙箱内命令照旧逐个走权限流程；要恢复 v2.1.324 之前的免审批行为，必须在同一个 `sandbox` 块里同时写 `"enabled": true` 与 `"autoAllowBashIfSandboxed": true`。',
+          rules:
+            '`permissions.allow`、`ask`、`deny` 按 deny → ask → allow 处理；规则覆盖 Bash、Read、Edit、WebFetch、MCP、Agent 等工具。规则与沙箱模式互相影响：匹配某条命令的 allow 规则同时批准它的 unsandboxed retry，命令可以不询问地在沙箱外运行；反过来给 `Bash(dangerouslyDisableSandbox:true)` 写 ask 规则会让每次沙箱外重试都询问，且该 ask 优先于匹配的 allow 规则（auto 与 `bypassPermissions` 模式下同样询问）。auto-allow mode 下 deny 规则与 content-scoped ask 规则照常生效，被跳过的只有裸 `Bash`／`Bash(*)` ask 规则。',
+          boundary:
+            '权限系统覆盖全部工具；OS 沙箱覆盖 Bash、PowerShell、Monitor 三类工具命令及其子进程。沙箱默认只允许向工作目录、每用户临时目录与 `--add-dir`/`permissions.additionalDirectories` 加入的目录写入，并通过代理限制网络域名。官方把两层的作用逐字对比为：`/sandbox` 控制 “What a Bash command can access once it runs”、取代逐个动作询问的是 “The sandbox boundary itself, in auto-allow mode”；Auto mode 控制 “Whether each tool call runs”、取代询问的是 “A classifier that reviews actions”；`--dangerously-skip-permissions` 控制 “Whether each tool call runs” 而取代询问的是 “Nothing.”。沙箱的 auto-allow 与权限模式的 auto mode 是两件事：前者因为沙箱边界已经兜住命令而批准，后者用 classifier 审查动作，两者独立且可组合。权限规则在命令运行前按命令字符串求值，沙箱边界由操作系统对运行中的进程强制，“it holds regardless of what the model chose to run”。',
+          persistence:
+            '规则和模式可保存在用户、项目、本地项目或 Managed Settings；交互审批也可只放行一次或当前会话。`/sandbox` 面板的选择写进项目 `.claude/settings.local.json`（保存时 Claude Code 会把该文件加进全局 gitignore），`sandbox.autoAllowBashIfSandboxed` 的作用域是官方标注的 `Any file`；要在 managed settings 里设成 `true`，官方要求写进最高优先级 managed source 的 `sandbox` 块。只改一次会话用 `--settings`，官方示例为 `claude --settings \'{"sandbox": {"enabled": true, "allowUnsandboxedCommands": false}}\'`。更高优先级设置（managed settings 或 `--settings`）设了 `sandbox.enabled`、`sandbox.autoAllowBashIfSandboxed` 或 `sandbox.allowUnsandboxedCommands` 中任一项时，`/sandbox` 不打开面板而直接报 `Error: Sandbox settings are overridden by a higher-priority configuration and cannot be changed locally.`，可用 `/status` 的 `Setting sources` 行区分是 `Command line arguments` 还是 `Enterprise managed settings`；面板写不进文件时报 `✗ Sandbox settings not changed: <路径> couldn\'t be updated (EACCES). Start Claude Code in a project folder you can write to.`。改用户设置里的 `sandbox.enabled` 在运行中的会话里于 Claude 下一条 shell 命令时生效，`/sandbox` 的 **Mode** 页签随后标出当前生效的模式。',
+          conditions:
+            'OS 沙箱依赖 macOS Seatbelt、Linux bubblewrap 或 WSL2；默认不可用时会警告并回退，`sandbox.failIfUnavailable` 可改为失败关闭。默认值翻转的版本坐标有三处不一致需要并读：设置参考写 “Before v2.1.324, the default was `true`”，更新日志把两条 Changed 列在 `## 2.1.325` 段，而 `CHANGELOG.md` 没有 `## 2.1.324` 段、GitHub 也没有 v2.1.324 的 tag 或 Release，只有 npm 上 `@anthropic-ai/claude-code@2.1.324`（2026-11-13T18:42:36.300Z 发布，介于 2.1.323 与 2.1.325 之间）。`CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` 会关掉 auto-allow。沙箱被 managed settings 变成 admin-required（`allowUnsandboxedCommands: false` 或 `allowManagedDomainsOnly: true`）时，仓库自己的 `.claude/settings.json` 与 `.claude/settings.local.json` 里大多数放宽项被忽略，但 deny 条目与 `autoAllowBashIfSandboxed` 的取值仍然生效，官方因此要求把该键写进 managed settings 才能阻止仓库改它。auto-allow 也不改变官方对沙箱的告警：文件系统隔离关闭且命令自动放行时，沙箱内命令可以写出后续命令会读取或执行的文件（shell 启动文件、`$PATH` 上的可执行文件、`~/.claude/settings.json`）来自我扩权。',
+          status: '官方确认',
+          sources: [
+            'claude-permissions',
+            'claude-permission-modes',
+            'claude-sandboxing',
+            'claude-headless',
+            'claude-sandbox-modes',
+            'claude-sandbox-autoallow-key',
+            'claude-sandbox-panel-modes',
+            'claude-v21325-sandbox-autoallow-changelog',
+            'claude-npm-21324-version',
+            'claude-settings-reference',
+            'claude-env-vars',
+          ],
+        },
+        codex: {
+          sources: [
+            'codex-approvals',
+            'codex-config',
+            'codex-untrusted-retired',
+            'codex-approval-policy-values',
+          ],
+        },
+        qwen: {
+          boundary:
+            '可选 macOS Seatbelt 或 Docker/Podman 容器。Seatbelt 限制文件写入并按 Profile 控制网络；容器挂载工作区和 `~/.qwen`。Linux 另有 `tools.executionSandbox`（`bwrap` 或 Landlock helper，`filesystem` 与 `network` 必填）。审批与沙箱互不放宽：官方沙箱文档逐字写 “Approval and YOLO do not expand the filesystem or network policy.”，Auto 与 YOLO 只改询问行为、不扩大沙箱策略；反方向也没有「命令在沙箱内运行即免审批」的机制，v0.27.4 标签下 `docs/users/features/approval-mode.md`（15,630 字节）对 `sandbox` 的命中数为 0。该策略只能由 System 或 User 设置提供，“Workspace settings cannot enable, disable or modify this policy, even in a trusted project.”，优先级为 System over User over SystemDefaults，且 “Changes require a new runtime.”',
+          sources: [
+            'qwen-approval',
+            'qwen-sandbox',
+            'qwen-settings',
+            'qwen-headless',
+            'qwen-sandbox-execution-scope-v0253',
+            'qwen-approval-mode-no-sandbox-v0274',
+          ],
+        },
         kimi: {
           entry:
             '`/permission` 选择权限模式；`/yolo`（别名 `/yes`）与 `/auto` 分别打开权限模式列表并预选 "Ask When Needed" 与 "Never Ask"，都要按 `Enter` 确认开启；`/plan [on|off]` 切换 Plan。启动参数提供 `--plan`、`--yolo`/`-y`（隐藏别名 `--yes`、`--auto-approve`）、`--auto`，`--yolo` 与 `--auto` 互斥；恢复会话时可用这三个参数覆盖原会话保存的模式。审批面板用方向键加 `Enter` 或 `1`/`2`/`3` 数字键确认，`Esc`/`Ctrl-C`/`Ctrl-D` 拒绝。',
@@ -208,7 +264,7 @@
           noninteractive:
             '`--prompt`/`-p` 非交互执行不能与 `--yolo`、`--auto`、`--plan` 同用，固定按 `auto` 权限策略处理、不请求人工审批，静态 deny 规则仍生效。源码层面 `bootstrap.args.nonInteractive` 为真时 `dangerous-command-ask` 整条不进策略链（官方测试 “does not load the dangerous command policy for non-interactive hosts”）；另两条文件 guard 仍在链上，但排在它们前面的 `auto-mode-approve` 会先放行。',
           conditions:
-            '三条 guard 只在 "Always Ask" 与 "Ask When Needed" 下工作："Never Ask"（`auto`）里 `dangerous-command-ask` 与两条文件 guard 都被前置的 `auto-mode-approve` 或自身早退跳过，官方交互文档写这些命令在该模式下直接执行、不再拦截；退出 Plan 模式的审批不被 `/yolo` 跳过。`dangerous_command_guard` 关掉全部三条 guard 的语义只在 main 分支（提交 `6e7cc909da90`，PR #4250，2026-10-16），最新 Release `@moonshot-ai/kimi-code@2.2.0`（2026-10-14）里该键只关危险命令一项；拆成多个独立开关的 PR #4219 已于 2026-10-16 关闭且未合并。该键自提交 `4b9888b73db5`（PR #3290，2026-08-31）起存在，2.0.0 至 2.2.0 各 tag 的配置文档都有记载。官方对开关的用法建议逐字为“此开关只适用于已经在 Agent 之外统一命令限权的环境”。',
+            '三条 guard 只在 "Always Ask" 与 "Ask When Needed" 下工作："Never Ask"（`auto`）里 `dangerous-command-ask` 与两条文件 guard 都被前置的 `auto-mode-approve` 或自身早退跳过，官方交互文档写这些命令在该模式下直接执行、不再拦截；退出 Plan 模式的审批不被 `/yolo` 跳过。`dangerous_command_guard` 关掉全部三条 guard 的语义由提交 `6e7cc909da90`（PR #4250，2026-10-16T05:23:18Z）引入，自 Release `@moonshot-ai/kimi-code@2.3.0`（2026-10-21T05:51:43Z）起随发布版提供——以该提交为 base 的 compare 对 2.3.0 是 `status: ahead`、`ahead_by: 12`、`behind_by: 0`，对核对日期最新的 2.6.2（2026-11-13T17:20:51Z，标签提交 `6a8493df3e1d796a63f7c7ca0de76c1e690cd943`）是 `ahead_by: 221`、`behind_by: 0`，2.6.2 的中文配置文档（48,917 字节）里该段逐字未变；2.2.0（2026-10-14）及更早版本里该键只关危险命令一项；拆成多个独立开关的 PR #4219 已于 2026-10-16 关闭且未合并。该键自提交 `4b9888b73db5`（PR #3290，2026-08-31）起存在，2.0.0 至 2.2.0 各 tag 的配置文档都有记载。官方对开关的用法建议逐字为“此开关只适用于已经在 Agent 之外统一命令限权的环境”。Kimi Code 没有 OS 沙箱，因此不存在「命令在沙箱内运行即免审批」这一层：三份官方更新日志（中文 118,340 字节与英文 126,221 字节都固定到提交 `f082f04a093a3e71a2263c5461d52507dc31f83a`、`apps/kimi-code/CHANGELOG.md` 490,217 字节固定到 `8d939f7dc76adde3d68a1d489eea3e8ea57e2b9a`）对 `sandbox` 与 `沙箱` 的命中数都是 0，2.6.0 至 2.6.2 没有新增沙箱或免审批机制。',
           sources: [
             'kimi-modes-interaction',
             'kimi-guard-slash-commands',
@@ -231,6 +287,18 @@
             'kimi-guard-changeset',
             'kimi-guard-split-switch-pr',
             'kimi-guard-release-220',
+            'kimi-guard-release-230-262',
+            'kimi-guard-config-docs-262',
+            'kimi-changelog-no-sandbox',
+          ],
+        },
+        qoder: {
+          conditions:
+            '未信任目录强制回退 `default`；受保护路径仍可要求审批或在 Auto 中拒绝。PreToolUse Hook 的 deny 即使在 bypass 下也能阻断。CLI 侧没有沙箱这一层：Permissions 页（29,164 字节）与 Settings reference 页（31,992 字节）对 `sandbox` 的命中数都是 0，没有 `sandbox.*` 键，也没有「命令在沙箱内运行即免审批」的机制；`docs.qoder.com/en/cli/permissions` 的 HTML 里出现的 sandbox 字样全部来自站点导航与其他 Surface（Qoder App 的 `qoder/approval-and-sandbox`、`qoder/terminal-and-sandbox` 与 Cloud Agents 的容器沙箱）。Qoder CLI SDK 另有默认关闭的 Sandbox Settings，属 SDK Surface。',
+          sources: [
+            'qoder-permissions',
+            'qoder-sdk-reference',
+            'qoder-cli-permissions-no-sandbox',
           ],
         },
       },
@@ -652,7 +720,7 @@
           defaults:
             '版本库目录通常采用 `workspace-write` + `on-request`，非版本库目录通常采用 `read-only`；具体启动状态还受目录信任和配置影响。原生 Windows 上 agent 模式默认就用 Windows 沙箱阻止工作目录外写入；未选择模式时 Codex 优先 `elevated`，`elevated` 安装没完成会退回 `unelevated`。MXC 不自动启用：`features.prefer_mxc` 在功能登记册里是 `Stage::UnderDevelopment` 且 `default_enabled: false`，`windows.sandbox = "mxc"` 则是严格选择。',
           rules:
-            '`approval_policy` 支持 `untrusted`、`on-request`、`never` 和 granular 分类策略；命令 Rules、MCP 注解、权限 Profile 与沙箱共同生效。企业可用 `requirements.toml` 的 `[windows] allowed_sandbox_implementations = ["elevated"]` 限定允许的原生沙箱实现，写两个值即两者都允许；配置与强制规则冲突时本地客户端回退到兼容值并通知用户。官方 Sandboxing 页把三种模式逐字记为 `read-only`（“The agent can inspect files, but it can\u0027t edit files or run commands without approval.”）、`workspace-write`（“The agent can read files, edit within the workspace, and run routine local commands inside that boundary. This is the default low-friction mode for local work.”）与 `danger-full-access`（“The agent runs without sandbox restrictions.”），并写 “Full access means using `sandbox_mode = "danger-full-access"` together with `approval_policy = "never"`.”。',
+            '`approval_policy` 的官方取值只剩 `on-request`、`never` 与 granular 五键（`untrusted` 不支持、`on-failure` 已弃用，详见交互审批字段）；命令 Rules、MCP 注解、权限 Profile 与沙箱共同生效。企业可用 `requirements.toml` 的 `[windows] allowed_sandbox_implementations = ["elevated"]` 限定允许的原生沙箱实现，写两个值即两者都允许；配置与强制规则冲突时本地客户端回退到兼容值并通知用户。官方 Sandboxing 页把三种模式逐字记为 `read-only`（“The agent can inspect files, but it can\u0027t edit files or run commands without approval.”）、`workspace-write`（“The agent can read files, edit within the workspace, and run routine local commands inside that boundary. This is the default low-friction mode for local work.”）与 `danger-full-access`（“The agent runs without sandbox restrictions.”），并写 “Full access means using `sandbox_mode = "danger-full-access"` together with `approval_policy = "never"`.”。',
           boundary:
             '本地 CLI/IDE 使用 OS 级沙箱，官方逐字为 “Codex uses platform-native enforcement on each OS. The implementation differs between macOS, Linux, WSL2, and native Windows”。`read-only`、`workspace-write`、`danger-full-access` 分别提供只读、工作区写入和无沙箱边界；`sandbox_workspace_write.writable_roots` 可在不移除沙箱的前提下扩展可写目录。macOS 用内置 Seatbelt 且开箱可用；Windows 在 PowerShell 下用原生 Windows 沙箱、在 WSL2 下用 Linux 沙箱实现。原生 Windows 沙箱还做 UI 隔离：官方文档写两种模式默认使用私有桌面，并给出 `windows.sandbox_private_desktop = false` 退回旧的 `Winsta0\\Default`，但固定到的 `WindowsToml` JSON schema 是 `additionalProperties: false` 且只有 `sandbox` 与 `allow_mxc` 两个键，该键的实际可用性记为未确认。MXC 后端另有限制：路径与环境变量值以 Unicode 字符串表示，非 Unicode 值直接失败而不做有损转换；显式为空的子进程环境被拒绝；请求 deny 路径还要求原生 `PSE_SUPPORT_FS_DENY` 能力，否则命令在启动前失败。官方 Sandboxing 页没有讨论「Codex 自己跑在容器里」的嵌套场景，也没有给出 Claude `enableWeakerNestedSandbox` 或 Qwen `partial` enforcement 一类的削弱档位。',
           persistence:
