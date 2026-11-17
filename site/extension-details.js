@@ -1810,5 +1810,207 @@
         'session-context-usage',
       ],
     }),
+    'extension-status-line': createDetail({
+      id: 'extension-status-line',
+      definition:
+        '记录终端界面底部那条常驻状态行（各家用语不同：status line、状态栏、Status Bar、footer）的可定制程度——能不能挑选和排序内置条目、能不能把整行交给用户 Shell 命令或 MCP Server 渲染、内容从哪里来、什么时候刷新、失败时怎么办，以及配置写在哪个作用域、在哪些界面生效。',
+      includes: [
+        '状态行的内容来源：内置条目清单、用户脚本、MCP Provider',
+        '脚本或 Provider 的输入契约（stdin JSON 或 resource read 的 meta 载荷）、输出行数、超时、失败回退与刷新触发',
+        '配置键名、默认值、作用域与持久化位置，以及关闭或清空状态行的入口',
+        '生成脚本的辅助入口（`/statusline` 一类命令、对话框、子代理）',
+        '与状态行绑定的信任、沙箱或托管设置门控',
+      ],
+      excludes: [
+        '终端窗口或标签标题：Codex `tui.terminal_title`、Qoder `ui.dynamicWindowTitle`、Qwen `ui.showStatusInTitle` 是另一条能力',
+        '发给终端或复用器的会话状态协议，例如 Qoder 的 OSC 7501 与 Codex 的 `activity` 标题项',
+        '主题、语法高亮与输出风格，只有影响状态行配色的那个开关计入本页',
+        '会话内一次性的进度提示、spinner 文案、工具执行状态行与 VS Code 面板、Cloud、Remote Control 界面自己的状态条',
+      ],
+      facts: [
+        '五家都在终端底部有一条常驻状态行，但「可自定义」分三档：Claude Code、Qwen Code、Kimi Code 与 Qoder CLI 都能把整行交给用户 Shell 命令，Codex 已发布版本只能挑选并排序内置条目、不执行用户脚本。',
+        '只有 Codex 走 MCP。main 分支新增 `tui.status_line_provider`，MCP 工具用 `tool.meta["openai/ui"].entrypoints` 里 `type` 为 `statusline` 的入口给出一个 `ui://` 资源 URI，Codex 读该资源并把线程状态快照放在请求 `meta` 的 `com.openai/codex-statusline-state` 键下，返回内容要过 JSON UI 树校验；整条路径由 `features.tui_extensions_statusline`（`Stage::UnderDevelopment`、`default_enabled: false`）门控，2026-11-17 的六个提交（PR #61979、#61981、#61985、#61986、#61988、#61990）都晚于当日最新的 `rust-v0.171.0-alpha.11`，尚未随任何 Release 发布。',
+        '默认状态相反。Qwen Code 未设置 `ui.statusLine` 时自动套用内置预设（v0.19.3 起），要显式写 `null` 才关闭；Claude Code 官方写 “**Default**: unset, so no status line”；Codex 未设置时用三个默认条目；Kimi `items` 为 `null` 时用七个默认槽位；Qoder 不写 `statusLine.command` 时显示内置默认状态栏。',
+        '内置条目数量差一个数量级：Codex 33 个 kebab-case id（另有一批别名，如 `model-name`→`model`、`session-id`→`thread-id`、`context-usage`→`context-used`）、Qwen 16 个 id、Kimi 8 个槽位；Claude Code 与 Qoder CLI 不提供内置条目清单，内容完全由脚本决定。',
+        '脚本输入契约都是「JSON 进、文本出」，但字段面差别很大。Claude 的载荷最宽，覆盖 model、workspace、cost、context_window、effort、thinking、rate_limits、prompt_cache、session、output_style、vim、agent.name、pr 与 worktree；Qwen 次之，含 `metrics` 与 `worktree`，源码注释明写字段名对齐 claude-code 以便两个 CLI 共用脚本；Kimi 只有 10 个字段；Qoder 官方只写 “including Session ID, Working Directory, model, context usage, Git branch, Vim mode, etc.”，没有字段表。',
+        '输出与超时三套口径。Claude 不限行数（每条 `echo` 一行）、没有公布超时，靠「新触发到来就取消在跑的脚本」兜底；Qwen 最多 2 行、5 秒超时、`maxBuffer` 10 KB；Kimi 只取 stdout 首行、300 ms 上限、每秒最多重跑一次、64 KiB 截断；Qoder 与 Codex 的内置条目都没有公布上限。',
+        '失败行为分两类。Kimi 明确「失败回退内置布局」，spawn 异常、超时、非零退出与空首行都返回 null；Claude 与 Qwen 是清空——Claude 只在脚本退出码 0 且有 stdout 时显示（“Scripts that exit with non-zero codes or produce no output cause the status line to go blank”），Qwen 报错或空输出把状态行清成空数组。',
+        '只有 Claude Code 把状态行与权限体系显式绑定：`statusLine` 执行 Shell 命令，因此走与设置文件里 Hooks 相同的工作区信任规则，未接受信任对话框前保持空白（debug 日志 `Status line command skipped: workspace trust not accepted`），并被 `disableAllHooks`、`allowManagedHooksOnly` 与 `--safe-mode` 三道门收窄到托管设置的值。Qwen 的门禁是另一条：`getShellExecutionSandbox()` 为真时 command 模式静默失效，官方文档没有提到。',
+        '生效面全部限定在交互式终端，五家都没有把自定义状态行扩展到 headless、ACP/IDE、Web 或 SDK。代码级证据分别是 Qwen `statuslineCommand.ts` 的 `supportedModes: [\'interactive\'] as const` 与 `nonInteractiveCli.ts` 的 0 命中、Kimi `FooterComponent` 的引用点全在 `src/tui/**` 且 acp-server／kap-server／vscode／cli 全部 0 命中、Codex `read_only_history` 下直接返回空选择。',
+        '生成脚本的方式三家三路：Claude 的 `/statusline` 由主对话按自然语言生成脚本文件并自动更新设置，无参数时按用户 Shell 提示符自动配置；Qwen 的 `/statusline <文本>` 转交内置子代理 `statusline-setup`（工具只有 read_file／write_file／edit），无参数才开对话框；Qoder 的 `/statusline` 官方描述是「读你的 Shell 配置自动生成脚本」；Codex 的 `/statusline` 只是条目选择器，Kimi 没有 Slash 命令、只能改文件后用 `/reload-tui`。',
+        '按段配色只有一家。Qoder 提供 `statusLine.colors` 给内置默认状态栏按段配色，取值可以是十六进制、ANSI 名或自然语言色名（如 `ocean blue`），上下文进度条忽略自定义颜色、按用量自动变绿/黄/红；Codex 与 Qwen 各用一个布尔（`tui.status_line_use_colors`、`useThemeColors`）决定是否套用主题色；Claude 与 Kimi 没有配色键，颜色只能由脚本自己输出 ANSI。',
+        '文档滞后在三家同时出现。Kimi 中文配置文档的字段表只列 7 个槽位、缺源码里 2.5.0 新增的 `environment`，而自动生成的 `tui.toml` 模板列的是 8 个；Qwen 的 “Example output” 写 5 项且顺序不符合规范序（源码默认是 4 项），“Removal” 一句说删掉键会恢复 `? for shortcuts`（实际回落到默认预设）；Codex 的 Configuration reference 只收录 `tui.status_line`，`tui.status_line_provider`、`tui.status_line_use_colors` 与 `tui_extensions_statusline` 命中数均为 0。',
+      ],
+      products: {
+        claude: {
+          entry:
+            '`/statusline` 加自然语言描述（官方示例 “/statusline show model name and context percentage with a progress bar”），无参数时 “auto-configure from your shell prompt”；让它移除的写法是 `/statusline delete`、`/statusline clear` 或 `/statusline remove it`。手工路径是在 settings.json 里写 `statusLine` 对象。排障用 `claude --debug`，它会在每次调用记录脚本 stderr、在会话内首次调用记录退出码。',
+          location:
+            '`statusLine` 写在用户设置 `~/.claude/settings.json` 或项目设置，官方 Scope 标注是 `Any file`，归在 “Interface and terminal” 组；`/statusline` 生成的脚本文件放在 `~/.claude/` 下并自动更新设置（“Claude Code generates a script file in `~/.claude/` and updates your settings automatically”），执行期间的文件改动要等下一次触发才生效。官方给出的示例脚本路径是 `~/.claude/statusline.sh`，并要求 `chmod +x`。',
+          behavior:
+            '官方定义逐字为 “The status line is a customizable bar at the bottom of Claude Code that runs any shell script you configure. It receives JSON session data on stdin and displays whatever your script prints, giving you a persistent, at-a-glance view of context usage, costs, git status, or anything else you want to track.”。渲染位置是 “in its own row above the built-in footer badges and doesn’t replace them”，配置后 Claude Code 停止显示部分页脚提示（`? for shortcuts` 与语音听写的 `hold space to speak`）。输出可以是多行（每条 `echo`／`print` 一行）、ANSI 颜色与 OSC 8 可点击链接（需终端支持，`FORCE_HYPERLINK=1` 可覆盖检测；Terminal.app 不支持；SSH 与 tmux 可能吞掉转义序列；出现字面 `\\e]8;;` 时官方建议改用 `printf \'%b\'`）。终端尺寸不能从脚本里用 `tput cols` 读，要读 Claude Code 事先设好的 `COLUMNS` 与 `LINES`。stdin JSON 字段表覆盖 `model.id`／`display_name`、`cwd`／`workspace.current_dir`／`project_dir`／`added_dirs`／`git_worktree`／`repo.host`、`cost.total_cost_usd`／`total_duration_ms`／`total_api_duration_ms`／`total_lines_added`、`context_window.*`、`exceeds_200k_tokens`、`fast_mode`、`effort.level`、`thinking.enabled`、`rate_limits.five_hour|weekly|spend_limit.*`、`prompt_cache.*`、`session_id`、`session_name`、`prompt_id`、`transcript_path`、`version`、`output_style.name`、`vim.mode`、`agent.name`、`pr.number|review_state|kind` 与 `worktree.name|path|branch|original_cwd|original_branch`。官方注明状态行 “runs locally and does not consume API tokens”，并在帮助菜单与权限提示等交互期间临时隐藏；非全屏渲染下系统通知（MCP Server 错误、自动更新、上下文偏低告警）与状态行共用同一行、显示在右侧，verbose 模式在该区加 token 计数，窄终端会截断状态行输出，全屏渲染下通知独占一行。',
+          scope:
+            'Scope `Any file`，即任意设置文件都能写。两道收窄决定按顺序生效：托管设置里设了 `disableAllHooks`、或文件夹未受信时完全关闭；设了 `allowManagedHooksOnly`、非托管设置里 `disableAllHooks` 为 `true`（按设置优先级合并后）、或用 `--safe-mode` 启动时收窄到托管设置的值——“Under narrowing, Claude Code runs a managed value if one is deployed. Otherwise it skips your value without warning: the status line is disabled”。组织还可用 `modelPricing` 让状态行里的成本按合约费率而不是标价计算。',
+          components:
+            '一个设置对象 `statusLine`：必填 `type: "command"` 与 `command`（脚本路径或内联 Shell 命令，`command` 在 Shell 里跑，官方示例直接用 `jq -r` 内联），可选 `padding`（水平间距字符数，默认 0，是在界面自带间距之上的相对缩进）、`refreshInterval`（每 N 秒额外重跑，最小 1）、`hideVimModeIndicator`（脚本自己渲染 `vim.mode` 时抑制内置 `-- INSERT --`）。周边组件：`footerLinksRegexes` 与 footer badges 是不写脚本就把会话里的 ID 变成可点击徽章的替代路径，官方写明二者 “render alongside a custom status line when one is configured; neither replaces the other”；曾有 `subagentStatusLine` 让 Subagent 行用独立脚本，v2.1.323 起移除。',
+          loading:
+            '会话开始（含恢复）跑一次，之后在新 assistant 消息到达、`/compact` 结束、权限模式变化、Vim 模式切换、`statusLine` 里的 `command` 被改动、`refreshInterval` 计时到点、上次收到的数据里某个 rate-limit 窗口到达 `resets_at`、某个 warm prompt cache 到达 `expires_at` 时再跑。节流是 “Claude Code debounces updates at 300ms, so rapid changes batch together and your script runs once after the changes stop.”，改 `command` 本身跳过去抖立即执行；新触发到来时取消在跑的脚本。官方提醒主会话空闲（例如协调者等后台 Subagent）时事件触发会安静下来，需要 `refreshInterval` 兜底；保存设置文件后 Claude Code 自动重载并立即运行脚本。',
+          surfaces:
+            '以交互式终端为准。官方专页对 `desktop`、`VS Code`、`SDK`、`non-interactive`、`-p`、`web` 的命中数均为 0，命令参考里 `/statusline` 行也没有同页其他命令常带的 “Also available in non-interactive mode (`-p`)” 标注，因此 `-p`、Agent SDK、VS Code 面板、桌面端与 Cloud 会话是否渲染自定义状态行记为未确认。需要区分三处同名但不同的东西：更新日志里 `claude remote-control` 的状态行、agent view 里后台会话的 “live status line”、以及 VS Code 面板把后台 Subagent 收成 “one status line under their Agent card”，都不是 `statusLine` 脚本。',
+          permissions:
+            '因为执行 Shell 命令，`statusLine` 走与设置文件里 Hooks 相同的工作区信任规则：“Until you accept the workspace trust dialog, the status line stays blank.”，接受该文件夹或某个父目录的信任即可，未接受时 `claude --debug` 记录 “Status line command skipped: workspace trust not accepted”。更新日志里有一条对应的安全修复：“Fixed a security issue where `statusLine` and `fileSuggestion` hook commands could execute without workspace trust acceptance in interactive mode.”。组织侧的门控见「作用域与优先级」；`disableAllHooks` 的官方描述就是 “Turn off hooks, a custom status line, and a custom `@` file suggestion command at once”。',
+          conditions:
+            '默认 “unset, so no status line”。只在脚本退出码 0 且有 stdout 时显示，非零退出或无输出即空白，慢脚本会阻塞刷新直到跑完，官方因此建议脚本保持轻快并缓存 `git status` 一类慢操作。Windows 上装了 Git Bash 走 Git Bash、否则走 PowerShell；Git Bash 会把未加引号的反斜杠当转义字符，`C:\\Users\\username\\script.mjs` 这种路径会丢掉分隔符且失败时没有可见错误，`command` 里的路径要写正斜杠（`~` 可用），跑 PowerShell 脚本要写 `powershell -NoProfile -File C:/Users/username/.claude/statusline.ps1`。首次 API 响应完成前字段可能是 `null`，脚本要自己给回退值；状态行的上下文百分比取自上一次 API 响应，`/context` 会额外估算此后新增的消息因而可能更高。复杂转义序列偶尔与其他 UI 更新重叠导致花屏，多行加转义比单行纯文本更容易出问题。自定义状态行自 v1.0.71 引入（更新日志逐字 “Customizable status line: add your terminal prompt to Claude Code with /statusline”），`refreshInterval` 自 v2.1.97，`padding` 与 `hideVimModeIndicator` 在更新日志里没有对应条目、引入版本未确认；`subagentStatusLine` 在 v2.1.323 移除（“subagent rows always use the default look, and settings files that still hold the key load as before”）；核对日期最新 Release v2.1.326（2026-11-16T22:11:05Z）含三条状态行渲染修复（Ctrl+C／`!` Shell 模式／粘贴图片时消失与跳屏、终端缩放或 `/cd`／`/rename` 后保留旧宽度旧目录旧会话名、自定义状态行旁缺 “esc to interrupt”）。',
+          sources: [
+            'claude-statusline-doc',
+            'claude-commands-statusline',
+            'claude-settings-statusline',
+            'claude-settings-statusline-gates',
+            'claude-v1071-statusline-changelog',
+            'claude-v2197-refreshinterval-changelog',
+            'claude-v21323-subagentstatusline-removed',
+            'claude-v21326-statusline-fixes',
+          ],
+        },
+        codex: {
+          entry:
+            '`/statusline` 打开多选选择器（切换条目、左右箭头改序、实时预览、确认后持久化），命令描述逐字为 “configure which items appear in the status line”，无别名；`/statusline <item…>` 按显示顺序只作用当前会话（官方示例 `/statusline model project-name`）；`/statusline --clear` 隐藏本会话全部条目；`--colors`／`--no-colors` 切换主题配色。`/presets` 的 “Start preset from current settings” 里有一项 “Current status line”，会把当前选择生成 `/statusline <item…>` 加 `--colors` 或 `--no-colors` 存进槽位，条目为空时生成 `/statusline --clear`。终端标题是同构的另一条命令 `/title`（写 `tui.terminal_title`）。',
+          location:
+            '`config.toml` 的 `tui.status_line`（官方 Configuration reference 逐字 “Ordered list of TUI footer status-line item identifiers. `null` disables the status line.”，类型 `array<string> | null`）与 `tui.status_line_use_colors`。main 分支的配置类型里还有 `tui.status_line_provider`，注释逐字为 “Local status line selection. Set to \"default\" for built-in items or specify an MCP server and tool.”，取值是 `BuiltinStatusLine::Default`（小写 `default`）或 `StatusLineProviderId { server, tool }`。选择器写 config.toml，行内参数只改内存里的 `local_settings.tui.status_line`／`status_line_use_colors` 与该线程的 `StatusSurfaceOverrides`。',
+          behavior:
+            '官方 “Configure footer items with `/statusline`” 一节的预期结果逐字为 “The footer status line updates immediately and persists to `tui.status_line` in `config.toml.”，可用条目官方概括为 “model, model+reasoning, context stats, rate limits, git branch, token counters, session id, current directory/project root, and Codex version”。源码里 `StatusLineItem` 用 `#[strum(serialize_all = "kebab_case")]` 派生，33 个变体为 `ModelName`（`to_string` 是 `model`、别名 `model-name`）、`ModelWithReasoning`、`Reasoning`、`CurrentDir`、`ProjectRoot`（`project-name`，别名 `project`／`project-root`）、`Hostname`、`GitBranch`、`PullRequestNumber`、`BranchChanges`、`Status`（`run-state`，别名 `status`，说明是 “Compact session run-state text (Ready, Working, Thinking)”）、`Permissions`、`ApprovalMode`（别名 `approval`）、`ContextRemaining`、`ContextUsed`（`context-used`，别名 `context-usage`）、`FiveHourLimit`、`WeeklyLimit`、`CodexVersion`、`ContextWindowSize`、`UsedTokens`、`TotalInputTokens`、`TotalOutputTokens`、`ThreadCredits`、`EstimatedThreadCost`、`SessionId`（`thread-id`，别名 `session-id`）、`FastMode`、`Daybreak`、`RawOutput`、`ThreadName`、`ThreadTitle`、`WorkspaceHeadline`、`TaskProgress`、`Profile`（“Config profile selected with --profile (omitted when unset)”）与 `Provider`（别名 `model-provider`）。枚举注释写明条目按可用性条件显示：“Git-related items only show when in a git repository”、“Context/limit items only show when data is available from the API”、“Thread ID only shows after a session has started”，序列化时 “Display emits the canonical config ID even when the item was parsed from an alias.”。MCP Provider 路径下渲染的是 Provider 返回的 JSON UI 树（`StatusContent::Extension`），与内置条目的 `StatusContent::Native` 共用同一套页脚测量与绘制，线程、Provider 或工作目录变化时丢弃过期结果。',
+          scope:
+            '`tui.status_line` 按 Codex 常规配置层合并。`tui.status_line_provider` 的层语义有两处显式约束：类型注释逐字为 “An explicit default overrides an MCP provider from a lower configuration layer.”，而解析时若 `mcp_servers` 里该 Server 由 project 层定义、或 Provider 所属 Plugin 的 `plugins`／`marketplaces` 条目由 project 层定义，`resolve()` 直接返回 `None`——即项目层不能塞进来一个状态行 Provider；`has_project_field` 的注释逐字为 “Config layers arrive highest first. A project field only matters if a higher layer leaves it in the effective registration. Arrays and scalars are replaced as a whole.”。行内参数是会话级、按线程保留。',
+          components:
+            '`tui.status_line`、`tui.status_line_use_colors`（默认 `true`，注释 “Color status line items with colors derived from the active syntax theme.”）、`tui.status_line_provider` 与 `StatusLineSelection`／`StatusLineProviderId`／`BuiltinStatusLine` 三个类型；`StatusLineItem` 33 个变体；选择器里两个不是条目的动作项——`status-line-use-theme-colors`（名称 “Use theme colors”、说明 “Apply colors from the active /theme”，经 `AppEvent::StatusLineSetup { use_theme_colors, .. }` 保存），以及 main 分支上由 `provider_actions: bool` 形参门控、排在列表最前的 “Choose a statusline plugin”（`orderable: false`、`section_break_after: true`、`on_activate` 发送 `AppEvent::OpenStatuslinePicker(key)`）；`/statusline` 与 `/title` 共用的 `status_surface_commands` 与 `StatusSurfaceSelections`；MCP 侧的 `StatuslineProvider`、`inventory`（读 app server 全局 MCP 目录）、`discovery`（`INVENTORY_HEAD_START` 2 秒、`MAX_CONCURRENT_PROBES` 4）、`statusline_reader` 与 `StatuslineState` 快照；开关 `features.tui_extensions_statusline`。',
+          loading:
+            '选择器确认后立即重绘并写入 config.toml；行内参数改完调用 `refresh_status_line()` 与 `request_redraw()`，覆盖随线程输入状态保留，“navigation and reconnects retain the selected layout”，由 `restore_status_surface_overrides` 回填。只有选中 `GitBranch`、`PullRequestNumber` 或 `BranchChanges` 时才发起对应的 git 查询，状态行与终端标题在同一次刷新里共享这些结果与无效项告警。无效 id 按插入顺序去重后只告警一次，文案逐字为 “Ignored invalid status line item(s): ….”（数量决定 `item`／`items`），且要求 `thread_id` 已存在。`/statusline` 在 `available_during_task` 分支里，模型回合进行中也能改。MCP Provider 查找有 5 秒上限，超时错误逐字为 “statusline provider lookup timed out after 5 seconds”；Server 未连接时 “MCP server {name} is not connected”。',
+          surfaces:
+            '以 Codex CLI 的 TUI 为准。只读历史下不渲染：`status_line_items_with_invalids()` 首行是 `if self.read_only_history { return Default::default(); }`。官方 “CLI customization” 页只有语法高亮与主题、Shell 补全、提示词编辑器三节，状态行命中数为 0，文档索引 `llms.txt` 同样 0 命中，即状态行只出现在 Developer commands 页与 Configuration reference 的一行里。桌面端、IDE 扩展、Codex Cloud 与 `codex exec` 下是否渲染未确认。扩展状态内容与内置状态行共用页脚布局、可以占多行，这部分已在 rust-v0.169.0（2026-11-13）落地。',
+          permissions:
+            '已发布版本不执行用户命令，因此没有 Claude Code 那种脚本信任门。MCP Provider 路径的信任边界是三条：拒绝由 project 层定义的 Server、Plugin 与 Marketplace；要求 Provider 所属 Plugin 与实时目录里的归属一致（`live.plugin_id != owner` 即返回 `None`）；要求 Server 处于 `Connected`。官方资料没有说明 Provider 返回的 UI 树是否需要用户确认，也没说它能否触发工具调用。',
+          conditions:
+            '`tui.status_line` 为 `null` 时关闭状态行，未设置时默认 `[\"model-with-reasoning\", \"current-dir\", \"thread-name\"]`（源码常量 `DEFAULT_STATUS_LINE_ITEMS`）。行内参数的三条错误文案逐字为 “Cannot combine --clear with status-line items.”、“Unknown status-line item \'<token>\'. Use /statusline to see available items.” 与 “Ambiguous status-line item \'<token>\'. Use \'five-hour-limit\' or \'weekly-limit\'.”（后一条出现在显示名同时匹配两个限流条目时）。`tui.status_line_provider`、`tui.status_line_use_colors` 与 `tui_extensions_statusline` 都不在官方 Configuration reference 里（命中数为 0），MCP Provider 整条路径由 `Stage::UnderDevelopment`、`default_enabled: false` 的开关门控——该 Stage 的注释是 “Features that are still under development, not ready for external use”，且不带 `/experimental` 菜单所需的 `name`／`menu_description`／`announcement` 字段，因此没有用户可见的开启入口；2026-11-17 推进该路径的 #61979、#61981、#61985、#61986、#61988、#61990 六个提交都晚于当日最新的 `rust-v0.171.0-alpha.11`（2026-11-17T04:24:57Z），不在任何 Release 里。其中 #61988 给 `/statusline` 选择器加了排在最前的 “Choose a statusline plugin” 动作项（由 `provider_actions` 形参门控、激活后发 `AppEvent::OpenStatuslinePicker`），即用户挑 Provider 的入口在源码里已经存在，但仍受上述开发中开关约束。核对日期最新的非 alpha Release 是 rust-v0.169.0，其发布说明里与状态行相关的六条都是布局与渲染（“Keep configured status lines on the native renderer”、“Unify TUI status line layout for extension content”、“Allow extension status content to use multiple footer rows”、“Keep TUI status content separate from composer hints”、“Wrap built-in TUI status lines within the footer row budget” 等），按 releases API 前 30 条逐条检索，`status line`／`statusline` 只在这一个版本命中，因此内置条目选择器的引入版本记为未确认。',
+          sources: [
+            'codex-statusline-command-doc',
+            'codex-config-reference-statusline',
+            'codex-config-types-statusline',
+            'codex-statusline-item-enum',
+            'codex-statusline-session-command',
+            'codex-statusline-render-defaults',
+            'codex-statusline-slash-command',
+            'codex-statusline-provider-source',
+            'codex-statusline-provider-state',
+            'codex-features-tui-extensions-statusline',
+            'codex-statusline-provider-commit',
+            'codex-v0169-release-statusline',
+            'codex-cli-customization-no-statusline',
+          ],
+        },
+        qwen: {
+          entry:
+            '`/statusline` 无参数打开交互式多选对话框（方向键移动、空格勾选、回车确认、带实时预览；终端可用行数少于 16 时切成没有搜索与预览的紧凑列表），命令描述逐字为 `t("Set up Qwen Code\'s status line UI")`；`/statusline <文本>` 把提示词交给内置子代理，官方命令页两行逐字为 “/statusline | Open interactive status line preset dialog | /statusline” 与 “/statusline <text> | Generate a command-mode status line via agent | /statusline show model and git branch”。第三条路径是直接编辑 settings.json 的 `ui.statusLine`——该键 `showInDialog: false`，`/settings` 对话框里改不了。',
+          location:
+            '键路径是 `ui.statusLine`（不是根级 `statusLine`），写在 settings.json：作用域 System／Workspace／User，读取走 `settings.merged.ui?.statusLine`。对话框保存到哪一层由 `getEffectiveStatusLineScope(settings)` 决定：System 层有值就写 System，否则 `settings.isTrusted && Workspace 层有值` 才写 Workspace，再否则写 User（`~/.qwen/settings.json`），保存后给出可见反馈 `` `Status line preset saved to ${effectiveScope.toLowerCase()} settings.` ``。子代理的系统提示词要求把用到 jq、管道、单引号转义或嵌套引号的命令一律落成脚本文件，逐字为 “ALWAYS save it as a script file (~/.qwen/statusline-command.sh) and set the command to \"bash ~/.qwen/statusline-command.sh\".”。',
+          behavior:
+            '官方定义逐字为 “The status line shows session-aware information — model name, token usage, git branch, and more — in the footer\'s left section. There are two configuration modes: - **Preset mode** — pick from built-in data items via an interactive dialog or JSON config. No scripting required. - **Command mode** — run a shell command that receives structured JSON context via stdin. Full flexibility for custom formatting.”。位置与遮挡逐字为 “When configured, the status line replaces the default \"? for shortcuts\" hint. High-priority messages (Ctrl+C/D exit prompts, Esc, vim INSERT mode) temporarily override the status line. The status line text is truncated to fit within the available width.”，行数上限来自源码常量 `export const MAX_STATUS_LINES = 2;` 与注释 “Footer\'s bottom row (hint/mode indicator) occupies 1 line, so the status line gets at most 2 to keep the total footer height at 3 rows max.”。preset 模式的 16 个 id 按规范序为 `project-name`、`git-branch`、`model-with-reasoning`、`model`、`context-remaining`、`total-input-tokens`、`total-output-tokens`、`current-dir`、`pull-request-number`、`branch-changes`、`context-used`、`run-state`、`qwen-version`、`context-window-size`、`used-tokens`、`session-id`，`orderStatusLinePresetItems` 会强制按这个顺序重排、用户写的顺序不生效；标了 `defaultSelected: true` 的四项是 `project-name`、`git-branch`、`model-with-reasoning` 与 `context-used`，`id: \'model\'` 一项在对话框里的 label 是 `model-only`。command 模式的 stdin JSON 含 `session_id`、`version`、`model.display_name`、`context_window.{context_window_size, used_percentage, remaining_percentage, current_usage, total_input_tokens, total_output_tokens}`、`workspace.current_dir`、`git`（仅在 git 仓库内出现）、`worktree.{name,path,branch,original_cwd,original_branch}`、`metrics.models.<id>.{api,tokens}`、`metrics.files.{total_lines_added,total_lines_removed}` 与 `vim`（仅 Vim 模式开启时出现，含 `mode` 为 `INSERT` 或 `NORMAL`）；`worktree` 字段的源码注释逐字为 “Field names mirror claude-code\'s StatusLine payload so users can share statusline scripts across both CLIs.”，官方另提醒 “stdin can only be read once. Always store it in a variable first: `input=$(cat)`.”。配色三键：`useThemeColors` 默认 `true` 时套用 `/theme` 的颜色、为 `false` 时用变暗的页脚样式；`respectUserColors: true` 保留命令输出里的 ANSI 颜色；`hideContextIndicator` 是三态，未设置时对已含 `context-used` 或 `context-remaining` 的 preset 自动隐藏页脚右侧的内置上下文指示器、其他情况（含 command 模式）显示。`pull-request-number` 会在后台跑 `gh pr view --json number --jq .number`，2 秒超时、只在分支变化时触发。',
+          scope:
+            '三层作用域按 System > Workspace > User 合并读取，Workspace 层只在文件夹受信（`settings.isTrusted`）时才被采纳。`requiresRestart: false`，官方 Behavior 一节逐字为 “**Hot reload**: Changes to `ui.statusLine` in settings take effect immediately — no restart required.”。schema 描述的默认行为逐字为 “When unset (default), the built-in default preset (project name, git branch, model, context usage) is shown automatically; set to `null` to explicitly disable the status line.”，源码里对应 `raw === null` 返回 `undefined`、`raw === undefined` 返回 `DEFAULT_STATUS_LINE_PRESET_CONFIG`，注释点名 issue #5789。没有环境变量、也没有 CLI 旗标可以设置。',
+          components:
+            '`ui.statusLine` 一个键承载两种 `type`（`preset` 与 `command`）· 16 个 preset id 与 `STATUS_LINE_PRESET_ITEM_IDS` 规范序 · `refreshInterval`（秒，≥1）／`respectUserColors`／`hideContextIndicator`／`useThemeColors` 四个子字段 · `/statusline` 命令与 `StatusLineDialog` 组件 · 内置子代理 `statusline-setup`（描述 “Use this agent to configure the user\'s Qwen Code status line setting.”，工具只有 `read_file`／`write_file`／`edit`，颜色 orange，系统提示词含把 Shell PS1 转义映射成命令的步骤）· 相邻的 `ui.hideBuiltinWorktreeIndicator`（隐藏内置 `⎇ worktree-<branch> (<slug>)` 行，但 worktree 状态仍通过 stdin 载荷交给自定义脚本）· Ink 与 OpenTUI 两套渲染器各自实现（`Footer.tsx` 与 `opentui-footer.tsx`），另有 PTY 级集成测试 `integration-tests/interactive/statusline-parity.test.ts` 与设计文档 `docs/design/2026-10-21-opentui-statusline-parity.md`（含中文版）。',
+          loading:
+            '更新触发逐字为 “The status line updates when the model changes, a new message is sent (token count changes), vim mode is toggled, git branch changes, tool calls complete, or file changes occur. Updates are debounced (300ms).”。热重载的实现是空闲时重载用户作用域再比对，源码注释逐字为 “File edits made during a turn bypass in-memory settings; reload the user scope on idle, then re-render only if ui.statusLine changed.”，另有 “Re-execute immediately when the command itself changes (hot reload).”。`refreshInterval` 在事件触发之外定时重跑，校验条件是 `typeof raw.refreshInterval === \'number\' && Number.isFinite(raw.refreshInterval) && raw.refreshInterval >= 1`，源码注释提醒设成 1 秒会刷爆终端（#3383）。command 用 `exec(cmd, { cwd: cfg.getTargetDir(), timeout: 5000, maxBuffer: 1024 * 10 })` 执行，官方写明 macOS/Linux 走 `/bin/sh`、Windows 默认 `cmd.exe`，POSIX 命令要用 `bash -c "..."` 包一层或指向 bash 脚本。',
+          surfaces:
+            '仅交互式 TUI。命令定义写死 `supportedModes: [\'interactive\'] as const`；`packages/cli/src/nonInteractiveCli.ts` 对 `statusline`／`Footer` 命中数为 0，即 `-p` headless 不渲染；`packages/cli/src/acp-integration/` 与 `packages/acp-bridge/src/` 命中数为 0，ACP 与 IDE 不带这条状态行；`packages/web-shell/` 只有 4 处命中且全是非渲染用途（帮助对话框的 Slash 命令名白名单、三语的 `agentType.statusline-setup` 标签），Web Shell 自己的页脚组件是侧栏版本信息与溢出布局，与 `ui.statusLine` 没有代码关联，不能把 `qwen serve` 的页脚记作 CLI 状态行。屏幕阅读器布局 `ScreenReaderAppLayout.tsx` 也 import 了 `Footer`，但 a11y 模式下的实际输出未确认。',
+          permissions:
+            '没有 Claude Code 那样的工作区信任对话框门禁记录；信任只体现在作用域上——Workspace 层的 `ui.statusLine` 只在文件夹受信时被采纳。这条能力唯一的显式安全边界是沙箱：`const statusLineCommand = !config.getShellExecutionSandbox?.() && statusLineConfig?.type === \'command\' ? statusLineConfig.command : undefined;`，即开启 Shell 执行沙箱时 command 模式静默失效（不报错、不提示），`pull-request-number` 的 `gh` 查询同样在沙箱下被清空。官方状态行文档与 Settings 页都没有提到这一点，只见于源码。preset 模式不跑任何外部命令，官方写明 “Preset items are computed internally — no shell commands, no `jq`, no timeouts.”。',
+          conditions:
+            '默认开启：v0.19.3（2026-06-28T06:12:31Z）的发布说明逐字为 “feat(cli): enable built-in status line preset by default for new users by @pomelo-nwu in …/pull/5792”，以对应提交 `c2dfb150de` 为 base 的 compare 对 `v0.19.3` 返回 `status: ahead`（ahead_by 73、behind_by 0），确认它是该标签的祖先；在此之前要显式配置才有状态行。关闭必须写 `null`，官方 “Removal” 一句 “Delete the `ui.statusLine` key from settings to disable. The \"? for shortcuts\" hint returns.” 与源码的默认预设回落不符，属文档滞后。“Example output” 给的是 `qwen-3-235b high | main | Context 65.7% left | /home/user/project | Context 34.3% used`（5 项、顺序也不符合规范序），源码默认是 4 项，同样以代码为准。command 模式失败即清空：`!error && stdout ? … : []`，官方写 “Commands that take longer than 5 seconds are killed. The status line clears on failure.”；`exec()` 还可能同步抛错（macOS Node 22 上的 EBADF，issue #3264），源码有专门兜底以免崩掉 CLI。版本沿革：自定义状态行与 `/statusline` 自 v0.14.3（2026-04-10T14:21:42Z，PR #2923）引入，v0.14.4 修 “prevent statusline script from corrupting settings.json”，v0.15.0 加多行输出、`refreshInterval` 与 EBADF 兜底，内置预设与交互对话框自 v0.16.0（2026-05-21T09:48:36Z，PR #4120），OpenTUI 渲染器对齐在 v0.26.1（2026-10-24T15:47:58Z，PR #14964）。文档可达性有两个坑：文档站不支持 `.md`／`index.md` 孪生体（返回同一份 17,857 字节的 Next.js 404 HTML），`llms.txt`（4,614 字节、60 行）对 `status`／`footer`／`bar` 命中数为 0，该页只能从 Settings 页左侧导航发现。仓库根 `CHANGELOG.md` 的版本头从 0.16.1 直接跳到 0.21.2，`respectUserColors`／`hideContextIndicator`（PR #4670）的确切发布版本未确认。',
+          status: '官方确认',
+          sources: [
+            'qwen-statusline-doc',
+            'qwen-statusline-site',
+            'qwen-statusline-settings-site',
+            'qwen-statusline-commands-doc',
+            'qwen-statusline-hook-source',
+            'qwen-statusline-presets-source',
+            'qwen-statusline-command-source',
+            'qwen-statusline-subagent-source',
+            'qwen-statusline-schema',
+            'qwen-statusline-scope',
+            'qwen-v0143-release-statusline',
+            'qwen-v0193-default-preset',
+            'qwen-statusline-surface-negative',
+          ],
+        },
+        kimi: {
+          entry:
+            '没有 Slash 命令入口。`apps/kimi-code/src/tui/commands/registry.ts` 的 44 个命令里没有 `statusline` 也没有 `footer`；`/status` 的描述逐字为 “Show current session and runtime status”，实现是 `showStatusReport(host)` 渲染只读的 `status-panel.ts`，不能配置页脚；`/settings`（别名 `/config`，描述 “Open TUI settings”）的 14 个选项里也没有状态栏条目。唯一入口是编辑 `tui.toml` 的 `[status_line]`，然后用 `/reload-tui`（官方描述 “仅重新加载 `tui.toml` 界面偏好（主题、编辑器、通知等），不重建会话”）或 `/reload`（同时重载 `config.toml` 与 `tui.toml`）生效；`kimi doctor tui` 可校验该文件，子命令描述逐字为 “Validate tui.toml.”。',
+          location:
+            '只有用户级一份：`getTuiConfigPath()` 逐字为 `return join(getDataDir(), \'tui.toml\');`，默认 `~/.kimi-code/tui.toml`，可用 `$KIMI_CODE_HOME` 改目录。官方说明逐字为 “除了 `config.toml`，CLI 还在同一目录下用一份配套的 `tui.toml` 保存终端界面与客户端偏好（`~/.kimi-code/tui.toml`，或覆盖后的 `$KIMI_CODE_HOME/tui.toml`）。它在首次运行时以默认值创建，交互式命令 `/config`、`/theme`、`/editor` 会自动写入，通常无需手动编辑。文件格式有误时，CLI 会回退到默认值并给出提示，而不是启动失败。”。没有项目级覆盖（项目级只有 `.kimi-code/local.toml`，内容仅 `[workspace] additional_dir`），`config.toml` 里也没有任何状态栏键。任何偏好保存都会重写整份 tui.toml，因此 `[status_line]` 被显式保活，源码注释逐字为 “An active status_line must round-trip: any preference save rewrites the whole file, so the section is emitted live when set and left as a commented-out guide when unset.”，未设置时写出的是六行注释模板（含 8 个槽位名与 `# command = \"~/.kimi-code/statusline.sh\"` 示例）。',
+          behavior:
+            '页脚固定两行，文件头注释逐字为 “Footer/status bar — multi-line status display at the bottom of the TUI. Layout: Line 1: [Ask When Needed] [plan] <model> <cwd>  <git-badge>  <shortcut hints> ／ Line 2: context: N% (tokens/max)”，只有第一行可自定义，第二行恒为「左侧 transient/warning 提示 + 右侧上下文用量」。`items` 挑选并排序内置槽位，默认顺序是 `DEFAULT_STATUS_LINE_ITEMS = [\'mode\', \'goal\', \'model\', \'tasks\', \'environment\', \'cwd\', \'git\']`，右侧另加轮播提示（`TIP_ROTATE_INTERVAL_MS = 10_000`、分隔符 `\' | \'`、nginx SWRR 加权轮转）与固定的 `ctrl+o expand|collapse` 提示；各槽位内容分别是权限模式徽章（`auto`／`yolo` 用 `colors.warning` 加粗）加 `plan`／`swarm`／`tower`、含墙钟计时的 goal 徽章、模型显示名加思考等级后缀、后台任务徽章（逐字 `[N task(s) running]` 与 `[N agent(s) running]`）、远程环境标识（本地为空，disconnected 用 `colors.error` 并附首行连接错误）、经 `shortenCwd(...)` 截断的工作目录（`MAX_CWD_SEGMENTS = 3`，远程会话显示绑定 cwd）与 git 分支/dirty 徽章加 PR 徽章。`command` 模式下 stdout 首行整体替换第一行（渲染为 `chalk.hex(colors.text)(customLine)`，注释 “status_line.command: the first stdout line takes over line 1.”），`ctrl+o` 提示随之移到第二行，注释逐字为 “A status_line.command owns line 1 outright, so the ctrl+o hint moves down here; the transient and warning hints above take precedence.”。stdin 载荷 `StatusLinePayload` 的十个字段逐字为 `model: string; cwd: string; gitBranch: string | null; permissionMode: string; planMode: boolean; contextUsage: number; contextTokens: number; maxContextTokens: number; sessionId: string; version: string;`，官方文档的对应描述是 “model、cwd、git 分支、permission 模式、plan 模式、上下文用量、session id、版本。”；远程环境下 `cwd` 传远程绑定路径、`gitBranch` 传 `null`。未知 id 跳过并告警 `[tui.toml] ignoring unknown status_line item: <id>`；`items = []` 让第一行完全空白（有对应测试 “renders nothing on line 1 for an empty items list”），是等效的隐藏方式。',
+          scope:
+            '单层，没有项目级覆盖、没有环境变量、也没有 CLI 旗标。规范化后的 schema 是 `StatusLineConfigSchema = z.object({ items: z.array(z.enum(STATUS_LINE_ITEMS)).nullable(), command: z.string().nullable() })`，两条字段注释逐字为 “Ordered built-in slots for footer line 1; null means the default layout.” 与 “User command whose first stdout line replaces footer line 1; null disables.”，默认值 `DEFAULT_STATUS_LINE_CONFIG = { items: null, command: null }`；文件层 schema 只收 `items?: string[]` 与 `command?: string`。注意官方字段表把默认值写成 `[]` 与 `\"\"`，与源码的 `null` 不一致，而 `items = []` 的实际效果是空白第一行、不是默认布局。',
+          components:
+            '`[status_line].items` 与 `[status_line].command` 两个键 · `STATUS_LINE_ITEMS` 8 个合法槽位（`mode`、`goal`、`model`、`tasks`、`environment`、`cwd`、`git`、`tips`）与 `DEFAULT_STATUS_LINE_ITEMS` 7 个默认槽位 · `FooterComponent` 渲染器 · `status-line-command.ts` 里的 `runStatusLineCommand` 与 `StatusLineCommandRunner` 节流缓存 · 注入给子进程的 `KIMI_CODE_STATUS_LINE=1` 环境变量（全仓仅一处设置方，`docs/zh/configuration/env-vars.md` 命中数为 0，未对外文档化）· 主题色键 `text` 与 `textDim`（没有任何按段配色键）· `kimi doctor tui` 校验入口。',
+          loading:
+            '官方生效说明逐字为 “修改在下次启动时生效，或用 `/reload-tui` 立即生效（只重载 `tui.toml`）；`/reload` 会同时重载 `config.toml` 和 `tui.toml`。”。命令执行的三个常量逐字为 `STATUS_LINE_COMMAND_TIMEOUT_MS = 300`、`STATUS_LINE_RERUN_INTERVAL_MS = 1_000`、`STATUS_LINE_MAX_CAPTURE_BYTES = 65_536`；进程启动为 `spawn(isWin ? (process.env[\'ComSpec\'] ?? \'cmd.exe\') : \'sh\', isWin ? [\'/d\', \'/s\', \'/c\', command] : [\'-c\', command], { stdio: [\'pipe\', \'pipe\', \'ignore\'], env: { ...process.env, KIMI_CODE_STATUS_LINE: \'1\' }, detached: !isWin })`，stderr 被忽略，POSIX 下自成进程组以便超时时 “drop the whole tree, not just the shell wrapper”（`process.kill(-child.pid, \'SIGKILL\')`），Windows 下用 `taskkill /pid <pid> /T /F`。只取首行并 `trimEnd()`，累积超过 64 KiB 截断。`StatusLineCommandRunner` 缓存上一次成功结果、`current()` 同步返回、后台最多每秒刷新一次，被节流掉的更新作为 trailing refresh 补跑，注释逐字为 “a final state change is never lost to throttling”。',
+          surfaces:
+            '仅交互式 TUI。`FooterComponent` 的非测试引用点只有 `apps/kimi-code/src/tui/tui-state.ts`、`apps/kimi-code/src/tui/controllers/clipboard-image-hint.ts` 与该文件自身；`status_line`／`statusLine` 在 `packages/acp-server/src`、`packages/kap-server/src`、`apps/vscode`、`apps/vis` 与 `apps/kimi-code/src/cli`（含 `-p` headless、`sub/acp.ts`、`sub/web/`）的命中数全部为 0。`kimi web` 的本地 Web UI 与桌面端有自己的界面，不读这份配置，不能把它们的页脚记作 CLI 状态栏。',
+          permissions:
+            '命令由用户自己的 `tui.toml` 指定、不经模型决策。官方资料没有把 `[status_line]` 与工作区信任关联——`mcp.json` 明确受信任门控，而 `tui.toml` 是用户级文件，源码里也没有把信任检查与该键关联的路径，是否有信任门控记为未确认。历史上有一条与页脚相关的安全修复（PR #2838，提交 `e5be391`）：“Close a Windows binary-planting gap in the footer git status: the git and gh commands used for the branch/dirty badge are now resolved to an absolute PATH location …”，那是内置 git 徽章的命令解析、不是用户命令。',
+          conditions:
+            '自 0.30.0（2026-07-29）提供，中文更新日志逐字为 “- 新增可自定义的底部状态栏，可通过 `tui.toml` 中的 `[status_line]` 配置。”，包级 CHANGELOG 给出 PR #2255 与提交 `67dd03149f36be91a0c081e70d8a2d721b0f1c64`（“Add a customizable footer status line, configured via `[status_line]` in `tui.toml.”）。`environment` 槽位自 2.5.0（2026-11-04）进入正式版：按标签逐个抓取 `config.ts` 比对，`0.30.0`／`2.0.0`／`2.3.0`／`2.4.0`／`2.4.1` 都是 7 项，`2.5.0`／`2.6.0`／`2.6.2` 是 8 项；但中文配置文档在 main 与 2.6.2 标签下都仍只列 7 项，`apps/kimi-code/CHANGELOG.md` 里 `slot` 命中数为 0，2.5.0 段也只写了 “- 支持在 SSH、Docker 或自定义命令环境中创建远程会话。”，因此该槽位没有更新日志记录、只能靠标签比对确认。源码文件头注释明写这条契约对标 Claude Code：“Mirrors Claude Code\'s statusLine contract at the seam: JSON in, first line out, 300ms ceiling.”，但 300 ms 远短于 Qwen 的 5 秒，且只取首行。失败一律回退内置布局（spawn 异常、`error` 事件、超时、退出码非 0、首行为空都 `resolve(null)`）。MCP、插件、Skill 与 Hook 都不能提供状态栏内容（`docs/zh/customization/mcp.md` 对 `status` 命中数为 0，`plugins.md`／`skills.md`／`hooks.md` 对 `状态栏|status_line|footer` 命中数为 0）。没有隐藏整个页脚的开关（`hideFooter`／`hide_footer`／`disable_footer` 命中数为 0），第二行的上下文用量无法关闭。command 输出里的 ANSI 颜色是否被保留未确认：源码只做 `chalk.hex(colors.text)` 外层包裹、没有剥色，测试则用 `plain()` 主动剥掉转义，文档也未提及。本次证据坐标是 main HEAD `2931c7efd542a7cb2486faec0fc35bc2fde0f533`（2026-11-17T14:55:46+08:00）与最新 Release `@moonshot-ai/kimi-code@2.6.2`（2026-11-13），当天的四个 main 提交（#5013、#5010、#4965、#4784、#4963）都与 hosts／kap-server 有关，不涉及状态栏。',
+          status: '官方确认',
+          sources: [
+            'kimi-statusline-config-doc',
+            'kimi-statusline-command-source',
+            'kimi-statusline-config-source',
+            'kimi-statusline-footer-source',
+            'kimi-statusline-no-slash-command',
+            'kimi-statusline-0300-changelog',
+            'kimi-statusline-environment-slot',
+            'kimi-statusline-theme-and-surface',
+          ],
+        },
+        qoder: {
+          entry:
+            '`/statusline`，Slash 命令参考里的整行描述逐字为 “| `/statusline` | Configure the status bar. |”，是该命令在官方文档里的唯一一处说明，没有参数、别名或取值说明；UI 页补充它的作用逐字为 “Running `/statusline` in the interactive interface leverages the built-in Status Bar configuration capabilities to automatically read your shell configuration and generate a script.”。另一条路径是直接编辑 settings.json 的 `statusLine` 分组，或通过 `/settings`（别名 `/config`）打开设置面板——官方没有写明面板里是否有状态栏条目。',
+          location:
+            '`statusLine` 是 `settings.json` 的顶层分组，三层文件分别是用户 `~/.qoder/settings.json`、项目 `<project>/.qoder/settings.json`、本地 `<project>/.qoder/settings.local.json`，命令行 `--settings` 优先级最高，`QODER_CONFIG_DIR` 可改默认配置目录；官方另提供 JSON Schema 供编辑器补全，“located in the project `schemas/settings.schema.json`”。UI 页给的示例把脚本放在 `~/.qoder/statusline-command.sh`。',
+          behavior:
+            '内置默认状态栏逐字为 “The Status Bar is displayed below the Input Box. The built-in default Status Bar displays information such as `model · workspace · +N -N` (model name, Working Directory, lines of code added/removed) and automatically hides lower-priority segments when the terminal width is insufficient.”。自定义命令的契约逐字为 “You can run a custom shell command to generate the Status Bar content. This command receives session data as JSON via stdin (including Session ID, Working Directory, model, context usage, Git branch, Vim mode, etc.), and its standard output (including ANSI colors) is displayed below the Input Box”，配置示例是 `statusLine` 的 `type`／`command`／`padding` 三键。内置默认状态栏可按段配色，逐字为 “you can customize the Paragraph Color for each segment via `statusLine.colors` (e.g., `model`, `branch`, `separator`). Color values can be hexadecimal (e.g., `#ff6600`), ANSI names (e.g., `red`, `cyan`), or natural language color names (e.g., `ocean blue`). Leaving a value blank applies the theme\'s default color. The context progress bar ignores custom colors and automatically changes color (green/yellow/red) based on usage.”。Vim 模式下状态栏显示当前模式（INSERT／NORMAL）。',
+          scope:
+            '按 Settings 页的通用规则深合并：对象逐字段递归合并、单值直接覆盖、数组分「并集合并」与「整体覆盖」两类，优先级从低到高是 Built-in defaults（Schema 默认）< User Level < Project-Level < Local Level < 命令行 `--settings`。信任门逐字为 “For security reasons, Project-Level and Local Level configurations are only applied when the current working directory is trusted. If the working directory is not trusted, Qoder CLI only loads User Level configurations and ignores `settings.json` and `settings.local.json` within the project. Folder Trust is controlled by `security.folderTrust.enabled` (enabled by default).”，即项目与本地层的 `statusLine` 只在文件夹受信时生效。',
+          components:
+            '四个键：`statusLine.type`（string，默认 `command`，Settings 页写明 “currently only `command` is supported”）、`statusLine.command`（string，默认 `\"\"`，“Shell command to generate the status bar, receives session data JSON via stdin.”）、`statusLine.padding`（number，默认 `0`，水平填充字符数）、`statusLine.colors`（object，默认 `{}`，只作用于内置默认状态栏）。相邻但不同的三样东西：`ui.hideFooter`（默认 `false`，描述只有 “Hide Footer.”）、`ui.dynamicWindowTitle`（默认 `true`，用状态图标动态更新终端窗口标题）与 OSC 7501 终端状态上报（`idle`／`working`／`blocked`／`done`／`error` 五态，`QODER_PROGRAM_STATUS=0` 关闭、`1` 跳过探测强制上报）。',
+          loading:
+            '设置参考页的 statusLine 表没有 Restart 列（同页 `advanced`、`privacy`、`mcp`、`security` 等表都有），Settings 页的通则逐字为 “After modification, items not marked with \"requires restart\" usually take effect immediately; items marked with \"requires restart\" require restarting Qoder CLI.”，据此推断改动即时生效，但官方没有对状态栏单独说明，脚本执行时机、刷新触发与去抖都未公布。内置默认状态栏会随终端宽度自动隐藏低优先级段。',
+          surfaces:
+            '以 Qoder CLI 的交互界面（TUI）为准。OSC 7501 一节明确 “Only the interactive UI reports; non-interactive modes such as `-p` do not.”，但那是发给终端与复用器的状态协议、不是界面里的状态栏，两者不能互相推断。`qodercli --acp`、Agent SDK、Cloud Mode、`qodercli --remote`、Remote Control 与 Qoder IDE 下 `statusLine` 是否生效，官方资料没有区分，记为未确认。',
+          permissions:
+            '自定义状态栏会执行用户指定的 Shell 命令，项目与本地层的 `statusLine` 因此受文件夹信任门控（未受信时只加载用户层）。官方没有公布超时、输出上限、行数上限或失败处理，也没有类似 Claude Code `disableAllHooks`／`allowManagedHooksOnly` 的托管设置收窄规则；`statusLine.command` 默认是空串，因此不写命令时看到的是内置默认状态栏而不是空行。',
+          conditions:
+            '`statusLine.type` 目前只支持 `command`，没有内置条目清单可选，这一点与 Codex、Qwen、Kimi 的「先选内置项」路线相反。`statusLine.colors` 只出现在设置参考页（31,992 字节），Settings 页（12,962 字节）的 statusLine 表只有三行、缺 `colors`，两页不一致。引入版本记为未确认：更新日志（2026-11-17 核对，HTML 804,332 字节、去标签正文 1,674 行，最新条目为 November 16, 2026 的 CLI 1.1.90）对 `statusline`／`status bar`／`status-bar` 只有 6 处命中，全部是内置状态栏的扩充与修复——CLI 0.1.19（2026-01-12）“Added current working directory to status bar”、CLI 0.2.12（2026-05-12）“Added context token usage progress bar to default statusline for live context window visibility”，以及压缩后上下文计算、跑马灯对体验与滚动的影响、`/context` 与状态栏比例不一致四类修复；`custom shell command` 与 `/statusline` 的命中数为 0，即自定义能力从未进过更新日志。stdin JSON 的完整字段表、超时、行数上限、失败回退与刷新时机官方都未公布，`/statusline` 生成的脚本落在哪个路径、是否自动改写 settings.json 也未公布。',
+          status: '官方确认',
+          sources: [
+            'qoder-interface-statusbar',
+            'qoder-settings-reference-statusline',
+            'qoder-settings-order-statusline',
+            'qoder-slash-reference-statusline',
+            'qoder-changelog-statusline-history',
+            'qoder-interface-ui-options',
+          ],
+        },
+      },
+      related: [
+        'extension-output-styles',
+        'cmd-keymap',
+        'session-context-usage',
+        'extension-mcp',
+        'security-trust',
+      ],
+    }),
   });
 })();
