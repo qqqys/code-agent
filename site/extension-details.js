@@ -116,109 +116,132 @@
         '插件包中的其他 Skills、Hooks 或 Agents',
       ],
       facts: [
-        '五家都能作为 MCP 客户端，但支持的传输集合不同：Codex 当前公开范围是 STDIO 与 Streamable HTTP，Claude Code 和 Qoder CLI 还覆盖 WebSocket。',
+        '五家都能作为 MCP 客户端，但支持的传输集合不同：Codex 当前公开范围是 STDIO 与 Streamable HTTP，Claude Code 和 Qoder CLI 还覆盖 WebSocket，Kimi Code 与 Qwen Code 公开的是 stdio、HTTP 与 SSE，Qoder CLI 的 `type` 字段另列进程内 `sdk`。',
         '项目级 MCP 配置通常进入仓库或工作目录，因此 Claude Code、Kimi Code 和 Qoder CLI 都明确区分项目配置与用户配置。',
         '“连上 Server”不等于所有工具无条件执行；工具过滤、审批、沙箱和工作区信任仍在 MCP 之外继续生效。',
+        'Codex 与 Kimi Code 都给 Server 条目加了 `environment_id`（都默认 `local`），让 stdio Server 改在远程 executor 或 `config.toml` 的 `[environments]` 环境里启动；Claude Code、Qwen Code 与 Qoder CLI 的一手资料没有同类键。',
         'Codex 公开了 MCP 发现项收集上限：工具、资源与资源模板的分页结果合计最多 2,048 项（`MAX_MCP_CATALOG_ITEMS`，原 1,024）；其余四家当前一手资料未列出同类上限。',
+        '2026-11-18 复核的增量集中在配置入口与作用域：Claude Code v2.1.327 要求项目 `.mcp.json` 用 `mcpServers` 包装键、不再覆盖文件或清掉其他顶层键，并给 `add-json` 加了从 stdin 读 JSON 的形式；Codex rust-v0.170.0 用默认关闭的 `multi_environment_mcp` 让不同 executor 上的同名 Server 分开暴露；Qoder CLI 1.1.91 增加企业管理员向成员下发独立 Skill 与 MCP。',
       ],
       products: {
         claude: {
           entry:
-            '`/mcp` 查看连接和认证状态；使用 `claude mcp add|list|get|remove` 管理 Server。',
+            '`/mcp` 查看连接和认证状态；Shell 侧用 `claude mcp add|add-json|add-from-claude-desktop|list|get|remove|login|logout` 管理 Server。v2.1.327 起 `claude mcp add-json <name> -` 用裸 `-` 从 stdin 读 Server JSON，官方更新日志逐字写 “so tokens can stay off the command line; not available inside a Claude Code session”。',
           location:
-            'Local scope 写入用户目录下按项目保存的配置；Project scope 写入 `.mcp.json`；User scope 对该用户的全部项目生效。',
+            'Local scope（`-s`/`--scope` 的默认值）写入用户目录下按项目保存的配置；Project scope 写入项目根的 `.mcp.json`，格式是 `mcpServers` 包装键；User scope 对该用户的全部项目生效。v2.1.327 起 `claude mcp add --scope project` 在既有 `.mcp.json` 把 Server 列在顶层、没有 `mcpServers` 键时停止而不覆盖该文件；同版起 project scope 的 `claude mcp add` 与 `claude mcp remove` 不再删掉文件里其他顶层键（官方举例 `$schema` 或另一个工具的 `servers`）。',
           behavior:
-            '支持 MCP Tools、Prompts 和 Resources。远程 HTTP/SSE Server 可走 OAuth；Prompt 可作为 Slash 命令调用。',
+            '支持 MCP Tools、Prompts 和 Resources。远程 HTTP/SSE Server 可走 OAuth；Prompt 可作为 Slash 命令调用。JSON 配置里 `type` 接受 `streamable-http` 作为 `http` 的别名；有 `url` 却没有 `type` 的条目按配置错误跳过并报 `MCP server "<name>" has a "url" but no "type"; add "type": "http" (or "sse" / "ws") to this entry`；`"type": "sdk"` 的进程内 Server 只能由 SDK 宿主应用注册，写在 `.mcp.json`、`~/.claude.json` 或设置里会被跳过并报 `Skipped — MCP server "<name>" declares type "sdk", which only an SDK host application can register`，`--output-format stream-json` 运行还会把被跳过的 `--mcp-config` 条目写进 `system/init` 事件的 `mcp_server_errors` 字段。远程 Server 掉线后按官方 “Automatic reconnection” 处理：先以 1 秒起、每次翻倍的指数退避试 5 次，交互会话在 `/mcp` 显示 pending，5 次都失败后标为 failed 或需要认证并给出 `MCP server "<name>" disconnected · open /mcp to reconnect` 通知；`claude -p` 与 Agent SDK 会话同样试 5 次，之后对 5xx 或超时一类瞬时错误继续在后台重试 HTTP/SSE Server，官方文档写 “Retries last up to about half an hour”，而 v2.1.327 更新日志写 “most servers on other machines reached by hostname over https are now retried in the background for about a day”；Server 要求重新登录时停止重试，Agent SDK 会话把状态报为 `needs-auth`。首次连接失败最多重试 3 次（stdio 首连、WebSocket 首连、认证与 not-found 错误除外，`headersHelper` 是唯一 `Authorization` 来源时认证错误仍重试）；连接后的 `tools/list`、`prompts/list`、`resources/list` 发现请求在瞬时网络或 Server 错误后最多重试 3 次，不重试认证错误、4xx 与请求超时。',
           scope:
-            'Local、Project、User 三种 scope；Project 的 `.mcp.json` 可共享，但首次使用需要确认信任。',
+            'Local、Project、User 三种 scope；Project 的 `.mcp.json` 可共享，但首次使用需要确认信任。`claude mcp` 命令添加的 Server 名只能含字母、数字、连字符与下划线。',
           components:
-            'stdio、Streamable HTTP、已弃用的 SSE，以及通过 JSON 配置声明的 WebSocket；可由 Plugin 携带 `.mcp.json`。',
+            'stdio、Streamable HTTP（JSON 里可写 `streamable-http`）、已弃用的 SSE，以及通过 JSON 配置声明的 WebSocket；`add-json` 的 JSON 还可带 `headers` 与 `oauth`（`clientId`、`callbackPort`，配 `--client-secret`）；`claude mcp add` 另有 `-t`/`--transport`、`-H`/`--header` 与 `-e`/`--env`；可由 Plugin 携带 `.mcp.json`。',
           loading:
-            'CLI 管理命令写入对应 scope；项目配置在信任后加载，远程认证状态可从 `/mcp` 处理。',
+            'CLI 管理命令写入对应 scope，`claude mcp add` 与 `claude mcp add-json` 成功时打印 `Added ...`，用 `claude mcp get <name>` 核对是否连上；项目配置在信任后加载，远程认证状态可从 `/mcp` 处理。v2.1.327 起 `/mcp` 的 Server 页把 local、remote 与 agent Server 统一成同一布局、菜单以 Back 结尾、非读屏模式下动作不再编号（改用方向键与 Enter）；会话中新增或被拒绝的 Server 不再让 `/mcp` 说没有配置 Server，而是说明下一步；从工具页返回时 `/mcp` 与 `/plugin` 的 MCP 工具列表不再丢失位置，Server 的长问题也不再只显示一行。',
           permissions:
-            'MCP 工具仍受 Claude Code 权限规则控制；共享项目配置不会跳过用户确认。',
+            'MCP 工具仍受 Claude Code 权限规则控制；共享项目配置不会跳过用户确认。v2.1.327 起 MCP Server 日志只记录 elicitation 请求与 Hook 应答的 mode、action 与字段名，不再记录它们的完整内容。',
           conditions:
-            '`claude mcp add --transport` 不接受 WebSocket；WebSocket 需要直接写 JSON 配置。SSE 保留兼容但已标为弃用。',
-          sources: ['claude-mcp'],
+            '`claude mcp add --transport` 不接受 WebSocket；WebSocket 需要直接写 JSON 配置。SSE 保留兼容但已标为弃用。`claude mcp add-from-claude-desktop` 导入 Claude Desktop 的 Server 时，对名字含空格一类不合规字符的条目逐个报告拒绝并继续导入其余选中项。`/mcp reconnect all` 需 v2.1.284 及以上，更早版本打印 `MCP server "all" not found`。stdin 形式的读取上限与能否同时带 `--scope`、“about a day” 的确切时长与重试间隔，以及它与官方文档 “about half an hour” 的适用关系都记为未确认：这几条目前只有更新日志一处证据，官方 MCP 页（156,709 字节）与 CLI 参考页（51,631 字节）在 2026-11-18 都还没有对应文字，CLI 参考页的 `claude mcp` 只列 `login <name>` 与 `logout <name>` 两行。',
+          sources: [
+            'claude-mcp',
+            'claude-mcp-json-config',
+            'claude-mcp-reconnect',
+            'claude-v21327-mcp-changelog',
+          ],
         },
         codex: {
           entry:
             '`/mcp` 查看当前 Server；使用 `codex mcp add|list|get|remove|login|logout` 管理连接和 OAuth。',
           location:
-            '用户配置在 `~/.codex/config.toml`；可信项目可在仓库内使用 `.codex/config.toml`。',
+            '用户配置在 `~/.codex/config.toml`；可信项目可在仓库内使用 `.codex/config.toml`。Server 条目是 `[mcp_servers.<id>]`，插件携带的 Server 记为 `plugins.<plugin>.mcp_servers.<server>`。',
           behavior:
-            'MCP 工具进入工具列表；可为 Server 配置允许或禁用的工具、启动超时、调用超时和审批策略。',
+            'MCP 工具进入工具列表；可为 Server 配置允许或禁用的工具、启动超时、调用超时和审批策略。条目可写 `environment_id` 指定该 Server 的执行环境：官方配置参考逐字为 “Execution environment for the MCP server. Defaults to `local`. Use the ID of a configured executor to run a stdio server or connect to a streamable HTTP server there.”，MCP 页写作 “`environment_id` selects the environment for a stdio or Streamable HTTP server. It defaults to `local`. To connect through a remote executor, use its registered environment ID.”；stdio 条目的 `env_vars` 可写 `source = "remote"` 从远程 executor 环境取值，官方注明它 “requires remote MCP stdio”，而字符串条目与 `source = "local"` 读 Codex 本地环境。',
           scope:
-            '用户配置可被 CLI、桌面端和 IDE 扩展共享；项目配置只在可信工作区加载。',
+            '用户配置可被 CLI、桌面端和 IDE 扩展共享；项目配置只在可信工作区加载。`environment_id` 按 Server 条目设置、缺省为 `local`；PR #60905 起作用域内资源列表带 `environment_id`、资源请求也接受它，多环境同时选中时环境所有的 Server 必须带该字段。',
           components:
-            'STDIO 与 Streamable HTTP；远程 HTTP 支持 Bearer Token 或 OAuth。',
+            'STDIO 与 Streamable HTTP；远程 HTTP 支持 `bearer_token_env_var`、静态 `http_headers` 或 OAuth；条目另有 `enabled`、`enabled_tools`、`disabled_tools`、`startup_timeout_sec`（默认 10 秒）、`tool_timeout_sec`（默认 60 秒）与 `environment_id`。',
           loading:
-            '修改 TOML 或运行 `codex mcp` 后由客户端加载；OAuth 通过登录命令建立授权。',
+            '修改 TOML 或运行 `codex mcp` 后由客户端加载；OAuth 通过登录命令建立授权。rust-v0.170.0 起同名 Server 可以分别暴露：`multi_environment_mcp` 打开后按环境作用域列出 Server（含同一插件的多次安装），目录、连接、工具调用、资源与审批跟踪都带上精确的 `McpServerKey` 身份，环境作用域的工具获得由环境派生的稳定命名空间。',
           surfaces:
-            'CLI、Codex 桌面端和 IDE 扩展共享 MCP 配置，但每个 Surface 的可用工具和交互入口仍可能不同。',
+            'CLI、Codex 桌面端和 IDE 扩展共享 MCP 配置，但每个 Surface 的可用工具和交互入口仍可能不同。官方 MCP 页在 “Use MCP-backed tools in ChatGPT web” 一节写 “In Local computer access with Work Cloud, the enterprise `mcp_servers` TOML requirement in Agent Security applies to local executors. Cloud containers retain Work Cloud policies. Local MCP servers and transports may not be available in the cloud; check connectivity and authentication separately.”，并注明云编排下不支持来自本地配置或插件的 command hooks。',
           permissions:
-            'Server 级 `enabled_tools`、`disabled_tools` 与工具审批策略先缩小暴露范围，实际执行仍受当前审批和沙箱配置约束。',
+            'Server 级 `enabled_tools`、`disabled_tools` 与工具审批策略先缩小暴露范围，实际执行仍受当前审批和沙箱配置约束。按 PR #60905，Server 归属穿过 Hook 保留，作用域内 elicitation 审查用所属环境的权限，Hook 修改工具环境会被拒绝。',
           conditions:
-            '当前官方 MCP 文档未列 SSE 或 WebSocket；不要把其他客户端支持的传输推断给 Codex。MCP 工具、资源与资源模板的分页发现结果合计最多收集 2,048 项（`MAX_MCP_CATALOG_ITEMS`，原 1,024），超出部分不会进入工具列表。',
-          sources: ['codex-mcp', 'codex-mcp-catalog'],
+            '当前官方 MCP 文档未列 SSE 或 WebSocket；不要把其他客户端支持的传输推断给 Codex。MCP 工具、资源与资源模板的分页发现结果合计最多收集 2,048 项（`MAX_MCP_CATALOG_ITEMS`，原 1,024），超出部分不会进入工具列表。`multi_environment_mcp` 在 tag `rust-v0.170.0` 的功能登记册里是 `Stage::UnderDevelopment`、`default_enabled: false`，枚举注释把它限定为 “Keep same-named HTTP servers discovered on different executors separate.”，而 rust-v0.170.0 发布说明写的是 “identically named MCP servers”，两处范围不一致；官方 MCP 页（31,613 字节）与配置参考（154,596 字节）在 2026-11-18 都没有出现该键，因此它的开启方式、环境派生命名空间的具体格式与 `McpServerKey` 的字段构成记为未确认。`environment_id` 指向的 executor 注册方式不在 MCP 页说明范围内。',
+          sources: [
+            'codex-mcp',
+            'codex-mcp-catalog',
+            'codex-mcp-environment-id',
+            'codex-config-reference-mcp-environment',
+            'codex-rust-v01700-release',
+            'codex-multi-environment-mcp',
+            'codex-features-multi-environment-mcp',
+          ],
         },
         qwen: {
           entry:
-            '`/mcp` 查看状态、工具和认证；使用 `qwen mcp add|list|get|remove|enable|disable` 管理 Server。',
+            '`/mcp` 查看状态、工具和认证；Shell 侧有六个子命令——`qwen mcp add <name> <commandOrUrl> [args...]`、`remove <name>`、`list`、`reconnect [server-name]`（`--all` 重连全部已配置 Server）、`approve [name]` 与 `reject [name]`（`--all` 处理本工作区全部被门禁拦下的 Server）。',
           location:
-            '用户配置在 `~/.qwen/settings.json`，项目配置在 `.qwen/settings.json`；Extension 也可携带 MCP 配置。',
+            '用户配置在 `~/.qwen/settings.json`，项目配置在 `.qwen/settings.json`；`.mcp.json` 与工作区 `.qwen/settings.json` 里的 Server 属于需要批准的门禁来源，用 `qwen mcp approve|reject` 处理；Extension 也可携带 MCP 配置。',
           behavior:
-            'Tools 作为模型工具，Prompts 转成 Slash 命令，Resources 可用 `@server:uri` 引用；远程 Server 支持 OAuth。',
+            'Tools 作为模型工具，Prompts 转成 Slash 命令，Resources 可用 `@server:uri` 引用；远程 Server 支持 OAuth，`qwen mcp add` 有 `--oauth-client-id`、`--oauth-client-secret`、`--oauth-redirect-uri` 与 `--oauth-authorization-url`。stdio Server 默认走单进程 legacy initialize 流程，条目写 `"versionNegotiation": "auto"` 才自动协商协议；协商会先跑一个短命的 Server 副本、最多占用发现预算五秒，官方要求对启动副作用非幂等、有单持有者锁或 PID 文件、initialize 握手慢的 Server 保留默认 legacy 策略。',
           scope:
-            '用户、项目与 Extension 三类来源合并；项目配置随仓库共享并受工作区信任控制。',
+            '`qwen mcp add --scope`（`-s`）取 `user`（默认）或 `project`；用户、项目与 Extension 三类来源合并，项目配置随仓库共享并受工作区信任控制。',
           components:
-            'stdio、Streamable HTTP 和兼容用 SSE；支持 `includeTools`、`excludeTools` 与 Server trust 设置。',
+            '`--transport`（`-t`）的取值是 `stdio`、`sse`、`http` 三类；条目字段含 `timeout`（CLI 侧 `--timeout`，单位毫秒）、`discoveryTimeoutMs`、`versionNegotiation`、`appResourceTimeoutMs`、`trust`、`includeTools` 与 `excludeTools`（CLI 侧 `--include-tools`/`--exclude-tools`，逗号分隔）、`description`、`env`（`-e KEY=value`）与请求头（`-H`）。',
           loading:
-            '配置由启动流程加载；`/mcp` 可重新连接、授权并检查各 Server 状态。',
+            '配置由启动流程加载，Server 发现在 UI 可交互后于后台进行；`/mcp` 可重新连接、授权并检查各 Server 状态，Shell 侧用 `qwen mcp reconnect <name>` 或 `qwen mcp reconnect --all`。',
           permissions:
-            'MCP 工具继续经过 approval mode 和工具策略；Server trust 与工作区信任是不同层次。',
+            'MCP 工具继续经过 approval mode 和工具策略；`trust: true` 只在工作区受信任时跳过该 Server 的确认提示，Server trust 与工作区信任是不同层次。',
           conditions:
-            'SSE 属于兼容传输；HTTP 是当前远程 Server 的主要配置方式。Prompt 与 Resource 并非所有五家都以相同入口暴露。',
+            'SSE 属于兼容传输；HTTP 是当前远程 Server 的主要配置方式。Prompt 与 Resource 并非所有五家都以相同入口暴露。MCP 文档在 tag `v0.27.0` 与 `v0.28.0` 下逐字节相同（28,576 字节），v0.28.0 与 v0.28.1-preview.0 两份发布说明里含 MCP 字样的行数都是 0；全文没有 `environment_id` 一类把 Server 放到远程环境执行的键。本仓库此前把子命令记为 `add|list|get|remove|enable|disable`，按 v0.28.0 的 `packages/cli/src/commands/mcp.ts` 更正为六个实际子命令，`get`、`enable` 与 `disable` 都不存在；文档正文只出现 `qwen mcp add`、`qwen mcp list` 与 `qwen mcp remove` 三种写法。',
           status: '源码确认',
-          sources: ['qwen-mcp-current'],
+          sources: ['qwen-mcp-current', 'qwen-mcp-v0280-doc', 'qwen-mcp-cli-source'],
         },
         kimi: {
           entry:
-            '`/mcp` 查看 Server；`/mcp-config` 管理配置，并可用 `/mcp-config login` 完成 OAuth。',
+            '`/mcp` 查看当前所有 Server 的连接状态；`/mcp-config` 交互式新增、编辑或删除 Server，无需手动编辑 JSON；`/mcp-config login <server-name>` 完成浏览器 OAuth 授权。',
           location:
-            '用户配置在 `$KIMI_CODE_HOME/mcp.json`，默认 `~/.kimi-code/mcp.json`；项目配置在 `.kimi-code/mcp.json`。',
+            '用户级 `~/.kimi-code/mcp.json`（或 `$KIMI_CODE_HOME/mcp.json`）跨项目共享；项目级为工作目录下的 `.kimi-code/mcp.json`，只对当前仓库生效；远程环境在 `config.toml` 的 `[environments.<id>]` 声明，全局 MCP 默认值与重连退避在 `[mcp]`。',
           behavior:
-            '把 Server 工具加入 Agent 工具集，支持工具允许列表和禁用列表；远程 Server 可进行 OAuth 登录。',
+            '把 Server 工具与内置工具一起暴露给 Agent、行为上没有差异，工具名为 `mcp__<server>__<tool>`（例 `mcp__github__create_issue`）；结果可同时含 `content` 与 `structuredContent`，只有能确认某个文本块已包含同一份完整 JSON 值时才省略重复的结构化内容。含 `command` 的条目是 stdio Server，含 `url` 且未写 `transport` 的是 HTTP Server，旧式 SSE 需显式写 `transport: "sse"`。stdio Server 默认在运行 Kimi Code 的机器上执行，即使会话绑定了远程环境也是如此；条目写 `environment_id` 则改在指定远程环境启动，其进程、工作目录与它访问的一切都位于目标环境上，该字段默认 `local` 且不跟随会话自身的环境绑定，环境尚未连接时在 Server 启动时按需建立连接。远程 stdio Server 的 `PATH`、`HOME` 等基础环境变量来自目标环境而不是本机，CLI 只把 `env` 覆盖层按字面量值发送。',
           scope:
-            '项目配置覆盖用户配置中的同名 Server；Plugin 也可以声明 MCP Server。',
+            '同名条目以项目级为准、覆盖用户级；`deferred`、`startupTimeoutMs`、`toolTimeoutMs` 等按 Server 条目设置，全局默认走 `[mcp] startup_timeout_ms`/`tool_timeout_ms` 或 `KIMI_MCP_STARTUP_TIMEOUT_MS`/`KIMI_MCP_TOOL_TIMEOUT_MS`，优先级为 server 字段 > 环境变量 > `config.toml` > 内置默认。',
           components:
-            'stdio、HTTP 与 SSE 三类传输。',
+            'stdio、HTTP 与 SSE 三类接入方式，全页没有 WebSocket；条目字段有 `env`、`environment_id`、`cwd`、`headers`、`bearerTokenEnvVar`、`deferred`（实验功能，缺省时取全局 `default_deferred`，未设置则为 `false`）、`startupTimeoutMs`（1–2147483647 毫秒，默认 30000）、`toolTimeoutMs`（同范围，未给默认值）、`enabledTools` 与 `disabledTools`；重连退避用 `[mcp] reconnect_initial_delay_ms`（默认 5000）与 `[mcp] reconnect_max_delay_ms`（默认 300000），或对应环境变量。',
           loading:
-            '启动时合并用户、项目与 Plugin 配置；配置变化可通过相应命令或新会话生效。',
+            '启动时合并用户、项目与 Plugin 配置。workspace 级 Server 启动时连不上或意外断连会按指数退避（每次尝试后等待时间翻倍）自动重连，Server 恢复可达后工具自动回来；命令不存在、配置非法、Server 拒绝静态凭证这类无法自行恢复的失败不重试并保持 `failed`，session 级临时挂载的 Server 同样不重试。从配置删除 Server 不打断进行中的会话：`/mcp` 仍显示 `removed`、工具在这些会话中保持可见但调用会失败并返回移除提示，新会话完全不注册；反过来编辑 `mcp.json` 新增的 Server 不会注册到已打开的会话，而 Plugin 新增或启用的 Server 会立即连接到已打开的会话。',
           permissions:
-            '项目 MCP 配置可以执行本地命令或连接远程服务，官方文档要求只在可信仓库中加载。',
+            '未命中权限规则的调用触发审批请求，在审批弹窗中选择 “Approve for this session” 后本次会话内的后续同类调用自动放行，永久规则写在 `config.toml` 的 `[[permission.rules]]`；权限规则支持 `*` 与 `**` 通配（`mcp__github__*` 命中该 Server 下所有工具），MCP 工具参数不参与权限匹配。项目级 `.kimi-code/mcp.json` 的 stdio 条目会在会话启动时执行命令，官方要求只在信任的仓库里启用。',
           conditions:
-            '当前公开文档未列 WebSocket。`/mcp-config` 是配置入口，`/mcp` 主要用于查看和操作已加载连接。',
-          sources: ['kimi-mcp-current'],
+            '当前公开文档只列 stdio、HTTP 与 SSE 三种接入方式，没有 WebSocket；`/mcp-config` 是配置入口，`/mcp` 主要用于查看和操作已加载连接。在不受信任的文件夹中发现项目级 Server 时，工作区信任提示会显示每个 Server 的传输方式和启动目标、默认选中 `Trust this folder`，选择 `Don\'t trust` 则该工作区的项目级 Server 不会启用；无头运行（例如 CI 中执行 `kimi -p`）无法显示信任提示，工作区尚未受信任时项目级 Server 保持禁用，可用 `KIMI_CODE_TRUST_WORKSPACE=1` 在该进程中信任当前工作区，或用 `[workspace] require_trust = false` 全局关闭信任机制。`toolTimeoutMs` 的内置默认值文档未给出；`environment_id` 可引用的环境类型以远程环境文档为准，本次只核对了 MCP 页给出的 `type = "ssh"` 示例与 `[environments]` 声明位置。文档坐标由本仓库此前固定的 `eb2035f3cad5`（12,941 字节）前移到 main `84439d5f4ec7`（13,129 字节），两版差异只有一句 MCP 工具返回图片的复用说明、一处锚点改名与一处引号改写。',
+          sources: ['kimi-mcp-current', 'kimi-mcp-84439d5'],
         },
         qoder: {
           entry:
-            '`/mcp` 查看 Server，`/mcp reload` 重载；使用 `qodercli mcp add|list|get|remove` 管理配置。',
+            '`/mcp` 查看 Server，`/mcp reload` 让运行中的会话重新发现 Server 与工具；Shell 侧官方 MCP Servers 页给出 `qoder mcp add <name> -- <command>`、`qoder mcp list` 与 `qoder mcp remove <name>`，CLI 参考把 `mcp` 列为子命令（“Configure and manage MCP servers.”）。',
           location:
-            '用户配置在 `~/.qoder/settings.json`；Local 默认在 `.qoder/settings.local.json`；Project scope 使用 `.mcp.json`。',
+            '用户配置在 `~/.qoder/settings.json`；Local 默认在 `${project}/.qoder/settings.local.json`（通常不提交）；Project scope 使用 `${project}/.mcp.json`（通常随项目提交）；Server 都写在 `settings.json` 的 `mcpServers` 字段下，每个键是一个 Server 名。',
           behavior:
-            '把 Server 工具接入 Agent，并支持运行中重载；工具调用继续走 Qoder CLI 权限流程。',
+            '把 Server 工具接入 Agent，并支持运行中重载；工具调用继续走 Qoder CLI 权限流程。`type` 字段有五个取值：`stdio`（默认，启动子进程并用 stdin/stdout 通信）、`sse`、`http`（同义写法 `streamable-http`，JSON-RPC 加可选流式）、`ws`（WebSocket / TCP）与 `sdk`（进程内内置 Server）；未指定类型时本地命令 Server 走默认 stdio 行为。开启 shell command prefix 时，stdio Server 经配置的可执行包装器启动，包装器把原始可执行文件与参数作为一个 shell 引用参数接收、必须保留 stdio 与退出状态，且该设置不影响 `sse`、`http`、`ws`。',
           scope:
-            'User、Local、Project 三种 scope；Local 适合不提交的工作区覆盖，Project 可随仓库共享。',
+            '`-s` 选 `user`（跨项目的本地账号）、`local`（默认，只对本机当前项目生效）或 `project`（随项目共享）；`-t` 选传输类型，官方 Server Types 表只列 stdio、sse、http、ws 四类。',
           components:
-            'stdio、SSE、HTTP 与 WebSocket 四类传输。',
+            '四类可选传输加进程内 `sdk`；条目字段有 `type`、`description`、`trust`、`includeTools`、`excludeTools`、`disabled`、`alwaysAllow`、`oauth`、`qoder_url`、`timeout`（毫秒，未给默认值），以及 stdio 的 `command`/`args`/`cwd`/`env` 与远程的 `url`/`headers`；延迟加载用 `mcp.lazyLoad: true` 或 `QODER_MCP_LAZY=1`，开启后只暴露 `mcp_list`/`mcp_get`/`mcp_call` 三个 Meta Tools。',
           loading:
-            '启动时加载各 scope；`/mcp reload` 可以在当前会话重新读取配置。',
+            '启动时加载各 scope，stdio Server 随 CLI 自动启动；`/mcp reload` 可在当前会话重新读取配置，新会话在启动时发现 Server 与工具。中断的调用不自动重放，官方 MCP reference 逐字为 “An interrupted tool call is not replayed automatically; invoke it again after the server reconnects.”；更新日志 CLI 1.1.91（November 17, 2026）修复了 “MCP tools becoming unavailable when the tool list failed to refresh”，CLI 1.1.88（November 12, 2026）修复了 “being unable to call MCP tools after starting a new session with /new or /clear in the TUI”。',
           permissions:
-            'MCP 工具按普通工具进入 permission rules；配置来源不自动获得免审批权限。',
+            'MCP 工具按普通工具进入 permission rules；默认模式下调用 MCP 工具通常会请求确认，可以批准单个工具、批准某个 Server 的全部工具或在设置里配置规则。Server 条目的 `trust` 跳过其工具调用的确认，`alwaysAllow` 列出免确认工具名，配置来源本身不自动获得免审批权限。企业套餐另有组织级 “MCP Access Control”：管理员用 Allow all（默认，新组织即此）、Rule-based access（只放行命中允许清单的 Server，清单至少 1 条、至多 100 条且生效后不能删掉最后一条）或 Block all 三种模式管理全部非内置 Server，成员自行配置安装的与组织集中下发的都受控、Qoder 客户端内置的 MCP 服务不受影响；管控只落在配置读取、安装启用、启动连接与使用（展示或注册工具、发起调用）四类入口，官方明确 “It is not a runtime security sandbox for MCP servers”，通过入口检查后的脚本、文件访问、进程与网络请求都不在范围内；不可用的 Server 在客户端保留条目并显示 `Disabled by organization`、`Not approved`、`Invalid configuration` 或 `Policy unavailable`，连接、启用与调用动作被禁用；取不到最新策略时用最近一次有效策略，连有效缓存都没有时默认阻断非内置 Server；模式或清单变更通常约五分钟才到客户端，集中下发的 Server 不能绕过该管控。',
           conditions:
-            'Project 配置可被其他协作者取得，Local 配置适合机器或凭据相关覆盖；敏感值不应直接提交。',
-          sources: ['qoder-mcp', 'qoder-permissions'],
+            'Project 配置可被其他协作者取得，Local 配置适合机器或凭据相关覆盖；敏感值不应直接提交。CLI 1.1.91 另新增 “Added support for enterprise admins to distribute independent Skill and MCP to members”，企业文档确认集中下发的 Server 仍受 MCP Access Control 约束（“Centrally deployed MCP servers cannot bypass MCP Access Control.”），但更新日志与企业页都没有给出下发内容落在客户端哪个文件、是否需要成员确认，也没有 CLI 侧的配置键名，这部分记为未确认。文档站 Release Notes 页只到 CLI 1.1.82（November 3, 2026），比更新日志站落后九个版本，两处口径不一致时以更新日志站为准。MCP reference 与 MCP Servers 两页的 `environment_id` 命中数都是 0，没有把 Server 放到远程环境执行的键。本仓库此前记的 `qodercli mcp add|list|get|remove` 与“stdio、SSE、HTTP 与 WebSocket 四类传输”按 2026-11-18 的三页更正：二进制名写作 `qoder`、三页都没有 `mcp get`，`type` 实为五值且 `http` 有 `streamable-http` 别名；MCP Servers 页的 `-t` 表仍只列四类，与 reference 的五值口径不同，两处并列记录。',
+          sources: [
+            'qoder-mcp',
+            'qoder-permissions',
+            'qoder-mcp-servers-page',
+            'qoder-mcp-reference-transports',
+            'qoder-changelog-1191-mcp',
+            'qoder-enterprise-mcp-access-control',
+            'qoder-release-notes-lag',
+          ],
         },
       },
       related: [
