@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-11-18',
+  updatedAt: '2026-11-19',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -151,6 +151,11 @@ window.matrixData = {
     'claude-context-window': {
       label: 'Claude Code Context window',
       url: 'https://code.claude.com/docs/en/context-window',
+    },
+    'claude-context-command-20261119': {
+      label:
+        'Claude Code 官方命令页 `https://code.claude.com/docs/en/commands.md`（57,039 字节，2026-11-19 核对）：`/context` 行逐字为 “| `/context [all]` | Visualize current context usage as a colored grid. Shows optimization suggestions for context-heavy tools, memory bloat, and capacity warnings. When the conversation exceeds the context window, the output includes a warning showing how far over the limit you are and which command frees space. In fullscreen mode, `/context` collapses the per-item breakdown to keep the grid visible. Pass `all` to expand it |”，即命令签名带可选 `all`、输出是彩色网格加优化建议、超限时给超出量与释放空间的命令、全屏模式默认折叠逐项明细而 `all` 展开；同页 `/skill-doctor` 行是 “Show what each of your skills costs in context and how often it gets used”（需 v2.1.252 及以上与 feature-flag fetching），属按 Skill 拆的上下文成本视图；官方 Context window 页 `https://code.claude.com/docs/en/context-window.md`（10,879 字节）逐字写 “To see your actual context usage at any point, run `/context` for a live breakdown by category with optimization suggestions, including which CLAUDE.md and auto memory files loaded.”',
+      url: 'https://code.claude.com/docs/en/commands',
     },
     'claude-memory': {
       label: 'Claude Code Memory',
@@ -749,6 +754,16 @@ window.matrixData = {
       label:
         'Codex CLI Slash 命令参考（2026-10-23 复核）：`/permissions` 行描述为 “Set what Codex can do without asking first.”、用途列为 “Relax or tighten approval requirements mid-session, such as switching between Auto and Read Only.”，正文步骤只写选择审批预设（含具名 permission profile），没有目录信任开关；`/hooks` 行用途列含 “Inspect configured hooks, trust new or changed hooks, or disable non-managed hooks before they run.”，属 Hook 单独信任；全页没有 `/trust` 一类命令',
       url: 'https://learn.chatgpt.com/docs/cli/slash-commands',
+    },
+    'codex-status-context-20261119': {
+      label:
+        'Codex CLI Slash 命令参考 `https://developers.openai.com/codex/cli/slash-commands.md`（59,711 字节，2026-11-19 核对）：`/status` 行逐字为 “Display session configuration and token usage.”，用途列逐字为 “Confirm the active model, approval policy, writable roots, and remaining context capacity.”；“Inspect the session with `/status`” 一节写输出含 active model、approval policy、writable roots 与 current token usage，TUI 连远程时还显示远端地址与服务端版本，并写 “After `/status`, use `/copy` to copy the full status or an individual field.”；`/usage` 行是 “View account token usage or use a rate-limit reset.”（`/usage daily`、`/usage weekly`、`/usage cumulative`），属账号 token 活动而不是当前会话上下文；`/statusline` 行逐字为 “Configure TUI status-line fields interactively.” 与 “Pick and reorder footer items (model/context/limits/git/tokens/session) and persist in config.toml.”，正文写选择结果 “persists to `tui.status_line` in `config.toml`”、可用项 “include model, model+reasoning, context stats, rate limits, git branch, token counters, session id, current directory/project root, and Codex version”、`/statusline <items…>` 只对本次会话生效、`/statusline --clear` 隐藏全部；全页没有 `/context` 命令',
+      url: 'https://developers.openai.com/codex/cli/slash-commands',
+    },
+    'codex-statusline-items-source': {
+      label:
+        'Codex 状态栏项定义源码 `codex-rs/tui/src/bottom_pane/status_line_setup.rs`（main `4d517cce4abf`，31,876 字节、864 行，2026-11-19 核对）：文件头注释列出 “- Context usage (remaining %, used %, window size)” 并写 “Context/limit items only show when data is available from the API”；`StatusLineItem` 的三个上下文项为 `ContextRemaining`（序列化名 `context-remaining`，说明 “Percentage of context window remaining (omitted when unknown)”）、`ContextUsed`（`#[strum(to_string = "context-used", serialize = "context-usage")]`，说明 “Percentage of context window used (omitted when unknown)”，即 `context-used` 是当前 id、`context-usage` 仍被接受为旧值）与 `ContextWindowSize`（说明 “Total context window size in tokens (omitted when unknown)”）；同文件测试 `context_remaining_is_selectable_id` 与 `context_used_accepts_context_usage_legacy_id` 固定了这两个 id 的解析',
+      url: 'https://github.com/openai/codex/blob/4d517cce4abf9ccfe999b0a078d1b84f6043709b/codex-rs/tui/src/bottom_pane/status_line_setup.rs',
     },
     'codex-config': {
       label: 'Codex Advanced Configuration',
@@ -1705,6 +1720,11 @@ window.matrixData = {
       label:
         'Qwen Code 在提交 `8e9b429ff85d5c17f0bf8c33955dbca62664810b` 下的 `packages/cli/src/serve/routes/session.ts`（414,985 字节）：`atRecordId` 出现 23 次，`branch_point_invalid` 与 `session_busy` 仍是分支路由的错误种类（第 5689、6066、6068 行），`runtime.bridge.branchSession(...)` 在带与不带 `atRecordId` 两条路径上都被调用（第 5995、6127 行），第 738 行的报错文案是 “`atRecordId` must be a non-empty record id”、第 5688 行是 “`atRecordId` must be a string”；据此确认 v0.21.13 引入的历史分支路由在核对日期仍然存在',
       url: 'https://github.com/QwenLM/qwen-code/blob/8e9b429ff85d5c17f0bf8c33955dbca62664810b/packages/cli/src/serve/routes/session.ts',
+    },
+    'qwen-context-commands-20261119': {
+      label:
+        'Qwen Code 命令文档 `docs/users/features/commands.md`（main `adca3e7ddc91`，81,966 字节，2026-11-19 核对）：会话命令表两行逐字为 “| `/context` | Show context window usage breakdown | `/context` |” 与紧随其后的子命令行 “| → `detail` | Show per-item context usage breakdown | `/context detail` |”，即 `/context` 给窗口用量分解、`/context detail` 给逐条目分解，两者都在官方命令目录里；同页 `/clear` 行是 “Clear conversation history and free up context”（别名 `/clear`、`/reset`、`/new`）。同提交的 `docs/users/configuration/settings.md`（451,570 字节）`#### context` 小节里 `context.autoCompactThreshold` 行逐字为 “Target fraction of the context window at which auto-compaction triggers. Must be greater than 0 and at most 1. Default is `0.85` (85%). Acts as a ceiling on the trigger: on large windows it is the effective trigger (~85%), while on smaller windows compaction may fire earlier to leave room to summarize.”；已移除的 `model.chatCompression.contextPercentageThreshold` 行写 “Auto-compaction now uses a three-tier threshold ladder (warn / auto / hard) computed internally from the model context window via the `computeThresholds()` function. The old setting is silently ignored (no startup warning).”，即 `/context` 显示的 warn/auto/hard 三条线由窗口内部算出；同小节另有 `context.clearContextOnIdle.toolResultsThresholdMinutes` 默认 `60`、`toolResultsNumToKeep` 默认 `5`、`toolResultsTotalCharsThreshold` 默认 `500000`（超出后清到该阈值一半以复用 provider prompt cache，`-1` 关闭）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/adca3e7ddc9114d990e4e1ea42d4c5667340a4bb/docs/users/features/commands.md',
     },
     'qwen-memory-current': {
       label: 'Qwen Code current memory',
@@ -3165,6 +3185,61 @@ window.matrixData = {
     'kimi-token-ledger-ops': {
       label: 'Kimi Code token counting ledger source',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/ee564e5ec90afd068123b8052928c53f1fd5a27d/packages/agent-core-v2/src/agent/tokenCounting/tokenCountingOps.ts',
+    },
+    'kimi-token-ledger-release': {
+      label:
+        'Kimi Code Release `@moonshot-ai/kimi-code@0.37.0`（2026-08-18T11:23:11Z 发布）的发布说明：PR #2969 条目逐字为 “Fix the displayed context size dropping to a smaller estimate after archiving and resuming a session.”，对应提交 `ee564e5ec90afd068123b8052928c53f1fd5a27d`；即 token 计数台账持久化已经随 0.37.0 发布，不再是 main 分支未发布状态。GitHub compare API 以 `ee564e5…` 为 base、`@moonshot-ai/kimi-code@0.37.0` 为 head 返回 `status: ahead`、`behind_by: 0`，确认该提交是这个 tag 的祖先（2026-11-19 核对）',
+      url: 'https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai%2Fkimi-code%400.37.0',
+    },
+    'kimi-slash-20261119': {
+      label:
+        'Kimi Code 中文 Slash 命令参考 `docs/zh/reference/slash-commands.md`（main `80bd35955585`，13,258 字节，2026-11-19 核对）「## 信息与状态」表逐字为 “| `/usage` | — | 显示 token 用量、上下文占用以及配额信息 | 是 |” 与 “| `/status` | — | 显示当前会话运行时状态：版本、模型、工作目录、权限模式等 | 是 |”，末列是「随时可用」（流式输出期间也可用）标记；全页对 “/context” 的命中数为 0，即 CLI 没有独立的 `/context` 命令，上下文占用只写在 `/usage` 行，`/compact` 行另有 “压缩当前对话上下文，释放 token 占用”',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/80bd35955585b85166ae99df2ffc5b4b0321076e/docs/zh/reference/slash-commands.md',
+    },
+    'kimi-usage-panel-source': {
+      label:
+        'Kimi Code TUI `/usage` 面板源码 `apps/kimi-code/src/tui/components/messages/usage-panel.ts`（main `80bd35955585`，11,827 字节、347 行，2026-11-19 核对）：`buildUsageReportLines()` 先输出 `Session usage` 段（按模型列 `input`/`output`/`total`，无记录时写 “No token usage recorded yet.”），随后 `if (options.maxContextTokens > 0)` 才追加 `Context window` 段——`renderProgressBar(ratio, 20)` 画 20 格进度条、`usagePercent(contextTokens, maxContextTokens)` 给百分比、括号里是 `formatTokenCount(已用) / formatTokenCount(上限)`；`maxContextTokens` 不为正数时整段不渲染。其后是 `Plan usage` 段（`QuotaUsageRow` 逐行画条、给百分比与 `reset`/`resets in <时长>` 提示，取不到数据时写 “No usage data available.”）与 managed／extra 段（含 `Monthly limit`，未设上限时写 “Unlimited”）。即上下文占用与账号配额在同一个面板里，但上下文段只有总量与百分比，没有按系统提示、工具、消息分类的构成',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/80bd35955585b85166ae99df2ffc5b4b0321076e/apps/kimi-code/src/tui/components/messages/usage-panel.ts',
+    },
+    'kimi-status-panel-context-20261119': {
+      label:
+        'Kimi Code TUI `/status` 面板源码 `apps/kimi-code/src/tui/components/messages/status-panel.ts`（main `80bd35955585`，5,582 字节、165 行，2026-11-19 核对）：`contextValues()` 依次回退读取 `options.status?.contextUsage ?? options.contextUsage`、`contextTokens`、`maxContextTokens`；`maxTokens > 0` 时渲染 `Context window` 标题加 `renderProgressBar(safeRatio, 20)`、`usagePercent(tokens, maxTokens)` 百分比与 `(formatTokenCount(tokens) / formatTokenCount(maxTokens))`，否则输出 “No context window data available.”。即 `/status` 也带同一条上下文窗口进度条，但官方命令表把上下文占用列在 `/usage`',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/80bd35955585b85166ae99df2ffc5b4b0321076e/apps/kimi-code/src/tui/components/messages/status-panel.ts',
+    },
+    'kimi-context-usage-commit': {
+      label:
+        'Kimi Code「上下文用量」合并提交 `638fd94b6c22589253570b9b90dbe5359849ddc2`（PR #5058，2026-11-19T12:54:48Z 合入 main，标题 “feat: add the context usage view and session context inspection routes”，58 个文件 +4030/−56）：agent-core-v2 的 Loop 服务新增只读方法 `previewRequestContent()`，按 turn 请求同样的整理步骤（tool-select 塑形 → 对不支持图片的模型隐藏 `ReadMediaFile` → projector 投影）算出下一次请求的 `{ systemPrompt, tools, messages }`，不发请求、不改持久化消息；kap-server 新增三个只读路由把它整理成摘要、分页条目与单条详情；客户端在输入框圆环小窗、右侧会话信息栏与详情面板展示，三个入口都受「设置 → 实验室」的「上下文用量」开关控制、默认关闭，关闭时界面与 main 一致。PR 说明逐字写「界面先作为实验室功能发布：设置 → 实验室 的「上下文用量」开关，默认关闭；关闭时界面和行为与 main 一致」、「一个对照测试跑真实 turn，断言 provider 收到的内容与预览一致」、各类与各条大小「用引擎的估算服务（`ISessionTokenCountingService`，自动压缩也用它）估出每一项，再按比例把实测的已用量分给各项，所以各项相加等于圆环上的已用量」、「刷新由服务端推送的已用 token 和会话状态驱动，没有定时轮询」；改动落在 `apps/desktop/src/renderer/`（`inspector/ContextPanel.vue`、`ContextItemDialog.vue`、`ContextPartView.vue`）与 `packages/app-components`、`packages/app-client`、`packages/app-core`，PR 说明另写「`apps/web` 已不存在……`kimi web` 的界面由桌面端渲染进程构建，自动带上这些改动」，即 CLI TUI 不在改动范围内',
+      url: 'https://github.com/MoonshotAI/kimi-code/commit/638fd94b6c22589253570b9b90dbe5359849ddc2',
+    },
+    'kimi-context-routes-source': {
+      label:
+        'Kimi Code 上下文路由源码 `packages/kap-server/src/routes/context.ts`（提交 `638fd94b6c22`，17,690 字节、510 行，2026-11-19 核对）：`registerContextRoutes()` 注册 `GET /sessions/{session_id}/context/summary`（description “Get lightweight context composition summary for a session agent”）、`GET /sessions/{session_id}/context/items`（“List context block outlines and composition summary for a session agent”）与 `GET /sessions/{session_id}/context/items/{item_id}`（“Get full parsed and raw content for a single context item”），三者 tags 均为 `sessions`、错误集含 `VALIDATION_FAILED`、`SESSION_NOT_FOUND` 与会话冲突错误，单条详情另有 `MESSAGE_NOT_FOUND`；查询参数 `agent_id` 可选（缺省用 `MAIN_AGENT_ID`，子 agent 不在内存时先 `getOrRestoreAgent` 恢复），`items` 另接受 `role`（单值或数组）、`offset`（非负整数）与 `limit`（1–500，`DEFAULT_ITEMS_LIMIT = 100`），响应带 `total` 与 `has_more`；常量 `PREVIEW_MAX_CHARS = 240` 截断条目 preview，`MEDIA_PAYLOAD_MIN_CHARS = 512` 以上的媒体字符串被替换为 `[encoded media · <长度> chars]`；条目 id 由 `listContextItems()` 生成为 `system`、`tool-<index>`、`message-<index>`，`readContextItem()` 拒绝其他形状；`readAgentContextSources()` 过滤掉 `tool.deferred === true` 的工具，用 `ISessionTokenCountingService` 估算各项后按 `scale = used / estimatedTotal` 分摊，`used` 取 `tokenCounting.latestMeasured(...) > 0 ? legacyStatus?.contextTokens : undefined`，没有实测值时退回估算总和，`tokens.max` 取 `legacyStatus?.maxContextTokens`；`splitSystemPromptParts()` 只在代码围栏外按一级标题 `# ` 切分系统提示词并逐段给 token 数',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/638fd94b6c22589253570b9b90dbe5359849ddc2/packages/kap-server/src/routes/context.ts',
+    },
+    'kimi-context-rest-schema': {
+      label:
+        'Kimi Code 上下文接口 schema `packages/kap-server/src/protocol/rest-context.ts`（提交 `638fd94b6c22`，2,198 字节，2026-11-19 核对）：`contextSummarySchema` 字段为 `session_id`、`agent_id`、`captured_at`、可选 `model`、`tokens`（`used` 必填、`max` 可选，都是非负整数）与 `groups`（每项 `role`/`count`/`tokens`）；`contextItemSummarySchema` 为 `id`、`role`、可选 `name`、可选正整数 `sequence`、`preview`、`tokens`、`has_media`；`contextItemsResponseSchema` 为 `summary`、`tools`、`items`、`total`、`has_more`；`contextItemDetailSchema` 另带 `parts` 与 `raw`，`contextItemPartSchema` 的 `kind` 只取 `text`、`think`、`definition`、`function`、`media` 五种',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/638fd94b6c22589253570b9b90dbe5359849ddc2/packages/kap-server/src/protocol/rest-context.ts',
+    },
+    'kimi-context-changesets': {
+      label:
+        'Kimi Code 待发布 changeset `.changeset/context-usage.md`（提交 `638fd94b6c22`，2026-11-19 核对）：影响包为 `kimi-code-app` 与 `@moonshot-ai/kimi-code`（都是 patch），正文逐字为 “Add Context usage, an experimental view of context usage and composition in the composer ring and session info sidebar, with a details panel listing each item the model receives. Turn it on in Settings → Lab.”；同提交的 `.changeset/session-context-preview.md` 影响 `@moonshot-ai/kap-server` 与 `@moonshot-ai/agent-core-v2`，正文逐字为 “Add `GET /api/v1/sessions/{session_id}/context/summary`, `/context/items`, and `/context/items/{item_id}`, which return the system prompt, tool definitions, and messages of the agent\'s next model request, built from a read-only preview that applies the same tool selection, media-tool hiding, and projection steps as the real request.”。两个文件在核对日期仍留在 main 的 `.changeset/` 目录里未被消费',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/638fd94b6c22589253570b9b90dbe5359849ddc2/.changeset/context-usage.md',
+    },
+    'kimi-context-lab-toggle': {
+      label:
+        'Kimi Code 实验室开关源码 `packages/app-core/src/composables/useContextInspector.ts`（提交 `638fd94b6c22`，2026-11-19 核对）：模块级 `contextInspectorEnabled` 初值为 `safeGetJson<boolean>(STORAGE_KEYS.contextInspector) === true`，`setContextInspectorEnabled()` 通过 `safeSetJson` 写回；`packages/app-core/src/lib/storage.ts` 的 `STORAGE_KEYS` 把该键定为 `contextInspector: "kimi-web.context-inspector"`，`safeGetString`/`safeSetJson` 直接读写 `globalThis.localStorage`。即开关是每台机器浏览器／渲染进程各自的 localStorage 值，只有显式 `true` 才开启，默认关闭且不随会话或账号同步',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/638fd94b6c22589253570b9b90dbe5359849ddc2/packages/app-core/src/composables/useContextInspector.ts',
+    },
+    'kimi-context-lab-labels': {
+      label:
+        'Kimi Code 英文界面文案 `packages/app-i18n/src/locales/en/settings.ts`（提交 `638fd94b6c22`，2026-11-19 核对）：设置页分组名 `lab: "Lab"`，该组新增两行逐字为 `contextInspector: "Context usage"` 与 `contextInspectorHint: "Show context usage and composition in the composer ring and session info, and inspect each item the model receives."`；同提交新增的 `packages/app-i18n/src/locales/en/inspector.ts`（2,033 字节）给出面板文案，含 `title: "Context"`、`usedPercent: "{pct}% used"`、`usageSummary: "Used {used} · {remaining} left"`、`ringTooltipWithMax: "Used {used} · {remaining} left of {max} ({pct}%)"`、`tokens: "~{n} tokens"`（估算值前缀 `~`）、`currentContextHint: "System prompt, tools, and messages held by this chat at the displayed time. Per-item token counts are estimates. Refresh to update."`、`compactContext: "Compact context"`、`staleSummary: "Refresh failed. Showing the last loaded data"`，以及角色标签 `system`／`definition`（Tools）／`user`／`assistant`（Model）／`tool`（Tool result）／`unknown`',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/638fd94b6c22589253570b9b90dbe5359849ddc2/packages/app-i18n/src/locales/en/settings.ts',
+    },
+    'kimi-context-release-absent': {
+      label:
+        'Kimi Code Release `@moonshot-ai/kimi-code@2.7.0`（2026-11-19T11:16:28Z 发布，发布说明正文 8,008 字节）与 `kimi-code-desktop@1.4.0`（2026-11-19T11:29:44Z 发布，正文 10,715 字节）：两者都早于 PR #5058 的合入时间 2026-11-19T12:54:48Z；2.7.0 正文对 “context” 与 “5058” 的命中数都是 0，desktop 1.4.0 正文唯一一处 “context” 是 “Add mark as unread/read to the session context menu.”（指右键菜单，不是上下文用量）。据此把「上下文用量」视图与三个 context 路由记为已合入 main、尚未进入任何 Release（2026-11-19 核对）',
+      url: 'https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai%2Fkimi-code%402.7.0',
     },
     'kimi-stale-guard-commit': {
       label: 'Kimi Code Edit/Write staleness guard commit',
@@ -5850,6 +5925,21 @@ window.matrixData = {
         'Qoder CLI 官方 Slash 命令参考 `https://docs.qoder.com/cli/slash-reference.md`（2026-11-17 核对，11,857 字节）：`/statusline` 行逐字为 “| `/statusline` | Configure the status bar. |”，是该命令在官方文档里的唯一一处说明，没有参数、别名或取值说明；同页 `/settings` 行逐字为 “| `/settings` | Open the Settings Panel (alias `/config`). |”',
       url: 'https://docs.qoder.com/cli/slash-reference',
     },
+    'qoder-slash-reference-context': {
+      label:
+        'Qoder CLI 官方 Slash 命令参考 `https://docs.qoder.com/cli/slash-reference.md`（2026-11-19 核对，11,720 字节；本仓库 2026-11-17 记录的同页为 11,857 字节）：「## Remote and Other」表里逐字列出 “| `/context` | Manage context. |”，同表另有 `/remote-control`、`/remote-env`、`/add-dir`、`/docs`、`/help`、`/about`、`/feedback`、`/release-notes`；「## Account and Status」表逐字为 “| `/status` | View account and session status. |” 与 “| `/usage` | View usage statistics. |”；「Models and Reasoning」表另有 “| `/context-window` | Set the context window. |”。官方文档站 `llms.txt`（22,485 字节）与站点地图里都没有介绍 `/context` 输出内容的专页，该命令在文档里只有 “Manage context.” 这一句说明',
+      url: 'https://docs.qoder.com/cli/slash-reference',
+    },
+    'qoder-interface-context-bar': {
+      label:
+        'Qoder CLI “UI and Shortcuts” 页 `https://docs.qoder.com/cli/interface.md`（2026-11-19 核对，15,277 字节）`## Status Bar` 一节：逐字写 “The Status Bar is displayed below the Input Box. The built-in default Status Bar displays information such as `model · workspace · +N -N` (model name, Working Directory, lines of code added/removed) and automatically hides lower-priority segments when the terminal width is insufficient.”；“### Custom Status Bar Command” 一节逐字写自定义命令 “receives session data as JSON via stdin (including Session ID, Working Directory, model, context usage, Git branch, Vim mode, etc.)”，配置形如 `statusLine.type = "command"` 加 `statusLine.command`，并写 “Running `/statusline` in the interactive interface leverages the built-in Status Bar configuration capabilities to automatically read your shell configuration and generate a script.”；“### Paragraph Color” 一节逐字写 “The context progress bar ignores custom colors and automatically changes color (green/yellow/red) based on usage.”，即内置状态栏默认就有一条按用量变色的上下文进度条，且 `statusLine.colors` 对它无效。同站 `cli/usage.md`（2,726 字节）的 Usage Panel 字段表只有 Plan、Plan Expiration Date、Plan Credits Used、Add-on Credits Used、Org Resource Package、Total Duration API、Total Duration wall 与 Total Code Changes，全页 “context” 命中数为 0；`cli/settings-reference.md`（31,752 字节）只有 `model.contextWindow`（“Explicit Context Window (tokens).”）与 `context.*` 记忆／文件发现键，没有上下文占用显示相关键',
+      url: 'https://docs.qoder.com/cli/interface',
+    },
+    'qoder-changelog-context-history': {
+      label:
+        'Qoder CLI 更新日志 `https://changelog.qoder.com/cli`（2026-11-19 核对，HTML 815,021 字节、去标签后正文 1,711 行）里与 `/context` 面板和状态栏上下文进度条相关的条目逐字为：“Improved /context panel accuracy and display”（April 28, 2026 · CLI 0.2.3 · “Plugins & Stability” 段）、“Added context token usage progress bar to default statusline for live context window visibility” 与 “Fixed context window progress bar zeroing, flashing, or displaying incorrect values during compression, sub-agent runs, and session resume”（May 12, 2026 · CLI 0.2.12 · “Worktree Isolation and Context Bar Improvements” 段）、“Fixed context window progress bar not updating after /compact command”（May 13, 2026 · CLI 0.2.13）、“Fixed /context and status bar ratio becoming inconsistent during long sessions”（June 12, 2026 · CLI 1.0.19 · “Queue Progress and Bug Fixes” 段）、“Fixed context warning thresholds becoming inconsistent”（June 13, 2026 · CLI 1.0.20 · “Context Warning Threshold Fix” 段）、“Fixed context usage display issue when resuming a compacted session”（July 3, 2026 · CLI 1.0.37）、“Improved the accuracy of usage statistics and categorization in /context”（August 28, 2026 · CLI 1.1.33 · “Skills Command Improvements and Context Accuracy” 段）与 “Fixed an issue where using /btw after compaction affected the TUI status bar context usage calculation”（October 8, 2026 · CLI 1.1.66）。据此可确认 `/context` 是一个含用量统计与分类的面板、其比例与状态栏进度条同源，但更新日志没有列出面板具体分为哪些类别，也没给上下文警告阈值的取值或配置键',
+      url: 'https://changelog.qoder.com/cli',
+    },
     'qoder-changelog-statusline-history': {
       label:
         'Qoder CLI 更新日志 `https://changelog.qoder.com/cli`（2026-11-17 核对，HTML 804,332 字节、去标签后正文 1,674 行，最新条目为 November 16, 2026 的 CLI 1.1.90 “History Session Compatibility Fixes”）：全篇 `statusline`／`status bar`／`status-bar` 只有 6 处命中，逐字为 “Fixed an issue where … after compaction affected the TUI status bar context usage calculation”、“Reduced the impact of the status bar marquee on the user experience”、“Reduced status bar promo impact on scroll control”、“Fixed /context and status bar ratio becoming inconsistent during long sessions”、“Added context token usage progress bar to default statusline for live context window visibility”（May 12, 2026 · CLI 0.2.12 · “Worktree Isolation and Context Bar Improvements” 段）与 “Added current working directory to status bar”（January 12, 2026 · CLI 0.1.19 · “Conversation Export Support” 段）；即内置状态栏的两次扩充有更新日志记录，但**自定义 `statusLine.command` 与 `/statusline` 从未出现在更新日志里**（`custom shell command`／`/statusline` 命中数为 0），因此其引入版本记为未确认。另有一条相关但不同的能力：November 3, 2026 · CLI 1.1.82 · “Session status reporting via OSC 7501 and reconnection fixes” 段逐字为 “Added support for reporting session status to the terminal via the OSC 7501 protocol”，对应 interface 页的 “Terminal Status Reporting” 一节（`idle`／`working`／`blocked`／`done`／`error` 五态，`QODER_PROGRAM_STATUS=0` 关闭、`1` 跳过探测强制上报，只有交互界面上报、`-p` 等非交互模式不上报），那是发给终端的状态协议，不是界面里的状态栏',
@@ -6354,7 +6444,7 @@ window.matrixData = {
       category: 'sessions',
       capability: '上下文占用',
       description: '查看当前会话上下文窗口或 token 使用情况。',
-      values: { claude: '`/context`', codex: '`/status`', qwen: '`/context` · `/context detail`', kimi: '`/usage` · 条件：resume 后恢复实测上下文占用（main 分支，尚未发布）', qoder: '未确认独立占用视图' },
+      values: { claude: '`/context [all]`（彩色网格 + 优化建议；全屏模式折叠逐项明细，`all` 展开）', codex: '`/status`（含 remaining context capacity）· `/statusline` 的 `context-remaining`/`context-used`/`context-window-size` 字段', qwen: '`/context` · `/context detail`', kimi: '`/usage` 与 `/status` 的 Context window 进度条 · 0.37.0 起 resume 后恢复实测占用 · 条件：桌面端与 `kimi web` 的实验性「上下文用量」构成视图与三个只读 context 接口（合入 main、尚未发布，Lab 开关默认关闭）', qoder: '`/context` 面板 · 内置状态栏上下文进度条（按用量变绿/黄/红）· 条件：官方只写 “Manage context.”，面板分类与警告阈值未公开' },
     },
     {
       id: 'session-export',
