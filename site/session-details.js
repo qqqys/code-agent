@@ -790,90 +790,123 @@
       includes: ['上下文 token 占用', '剩余窗口', '占用内容分类'],
       excludes: ['账号套餐用量', 'API 账单', '仅设置模型最大上下文窗口'],
       facts: [
-        'Claude Code 和 Qwen Code 提供专门的上下文构成视图；Codex 通过 `/status` 展示上下文用量。',
-        'Kimi Code 的 `/usage` 同时展示 token、上下文占用和配额；`/status` 主要是运行时状态。',
-        'Qoder CLI 的 `/context-window` 是设置窗口，`/usage` 是套餐用量，当前文档没有确认独立的上下文占用视图。',
-        'Kimi Code 的 v2 引擎在 main 分支把 token 计数台账持久化到会话 wire journal，resume 后上下文占用恢复实测值而不再回落为估算（尚未发布）；其余四家已固定的一手文档没有描述等价的实测占用恢复机制。',
+        'Claude Code、Qwen Code 和 Qoder CLI 都有名为 `/context` 的专门视图（`/context [all]`、`/context` 与 `/context detail`、`/context` 面板）；Codex 与 Kimi Code 的 CLI 都没有 `/context` 命令，Codex 走 `/status` 加状态栏字段，Kimi 走 `/usage`。',
+        '把占用拆到内容构成的只有三家：Claude Code 给彩色网格与优化建议，Qwen Code 的 `/context detail` 给逐条目分解，Kimi Code 合入 main 的实验性「上下文用量」按 `system`／`tool-<i>`／`message-<i>` 列出模型下一次请求会收到的每一条。Codex 的 `/status` 只给总量与剩余比例，Qoder 的 `/context` 面板在官方文档里只有 “Manage context.” 一句说明。',
+        'Kimi Code 自 0.37.0（2026-08-18 发布）起把 token 计数台账写进会话 wire journal，归档或关闭再 resume 后显示的上下文大小保持实测值而不回落为估算；其余四家已固定的一手资料没有描述等价的实测占用恢复机制。',
+        '五家的占用数字本身都是实时会话状态、不落盘为独立文件；能保存的只是显示方式——Codex 的 `tui.status_line` 字段列表、Qoder 的 `statusLine.colors`／`statusLine.command`，以及 Kimi 桌面端与 `kimi web` 各自的 localStorage 开关 `kimi-web.context-inspector`。',
+        'Kimi 的实验性构成视图属桌面端与 `kimi web` 这个 Surface，CLI TUI 不在其改动范围内；把它记成 CLI 能力会跨越 Surface 边界。',
       ],
       products: {
         claude: {
-          entry: '`/context` 显示当前上下文的占用构成。',
+          entry:
+            '`/context` 打开彩色网格视图；`/context all` 展开在全屏模式下被折叠的逐项明细。',
           behavior:
-            '列出系统提示、工具、`CLAUDE.md`、Memory、Skills 和会话消息等上下文来源。',
+            '官方命令页逐字写 “Visualize current context usage as a colored grid. Shows optimization suggestions for context-heavy tools, memory bloat, and capacity warnings.”；Context window 页写它给 “a live breakdown by category with optimization suggestions, including which CLAUDE.md and auto memory files loaded.”，即分类里能看到具体加载了哪些 `CLAUDE.md` 与 auto memory 文件。会话超出上下文窗口时输出附带警告，说明超出多少以及哪个命令能释放空间。',
           scope:
-            '针对当前会话和当前模型窗口，不是账号总 token 配额。',
+            '针对当前会话与当前模型窗口，不是账号 token 配额；套餐与用量属 `/usage`。',
           automation:
-            '窗口接近容量时会触发自动压缩；上下文视图用于判断何时压缩或清理。',
+            '窗口接近容量时触发自动压缩，压缩窗口由 `/autocompact` 与 `autoCompactWindow` 决定；`/context` 的容量警告与优化建议用于判断是手动 `/compact` 还是关闭占用大的工具与 Skill。',
           persistence:
-            '占用是实时会话状态，不作为单独配置保存。',
+            '占用是实时会话状态，不作为单独配置保存；官方文档没有写 `all` 这个展开选择会被记住。',
           conditions:
-            '工具 schema、MCP、指令和记忆都会占用窗口；仅看可见聊天消息会低估实际占用。',
-          sources: ['claude-context-window', 'claude-sessions'],
+            '全屏模式下 `/context` 默认折叠逐项明细以保住网格可见，需要 `all` 才展开。工具 schema、MCP、指令与记忆都占窗口，只看可见聊天消息会低估实际占用。按 Skill 拆的上下文成本另有 `/skill-doctor`（需 v2.1.252 及以上与 feature-flag fetching），不属本命令。',
+          sources: [
+            'claude-context-command-20261119',
+            'claude-context-window',
+            'claude-sessions',
+          ],
         },
         codex: {
-          entry: '`/status` 显示聊天 ID、上下文用量和速率限制。',
+          entry:
+            '`/status` 显示会话配置与 token 用量；`/statusline` 把上下文字段加进页脚状态栏。Codex 没有 `/context` 命令。',
           behavior:
-            '把当前会话标识、当前配置和剩余上下文信息集中显示；状态栏也可配置 `context-remaining` 等字段。',
+            '官方命令页把 `/status` 的用途逐字写成 “Confirm the active model, approval policy, writable roots, and remaining context capacity.”，正文步骤写输出含 active model、approval policy、writable roots 与 current token usage，TUI 连远程时另显示远端地址与服务端版本；`/status` 之后可用 `/copy` 复制整份状态或其中单个字段。状态栏的上下文项在源码 `StatusLineItem` 里是 `context-remaining`（窗口剩余百分比）、`context-used`（已用百分比，旧 id `context-usage` 仍被接受）与 `context-window-size`（窗口总 token 数），三项都在拿不到数据时省略，源码注释把它们统称 “Context usage (remaining %, used %, window size)”。',
           scope:
-            '上下文用量属于当前聊天；速率限制属于账号或服务配额，两者在同一状态视图中但不是同一指标。',
+            '上下文用量属于当前聊天；`/usage`（`daily`／`weekly`／`cumulative`）是账号 token 活动与速率限制重置，不计入本能力。',
           automation:
-            '达到自动压缩阈值时 Codex 可压缩历史；状态输出用于观察剩余空间。',
+            '达到自动压缩阈值时 Codex 压缩历史；`/status` 与状态栏字段用于观察剩余空间，官方没有给可观察的阈值数值。',
           persistence:
-            '状态值随聊天和模型实时变化；状态栏字段列表可在 `config.toml` 保存。',
+            '状态值随聊天与模型实时变化，不单独保存；`/statusline` 的选择写入 `config.toml` 的 `tui.status_line`，`/statusline <items…>` 只对本次会话生效，`/statusline --clear` 隐藏全部字段。',
           conditions:
-            '`/usage` 不计入本能力：它面向 token 活动或套餐用量，不是当前聊天上下文占用。',
-          sources: ['codex-commands', 'codex-config'],
+            '源码注释写 “Context/limit items only show when data is available from the API”，即状态栏上下文项依赖 API 返回数据；三个 id 来自公开源码而不是配置文档，`config.toml` 的取值列表官方文档未同步。',
+          sources: ['codex-status-context-20261119', 'codex-statusline-items-source'],
         },
         qwen: {
-          entry: '`/context` 查看汇总，`/context detail` 展开到具体条目。',
+          entry:
+            '`/context` 查看窗口用量分解，`/context detail` 展开到逐条目分解。',
           behavior:
-            '展示模型窗口、已用和空闲 token、警告/自动压缩/硬上限，以及系统提示、工具、MCP、Memory、Skills 和消息等分类。',
+            '官方命令表两行逐字为 “Show context window usage breakdown” 与 “Show per-item context usage breakdown”。视图给出模型窗口、已用与空闲 token、warn/auto/hard 三条阈值线，以及系统提示、工具、MCP、Memory、Skills 和消息等分类；三条线由模型窗口经内部 `computeThresholds()` 算出，`context.autoCompactThreshold`（默认 `0.85`）是触发上限，官方写它 “Acts as a ceiling on the trigger: on large windows it is the effective trigger (~85%), while on smaller windows compaction may fire earlier to leave room to summarize.”',
           scope:
-            '针对当前会话；Detail 模式把分类进一步展开到文件、工具或消息条目。',
+            '针对当前会话；detail 模式把分类进一步展开到文件、工具或消息条目。',
           automation:
-            '视图同时显示自动压缩阈值，阈值随模型窗口和配置计算。',
+            '视图同时显示自动压缩阈值。另有 `context.clearContextOnIdle` 在空闲 60 分钟后清理旧工具结果（保留最近 5 条、总量阈值 500000 字符，超出后清到该阈值一半以继续复用 provider prompt cache，`-1` 关闭）。',
           persistence:
             '占用数据不单独保存；恢复会话后根据已恢复上下文重新计算。',
           conditions:
-            '首次模型响应前的 token 数可能是估算，服务端返回实际使用后会更新。',
-          sources: ['qwen-session-commands', 'qwen-session-settings'],
+            '首次模型响应前的 token 数可能是估算，服务端返回实际使用后会更新。旧键 `model.chatCompression.contextPercentageThreshold` 已移除且被静默忽略，不再影响阈值线。',
+          sources: [
+            'qwen-context-commands-20261119',
+            'qwen-session-commands',
+            'qwen-session-settings',
+          ],
         },
         kimi: {
           entry:
-            '`/usage` 显示 token 用量、上下文占用和配额信息；`/status` 也会渲染当前会话的 Context window 进度条（百分比与已用/上限 token）。',
+            'CLI：`/usage` 面板的 `Context window` 段，以及 `/status` 面板的同名段。桌面端与 `kimi web`：条件项——打开「设置 → 实验室」的「上下文用量」（英文 Context usage）开关后，输入框圆环小窗、右侧会话信息栏的上下文分区与详情面板显示已用、剩余与构成。CLI 没有 `/context` 命令。',
+          storage:
+            '会话位于 `$KIMI_CODE_HOME/sessions/<workDirKey>/<sessionId>/`（默认数据根 `~/.kimi-code`），token 计数台账随 `agents/*/wire.jsonl` 事件流保存；实验室开关写在本机 localStorage 键 `kimi-web.context-inspector`，桌面端与 `kimi web` 各自保存、不随会话或账号同步。三个 context 接口本身只读，不落盘。',
           behavior:
-            '在一个视图中同时给出当前会话上下文和账号配额，便于区分窗口压力与套餐余量。显示的上下文值来自 v2 引擎的 token 计数台账：每次模型交换返回 LLM 报告的整段上下文大小就写入一条 `token_counting.measured` 实测锚点；undo 截断写入 `token_counting.truncated`，丢弃截断点之后的锚点；清空或压缩写入 `token_counting.rebased`，把台账重置为单个锚点，压缩后的锚点混合实测摘要与保留消息、请求开销估算（`measured: false`）。状态事件 `agent.status.updated` 携带 `contextTokens` 供视图渲染。',
+            'CLI 侧 `buildUsageReportLines()` 依次输出 `Session usage`（按模型列 input/output/total）、`Context window`（只在 `maxContextTokens > 0` 时渲染：20 格进度条、百分比、`已用 / 上限` token）、`Plan usage`（配额逐行画条并给 `reset`／`resets in <时长>`）与 managed／extra 段；`/status` 用同一组 `contextUsage`／`contextTokens`／`maxContextTokens` 渲染 `Context window` 段，拿不到上限时写 “No context window data available.”。两处都只有总量与百分比，没有内容构成。显示的上下文值来自 v2 引擎的 token 计数台账：每次模型交换返回的整段上下文大小写入 `token_counting.measured` 实测锚点，undo 截断写 `token_counting.truncated` 并丢弃截断点之后的锚点，清空或压缩写 `token_counting.rebased` 把台账重置为单个锚点（压缩后的锚点混合实测摘要、保留消息与请求开销估算，`measured: false`）。条件项的构成视图走 kap-server 三个只读路由 `GET /api/v1/sessions/{session_id}/context/summary`、`/context/items`、`/context/items/{item_id}`，数据来自 agent-core-v2 新增的只读方法 `previewRequestContent()`——按真实请求同样的 tool-select 塑形、对不支持图片的模型隐藏 `ReadMediaFile`、projector 投影三步算出下一次请求的 `{ systemPrompt, tools, messages }`，不发请求也不改持久化消息，并有一个对照测试断言 provider 实际收到的内容与预览一致。条目 id 为 `system`、`tool-<i>`、`message-<i>`，`items` 支持 `role` 筛选与 `offset`／`limit`（默认 100、上限 500）并返回 `total` 与 `has_more`，单条详情返回 `parts`（`kind` 只有 `text`／`think`／`definition`／`function`／`media`）与 `raw`；系统提示词按代码围栏外的一级标题分段并逐段给 token 数，`preview` 截到 240 字符，长于 512 字符的媒体负载替换为 `[encoded media · <长度> chars]`，`tool.deferred === true` 的工具不计入。',
           scope:
-            '上下文部分针对当前会话；配额部分属于账号。`/status` 另行展示版本、模型、工作目录、权限模式和上下文窗口进度条。',
+            'CLI 的上下文段针对当前会话，同面板的配额段属于账号。三个接口按 `session_id` 加可选 `agent_id` 定位，缺省是主 agent，子 agent 不在内存时先恢复，因此也能查非前台会话与 Subagent 的上下文；摘要按 `system`／`definition`／`user`／`assistant`／`tool` 等角色给 `count` 与 `tokens`。',
           automation:
-            '上下文接近上限时自动压缩，`/usage` 可用于观察压缩前后的占用；压缩后的锚点是混合估算值而非纯模型实测值。',
+            '上下文接近上限时自动压缩，`/usage` 可用于观察压缩前后的占用；压缩后台账被 `rebased`，锚点是混合估算值而非纯模型实测值。构成视图不轮询，刷新由服务端推送的已用 token 与会话状态驱动；右侧栏显示期间每个 step 约一次 summary 请求（后台低优先级），圆环小窗与详情面板只在打开时请求，上下文上限或模型变化时刷新。',
           persistence:
-            '条件：2026-08-16 起 `token_counting.measured`、`truncated`、`rebased` 三类记录由瞬时改为写入会话 wire journal（`agents/*/wire.jsonl` 事件流，v2 引擎），会话归档/取消归档或任意关闭 → resume 后，显示的上下文大小保持实测值，不再回落到较小的估算直到下一次模型调用；此前台账不持久化，resume 后从空台账重新估算。实时统计不作为独立会话文件，随会话事件流保存。',
+            'token 计数台账自 0.37.0（2026-08-18T11:23:11Z 发布，PR #2969 条目逐字为 “Fix the displayed context size dropping to a smaller estimate after archiving and resuming a session.”）起写入会话 wire journal，归档／取消归档或任意关闭再 resume 后显示的上下文大小保持实测值，不再回落到较小的估算直到下一次模型调用；此前台账不持久化。构成视图每次请求现算，不保存快照；读取冷会话会把会话加载进服务进程。',
+          surfaces:
+            'CLI TUI 的入口是 `/usage` 与 `/status`。实验性构成视图只在桌面端与 `kimi web`（后者的界面由桌面端渲染进程构建），PR #5058 的改动落在 `apps/desktop/src/renderer/` 与 `packages/app-*`，不含 CLI TUI；三个路由是 kap-server 的 HTTP 接口，任何能访问该服务的客户端都可调用。',
           conditions:
-            '不要用 `/status` 替代上下文占用视图；当前命令表明确把上下文占用列在 `/usage`。条件：token 计数台账持久化于 2026-08-16 合入 main（提交 `ee564e5ec90afd068123b8052928c53f1fd5a27d`，PR #2969），尚未发布（最新 Release 为 0.36.1，2026-08-14 发布）；该变化只涉及 v2 引擎（agent-core-v2）。',
+            '条件：构成视图与三个 context 路由在 2026-11-19T12:54:48Z 合入 main（提交 `638fd94b6c22589253570b9b90dbe5359849ddc2`，PR #5058），晚于同日发布的 `@moonshot-ai/kimi-code@2.7.0`（11:16:28Z，发布说明 8,008 字节，对 “context” 与 “5058” 命中数均为 0）与 `kimi-code-desktop@1.4.0`（11:29:44Z），两个 changeset（`context-usage.md`、`session-context-preview.md`）在核对日期仍留在 main 的 `.changeset/` 未被消费，因此记为尚未发布；开关默认关闭，关闭时界面与 main 一致。逐项 token 是估算值按比例分摊实测总量的结果（界面加 `~` 前缀），已用量与上限才是实测值，各项相加等于圆环上的已用量；会话还没调用过模型时已用量直接用估算总和，上限未知时只显示 token 数。`HOST_API_LEVEL` 未提升，桌面端连旧版远程主机时开启该功能会在面板报错、其他功能照常，新客户端读旧服务端的这三个接口得到 404。官方没有为这三个接口写用户文档（PR 明确未更新 `packages/kap-server/docs/kap.md`），CLI 命令表也仍未提及该视图。',
+          status: '条件项',
           sources: [
-            'kimi-commands-current',
-            'kimi-sessions-current',
+            'kimi-slash-20261119',
+            'kimi-usage-panel-source',
+            'kimi-status-panel-context-20261119',
             'kimi-token-ledger-commit',
             'kimi-token-ledger-changeset',
             'kimi-token-ledger-ops',
+            'kimi-token-ledger-release',
+            'kimi-context-usage-commit',
+            'kimi-context-routes-source',
+            'kimi-context-rest-schema',
+            'kimi-context-changesets',
+            'kimi-context-lab-toggle',
+            'kimi-context-lab-labels',
+            'kimi-context-release-absent',
           ],
         },
         qoder: {
           entry:
-            '当前 TUI 命令表未确认独立的上下文占用视图；`/context-window` 设置模型窗口，`/usage` 显示套餐用量。',
+            '`/context` 打开上下文面板；内置状态栏默认带一条上下文进度条。`/context-window` 只设置窗口大小、`/usage` 是 Plan 与 Credits 用量，都不计入本能力。',
           behavior:
-            '已确认的两个命令分别处理窗口配置和计划用量，没有文档说明它们展示当前会话各类上下文占比。',
+            '官方 Slash 命令参考把 `/context` 列在「Remote and Other」表，说明只有 “Manage context.” 一句，没有参数、别名或输出说明；官方文档站的 `llms.txt` 与站点地图里也没有介绍该命令输出的专页。它是一个含用量统计与分类的面板，这一点由更新日志确认：CLI 0.2.3 “Improved /context panel accuracy and display”、CLI 1.1.33 “Improved the accuracy of usage statistics and categorization in /context”、CLI 1.0.19 “Fixed /context and status bar ratio becoming inconsistent during long sessions”（说明面板比例与状态栏进度条同源）。状态栏方面 CLI 0.2.12 “Added context token usage progress bar to default statusline for live context window visibility”；interface 页写内置默认状态栏显示 `model · workspace · +N -N` 并在终端宽度不足时自动隐藏低优先级段，自定义 `statusLine.command` 通过 stdin 收到含 context usage 的会话数据 JSON，且 “The context progress bar ignores custom colors and automatically changes color (green/yellow/red) based on usage.”',
           scope:
-            '本项只统计当前会话上下文可见性，不把窗口大小设置或套餐额度算作等价能力。',
+            '面板与进度条都针对当前会话；`/usage` 的 Usage Panel 字段表只有 Plan、Plan Expiration Date、Plan/Add-on Credits Used、Org Resource Package、Total Duration API、Total Duration wall 与 Total Code Changes，全页没有 context 字样。',
           automation:
-            'CLI 文档确认 `/compact`，但未公开可观察的自动压缩阈值。',
+            'CLI 文档确认 `/compact`。更新日志有 “Fixed context warning thresholds becoming inconsistent”（CLI 1.0.20）说明存在上下文警告阈值，但阈值取值与配置键都未公开。',
           persistence:
-            '`/context-window` 的选择可通过模型配置保存；这仍不等于保存占用统计。',
+            '占用是实时会话状态，没有保存占用统计的配置键；可保存的只是显示方式（`statusLine.colors` 给各段配色但对上下文进度条无效、`statusLine.command` 指定自定义脚本、`model.contextWindow` 显式指定窗口 token 数）。“Fixed context usage display issue when resuming a compacted session”（CLI 1.0.37）与 “Fixed an issue where using /btw after compaction affected the TUI status bar context usage calculation”（CLI 1.1.66）说明压缩与恢复后占用会重算。',
+          surfaces:
+            '本页以 Qoder CLI 交互式 TUI 为主；官方文档没有说明 Headless 或 SDK 场景如何取得上下文占用。',
           conditions:
-            '保留为未确认，直到官方 CLI 文档明确列出上下文已用/剩余或内容分类视图。',
-          status: '未确认',
-          sources: ['qoder-commands'],
+            '条件：`/context` 的存在与「面板含用量统计和分类」由官方命令表和更新日志确认，但面板具体分为哪些类别、是否给 warn/auto/hard 阈值线、是否接受参数都未公开，官方说明只有 “Manage context.”。`/context-window` 与 `model.contextWindow` 属窗口设置，不算占用视图。',
+          status: '条件项',
+          sources: [
+            'qoder-slash-reference-context',
+            'qoder-interface-context-bar',
+            'qoder-changelog-context-history',
+            'qoder-commands',
+          ],
         },
       },
       related: ['session-compress', 'cmd-status', 'model-switch'],
