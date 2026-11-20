@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-11-19',
+  updatedAt: '2026-11-20',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -5950,6 +5950,76 @@ window.matrixData = {
         'Qoder CLI “UI and Shortcuts” 页的 `## Other UI Options` 一节（同页 15,277 字节）：与页脚、标题相关的键逐字为 “| `ui.hideBanner` | `false` | Hide Startup banner. |”、“| `ui.hideFooter` | `false` | Hide Footer. |”、“| `ui.showLineNumbers` | `true` | Show line numbers in conversations. |”、“| `ui.loadingPhrases` | `off` | Display during loading: `tips` / `witty` / `all` / `off`. |”、“| `ui.dynamicWindowTitle` | `true` | Dynamically update the terminal window title with status icons. |” 与 “| `ui.accessibility.screenReader` | `false` | Screen Reader Mode, outputs plain text (requires restart). |”，并写明 “For a complete list of UI configuration items, see Configuration Item Reference”（该处链接指向 `https://docs.qoder.com/cli/settings-reference`）；该页没有说明 `ui.hideFooter` 隐藏的 Footer 是否就是 `## Status Bar` 一节里那条位于输入框下方的状态栏，两者是否为同一元素记为未确认。主题相关键为 `ui.theme`、`ui.autoThemeSwitching`（默认开启）、`ui.terminalBackgroundPollingInterval`（默认 60 秒）、`ui.customThemes` 与 `ui.language`，17 个内置主题名列在同一页',
       url: 'https://docs.qoder.com/cli/interface',
     },
+    'claude-tasks-command-20261120': {
+      label:
+        'Claude Code Commands 页（2026-11-20 以 `.md` 形式核对，56,777 字节）：`/tasks` 行逐字为 “View and manage background work in the current session, including subagents that have finished. Also available as `/bashes`”，即 `/bashes` 是同一入口的另一个名字；`/background [prompt]` 行逐字为 “Detach the current session to run as a background agent and free this terminal. Pass a prompt to send one more instruction before detaching. Monitor the session with `claude agents`. To copy the conversation into a new background session while this one keeps running, use `/fork`. Alias: `/bg`”；“Run work in parallel.” 一段逐字写 “Claude delegates side tasks to subagents, and `/tasks` lists the current session\'s background work, including subagents that have finished.”，命令排队一段逐字写 “Claude Code runs some commands immediately without interrupting the response, such as `/status`, `/tasks`, and `/usage`.”',
+      url: 'https://code.claude.com/docs/en/commands',
+    },
+    'claude-agents-tasks-20261120': {
+      label:
+        'Claude Code “Run agents in parallel” 页（2026-11-20 以 `.md` 形式核对，9,383 字节）：`/tasks` 的定位逐字为 “For anything running in the background of the current session, `/tasks` lists each item and lets you check on, attach to, or stop it.”，并把 Workflow 单列 “For dynamic workflows, `/workflows` lists running and completed runs, the phase each is in, and how many agents have finished.”、后台会话单列 “For background sessions, `claude agents` opens agent view: one screen showing every session, its state, and which ones need your input.”；同页把后台 bash 命令、`/fork` 派生的后台会话与 cloud scheduled task 分列为不同的并行方式',
+      url: 'https://code.claude.com/docs/en/agents',
+    },
+    'claude-interactive-background-20261120': {
+      label:
+        'Claude Code Interactive mode 页（2026-11-20 以 `.md` 形式核对，78,865 字节）“## Background Bash commands” 一节：后台化方式为 “Prompt Claude Code to run a command in the background” 或 “Press `Ctrl+B` to move a regular Bash tool invocation to the background. Tmux users must press `Ctrl+B` twice due to tmux\'s prefix key.”；清理与从 `/tasks` 停止逐字为 “Background tasks are automatically cleaned up when Claude Code exits. On macOS and Linux, when you stop a background task from `/tasks` or Claude Code stops it at exit, processes that detached from the task\'s shell, such as ones started under `setsid` or `timeout`, stop too”，同段另写 “If you background the session instead of exiting it, your background tasks keep running in the background session.”、“Background tasks are automatically terminated if output exceeds 5GB, with a note in stderr explaining why” 与 `CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1` 关闭内存压力停止；“To turn off background commands, set the `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS` environment variable to `1`. With it set, you also lose the `Ctrl+B` shortcut … Starting in bare mode has the same effect.”；“## Task list” 一节写明待办清单 “is separate from the background-task view. To see running shells and subagents, use `/tasks` instead.”',
+      url: 'https://code.claude.com/docs/en/interactive-mode',
+    },
+    'claude-v21329-tasks-changelog': {
+      label:
+        'Claude Code 更新日志 `## 2.1.329` 段（固定到 `CHANGELOG.md` 提交 `f9e4d1e5753ccffcffdd832f047d72be000396a6`，2026-11-19T22:14:24Z，1,363,204 字节，与 Release v2.1.329（2026-11-19T22:14:41Z）同一时点；全文没有 `## 2.1.330` 段）里与任务列表相关的三条逐字为 “Added this session\'s scheduled tasks, `/loop` wakeups, the goal and this conversation\'s forks to `/tasks`; x stops one after asking”、“Changed the `/tasks` header and the footer\'s background count to one number covering shells, monitors, MCP calls, agents, workflows and scheduled tasks” 与 “Changed \'Exit and stop tasks\' to end this session\'s scheduled tasks so they don\'t run again on resume, unless you exit while Claude is responding”；同段另有一条列表渲染修复 “Fixed panels and questions being cut off at the prompt in fullscreen, `/help`, history search and the background tasks list losing rows or titles in short windows, and tables wrapping in dialogs”，以及把 Monitor 与 shell 区分开的 Hook 载荷变更 “Changed Stop and SubagentStop hooks to list a Monitor\'s script as `monitor`, not `shell`, in `background_tasks`”',
+      url: 'https://github.com/anthropics/claude-code/blob/f9e4d1e5753ccffcffdd832f047d72be000396a6/CHANGELOG.md',
+    },
+    'claude-scheduled-tasks-tasks-20261120': {
+      label:
+        'Claude Code “Run prompts on a schedule” 页（2026-11-20 以 `.md` 形式核对，20,380 字节）：全页没有出现 `/tasks`，管理入口仍逐字写 “Ask Claude in natural language to list or cancel tasks, or reference the underlying tools directly.”，工具表为 `CronCreate`、`CronList`（“List scheduled tasks with their IDs, schedules, next run times, and prompts.”）与 `CronDelete`；自定节奏循环一段逐字为 “A dynamically scheduled loop appears in your scheduled task list like any other task, so you can list or cancel it the same way. The list shows its pending wakeup as a one-shot task”，Limitations 一段逐字为 “You also lose session-scoped tasks if you exit between turns by choosing `Exit and stop tasks`.”，即 v2.1.329 把定时任务、`/loop` 唤醒并入 `/tasks` 之后，该页仍未把 `/tasks` 写成管理入口，列表里这些条目能否用 `x` 停止官方没有说明',
+      url: 'https://code.claude.com/docs/en/scheduled-tasks',
+    },
+    'codex-ps-stop-cli-20261120': {
+      label:
+        'Codex CLI 命令参考（2026-11-20 以 `.md` 形式核对，59,711 字节；`https://developers.openai.com/codex/cli/slash-commands` 以 308 重定向到 `https://learn.chatgpt.com/docs/developer-commands?surface=cli`）“## Built-in slash commands” 表逐字为 “| `/ps` | Show background terminals and their recent output. | Check long-running commands without leaving the main transcript. |”、“| `/stop` | Stop all background terminals. | Cancel background terminal work started by the current session. |” 与 “| `/daemon` | Open background server controls. | Inspect the connection and manage a local server owned by Codex. |”；“### Check background terminals with `/ps`” 一节的两步是 “Type `/ps`.” 与 “Review the list of background terminals and their status.”，预期结果逐字为 “Codex shows each background terminal\'s command plus up to three recent, non-empty output lines so you can gauge progress at a glance.”，并写 “Background terminals appear when `unified_exec` is in use; otherwise, the list may be empty.”；“### Stop background terminals with `/stop`” 一节的第二步逐字为 “Confirm if Codex asks before stopping the listed terminals.”，预期结果逐字为 “Codex stops all background terminals for the current session. `/clean` is still available as an alias for `/stop`.”；表中没有 `/tasks`、`/bashes` 行，`/clean` 也没有独立行',
+      url: 'https://learn.chatgpt.com/docs/developer-commands?surface=cli',
+    },
+    'codex-slash-command-5f775c7f': {
+      label:
+        'Codex TUI Slash 命令源码 `codex-rs/tui/src/slash_command.rs`（固定到该文件最新一次变更提交 `5f775c7f4f5f3e0b3bb6eb499b280e023e697f71`，2026-11-17T21:05:23Z “Add `/rc` to manage remote control from the TUI (#62121)”，14,582 字节，与 main 同文件一致）：枚举含 `Ps,` 与 `#[strum(to_string = "stop", serialize = "clean")] Stop,`，描述匹配臂逐字为 `SlashCommand::Ps => "list background terminals",` 与 `SlashCommand::Stop => "stop all background terminals",`，即 `/clean` 由 strum 的 serialize 提供；文件里没有 `Tasks` 或 `Background` 变体，`supports_inline_args` 也不含 `Ps`、`Stop`，两条命令都不接受内联参数；同枚举的 `Agents`（“open the agent command center”）、`MultiAgents`（serialize `subagents`，“switch between this session\'s subagents”）与 `Daemon`（“Manage the local background server”）分别是会话仪表盘与后台服务入口，不是后台任务列表',
+      url: 'https://github.com/openai/codex/blob/5f775c7f4f5f3e0b3bb6eb499b280e023e697f71/codex-rs/tui/src/slash_command.rs',
+    },
+    'qwen-commands-tasks-20261120': {
+      label:
+        'Qwen Code 命令文档 `docs/users/features/commands.md`（固定到该文件最新一次变更提交 `ed8a4045ba74521eb0c12d73df8fe927a8ce5ae6`，2026-11-19T14:34:15Z “feat(cli): set the vision bridge timeout with /model --vision --timeout (#17830)”，81,966 字节）：表头为 “| Command | Description | Usage Examples |”，`/tasks` 行逐字为 “| `/tasks` | List background tasks | `/tasks` |”，`/workflows` 行逐字为 “| `/workflows` | Inspect workflow runs; cooperatively pause/resume a background run | `/workflows`, `/workflows <runId>`, `/workflows p <runId>` |”，`/agents` 行为 “| `/agents` | Manage subagents | `/agents manage`, `/agents create` |”；全文没有 `/stop`、`/kill` 或 `/background` 行，也没有描述 Background Tasks 对话框的正文段落',
+      url: 'https://github.com/QwenLM/qwen-code/blob/ed8a4045ba74521eb0c12d73df8fe927a8ce5ae6/docs/users/features/commands.md',
+    },
+    'qwen-tasks-command-source': {
+      label:
+        'Qwen Code `packages/cli/src/ui/commands/tasksCommand.ts`（固定到该文件最新一次变更提交 `d0d68c0e8bc77c563a3870a980a8388196e81100`，2026-08-21T07:24:49Z “feat(cli): extend non-blocking slash commands to more builtins (#9495)”，9,024 字节，与 main 同文件一致）：命令定义逐字为 `name: \'tasks\'`、`kind: CommandKind.BUILT_IN`、描述 `\'List background tasks (text dump — interactive dialog opens via the footer pill)\'`、`supportedModes: [\'interactive\', \'non_interactive\', \'acp\'] as const` 与 `canRunDuringStreaming: true`，没有 `altNames`；定义内注释逐字为 “Kept on all three modes: the interactive dialog (reachable via ↓ + Enter on the footer Background tasks pill) is the richer surface when a TTY is available, but `non_interactive` and `acp` consumers (headless `-p`, IDE bridges, SDK) have no dialog and rely on this text dump as the only way to inspect background task state.”；输出为 `Background tasks (${entries.length} total)` 标题行、每条 `[${taskId(entry)}] ${statusLabel(entry)}  ${runtime}${pidPart}  ${taskLabel(entry)}` 与可选的 `            output: ${outputPath}` 行，没有条目时返回 info 消息 `No background tasks.`，交互式模式再追加一条提示 `Tip: focus the Background tasks pill in the footer (use ↓ from an empty composer) and press Enter for the interactive dialog with detail view + live updates.`（注释写明 non_interactive 与 acp 不显示该提示，且故意不固定单一路径因为有 Subagent 时 ↓ 会先经过 Arena agent tab bar；同一注释逐字为 “Soft redirect: in interactive mode the dialog is richer (per-entry detail view, live updates, cancel keybinding).”，即取消任务的键位在对话框内）；`type TaskEntry = AgentTask | ShellTask | MonitorTask;` 即条目只有 agent、shell、monitor 三类，状态标签含 `running`、`paused`、`paused (resume blocked): <原因>`、`completed`、`completed (exit <码>)`、`failed: <错误>` 与 `cancelled`，并可附 `(<N> event/events)`',
+      url: 'https://github.com/QwenLM/qwen-code/blob/d0d68c0e8bc77c563a3870a980a8388196e81100/packages/cli/src/ui/commands/tasksCommand.ts',
+    },
+    'kimi-tasks-slash-a09bf857': {
+      label:
+        'Kimi Code 中文 Slash 命令参考 `docs/zh/reference/slash-commands.md`（固定到该文件最新一次变更提交 `a09bf8573cdfaa611366b7ca8c7bfefb1727409b`，2026-11-18T11:54:13Z “feat(tui): show foreground agent activity in /tasks (#5049)”，13,258 字节）「## 会话管理」表头为 “| 命令 | 别名 | 说明 | 随时可用 |”，`/tasks` 行逐字为 “| `/tasks` | `/task` | 浏览后台任务和正在运行的前台 subagent。选中任务后按 `Enter` 查看输出。 | 是 |”，即别名为 `/task`、末列「随时可用」为「是」（流式输出期间也可执行）；同表 `/tower off` 行写 “退出 Tower 模式，不停止运行中的后台 Agent，也不删除 `.tower/` 状态”。该页没有给出在 `/tasks` 里停止任务的操作',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/a09bf8573cdfaa611366b7ca8c7bfefb1727409b/docs/zh/reference/slash-commands.md',
+    },
+    'kimi-270-release-tasks': {
+      label:
+        'Kimi Code Release `@moonshot-ai/kimi-code@2.7.0`（2026-11-19T11:16:28Z 发布）的发布说明：与任务列表相关的两条逐字为 “[#5049] [`a09bf85`] Thanks @Grapedge! - View running foreground agents and their activity in `/tasks`.”（对应提交 `a09bf8573cdfaa611366b7ca8c7bfefb1727409b`，与中文命令参考同一提交）与 “[#4886] [`1fc7be4`] Thanks @pvzheroes125! - Fix corrupted characters in the truncated output of background Bash tasks.”；`@moonshot-ai/kimi-code@2.7.1`（2026-11-20T06:35:34Z 发布）里与后台相关的只有 “[#5166] [`f0ea8ac`] Thanks @sailist! - Keep queued prompts pending until background notification turns finish.”，没有任务列表变化',
+      url: 'https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai%2Fkimi-code%402.7.0',
+    },
+    'qoder-slash-reference-tasks-20261120': {
+      label:
+        'Qoder CLI Slash 命令参考（2026-11-20 以 `.md` 形式核对，11,720 字节）“## Work Modes” 表逐字为 “| `/tasks` | Open the background task panel (aliases `/bg`, `/background`). |”，同表另有 “| `/workflows` | Open the workflow panel (alias `/workflow-tasks`). |”、“| `/crontab` | Open the scheduled and recurring task management panel. |”、“| `/quest` | Intelligent Workflow Orchestrator that guides you through feature development step-by-step using dedicated subagents. |” 与 “| `/goal` | Manage session goals (see Goal Command Reference). |”；“Sessions and Conversations” 表的 `/subtask` 行逐字为 “| `/subtask` | Dispatch a background subagent with the current context; results return here (requires Agent sessions). |”；页末 “## Conditional Commands” 列出的条件命令是 `/agents`、`/plan`、`/workflows`、`/marketplace`（对应功能开关开启时可用）、`/skills`、`/mcp` 与 `/setup-github`，不含 `/tasks`。该页没有说明面板列出哪些任务类型，也没有给出键位或停止操作',
+      url: 'https://docs.qoder.com/cli/slash-reference',
+    },
+    'qoder-builtins-tasks-20261120': {
+      label:
+        'Qoder CLI “Built-in Capabilities Overview” 页（2026-11-20 以 `.md` 形式核对，15,247 字节）：`/tasks` 行逐字为 “| `/tasks` | Manage Tasks. |”，正文另逐字写 “You can use `/workflows` to manage workflows, and `/tasks` to track task progress. For detailed usage of workflows, see Workflows.”',
+      url: 'https://docs.qoder.com/cli/built-ins',
+    },
+    'qoder-parallel-tasks-20261120': {
+      label:
+        'Qoder CLI “Process Tasks in Parallel” 页（2026-11-20 以 `.md` 形式核对，3,697 字节）：首段逐字为 “Qoder CLI provides several isolation methods: using **Worktree** to place different tasks into independent Git checkouts, using **Background Agents / Tasks** to run multiple subtasks in parallel, and using **Subagents** to delegate complex work to specialized subagents.”，正文写 “For a single complex task, you can break it down and delegate parts to multiple Subagents for parallel processing. Use `/tasks` to view currently running background tasks:” 并给出 `/tasks` 代码块；该页没有描述面板条目、键位或停止方式',
+      url: 'https://docs.qoder.com/cli/parallel-tasks',
+    },
   },
   rows: [
     {
@@ -6006,7 +6076,7 @@ window.matrixData = {
       category: 'commands',
       capability: '任务列表',
       description: '查看或控制后台进程、Agent 或长任务状态。',
-      values: { claude: '`/tasks` · `/background`', codex: '`/ps` · `/stop`', qwen: '`/tasks` · 条件：Workflows 开启时 Background Tasks `p` 或 `/workflows p <runId>` 协作暂停/恢复后台 Workflow', kimi: '`/tasks` · `/task`', qoder: '`/tasks`' },
+      values: { claude: '`/tasks`（别名 `/bashes`）· `/background` · v2.1.329 起同列定时任务、`/loop` 唤醒、目标与本会话分支，`x` 确认后停止一项', codex: '`/ps` · `/stop`（别名 `/clean`）· 条件：后台终端只在使用 `unified_exec` 时出现，否则列表可能为空', qwen: '`/tasks` 文本清单（agent、shell、monitor 三类）· 交互式对话框走页脚 Background tasks 胶囊 · 条件：Workflows 开启时 Background Tasks `p` 或 `/workflows p <runId>` 协作暂停/恢复后台 Workflow', kimi: '`/tasks` · `/task` · 2.7.0 起同时列出运行中的前台 subagent 及其活动，选中按 `Enter` 查看输出', qoder: '`/tasks`（别名 `/bg`、`/background`）打开后台任务面板' },
     },
     {
       id: 'cmd-new',
