@@ -131,6 +131,16 @@ window.matrixData = {
       label: 'Claude Code Remote Control',
       url: 'https://code.claude.com/docs/en/remote-control',
     },
+    'claude-commands-remote-rows': {
+      label:
+        'Claude Code 官方命令参考 `.md` 变体（2026-11-20 复核，56,777 字节，与同日 `cmd-tasks` 单元取到的同一页逐字节相同）：`/remote-control` 行逐字为 “Make this session available for Remote Control from claude.ai. Running it while signed out prints that Remote Control requires a claude.ai subscription and tells you how to sign in. Alias: `/rc`”；`/teleport` 行逐字为 “Pull a cloud session into this terminal. Opens a picker, then fetches the branch and conversation. Also available as `/tp`. Requires a claude.ai subscription”，即 `/tp` 是本仓库此前没有记录的别名；`/desktop` 行逐字为 “Continue the current session in the Claude Code Desktop app. Requires macOS or x64 Windows and a Claude subscription. Alias: `/app`”；页首可见性说明逐字为 “Not every command appears for every user. Availability depends on your platform, plan, and environment. For example, `/desktop` only shows on macOS and x64 Windows when signed in with a Claude subscription”，会话段落另写 “`/teleport` pulls a cloud session into this terminal, and `/remote-control` lets you continue this local session from another device.”；同表的 `/remote-env` 行是 “Choose the default cloud environment for cloud sessions you start from the CLI”，选的是云端环境默认值而不是迁移当前会话，归 `surface-cloud` 字段',
+      url: 'https://code.claude.com/docs/en/commands.md',
+    },
+    'claude-remote-control-md': {
+      label:
+        'Claude Code Remote Control 页 `.md` 变体（2026-11-20 复核，67,871 字节）：Requirements 一节逐字为 “**Subscription**: available on Pro, Max, Ultra, Team, and Enterprise plans. API keys are not supported. On Team and Enterprise, an Owner must first enable the Remote Control toggle in Claude Code admin settings.” 与 “**Authentication**: run `claude` and use `/login` to sign in through claude.ai if you haven\'t already. Without an eligible login, `claude remote-control` exits with an error, while `claude --remote-control` starts an interactive session with Remote Control off.”，API endpoint 条目列出五种不可用配置（使用 Amazon Bedrock、Google Cloud\'s Agent Platform 或 Microsoft Foundry；把 `ANTHROPIC_BASE_URL` 指向 `api.anthropic.com` 以外的主机如 LLM gateway 或代理；经企业 Claude apps gateway 登录）；Enterprise 自定义角色缺 cloud sessions 或 “Claude Code remote control” 权限时 `/remote-control` 显示 `Remote Control is disabled by your organization\'s policy`；启动一节逐字为 “The CLI offers three invocation modes; the Desktop app and VS Code use the `/remote-control` command.”，三种 CLI 方式是 `claude remote-control`、`claude --remote-control` 与 `/remote-control`；`/remote-control` 可带会话名（官方示例 `/remote-control My Project`），首次连接前有一次性确认对话框（选 **Enable Remote Control** 才连接，选 **Never mind** 或按 Esc 则不连接且下次运行再问）；连接后交互式会话的终端显示 `/rc active` 指示器并链接到 claude.ai 上的会话（终端过窄放不下时隐藏），再次运行 `/remote-control` 打开状态面板给出会话 URL 与二维码，并可在本地会话继续运行的前提下断开；自动连接由 `/config` 的 **Enable Remote Control for all sessions**（`on`／`off`／`default` 三值）或设置键 `remoteControlAtStartup` 控制，项目与 local 设置里的 `false` 生效而 `true` 被忽略；未信任目录里 `claude remote-control` 先打印信任会打开什么再问 `Trust <directory>? [y/N]`，标准输入或输出不是终端时无法询问并以 `Workspace not trusted` 退出；`/resume` 或 `/teleport` 打开另一段对话时会断开已连接会话（分享链接检查需 v2.1.324 及以上）',
+      url: 'https://code.claude.com/docs/en/remote-control.md',
+    },
     'claude-platforms': {
       label: 'Claude Code platforms and integrations',
       url: 'https://code.claude.com/docs/en/platforms',
@@ -804,6 +814,36 @@ window.matrixData = {
         'Codex Developer commands（`codex remote-control start` “start the local app-server daemon with remote control enabled”、CLI 子命令表与内置 Slash 命令表）',
       url: 'https://learn.chatgpt.com/docs/developer-commands?surface=cli',
     },
+    'codex-remote-control-cli-20261120': {
+      label:
+        'Codex CLI 命令参考 `.md` 变体（`https://learn.chatgpt.com/docs/developer-commands.md?surface=cli`，2026-11-20 复核，59,711 字节，与同日 `cmd-tasks` 单元取到的同一页逐字节相同）：`### codex remote-control` 一节逐字为 “Run `codex remote-control` to start remote control through the managed background server when eligible, with a foreground fallback. Use `codex remote-control --no-daemon` to run in the foreground explicitly. Use `codex remote-control start` to start the local app-server daemon with remote control enabled, and `codex remote-control stop` to stop it. Managed remote-control clients and SSH remote workflows use these commands; they aren\'t a replacement for `codex app-server --listen` when you\'re building a local protocol client.”，并写 “After the daemon is running, use `codex remote-control pair` to create and print a short-lived manual pairing code. Add `--json` to any remote-control command for machine-readable output. For `pair`, the JSON response includes `pairingCode`, `manualPairingCode`, `environmentId`, and `expiresAt`.” 与 “`--no-daemon` applies only to the bare `remote-control` command; don\'t combine it with `start`, `stop`, or `pair`.”；`/app` 专节逐字为 “On macOS and Windows, type `/app` to open the current session in the ChatGPT desktop app. If the app isn\'t installed or running, Codex shows an error asking you to install or launch it.”；**“## Built-in slash commands” 表在核对日期仍只有 `/rename`、`/raw`、`/resume`、`/review`、`/recap` 五个 `/r` 开头命令，没有 `/rc` 也没有 `/remote`**，即官方 Slash 命令表尚未同步该命令',
+      url: 'https://learn.chatgpt.com/docs/developer-commands?surface=cli',
+    },
+    'codex-rc-v0171-release': {
+      label:
+        'Codex rust-v0.171.0 发布说明（2026-11-20T00:44:47Z 发布，附注标签对象 `295eca93394bb83a6ec8e0841033f3997f97fcbd`、指向提交 `ccf9be8cc458bd6b8336fe84d68d8893f2691a5e`）：New Features 段逐字为 “Added `/rc` and `/remote` to manage local remote control and display device pairing codes from the TUI. (#62121)”，据此确认 `/rc` 已随正式 Release 发布而不只在 main；同段另有 “Added `codex exec --remote <ADDR>` to start or resume noninteractive sessions on an existing app server. (#61707)”、“Enabled the TUI workspace by default, with searchable document previews, image previews, and subagent transcripts alongside the main conversation.” 与 “Added custom MCP status line selection and authoring through `/statusline` when `tui_extensions_statusline` is enabled.”，三项分属 `surface-headless`、TUI 工作区与 `extension-status-line` 字段；该标签下 `codex-rs/tui/src/slash_command.rs` 为 14,582 字节、`codex-rs/tui/src/app/remote_control.rs` 为 15,284 字节、`codex-rs/tui/src/chatwidget/slash_dispatch.rs` 为 60,668 字节',
+      url: 'https://github.com/openai/codex/releases/tag/rust-v0.171.0',
+    },
+    'codex-rc-commit': {
+      label:
+        'Codex `/rc` 合并提交 `5f775c7f4f5f3e0b3bb6eb499b280e023e697f71`（2026-11-17T21:05:23Z，标题 “Add `/rc` to manage remote control from the TUI (#62121)”）：17 个文件改动，新增 `codex-rs/tui/src/app/remote_control.rs`（+375 行）、`codex-rs/tui/src/app/remote_control_tests.rs`（+124 行）与快照 `codex_tui__app__remote_control__tests__rc_menu.snap`（+48 行），并在 `slash_command.rs`（+7 行）、`slash_dispatch.rs`（+7 行）、`app.rs`、`app/event_dispatch.rs`、`app/startup.rs`（+10 行）、`app_event.rs`（+9 行）与 `bottom_pane/slash_commands.rs` 接线',
+      url: 'https://github.com/openai/codex/commit/5f775c7f4f5f3e0b3bb6eb499b280e023e697f71',
+    },
+    'codex-rc-slash-command-source': {
+      label:
+        'Codex `codex-rs/tui/src/slash_command.rs`（固定到标签 rust-v0.171.0 所指提交 `ccf9be8cc458bd6b8336fe84d68d8893f2691a5e`，14,582 字节，与该文件最新变更提交 `5f775c7f4f5f` 逐字节相同）：枚举含 `#[strum(to_string = "rc", serialize = "remote")]` 加 `Rc,`，即主命令 `/rc`、别名 `/remote`；描述匹配臂逐字为 `SlashCommand::Rc => "manage remote control for the local background server",`；`Rc` 同时出现在 `supports_inline_args`、`available_in_side_conversation`、`available_when_thread_unavailable` 三个清单与 `available_during_task` 的 `true` 分支里，`is_visible` 走默认 `_ => true`，即命令菜单可见、回合运行中、side conversation 内与线程不可用时都能执行；同枚举的 `App` 描述为在 ChatGPT 桌面应用继续当前会话，`is_visible` 对 `App` 是 `cfg!(any(target_os = "macos", target_os = "windows"))`',
+      url: 'https://github.com/openai/codex/blob/ccf9be8cc458bd6b8336fe84d68d8893f2691a5e/codex-rs/tui/src/slash_command.rs',
+    },
+    'codex-rc-menu-source': {
+      label:
+        'Codex `codex-rs/tui/src/app/remote_control.rs`（固定到 rust-v0.171.0 提交 `ccf9be8cc458bd6b8336fe84d68d8893f2691a5e`，15,284 字节）：文件头注释逐字为 “Remote control configures the entire local daemon. Device pairing is a separate action, and pairing codes are redacted from event diagnostics.”；`enum Action` 为 `Menu`／`Enable`／`Disable`／`AddDevice`，`const OPERATION_TIMEOUT: Duration = Duration::from_secs(/*secs*/ 30);`；菜单标题 `"Remote control"`、副标题在已连接时为 `"Applies to local sessions; cloud sessions are unaffected."`，条目为 Enable／Disable（按当前状态三选一，文案分别是 `"Disable"`、`"Enable (disabled)"` 与 `"Enable"`）加 `"Add device"`，未开启时 `"Add device"` 置灰并附原因 `"Enable remote control first"`；没有本地后台服务时菜单副标题为 `"Remote control requires the local background server"`、非菜单动作直接报错同句；`verified_daemon_session` 校验服务端版本，低于 `0.163.0-alpha.2` 时返回 `"Update the background server with /daemon to use persistent remote control."`，并把偏好文件定位成守护进程 home 下的 `app-server-daemon/settings.json`，读写的键是 `remoteControlEnabled`（文件不存在按 `false`），启用或禁用成功但偏好没写进去时报 `"Remote control changed for the running daemon, but the preference could not be saved. It may revert after restart."`；`Action::AddDevice` 发 `RemoteControlPairingStart { manual_code: true }`，取 `manual_pairing_code` 打开标题 `"Add device"`、副标题 `"Enter this pairing code on your other device: {code}. If it expires, select Add device again."` 的视图，拿不到码时报 `"No manual pairing code was returned."`；同一时刻只允许一个操作（`"A remote control operation is already in progress. Try again when it finishes."`），超时文案分别是 `"Remote control status timed out. Try again."` 与 `"The remote control operation timed out. Its outcome is unknown; reopen /rc to check the state."`；`Outcome` 的 `Debug` 实现把 `Pairing`／`Info`／`Error` 都打成 `[redacted]`',
+      url: 'https://github.com/openai/codex/blob/ccf9be8cc458bd6b8336fe84d68d8893f2691a5e/codex-rs/tui/src/app/remote_control.rs',
+    },
+    'codex-rc-dispatch-source': {
+      label:
+        'Codex `codex-rs/tui/src/chatwidget/slash_dispatch.rs`（固定到 rust-v0.171.0 提交 `ccf9be8cc458bd6b8336fe84d68d8893f2691a5e`，60,668 字节）：不带参数时分派逐字为 `SlashCommand::Rc => self.app_event_tx.send(AppEvent::RemoteControl(crate::app::remote_control::Action::Menu)),`，即 `/rc` 打开菜单；带非空内联参数时 `dispatch_prepared_command_with_args` 的匹配臂逐字为 `SlashCommand::Rc => self.add_error_message("Open /rc and choose Disable to turn off remote control.".into()),`，即 `/rc off` 一类写法不生效、只回这条提示；`queued_command_drain_result` 把 `SlashCommand::Rc` 与 `Ide`、`Status`、`Daemon`、`Ps`、`Stop` 等并列，属排队后可直接补执行的命令',
+      url: 'https://github.com/openai/codex/blob/ccf9be8cc458bd6b8336fe84d68d8893f2691a5e/codex-rs/tui/src/chatwidget/slash_dispatch.rs',
+    },
     'codex-daemon-readme': {
       label:
         'Codex app-server daemon README（`codex app-server daemon start|restart|update|enable-remote-control|disable-remote-control|stop|version|bootstrap`、`CODEX_HOME/app-server-daemon/settings.json` 的 `remoteControlEnabled`/`shutdownGraceSeconds`/`updater.*`、pid 与 lock 文件、自动更新条件与内嵌服务器回退）',
@@ -1427,6 +1467,16 @@ window.matrixData = {
     'qwen-local-control-commit': {
       label: 'Qwen Code Local Control pairing commit',
       url: 'https://github.com/QwenLM/qwen-code/commit/bf84caf1737163e3e15acff6c6a1c8a6af91df4d',
+    },
+    'qwen-commands-no-remote-20261120': {
+      label:
+        'Qwen Code 命令文档 `docs/users/features/commands.md`（固定到该文件最新一次变更提交 `ed8a4045ba74521eb0c12d73df8fe927a8ce5ae6`，2026-11-20 复核，81,966 字节，与同日 `cmd-tasks` 单元取到的同一文件逐字节相同）：全文对 `remote`、`remote-control`、`local-control` 与 `/serve` 的命中数都是 0，即官方 Slash 命令目录没有任何远程控制或跨端迁移命令；与远程 Surface 有关的正文只有 Web Shell 一句 “**Web Shell:** In the Web Shell UI (`qwen serve`), `/diff` opens a graphical diff dialog.”，以及会话注册表一节说明 `qwen --acp` 子进程按启动方分别登记为 `serve`（守护进程拉起）与 `headless`（客户端直接驱动）',
+      url: 'https://github.com/QwenLM/qwen-code/blob/ed8a4045ba74521eb0c12d73df8fe927a8ce5ae6/docs/users/features/commands.md',
+    },
+    'qwen-serve-v0280-local-control': {
+      label:
+        'Qwen Code `docs/users/qwen-serve.md`（固定到标签 v0.28.0 所指提交 `895dfca8ff125ac0e16372edacd4653322c02147`，2026-11-20 复核，234,376 字节）：旗标表 `--local-control` 行默认值为 `false`，描述逐字为 “Share the Web Shell on one selected IPv4 interface — private/link-local by default, or an explicit pick named with `--local-control-address` — with a daemon-owned revocable pairing token, terminal QR code, exact browser origin, and best-effort sleep inhibition. The pairing URL carries its token in the URL fragment and is printed to the daemon\'s stdout alongside the QR. Composes with `--token`, `--allow-origin`, and `--port 0`; conflicts with `--no-web` and non-default `--hostname`.”；同表另有 `--local-control-address <ip>`（在多候选网卡时指定，或显式选用 RFC 1918／3927 之外与 VPN／隧道接口上的地址，`0.0.0.0`、`127.x`、`224.0.0.0/4` 及以上按 `reserved_lan_address` 拒绝，授权在首次成功启用时记录、禁用后仍保留以便 Web Shell 设置卡重新开启，换地址成功启用会撤销旧授权）；正文另写禁用 Web Shell 时 “Local Control enablement fails closed on every platform”，且 `--no-token-qr` “does not govern the Local Control pairing QR, which `--local-control` prints by design”，即 Local Control 的配对二维码是启动旗标而不是 Slash 命令',
+      url: 'https://github.com/QwenLM/qwen-code/blob/895dfca8ff125ac0e16372edacd4653322c02147/docs/users/qwen-serve.md',
     },
     'qwen-local-control-serve-docs': {
       label: 'Qwen Code qwen serve Local Control documentation',
@@ -3370,6 +3420,61 @@ window.matrixData = {
       label: 'Kimi Code Remote Control 指南（任务始终在本机执行）',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/21406fb4c805cc8c715e6d1f16ad3fb5f25f4fe3/docs/zh/guides/remote-control.md',
     },
+    'kimi-rc-0390-release': {
+      label:
+        'Kimi Code `@moonshot-ai/kimi-code@0.39.0` 发布说明（2026-08-27T11:36:28Z 发布，附注标签对象 `9076cf66a7ae1e0b2e28c9967099c4a6d6cfdb74`、指向提交 `52e8d19dbd17efebc2e73f8e1a879bef7f23c2b1`）：Minor Changes 段逐字为 “[#3034] [`f0a6094`] Thanks @sailist! - Add Remote Control as an experimental feature for accessing a local web session remotely. Enable it with `KIMI_CODE_EXPERIMENTAL_REMOTE_CONTROL=1`, then run `kimi rc`, `kimi web --remote-control`, or `/remote-control` to start it.”，据此确认本仓库此前记录的「2026-08-25 合入 main、尚未随 Release 发布」已作废——Remote Control 连同 `/remote-control` 于 0.39.0 首次进入正式 Release；同版另一条逐字为 “Remove the `--allow-remote-terminals` flag from `kimi web`; PTY terminal routes now stay available on loopback binds only.”',
+      url: 'https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai%2Fkimi-code%400.39.0',
+    },
+    'kimi-rc-0420-release': {
+      label:
+        'Kimi Code `@moonshot-ai/kimi-code@0.42.0` 发布说明（2026-09-09T06:24:42Z 发布，附注标签对象 `62290bef83b0cc2158f60d36266cf745f48076ba`、指向提交 `6954d2c8bf94a5c7fc29cc6ae35b15d042cc4dcb`）：逐字为 “[#3552] [`f0434f2`] Thanks @sailist! - Remote Control is now always on; the experimental `KIMI_CODE_EXPERIMENTAL_REMOTE_CONTROL` flag has been removed.”，即自 0.42.0 起远程控制常驻开启、实验开关被移除，本仓库此前记录的「需 `KIMI_CODE_EXPERIMENTAL_REMOTE_CONTROL=1` 或 master 开关 `KIMI_CODE_EXPERIMENTAL_FLAG=1`」作废；该标签的 `apps/kimi-code/src/tui/commands/registry.ts`（14,433 字节）里 `remote-control` 条目已无 `experimentalFlag`、描述由 “Open the current session through Kimi Remote Control (experimental)” 去掉 “(experimental)”，整个文件的 `experimentalFlag` 只剩 `tower` 一处',
+      url: 'https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai%2Fkimi-code%400.42.0',
+    },
+    'kimi-rc-230-release': {
+      label:
+        'Kimi Code `@moonshot-ai/kimi-code@2.3.0` 发布说明（2026-10-21T05:51:43Z 发布，附注标签对象 `e65b17b733632ee74924816717c8fa1e0b831ba9`、指向提交 `b5e28fd6beac752a2cdcc0ff2f5fdf40e6494fbb`）：逐字为 “[#4214] [`ef727e5`] Thanks @sailist! - Support streaming large requests and responses through remote control, raising the transfer limit from 10 MiB to 100 MiB, with concurrent transfers bounded to protect memory.”，即远程控制通道的单次传输上限由 10 MiB 提到 100 MiB 并限制并发传输数',
+      url: 'https://github.com/MoonshotAI/kimi-code/releases/tag/%40moonshot-ai%2Fkimi-code%402.3.0',
+    },
+    'kimi-rc-registry-0390': {
+      label:
+        'Kimi Code `apps/kimi-code/src/tui/commands/registry.ts`（固定到 0.39.0 所指提交 `52e8d19dbd17efebc2e73f8e1a879bef7f23c2b1`）：`remote-control` 条目逐字为 `name: \'remote-control\'`、`aliases: [\'rc\']`、`description: \'Open the current session through Kimi Remote Control (experimental)\'`、`priority: 40`、`availability: \'always\'` 加 `experimentalFlag: \'remote-control\'`，是实验门禁仍在时的坐标',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/52e8d19dbd17efebc2e73f8e1a879bef7f23c2b1/apps/kimi-code/src/tui/commands/registry.ts',
+    },
+    'kimi-rc-registry-272': {
+      label:
+        'Kimi Code `apps/kimi-code/src/tui/commands/registry.ts`（固定到标签 `@moonshot-ai/kimi-code@2.7.2` 所指提交 `56145f849caa305d42acd09b67fb65d11146f887`，附注标签对象 `1781dbd74bc7fabf23ac4721a570397f278817f1`，Release 2026-11-20T09:06:54Z，14,166 字节，与 main 上该文件最新变更提交 `a09bf8573cdfaa611366b7ca8c7bfefb1727409b` 逐字节相同）：`remote-control` 条目逐字为 `name: \'remote-control\'`、`aliases: [\'rc\']`、`description: \'Open the current session through Kimi Remote Control\'`、`priority: 40`、`availability: \'always\'`，**没有 `experimentalFlag`**；整个文件的 `experimentalFlag` 只剩 `tower` 一处，相邻的 `web` 条目描述为 “Open the current session in the Web UI by starting a new server”、`desktop` 条目别名为 `install-desktop`',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/56145f849caa305d42acd09b67fb65d11146f887/apps/kimi-code/src/tui/commands/registry.ts',
+    },
+    'kimi-rc-web-guide': {
+      label:
+        'Kimi Code 官方中文指南 `docs/zh/guides/web.md`（固定到该文件最新一次变更提交 `751a1d1192b84b72e0d888ee7ca98262cdecb73b`，2026-11-20T07:42:36Z “docs: fold print guide into kimi command reference (#5183)”，6,939 字节）：首段逐字为 “既可以在本机或局域网浏览器里直接运行 `kimi web` 使用，也可以开启**远程控制**（`kimi rc`）从公网上的手机、平板或另一台电脑扫码访问——任务和数据始终全部运行并保存在你的本机，网页只是交互窗口。”；「## 远程控制（公网与手机访问）」一节写 “当你想在外出时用手机跟进任务进度、批复权限或继续对话，无需配置局域网或内网穿透，直接开启远程控制即可（需已登录 Kimi 账号且具备付费会员权限，本机保持唤醒联网）”，三种启动方式逐字为 “**`kimi rc`**（别名 `kimi remote`）：直接启动远程控制；**`kimi web --remote-control`**：与 `kimi rc` 等价；**`/remote-control`**（别名 `/rc`）：已在 CLI 会话中时，把当前会话直接交给远程界面。”，括注 “一台机器同时只能运行一个远程控制实例，每个账号最多支持约 **3 台**设备”；启动后终端打印访问链接（“国内 `https://code-rc.kimi.com/devices/<设备 ID>/`，全球区 `https://code-rc.kimi.ai/devices/<设备 ID>/`”）、二维码（“同时另存为 PNG 文件”）与设备名；注意框写 “远程控制链接对应这台机器的访问入口，仅限登录同一 Kimi 账号后使用，请勿分享给他人。结束时在本地终端按 `Ctrl+C` 即可下线（若找不到原终端，可根据 `~/.kimi-code/server/rc.json` 中的 `pid` 执行 `kill <pid>`）。关闭远程浏览器页面不会中断本机正在运行的任务。”；「常用斜杠命令」表把 `/remote-control` 说明写为 “开启远程控制，从公网远程访问本地 Web 会话”，同表另有 `/web` 不在其中而 `/tower` 标注实验功能；排障小节写 “确认本机未休眠（休眠会断开中转连接，建议开启期间保持唤醒）、本地终端进程仍在运行、网页登录的是同一个付费会员账号”',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/751a1d1192b84b72e0d888ee7ca98262cdecb73b/docs/zh/guides/web.md',
+    },
+    'kimi-rc-guide-removal': {
+      label:
+        'Kimi Code 提交 `84439d5f4ec7bcf69f3e1a5ba0e3145d8dddff08`（2026-11-18T15:21:43Z，标题 “feat(kap): add agent-to-agent HTTP wait/interactions/kap.md, web --json, and KAP guide (#4966)”）：删除 `docs/zh/guides/remote-control.md` 与 `docs/en/guides/remote-control.md`（各 −147 行），同时修改 `docs/zh/guides/web.md`（+44/−32）与 `docs/en/guides/web.md`（+52/−38），即 Remote Control 的独立指南页被并入 Web 指南；本仓库原先挂的 `kimi-remote-control-guide` 坐标 `21406fb4c805` 因此成为历史坐标，只能按该提交取回旧页',
+      url: 'https://github.com/MoonshotAI/kimi-code/commit/84439d5f4ec7bcf69f3e1a5ba0e3145d8dddff08',
+    },
+    'kimi-rc-tui-command-current': {
+      label:
+        'Kimi Code `apps/kimi-code/src/tui/commands/web.ts`（固定到该文件最新一次变更提交 `d1fe15f7f831cbe2ae579adaf1dfa77f21a73733`，2026-11-17T14:36:25Z “chore: reject comments in JS/TS code and remove existing ones (#5019)”，5,790 字节）：`handleRemoteControlCommand` 先用 `inspectRemoteControlLock(getDataDir())` 检查同机实例锁，锁被占用时 `host.showError(formatRemoteControlAlreadyRunning(holder))`；随后 `startRemoteControl({ …, urlSource: CLI_MSH_PLATFORM })` 启动，用 `buildRemoteControlUrl(remoteControl.deviceId, …, remoteControl.relayOrigin)` 拼出设备链接、`generateRemoteControlQr(url, dataDir)` 生成终端二维码并另存 PNG（`qrCode.terminal` 与 `qrCode.pngPath`），再交给 `formatRemoteControlOutput({ …, deviceName, qrCode })` 打印；状态变化经 `formatRemoteControlStatus(status)` 逐行输出，关闭时按来源请求停机（`remote_control_user_requested` 或 `remote_control_closed`），释放锁失败时另报 `Remote Control lock release failed: …`；同文件另有 `handleWebCommand` 与 `startNewServerAfterExit`，即 `/web` 与 `/remote-control` 共用一个模块但走不同分支',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/d1fe15f7f831cbe2ae579adaf1dfa77f21a73733/apps/kimi-code/src/tui/commands/web.ts',
+    },
+    'kimi-command-no-rc': {
+      label:
+        'Kimi Code CLI 参考 `docs/zh/reference/kimi-command.md`（固定到该文件最新一次变更提交 `751a1d1192b84b72e0d888ee7ca98262cdecb73b`，2026-11-20 复核，23,463 字节）：全文对 `remote-control` 的命中数为 0，「## 子命令」清单只有 `kimi login`、`kimi acp`、`kimi web`（含 `kimi server kill`、`kimi web rotate-token`）、`kimi app`、`kimi install-desktop`、`kimi doctor`、`kimi export`、`kimi migrate`、`kimi import-sessions` 与 `kimi upgrade`，`kimi web` 的选项表也没有 `--remote-control`，即 CLI 参考尚未同步 `kimi rc` 与该旗标，而 `docs/zh/guides/web.md` 已把两者写成正式入口并在页末指向本页的 `#kimi-web` 锚点',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/751a1d1192b84b72e0d888ee7ca98262cdecb73b/docs/zh/reference/kimi-command.md',
+    },
+    'kimi-rc-output-source': {
+      label:
+        'Kimi Code `apps/kimi-code/src/cli/sub/web/remote-control.ts`（固定到该文件最新一次变更提交 `7f0ff53c8a719d2142f539d14f6de644a8bfa71d`，2026-10-12T08:30:56Z “fix(remote-control): exit the web server when the relay takes the device offline (#4182)”，4,214 字节）：`formatRemoteControlOutput` 的输出逐行为标题 `Kimi Remote Control ready` 加版本号、`Use Kimi Code on this machine from your phone or another computer.`、三步提示 `1. Scan the QR code, or open <url>`／`2. Log in with your Kimi account`／`3. Start chatting — sessions run on this machine`、状态行 `✓ Connected to <host>, waiting for remote devices…`、`This device: <deviceName>`、警告行 `⚠ This link grants control of this machine. Do not share it.`、终端二维码、`QR code PNG: <pngPath> (open this if the QR above does not scan)`、`Local UI: <origin>#<token> (LAN: --host)`、指向 `https://kimi.com/code/docs/remote-control` 与 `https://kimi.com/code/feedback` 的两个链接，末行 `Logs: off (--log-level info) · Stop: Ctrl+C`；`RemoteControlOutputOptions` 的字段是 `url`、`localOrigin`、`localServerToken`、`deviceName`、`qrCode` 与 `pngPath`，即远程控制链接与本机 Web UI 链接是两条不同的地址',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/7f0ff53c8a719d2142f539d14f6de644a8bfa71d/apps/kimi-code/src/cli/sub/web/remote-control.ts',
+    },
+    'kimi-slash-no-remote-a09bf857': {
+      label:
+        'Kimi Code 中文 Slash 命令参考 `docs/zh/reference/slash-commands.md`（固定到该文件最新一次变更提交 `a09bf8573cdfaa611366b7ca8c7bfefb1727409b`，2026-11-20 复核，13,258 字节）：全文没有 `/remote-control` 也没有 `/rc` 条目；「## 会话管理」表逐字为 “| `/web` | — | 在 web UI 中打开当前会话：选择一个运行中的实例进行连接，或在 TUI 退出后新开一个前台服务器。参见 `kimi web`（原文此处是指向 `kimi-command.md#kimi-web` 的链接） | 是 |” 与 “| `/desktop` | `/install-desktop` | 在浏览器中打开 Kimi Code 桌面端页面（地址随当前区域而定：`https://www.kimi.com/code` 或 `https://www.kimi.ai/code`）。参见 `kimi install-desktop`（原文此处是指向 `kimi-command.md#kimi-install-desktop` 的链接） | 是 |”，即官方 Slash 命令表尚未收录已发布的 `/remote-control`，而 `/desktop` 只打开桌面端介绍页、不迁移会话',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/a09bf8573cdfaa611366b7ca8c7bfefb1727409b/docs/zh/reference/slash-commands.md',
+    },
     'qoder-commands': {
       label: 'Qoder CLI slash commands',
       url: 'https://docs.qoder.com/cli/slash-reference',
@@ -3642,6 +3747,31 @@ window.matrixData = {
     'qoder-remote-control': {
       label: 'Qoder CLI Remote Control',
       url: 'https://docs.qoder.com/en/cli/remote-control',
+    },
+    'qoder-remote-control-guide': {
+      label:
+        'Qoder CLI Remote Control 页 `.md` 变体（`https://docs.qoder.com/cli/remote-control.md`，2026-11-20 复核，3,617 字节）：首段逐字为 “Remote Control lets developers stay in control of running Qoder CLI Agents even when away from the computer — use your phone or browser to make critical decisions at key moments.”，并给出两种模式。远程控制模式一节写 “In a running qoder session, type: `/remote-control`”、“On success, a QR code and URL will appear. Scan the QR code with your phone camera, or copy the URL to open in a browser.”，连接后可 “View the local CLI\'s running status in real time”、“Approve or reject operations that need authorization”、“Send new tasks from your phone”，执行位置逐字为 “Your local terminal executes the tasks you dispatch remotely. All output files are saved on your local computer.”，停止方式为 “In the CLI, type: `/remote-control stop`”；守护模式一节写 “Run directly in your project directory (no need to start a qoder session first): `qoder remote-control`”，同样打印二维码与 URL，手机端 “Tap the "+" button in the bottom-right corner of the Qoder mobile app to create a new task.”、“You can send a second task without waiting for the first to finish”、“Each task\'s status and results are displayed independently”，CLI 侧 “processes tasks sequentially or in parallel”、“All generated files are saved on the computer running the CLI”，退出方式 “Press `Ctrl+C` to exit.”；两节都要求 “Your local computer must remain active.”，手机端需用同一账号登录 Qoder mobile app；FAQ 逐字为 “Type `/remote-control status` in the CLI to view the current remote control connection status.” 与 “Visit https://qoder.com/agents in your browser to manage your remote tasks.”；官方没有给出 `/remote-control` 的其他子命令、二维码有效期或断线重连行为',
+      url: 'https://docs.qoder.com/cli/remote-control',
+    },
+    'qoder-slash-reference-remote': {
+      label:
+        'Qoder CLI Slash 命令参考 `.md` 变体（`https://docs.qoder.com/cli/slash-reference.md`，2026-11-20 复核，11,720 字节，与同日 `cmd-tasks` 单元取到的同一页逐字节相同）：“## Remote and Other” 表逐字为 “| `/remote-control` | Remotely control the session. |” 与 “| `/remote-env` | Manage remote environments. |”，同表另有 `/add-dir`（“Add trusted directories.”）、`/context`、`/docs`、`/help`、`/about`、`/feedback` 与 `/release-notes`；页末 “## Conditional Commands” 只列 `/agents`、`/plan`、`/workflows`、`/marketplace`（feature flag）、`/skills`（需 Skills 支持与管理权限）、`/mcp`（禁用时给提示）与 `/setup-github`，**不含 `/remote-control` 与 `/remote-env`**，即两者无条件可见；本页没有给出 `/remote-control` 的子命令，`stop` 与 `status` 只见于 Remote Control 页',
+      url: 'https://docs.qoder.com/cli/slash-reference',
+    },
+    'qoder-cli-reference-remote-control': {
+      label:
+        'Qoder CLI Commands and Parameters 页 `.md` 变体（`https://docs.qoder.com/cli/cli-reference.md`，2026-11-20 复核，13,961 字节）：`qoder <subcommand>` 子命令表逐字含 “| `remote-control` | Start the remote-control daemon. |”，同表另有 `mcp`、`plugins`、`skills`、`hooks`、`agents`、`login`、`commit`、`rollback`、`update`、`status`、`sites`、`feedback` 与 `wiki`；页内正文与示例统一使用 `qoder` 作为可执行名（“In addition to startup parameters, `qoder` also provides several subcommands in the form of `qoder <subcommand>`”），npm 包名 `@qoder-ai/qodercli` 只出现在安装页',
+      url: 'https://docs.qoder.com/cli/cli-reference',
+    },
+    'qoder-remote-control-changelog': {
+      label:
+        'Qoder CLI 更新日志 `https://changelog.qoder.com/cli`（2026-11-20 核对，HTML 823,699 字节、去标签后正文 1,731 行、196 个版本条目，最新为 November 20, 2026 · CLI 1.1.94）里与远程控制相关的条目逐字为：“Remote Control enabled by default”（April 29, 2026 · CLI 0.2.5 · 小节标题 “BYOK, Permissions & Remote Control”）、“Fixed remote control subagents not handling session reconnection properly”（CLI 0.2.9 段，同段另有 “Fixed /add-dir trusted directories still requiring read permission approval”）、“Improved the interaction experience for subagent, feedback, remote control, and other features”（July 14, 2026 · CLI 1.0.45）、“Added support for remote-controlled artifact display and download”（August 1, 2026 · CLI 1.1.11）与 “Improved the startup guidance shown for the remote control daemon”（August 7, 2026 · CLI 1.1.17 · 小节标题 “Status Line Enhancements”）。整份更新日志没有 `/remote-control` 或 `/remote-env` 的首次出现条目，因此两个命令的引入版本记为未确认，只能确认 CLI 0.2.5 起远程控制默认开启',
+      url: 'https://changelog.qoder.com/cli',
+    },
+    'qoder-cloud-mode-remote-env': {
+      label:
+        'Qoder CLI Cloud Mode 页 `.md` 变体（`https://docs.qoder.com/cli/cloud-mode.md`，2026-11-20 复核，5,015 字节）：页首写 “The `--remote` mode runs your Qoder CLI tasks directly on a cloud VM managed by Qoder.” 与 “Complements the existing Remote Control mode.”；“### 2. Pick a cloud environment with /remote-env” 一节给出 `/remote-env` 的选择器文本 “Remote Environment / Select the default cloud environment.”，选择写进用户级 `~/.qoder/settings.json` 的 `remote.defaultCloudEnvironmentId`，并写 “All subsequent `--remote` invocations reuse this default environment — no need to pick it every time.”；命令参考表把 `/remote-env` 的 Where it works 记为 “Only inside the qoder interactive session (type `/` and pick it)”、Purpose 记为 “Select / switch / create a cloud execution environment as the default for `--remote`”、Scope 记为 “User level (written to `~/.qoder/settings.json`), shared across terminals”，即它选的是云端执行环境默认值，不迁移当前会话，归 `surface-cloud` 字段',
+      url: 'https://docs.qoder.com/cli/cloud-mode',
     },
     'qoder-cloud-mode': {
       label: 'Qoder CLI Cloud Mode',
@@ -6229,7 +6359,7 @@ window.matrixData = {
       category: 'commands',
       capability: '远程与跨端',
       description: '把本地会话连接到桌面端、Web 或远程控制入口。',
-      values: { claude: '`/remote-control` · `/rc` · `/teleport` · `/desktop`', codex: '`/app`', qwen: '—', kimi: '`/web` · 条件：`/remote-control`（别名 `/rc`）启动 Remote Control 中继（实验开关，main 分支，尚未发布）', qoder: 'Cloud Mode；无对应 Slash 命令' },
+      values: { claude: '`/remote-control`（别名 `/rc`，可带会话名，再次运行打开状态面板或断开）· `/teleport`（别名 `/tp`）· `/desktop`（别名 `/app`）· 条件：需 claude.ai 订阅，Bedrock、Google Cloud\'s Agent Platform、Microsoft Foundry 与自定义 `ANTHROPIC_BASE_URL` 下不可用，`/desktop` 只在 macOS 与 x64 Windows 出现', codex: '`/app` · `/rc`（别名 `/remote`，rust-v0.171.0 起）· 条件：`/rc` 需本地后台服务且服务端不低于 0.163.0-alpha.2，开关写进 `app-server-daemon/settings.json` 的 `remoteControlEnabled`；`/app` 只在 macOS 与 Windows；官方 Slash 命令表尚未列出 `/rc`', qwen: '—（条件：远程入口是 `qwen serve --local-control` 等启动旗标，官方命令文档对 remote 的命中数为 0）', kimi: '`/web` · `/remote-control`（别名 `/rc`）· 0.39.0 起随 Release 发布、0.42.0 起常驻开启且 `KIMI_CODE_EXPERIMENTAL_REMOTE_CONTROL` 已移除 · 条件：需登录 Kimi 账号并具备付费会员权限、本机保持唤醒联网，同机只允许一个实例', qoder: '`/remote-control`（`stop` 停止、`status` 查看连接状态）· 条件：`/remote-env` 选默认云环境属 Cloud Mode，守护模式走 `qoder remote-control` 子命令' },
     },
     {
       id: 'cmd-keymap',
