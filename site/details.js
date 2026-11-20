@@ -300,38 +300,52 @@
     },
 
     'cmd-tasks': {
-      definition: '查看和控制当前会话中的后台 Shell、Subagent、Workflow 或其他长时间任务。',
-      includes: ['后台任务列表', '最近输出', '停止任务', '不同后台任务类型'],
-      excludes: ['历史会话列表', '长期目标状态', '云端仓库任务的完整管理'],
+      definition: '查看和控制当前会话里的后台 Shell、监视器、MCP 调用、Subagent、Workflow 或定时任务等长时间工作。',
+      includes: ['后台任务列表', '列表覆盖的任务类型', '最近输出与查看详情', '停止任务', '命令别名'],
+      excludes: ['历史会话列表', '云端仓库任务的完整管理', '定时任务的排程规则、抖动与过期'],
       facts: [
-        '五家都提供后台任务相关入口，但 Codex 使用 `/ps` 和 `/stop`。',
-        'Qwen Code `/tasks` 输出文本摘要，交互式任务对话框从底部状态入口打开；v0.21.8 起 Workflows 开启时，对话框内按 `p` 或用 `/workflows p <runId>` 可协作暂停/恢复后台 Workflow 运行。',
-        'Claude Code 的任务列表包含已完成的后台 Subagent。',
+        '四家用 `/tasks`，Codex 用 `/ps` 加 `/stop`；别名各家不同——Claude 另有 `/bashes`、Kimi 是 `/task`、Qoder 是 `/bg` 与 `/background`、Codex 的 `/stop` 是 `/clean`。',
+        'Claude Code v2.1.329 起把本会话的定时任务、`/loop` 唤醒、目标与本会话分支并进 `/tasks`，表头与页脚后台计数合并成一个覆盖 shells、monitors、MCP calls、agents、workflows 与 scheduled tasks 的数字。',
+        'Kimi Code 2.7.0 起 `/tasks` 除后台任务外还列出运行中的前台 subagent 及其活动；Qwen Code 的 `/tasks` 只输出文本清单，条目为 agent、shell、monitor 三类，交互式对话框要从页脚 Background tasks 胶囊进入。',
+        '停止粒度不同：Claude 在列表里按 `x` 先询问再停止一项，Codex `/stop` 一次停掉当前会话的全部后台终端（必要时先确认），Qwen 在对话框内取消，Kimi 与 Qoder 的官方文档没有给出停止操作。',
+        '可用时机与前置条件也不同：Claude 的 `/tasks` 在模型回复期间立即执行、Qwen 带 `canRunDuringStreaming: true`、Kimi「随时可用」列为「是」，而 Codex 的后台终端只在使用 `unified_exec` 时出现、否则 `/ps` 列表可能为空。',
       ],
       products: {
-        claude: command('claude', ['/tasks', '/background [prompt]'], '列出当前会话后台任务；可将整个会话转为后台 Agent。', {
-          aliases: ['/bg'],
-          persistence: '后台会话可在 `claude agents` 中继续管理',
+        claude: command('claude', ['/tasks', '/background [prompt]'], '列出当前会话的后台工作，可逐项查看、接入或停止，已完成的后台 Subagent 同样列出；v2.1.329 起表头与页脚后台计数是一个覆盖 shells、monitors、MCP calls、agents、workflows 与 scheduled tasks 的数字，列表还包含本会话的定时任务、`/loop` 唤醒、目标与本会话分支，按 `x` 会先询问再停止其中一项。`/background [prompt]` 把整个会话转为后台 Agent 并释放终端，可先带一条提示词。', {
+          aliases: ['/bashes', '/bg'],
+          parameters: '`/tasks` 无公开参数（别名 `/bashes`）；`/background` 可带一条提示词（别名 `/bg`）',
+          mode: '交互式 CLI；`/tasks` 属于在 Claude 回复期间也立即执行、不打断当前回合的命令',
+          persistence: '后台任务在 Claude Code 退出时清理，改为把会话转入后台时继续运行；后台会话在 `claude agents` 中继续管理',
+          conditions: 'macOS 与 Linux 上从 `/tasks` 停止任务或退出时停止任务，会连带停掉从该任务 shell 脱离的进程（如 `setsid`、`timeout` 启动的）；`CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` 或 bare mode 关闭后台命令与 `Ctrl+B`；选择 “Exit and stop tasks” 会结束本会话的定时任务使其不在恢复后再运行，除非在 Claude 回复过程中退出；待办清单（`Ctrl+T`）与后台任务视图是两个东西；定时任务、`/loop` 唤醒、目标与分支并入列表目前只有更新日志记录，官方定时任务页仍把管理入口写成自然语言与 `CronList`/`CronDelete`，这些条目能否用 `x` 停止未确认',
+          sources: ['claude-tasks-command-20261120', 'claude-agents-tasks-20261120', 'claude-interactive-background-20261120', 'claude-v21329-tasks-changelog', 'claude-scheduled-tasks-tasks-20261120', 'claude-mcp-tasks-doc'],
         }),
-        codex: command('codex', ['/ps', '/stop'], '显示后台终端及最近输出；`/stop` 停止当前会话的全部后台终端。', {
+        codex: command('codex', ['/ps', '/stop'], '`/ps` 显示每个后台终端的命令与最多三行最近的非空输出，用于在不离开主 transcript 的情况下查看长命令进度；`/stop` 停止当前会话的全部后台终端，必要时先要求确认。', {
+          aliases: ['/clean'],
+          parameters: '两条命令都不接受内联参数（源码 `supports_inline_args` 不含 `Ps`、`Stop`）',
           persistence: '当前会话',
+          conditions: '后台终端只在使用 `unified_exec` 时出现，否则 `/ps` 列表可能为空；TUI 源码没有 `Tasks` 或 `Background` 变体，`/daemon` 管的是本地后台服务、`/agents` 是会话仪表盘，都不是后台任务列表',
+          sources: ['codex-ps-stop-cli-20261120', 'codex-slash-command-5f775c7f'],
         }),
-        qwen: command('qwen', ['/tasks', '/workflows p <runId>'], '输出后台任务文本列表；交互式 Background Tasks 对话框中按 `p` 协作暂停或恢复选中的后台 Workflow 运行：暂停后不再启动新 Agent，已派发的 Agent 继续运行到收敛，Agent 调用之间的脚本代码继续执行，恢复后释放暂存结果并继续队列派发。`/workflows p <runId>` 在 TUI 提供同样的进程内控制，运行状态在 running、pausing、paused 之间迁移。', {
-          parameters: '`/workflows p <runId>` 接收运行中的 Workflow runId；参数缺失报 `Usage: /workflows p <runId>`，runId 未知或状态不符各有错误提示',
-          mode: '`/tasks` 支持交互式、非交互式、ACP；Workflow 暂停/恢复控制仅交互式 TUI，`-p` 与 ACP 报“Workflow pause controls are available only in the interactive TUI.”',
+        qwen: command('qwen', ['/tasks', '/workflows p <runId>'], '`/tasks` 输出后台任务文本清单：标题为 `Background tasks (<N> total)`，每条是 `[<id>] <状态>  <运行时长><pid>  <标签>` 并附可选的 `output: <路径>` 行，没有条目时输出 `No background tasks.`，交互式模式再追加一条指向页脚胶囊的提示；条目只有 agent、shell、monitor 三类，状态含 running、paused、paused (resume blocked)、completed (exit <码>)、failed 与 cancelled 并可附事件数。交互式 Background Tasks 对话框从页脚的 Background tasks 胶囊进入（空输入框按 ↓ 再按 Enter），提供逐项详情与实时更新；Workflows 开启时对话框内按 `p` 或用 `/workflows p <runId>` 协作暂停/恢复后台 Workflow 运行：暂停后不再启动新 Agent，已派发的 Agent 继续运行到收敛，Agent 调用之间的脚本代码继续执行，恢复后释放暂存结果并继续队列派发。', {
+          parameters: '`/tasks` 无参数；`/workflows p <runId>` 接收运行中的 Workflow runId，参数缺失报 `Usage: /workflows p <runId>`，runId 未知或状态不符各有错误提示',
+          mode: '`/tasks` 在 interactive、non_interactive 与 acp 三种模式都注册且带 `canRunDuringStreaming: true`；交互式提示行只在 interactive 输出；Workflow 暂停/恢复控制仅交互式 TUI，`-p` 与 ACP 报“Workflow pause controls are available only in the interactive TUI.”',
           persistence: '任务状态属于当前会话；Workflow 暂停状态只保留在当前进程，重启不保留',
-          conditions: 'Workflow 暂停只作用于后台运行，前台 Workflow 运行报“Foreground workflow runs cannot be paused or resumed”；pausing 阶段不能撤销暂停，只能等待收敛或停止运行；`/workflows` 只在 `QWEN_CODE_ENABLE_WORKFLOWS=1` 启用 Workflows 时注册',
-          sources: ['qwen-commands', 'qwen-workflow-pause-docs', 'qwen-workflow-pause-shortcuts', 'qwen-workflow-pause-source', 'qwen-v0218-release'],
+          conditions: 'Workflow 暂停只作用于后台运行，前台 Workflow 运行报“Foreground workflow runs cannot be paused or resumed”；pausing 阶段不能撤销暂停，只能等待收敛或停止运行；`/workflows` 只在 `QWEN_CODE_ENABLE_WORKFLOWS=1` 启用 Workflows 时注册；命令文档只写 “List background tasks”，条目类型、输出格式与三种模式注册取自源码',
+          sources: ['qwen-commands-tasks-20261120', 'qwen-tasks-command-source', 'qwen-workflow-pause-docs', 'qwen-workflow-pause-shortcuts', 'qwen-workflow-pause-source', 'qwen-v0218-release'],
         }),
-        kimi: command('kimi', ['/tasks'], '浏览后台任务列表。', {
+        kimi: command('kimi', ['/tasks'], '浏览后台任务和正在运行的前台 subagent；选中任务后按 `Enter` 查看输出。2.7.0 起前台运行中的 Agent 及其活动进入同一列表，0.35.0 起后台 Agent 条目带内存中的实时活动流。', {
           aliases: ['/task'],
-          conditions: '流式输出期间也可使用',
+          conditions: '「随时可用」列为「是」，流式输出期间也可执行；2.7.0 另修复后台 Bash 任务截断输出的乱码；官方命令参考没有给出在列表里停止任务的操作，停止方式未确认；`/tower off` 明确不停止运行中的后台 Agent',
+          sources: ['kimi-tasks-slash-a09bf857', 'kimi-270-release-tasks', 'kimi-background-activity-commit'],
         }),
-        qoder: command('qoder', ['/tasks'], '列出并管理后台任务。', {
+        qoder: command('qoder', ['/tasks'], '打开后台任务面板；内置能力总览把该命令写为 “Manage Tasks.”，并行任务页写用 `/tasks` 查看当前运行中的后台任务。', {
+          aliases: ['/bg', '/background'],
           mode: 'TUI',
+          conditions: '命令参考未把 `/tasks` 列入 Conditional Commands；同页另有 `/workflows`（别名 `/workflow-tasks`）与 `/crontab` 两个独立面板、`/subtask` 派后台 Subagent；面板列出哪些任务类型、有哪些键位、能否停止任务官方都没有说明，记为未确认',
+          sources: ['qoder-slash-reference-tasks-20261120', 'qoder-builtins-tasks-20261120', 'qoder-parallel-tasks-20261120'],
         }),
       },
-      related: ['cmd-goal', 'agent-background', 'execution-background', 'cmd-custom'],
+      related: ['cmd-goal', 'agent-background', 'execution-background', 'session-schedule'],
     },
 
     'cmd-new': {
