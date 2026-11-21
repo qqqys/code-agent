@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-11-20',
+  updatedAt: '2026-11-21',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -3879,8 +3879,38 @@ window.matrixData = {
       label: 'Claude Code 更新日志（`/loop` 与 cron 工具版本时间线）',
       url: 'https://github.com/anthropics/claude-code/blob/1c229fcd1e1e4e452e29a8f116b45fe4cfe2c528/CHANGELOG.md',
     },
+    'claude-v21330-cron-expiry-changelog': {
+      label:
+        'Claude Code 更新日志 `## 2.1.330` 段（固定到 `CHANGELOG.md` 提交 `e791a1c41eee7504672a109fd6eb66b11566b8a1`，2026-11-20T22:32:35Z，1,382,549 字节，与 Release v2.1.330（2026-11-20T22:32:56Z）同一时点）里与定时任务过期相关的条目逐字为 “Changed recurring scheduled tasks and `/loop` to run up to 30 days instead of 7 while their session keeps running, and say when they end; tasks made before this release still end at 7 days”；官方环境变量页与设置参考都没有对应的可配置过期天数值',
+      url: 'https://github.com/anthropics/claude-code/blob/e791a1c41eee7504672a109fd6eb66b11566b8a1/CHANGELOG.md',
+    },
+    'claude-v21329-saved-scheduled-tasks-changelog': {
+      label:
+        'Claude Code 更新日志 `## 2.1.329` 段（固定到 `CHANGELOG.md` 提交 `f9e4d1e5753ccffcffdd832f047d72be000396a6`，1,363,204 字节）里与已保存定时任务相关的条目逐字为 “Changed saved scheduled tasks: in new signed-in sessions, most saved by earlier versions need scheduling again, though `--resume` of their own session still runs them”',
+      url: 'https://github.com/anthropics/claude-code/blob/f9e4d1e5753ccffcffdd832f047d72be000396a6/CHANGELOG.md',
+    },
+    'claude-scheduled-tasks-expiry-20261121': {
+      label:
+        'Claude Code “Run prompts on a schedule” 页（2026-11-21 以 `.md` 形式核对，20,380 字节，与 2026-11-20 核对时字节数相同）：`### Seven-day expiry` 一节逐字为 “Recurring tasks automatically expire 7 days after creation. The task fires one final time, then deletes itself. This bounds how long a forgotten loop can run. If you need a recurring task to last longer, cancel and recreate it before it expires, or use [cloud scheduled tasks](https://code.claude.com/docs/en/routines.md) or [Desktop scheduled tasks](https://code.claude.com/docs/en/desktop-scheduled-tasks.md) for durable scheduling.”，同页另有 “A loop you don\'t cancel ends when [seven days elapse](#seven-day-expiry).” 与 “The [seven-day expiry](#seven-day-expiry) applies to the loop too.”；全页对 “30 days” 的命中数为 0，也没有任务结束时告知用户的表述，即 v2.1.330 的 30 天上限尚未同步进官方文档',
+      url: 'https://code.claude.com/docs/en/scheduled-tasks',
+    },
+    'claude-env-vars-cron-20261121': {
+      label:
+        'Claude Code 环境变量页（2026-11-21 以 `.md` 形式核对，194,269 字节）：与定时任务相关的只有两条，逐字为 “| `CLAUDE_CODE_DISABLE_CRON` | Set to `1` to disable [session-scoped scheduled tasks](https://code.claude.com/docs/en/scheduled-tasks.md#disable-scheduled-tasks). The `/loop` skill and `CronCreate` become unavailable and any already-scheduled tasks stop firing, including tasks that are already running mid-session |” 与 “| `CLAUDE_CODE_LOOP_KEEPALIVE` | Set to `1` to run one extra iteration of an interactive [self-paced `/loop`](https://code.claude.com/docs/en/scheduled-tasks#stop-a-loop) when its second or later iteration ends with nothing scheduled |”，两条都没有最低版本要求；全页没有第三个命中 cron、scheduled task、loop、wakeup 或过期天数的变量，因此 7 天与 30 天都没有对应的环境变量开关',
+      url: 'https://code.claude.com/docs/en/env-vars',
+    },
+    'claude-settings-reference-cron-20261121': {
+      label:
+        'Claude Code 设置参考（2026-11-21 以 `.md` 形式核对，460,908 字节）：与天数或过期相关的键只有 `cleanupPeriodDays`（transcript 保留天数）、`desktopSessionCleanupPeriodDays`（桌面端与 Cowork transcript 保留天数）、`dialogExpiry`（Remote Control 或 SDK 宿主应答转发对话框的等待时长）、`promptCacheTtl` 与 `subagentPromptCacheTtl`（提示词缓存寿命），没有任何 cron、scheduled task、`/loop` 或周期任务过期的设置键，因此 30 天上限不能经设置文件调整',
+      url: 'https://code.claude.com/docs/en/settings-reference',
+    },
     'codex-automations': {
       label: 'Codex Scheduled tasks（Automations）',
+      url: 'https://learn.chatgpt.com/docs/automations',
+    },
+    'codex-automations-20261121': {
+      label:
+        'Codex Scheduled tasks（Automations）页（2026-11-21 核对，HTML 510,442 字节）：CLI 分节仍逐字为 “Codex CLI doesn\'t provide the Scheduled management interface. Use ChatGPT web or the desktop app to create and manage scheduled tasks. The CLI can help you prepare and test a prompt, skill, or script first.”，IDE 扩展分节仍逐字为 “The IDE extension doesn\'t provide the Scheduled management interface. Use ChatGPT web or the desktop app to create and manage scheduled tasks. The IDE extension can help you prepare and test a prompt, skill, or workspace change first.”；全页没有任务过期天数、任务数量上限或最小间隔的表述，三项仍记为未确认',
       url: 'https://learn.chatgpt.com/docs/automations',
     },
     'codex-reference-commands': {
@@ -3914,6 +3944,11 @@ window.matrixData = {
     'qwen-cron-scheduler-v0247': {
       label: 'Qwen Code v0.24.7 cron 调度器源码（已随 Release 发布）',
       url: 'https://github.com/QwenLM/qwen-code/blob/v0.24.7/packages/core/src/services/cronScheduler.ts',
+    },
+    'qwen-cron-scheduler-v0283': {
+      label:
+        'Qwen Code v0.28.3（2026-11-21T01:45:48Z 发布）`packages/core/src/services/cronScheduler.ts`（2026-11-21 核对，97,448 字节）：`export const MAX_JOBS = 50;` 与 `export const DEFAULT_RECURRING_MAX_AGE_DAYS = 7;` 逐字未变，注释写 “Recurring jobs auto-expire this long after creation by default (claw-code parity: covers "check my PRs every hour this week" while bounding how long a forgotten schedule keeps firing). Age is evaluated at fire time — an aged job fires one final time, then is deleted. Overridable per scheduler instance (see the constructor); Infinity disables expiry.”；同文件另有 `normalizeRecurringMaxAge(value, fallback)`（注释 “Single owner of the recurring-expiry contract, shared with the config layer: `0` and `Infinity` both disable expiry, positive values pass through, and negative or NaN input falls back to `fallback`.”）、构造函数签名 `recurringMaxAgeMs: number = DEFAULT_RECURRING_MAX_AGE_MS`、创建时 `expiresAt: recurring ? now + this.recurringMaxAgeMs : Infinity` 与触发时 `const expired = job.recurring && currentMs >= job.expiresAt;`；`MAX_RECURRING_JITTER_MS = 15 * 60 * 1000` 与 `MAX_ONESHOT_JITTER_MS = 90 * 1000` 亦未变，`MAX_TASK_RUNS` 不在该文件内',
+      url: 'https://github.com/QwenLM/qwen-code/blob/v0.28.3/packages/core/src/services/cronScheduler.ts',
     },
     'qwen-cron-tasks-file': {
       label: 'Qwen Code 定时任务持久化与跨进程文件锁源码',
@@ -3950,6 +3985,11 @@ window.matrixData = {
     'kimi-cron-changelog': {
       label: 'Kimi Code 中文更新日志（0.5.0 新增定时任务）',
       url: 'https://github.com/MoonshotAI/kimi-code/blob/21406fb4c805cc8c715e6d1f16ad3fb5f25f4fe3/docs/zh/release-notes/changelog.md',
+    },
+    'kimi-cron-tools-doc-20261121': {
+      label:
+        'Kimi Code 中文工具文档「定时任务」章节（2026-11-21 核对 main HEAD `83e4dde93453dd22e89da03d2c96d84999e7d0c2`，2026-11-20T15:34:18Z，`docs/zh/reference/tools.md` 23,180 字节）：过期口径逐字为「周期任务存活超过 7 天后会以 `stale="true"` 做最后一次触发后自动删除；想继续保留时，再次调用 `CronCreate` 即可。」，上限逐字为「单个会话最多保留 50 个生效中的定时任务。」，提示词上限逐字为「`prompt`（触发时要注入的文本，UTF-8 上限 8 KB）」；本仓库此前固定的坐标是 `21406fb4c805`，本次前移后三项数值均未变',
+      url: 'https://github.com/MoonshotAI/kimi-code/blob/83e4dde93453dd22e89da03d2c96d84999e7d0c2/docs/zh/reference/tools.md',
     },
     'kimi-cron-env-doc': {
       label: 'Kimi Code 环境变量文档（`KIMI_DISABLE_CRON`）',
@@ -4033,6 +4073,11 @@ window.matrixData = {
     },
     'qoder-scheduled-reference': {
       label: 'Qoder CLI Scheduled Task Reference',
+      url: 'https://docs.qoder.com/cli/scheduled-reference',
+    },
+    'qoder-scheduled-reference-20261121': {
+      label:
+        'Qoder CLI Scheduled Task Reference（2026-11-21 核对，HTML 853,282 字节）：过期口径逐字为 “Recurring tasks automatically expire and are cleaned up 7 days after creation (one-time tasks are deleted immediately after triggering).”，上限逐字为 “Maximum number of tasks: Up to 50 tasks. Once the limit is reached, existing tasks must be deleted before creating new ones.”，落盘位置逐字为 “Persistent scheduled tasks are saved in the `.qoder/scheduled_tasks.json` under the project.”，抖动逐字为 “recurring tasks are delayed by up to 10% of their interval (capped at 15 minutes); one-time tasks are triggered up to 90 seconds early when aligned to 30-minute boundaries. Jitter is calculated based on the task ID and remains stable across restarts.”；该页没有 `--durable`/`--permanent` 与 `--max-turns`/`--max-credits` 的说明（前者在 Loop Command Reference），也不出现任何 CLI 版本号',
       url: 'https://docs.qoder.com/cli/scheduled-reference',
     },
     'qoder-loop': {
@@ -6679,7 +6724,7 @@ window.matrixData = {
       category: 'sessions',
       capability: '定时任务与循环',
       description: '按 cron 表达式、固定间隔或模型自定节奏，把提示词在未来时刻重新注入会话。',
-      values: { claude: '`/loop [interval] [prompt]`（bundled Skill，别名 `/proactive`）· `CronCreate`/`CronList`/`CronDelete`/`ScheduleWakeup` · `.claude/loop.md` 与 `~/.claude/loop.md` · 单会话上限 50 个、周期任务 7 天后末次触发再自删 · `CLAUDE_CODE_DISABLE_CRON=1` 关闭 · 条件：`/schedule`（别名 `/routines`）创建云端 Routines、桌面端另有独立定时任务', codex: 'CLI 与 IDE 扩展都不提供 Scheduled 管理界面；条件：ChatGPT 桌面 App 的 Scheduled（RFC 5545 RRULE、`codex://automations` 深链接、`features.in_app_local_automation` 开关、在本地项目或独立 Worktree 执行）与 ChatGPT Web/移动端的 Scheduled（可按 Gmail、Slack、GitHub 事件触发）', qwen: '`/loop [interval] [prompt] | list | clear`（bundled Skill）· `cron_create`/`cron_list`/`cron_delete`/`loop_wakeup` · `.qwen/loop.md` 与 `~/.qwen/loop.md` · 默认只在内存，`durable: true` 才写入 `~/.qwen/tmp/<project-hash>/scheduled_tasks.json` · 上限 50 个、默认 7 天过期（`experimental.cronRecurringMaxAgeDays`，`0` 关闭过期）· `experimental.cron: false` 或 `QWEN_CODE_DISABLE_CRON=1` 关闭', kimi: '`CronCreate`/`CronList`/`CronDelete`（无 Slash 命令，官方工具说明明确用户没有 `/cron` 自助入口）· 单会话上限 50 个、`prompt` ≤8 KiB、周期任务满 7 天以 `stale` 末次触发后自删 · `[cron]` 配置节与 `KIMI_DISABLE_CRON=1`', qoder: '`/loop [interval] [flags] <prompt>` · `/crontab` 管理面板 · `.qoder/loop.md` · 持久任务写入 `<project>/.qoder/scheduled_tasks.json`、会话内任务只在内存 · 上限 50 个、周期任务 7 天过期 · `--durable`/`--permanent` 免自动过期 · `--max-turns`/`--max-credits` 预算上限' },
+      values: { claude: '`/loop [interval] [prompt]`（bundled Skill，别名 `/proactive`）· `CronCreate`/`CronList`/`CronDelete`/`ScheduleWakeup` · `.claude/loop.md` 与 `~/.claude/loop.md` · 单会话上限 50 个、周期任务 v2.1.330 起最长 30 天（此前 7 天，该版之前创建的任务仍在 7 天结束）后末次触发再自删并告知结束 · v2.1.329 起 `Exit and stop tasks` 一并结束本会话定时任务、旧版保存的任务在新登录会话多数要重新排程 · `CLAUDE_CODE_DISABLE_CRON=1` 关闭、`CLAUDE_CODE_LOOP_KEEPALIVE=1` 让自定节奏循环多跑一轮 · 条件：官方 scheduled-tasks 页仍写 “Seven-day expiry”、未同步 30 天且过期天数没有设置键；`/schedule`（别名 `/routines`）创建云端 Routines、桌面端另有独立定时任务', codex: 'CLI 与 IDE 扩展都不提供 Scheduled 管理界面；条件：ChatGPT 桌面 App 的 Scheduled（RFC 5545 RRULE、`codex://automations` 深链接、`features.in_app_local_automation` 开关、在本地项目或独立 Worktree 执行）与 ChatGPT Web/移动端的 Scheduled（可按 Gmail、Slack、GitHub 事件触发）', qwen: '`/loop [interval] [prompt] | list | clear`（bundled Skill）· `cron_create`/`cron_list`/`cron_delete`/`loop_wakeup` · `.qwen/loop.md` 与 `~/.qwen/loop.md` · 默认只在内存，`durable: true` 才写入 `~/.qwen/tmp/<project-hash>/scheduled_tasks.json` · 上限 50 个、默认 7 天过期（`experimental.cronRecurringMaxAgeDays`，`0` 关闭过期）· `experimental.cron: false` 或 `QWEN_CODE_DISABLE_CRON=1` 关闭', kimi: '`CronCreate`/`CronList`/`CronDelete`（无 Slash 命令，官方工具说明明确用户没有 `/cron` 自助入口）· 单会话上限 50 个、`prompt` ≤8 KiB、周期任务满 7 天以 `stale` 末次触发后自删 · `[cron]` 配置节与 `KIMI_DISABLE_CRON=1`', qoder: '`/loop [interval] [flags] <prompt>` · `/crontab` 管理面板 · `.qoder/loop.md` · 持久任务写入 `<project>/.qoder/scheduled_tasks.json`、会话内任务只在内存 · 上限 50 个、周期任务 7 天过期 · `--durable`/`--permanent` 免自动过期 · `--max-turns`/`--max-credits` 预算上限' },
     },
     {
       id: 'extension-mcp',
