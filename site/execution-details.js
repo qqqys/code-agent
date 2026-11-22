@@ -549,83 +549,110 @@
         '后台不等于无人监管：TaskOutput、任务日志、完成通知、超时和精确停止共同决定任务是否可控。',
         'Kimi Code 的后台 Agent 输出原在任务终态时一次性捕获，完成前输出视图显示 `[no output captured]`；0.35.0 起 `/tasks` 预览窗格改为实时显示步骤级活动，活动记录只保存在内存、上限最近 20 步，不落盘。',
         'Kimi Code 0.38.0 起提供 `WaitFor` 工具：模型在当前回合内挂起等待后台任务（子 Agent、后台 Bash、后台提问）结束，而不是结束回合等待重新调用；其余四家当前一手资料未列出同类专门的回合内等待工具。',
-        'Kimi Code `WaitFor` 的 `timeout` 上限在 main 分支（提交 `20a2cea72f5d`，PR #4061，changeset 为 minor，尚未发布）由 600 秒收紧为 90 秒、不再接受更长取值，工具描述改为按任务预期耗时选取而非直接填上限、并不鼓励反复等待，同时让新输入（终端 `Enter`/`Ctrl-S` steer 或等待前已排队消息）立即结束等待；已发布版本（0.38.0–2.1.1）仍为 600 秒上限。',
+        'Kimi Code `WaitFor` 的 `timeout` 上限由 600 秒收紧为 90 秒、并让新输入（终端 `Enter`/`Ctrl-S` steer 或等待前已排队消息）立即结束等待，这两项已随 2.2.0（2026-10-14T15:31:16Z）正式发布：2.1.1 的工具文档逐字写“上限 600”，2.2.0 与 2.7.2 逐字写“上限 90”，GitHub compare 显示 PR #4061 的提交 `20a2cea72f5d` 到 2.2.0 标签为 `behind_by: 0`。本仓库此前记录的“main 分支（尚未发布）”已作废。',
+        '后台命令的墙钟上限只有三家给出数字：Claude Code 在无人值守会话里默认 30 分钟、上限 2 小时，Kimi Code 后台 Bash 默认 600 秒、硬上限 86400 秒（24 小时），Qoder CLI 自 1.1.94 起默认 10 分钟；Codex 与 Qwen Code 的后台命令都没有存活时限，Codex 的 `background_terminal_max_timeout` 只是空 `write_stdin` 轮询窗口上限，Qwen 的 `tools.shell.defaultTimeoutMs` 官方明确只管前台。',
+        '「只在无人值守时设上限」目前只有 Claude Code 写进官方文档：交互终端、桌面端与 VS Code 会话的后台命令没有时限，`-p`、Agent SDK、CI 与云会话才有，且 `-p` 以文本（而非 `--input-format stream-json`）传提示词时两个默认都降为 10 分钟。Kimi Code 的方向相反——print 模式把 `bash_task_timeout_s`、`[subagent] timeout_ms` 与 `[swarm] timeout_ms` 的默认值都注入为 `0`（无超时）。Qoder CLI 与 Qwen Code 没有区分交互与非交互的公开口径。',
+        '600 秒是三家共同的落点：Claude Code 的 `-p` 文本提示词运行、Kimi Code 的后台 Bash 默认（`DEFAULT_BACKGROUND_TIMEOUT_S = 10 * 60`）与 Qoder CLI 1.1.94 的新默认都是 10 分钟；但只有 Kimi Code 同时公开了硬上限（`MAX_BACKGROUND_TIMEOUT_S = 24 * 60 * 60`）与两种关闭方式（`bash_task_timeout_s = 0` 或按调用的 `disable_timeout`）。',
+        '可调性分层差异明显：Claude Code 只能用 `BASH_DEFAULT_TIMEOUT_MS`（高于 1800000 才替换 30 分钟默认）与 `BASH_MAX_TIMEOUT_MS`（高于 7200000 才抬高 2 小时上限）向上抬，官方逐字写两者都不能缩短；Kimi Code 有配置键、五个 `KIMI_CODE_BACKGROUND_*` 环境变量与按调用的 `disable_timeout` 三层；Qwen Code 只有前台侧的每次调用 `timeout` 与 `tools.shell.defaultTimeoutMs`；Codex 只有轮询窗口键；Qoder CLI 未给出任何键。',
+        '后台任务的数量上限只有 Codex 与 Qwen Code 给了源码常量：Codex `MAX_UNIFIED_EXEC_PROCESSES = 64`，超出按 LRU 淘汰、最近使用的 8 个受保护、持有 interaction lock 的候选被跳过、被淘进程执行 `terminate()`；Qwen Code `MAX_RETAINED_TERMINAL_SHELLS = 32` 只淘汰已终态条目的记录。Kimi Code 的 `max_running_tasks` 自 2.6.0 起从配置文档消失、agent-core-v2 的 `AgentTaskConfigSchema` 也没有该字段，只有 node-sdk 的 `BackgroundConfigSchema` 仍声明 `maxRunningTasks`，两处不一致。',
+        'Claude Code 的 `Monitor` 观察自 v2.1.271 起一律有截止期（默认 5 分钟、最长 30 分钟、单提示词 `-p` 最长 10 分钟），到点结束并给 Claude 一条通知以便重新布防，取代了此前无超时的 `persistent` 选项；`TaskOutput` 已在 v2.1.277 移除，改为用 `Read` 读后台任务的输出文件，而 Kimi Code 与 Qoder CLI 仍提供名为 `TaskOutput` 的工具。',
       ],
       products: {
         claude: {
           entry:
             '`/background [prompt]` 把整个当前会话分离成后台 Agent；`/tasks` 查看当前会话的后台工作；模型也可启动后台 Bash/Agent。',
           primitives:
-            '`TaskList`、`TaskStop` 与已弃用的 `TaskOutput`；完整输出优先从任务文件读取；`Monitor` 持续观察事件流。',
+            '`TaskList`、`TaskStop` 与 `Monitor`；`TaskOutput` 已在 v2.1.277 移除（官方工具表逐字为 “Removed in v2.1.277. Previously retrieved output from a background task; Claude reads a background task\'s output file with `Read` instead”），完整输出改从任务输出文件用 `Read` 读取；`TaskStop` 除任务 ID 外也接受 agent-team teammate 或具名后台 Agent 的 ID/名称，找不到匹配时错误信息会列出运行中的后台 Agent（含别的 Agent 派生的）。',
           behavior:
-            '分离后的会话释放当前终端，可用 `claude agents` 观察；普通后台任务完成后状态回到会话。Monitor 可在日志、PR 或 CI 变化时主动插入事件。',
+            '分离后的会话释放当前终端，可用 `claude agents` 观察；普通后台任务完成后状态回到会话。Monitor 可在日志、PR 或 CI 变化时主动插入事件。后台命令到达时限时被停止并告知模型原因，停止通知逐字为 `Background command "<description>" was stopped after reaching its background time limit`，模型可以用更长的 `timeout` 重新启动。前台命令超时不会被杀掉而是转入后台（`sleep` 开头的除外），结果逐字为 `Command did not complete within its 120s timeout and was moved to the background` 加任务 ID 与输出文件路径；被转后台命令里的 `cd`/`pushd`/`popd`/`chdir` 一律不带回，结果另附 `Session cwd remains <dir>; directory changes made by the backgrounded command do not apply to subsequent commands.`。命令输出累计超过 5 GB 会被杀掉。',
           scope:
-            '绑定当前会话和宿主环境；恢复会话时普通进程能否继续取决于进程生命周期。',
+            '绑定当前会话和宿主环境；恢复会话时普通进程能否继续取决于进程生命周期。前台 Subagent 启动的后台命令随该 Subagent 运行结束（完成、失败或被打断）而停止；主对话或后台 Subagent 启动的命令在最终回复后继续运行，直到自行退出、被停止或到达时限。',
           background:
-            'Bash、Subagent 和 Monitor 都可后台运行；Agent frontmatter 也可声明 `background: true`。',
+            'Bash、Subagent 和 Monitor 都可后台运行；Agent frontmatter 也可声明 `background: true`。后台 Bash/PowerShell 时限只在无人值守会话（`-p`、Agent SDK 应用、CI 作业、云会话）生效，从命令进入后台那一刻起算：模型直接后台启动的命令得 30 分钟，或它随 `run_in_background` 传的 `timeout`，上限 2 小时；前台超时转入后台的命令从转入时刻起得 30 分钟。`-p` 以文本（而非 `--input-format stream-json`）传提示词时，两个默认都是 10 分钟而不是 30 分钟。前台侧默认 2 分钟（`BASH_DEFAULT_TIMEOUT_MS` = 120000）、模型可请求的上限默认 10 分钟（`BASH_MAX_TIMEOUT_MS` = 600000），生效上限取两者较大值。Monitor 观察一律有截止期：默认 5 分钟、最长 30 分钟、单提示词 `-p` 运行最长 10 分钟，到点结束并给模型一条通知以便重新布防；`timeout_ms` 同样约束 WebSocket 观察，`TaskStop` 可提前取消。',
           integration:
-            '任务面板、状态栏和权限规则共用；Monitor 复用 Bash allow/deny。',
+            '任务面板、状态栏和权限规则共用；Monitor 复用 Bash allow/deny，auto mode 下会搁置点名 `Monitor` 自身的 allow 规则而交给 classifier 审查。',
           artifacts:
             '任务状态与输出文件可供后续 Read；进程产生的文件保留在工作区。',
           conditions:
-            'Monitor 对部分托管 Provider 或禁用非必要流量的环境不可用。',
-          sources: ['claude-tools', 'claude-commands'],
+            '时限需 v2.1.285 及以上，且 v2.1.288 之前对所有会话生效、v2.1.288 起才收窄为只在无人值守会话生效；从终端、桌面端或 VS Code 扩展操作的本地会话对后台命令没有任何时限。抬高时限只能向上：`BASH_DEFAULT_TIMEOUT_MS` 高于 1800000 才替换 30 分钟默认（`-p` 文本运行时高于 600000 即替换其 10 分钟默认），`BASH_MAX_TIMEOUT_MS` 高于 7200000 才抬高 2 小时上限，把 `BASH_DEFAULT_TIMEOUT_MS` 设到 7200000 以上同样抬高上限，官方逐字写 “neither can shorten a limit: a lower value leaves the defaults and the 2-hour maximum in place”。`CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` 或 bare mode 关闭自动转后台，此时前台命令超时即停止；该变量为 `1` 还会从 Bash、PowerShell 与 subagent 工具上摘掉 `run_in_background` 参数并关掉 `Ctrl+B`，但 MCP tasks 与 Monitor 仍在后台运行。`CLAUDE_SUBAGENT_BG_SHELL_MAX_MS` 已在 v2.1.260 移除并成为空操作（此前以 60 分钟默认限制 Subagent 启动的后台 Shell），同版更新日志逐字为 “Removed the one-hour time limit on background commands started by subagents; they now run until they exit or are stopped, matching the main session”。`CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS`（默认 600000，`0` 表示无限等待，需 v2.1.182 及以上）管的是 `-p` 最后一轮之后主进程空等后台工作的上限，不是任务自身存活时间，且主对话启动的后台命令会把运行撑过该上限。Monitor 在 Amazon Bedrock、Claude Platform on AWS、Google Cloud\'s Agent Platform 或 Microsoft Foundry 上，或设置了 `DISABLE_TELEMETRY`／`CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` 时需要 v2.1.310 及以上，Windows 上只在装了 Git Bash 时可用。',
+          sources: [
+            'claude-tools',
+            'claude-commands',
+            'claude-bg-command-time-limit',
+            'claude-monitor-deadline',
+            'claude-bg-time-limit-changelog',
+            'claude-env-vars-bg-shell-timeout',
+          ],
         },
         codex: {
           entry:
-            '`/ps` 显示后台终端及近期输出，`/stop` 停止当前会话的全部后台终端。',
+            '`/ps` 显示后台终端及近期输出，`/stop` 停止当前会话的全部后台终端（`/clean` 仍是别名）。',
           primitives:
-            '统一 PTY 执行通道可保留长进程；命令管理入口面向终端进程而不是独立任务数据库。',
+            '统一 PTY 执行通道（`features.unified_exec`，官方配置参考逐字为 “Use resumable command execution (stable; enabled on all platforms). User opt-outs are ignored.”）保留长进程；`write_stdin` 既是继续既有命令的通道也是后台轮询通道，源码注释逐字为 “Empty writes are background polls, and non-empty writes continue a command that already ran PreToolUse as Bash, so do not emit a second pre hook here.”。命令管理入口面向终端进程而不是独立任务数据库。',
           behavior:
-            'Agent 可以在长命令运行时继续处理其他工作，并从终端输出检查进度。',
+            'Agent 可以在长命令运行时继续处理其他工作，并从终端输出检查进度。`/ps` 逐字给出 “Codex shows each background terminal\'s command plus up to three recent, non-empty output lines so you can gauge progress at a glance.”；`/stop` 逐字为 “Codex stops all background terminals for the current session.”。后台终端没有存活时限：`write_stdin` 的等待窗口按输入是否为空分两条钳制路径，空轮询走 `time_ms.clamp(MIN_EMPTY_YIELD_TIME_MS, self.max_write_stdin_yield_time_ms)`（5000 毫秒到配置值，默认 300000 毫秒），非空写入走 `time_ms.min(MAX_YIELD_TIME_MS)`（30000 毫秒），`yield_time_ms` 未传时默认 250 毫秒，随后 `let deadline = start + Duration::from_millis(yield_time_ms);` 只约束这一次调用。',
           scope:
-            '后台终端属于当前本地线程和工作目录；Cloud task 是另一种远端异步 Surface。',
+            '后台终端属于当前本地线程和工作目录；Cloud task 是另一种远端异步 Surface。进程条目记 `environment_id`，多执行器环境下同名终端按环境分开。',
           background:
-            '支持多个后台终端；`/stop` 是全停，不是按任务 ID 选择停止。',
+            '支持多个后台终端；`/stop` 是全停，不是按任务 ID 选择停止。数量上有软上限 `MAX_UNIFIED_EXEC_PROCESSES = 64`：达到上限时 `prune_processes_if_needed()` 先把按 `last_used` 倒序的最近 8 个进程放进受保护集合，再在 LRU 序里优先挑已退出且不受保护的进程、找不到才挑最久未用且不受保护的进程；持有 interaction lock（`write_stdin` 或终态事件发布进行中）的候选被跳过，源码注释逐字为 “Do not prune processes while write_stdin or terminal event publication holds their interaction lock.” 与 “The store may temporarily exceed its soft cap while an exited process is publishing its terminal event.”；被挑中的条目在注销网络审批后执行 `terminate()`。相关常量还有 `MIN_YIELD_TIME_MS = 250`、`WINDOWS_INITIAL_EXEC_YIELD_TIME_FLOOR_MS = 10_000`（Windows 上先抬到 10 秒再钳制）、`DEFAULT_MAX_OUTPUT_TOKENS = 10_000` 与 `UNIFIED_EXEC_OUTPUT_MAX_BYTES = 1 MiB`。',
           integration:
             '桌面 App 与 CLI 都可显示终端活动，但命令集合可能不同。',
           artifacts:
-            '近期输出可从 `/ps` 查看；进程产生的文件留在当前工作区。',
+            '近期输出可从 `/ps` 查看；进程产生的文件留在当前工作区。单次输出上限 1 MiB（`UNIFIED_EXEC_OUTPUT_MAX_TOKENS = UNIFIED_EXEC_OUTPUT_MAX_BYTES / 4`）。',
           conditions:
-            '公开命令表没有与 Claude/Qwen/Kimi 相同的 TaskOutput 或后台 Agent 任务面板语义。',
-          sources: ['codex-commands', 'codex-docs'],
+            '公开命令表没有与 Claude/Qwen/Kimi 相同的 TaskOutput 或后台 Agent 任务面板语义。`background_terminal_max_timeout` 常被误读成后台终端的存活上限，官方配置参考逐字写它是 “Maximum poll window in milliseconds for empty `write_stdin` polls (background terminal polling). Default: `300000` (5 minutes). Replaces the older `background_terminal_timeout` key.”，只影响空轮询；全页含 timeout 的键只有 `mcp_servers.<id>.startup_timeout_sec`／`startup_timeout_ms`／`tool_timeout_sec`、`model_providers.<id>.stream_idle_timeout_ms`、`model_providers.<id>.auth.timeout_ms` 与它自己六个，没有任何给后台终端设总时长的键。后台终端只在 `unified_exec` 启用时出现，官方逐字为 “Background terminals appear when `unified_exec` is in use; otherwise, the list may be empty.”；托管要求（Managed requirements）可以禁用 resumable 进程与 `write_stdin`，只留一次性的 `exec_command`，此时没有后台终端。64 的软上限与 8 个受保护进程都只见于源码，官方文档未记录；被淘进程 `terminate()` 后其输出是否仍可读官方也未说明，记为未确认。',
+          sources: [
+            'codex-commands',
+            'codex-docs',
+            'codex-ps-stop-docs-20261122',
+            'codex-bg-terminal-max-timeout-config',
+            'codex-unified-exec-constants',
+            'codex-unified-exec-prune-policy',
+            'codex-write-stdin-yield-default',
+          ],
         },
         qwen: {
           entry:
-            'Shell 参数 `is_background: true`、TUI 运行中 `Ctrl+B`、Agent `run_in_background: true`；`/tasks` 查看。',
+            'Shell 参数 `is_background: true`、TUI 运行中 `Ctrl+B`、Agent `run_in_background: true`；`/tasks` 查看。`is_background` 的官方 schema 描述逐字为 “Optional: Whether to run the command in background. If not specified, defaults to false (foreground execution). Explicitly set to true for long-running processes like development servers, watchers, or daemons that should continue running without blocking further commands.”',
           primitives:
-            '`task_list`、`task_stop`、后台 Shell Registry、后台 Agent Registry 与 `monitor`。',
+            '`task_list`、`task_stop`、后台 Shell Registry、后台 Agent Registry 与 `monitor`。后台 Shell Registry（`packages/core/src/services/backgroundShellRegistry.ts`，v0.28.4 下 24,681 字节）只有条数与输出上限常量，没有超时常量。',
           behavior:
-            '后台启动立即返回 ID；完成时发送通知。前台 Shell 可无重启地转入同一任务管理路径。',
+            '后台启动立即返回 ID；完成时发送通知。前台 Shell 可无重启地转入同一任务管理路径（promote 路径的取消 SIGKILL 等待为 `PROMOTE_CANCEL_SIGKILL_TIMEOUT_MS = 200`，输出流 flush 等待为 `OUTPUT_FLUSH_TIMEOUT_MS = 10_000`）。前台命令在剩余时间不足 `FOREGROUND_TIMEOUT_WARNING_LEAD_MS = 15_000` 毫秒时追加提醒，逐字为 “Warning: this command is about to time out. In the interactive TUI, press Ctrl+B to keep it running in the background.”；长任务劝告阈值按源码注释 “Long-run advisory threshold: half the EFFECTIVE foreground timeout” 取生效前台超时的一半、下限 `MIN_LONG_RUN_THRESHOLD_MS = 1000` 毫秒，因此把 `timeout` 设成 600000 的用户在 5 分钟处看到劝告。',
           scope:
             '任务绑定当前会话和 workspace；新建/清空会话前必须处理仍在运行的后台工作。',
           background:
-            'Shell、Agent、Fork 与 Monitor 可并行；并发上限和 Agent 类型规则继续生效。',
+            'Shell、Agent、Fork 与 Monitor 可并行；并发上限和 Agent 类型规则继续生效。**后台 Shell 没有墙钟超时**：`execute()` 在计算生效超时之前就有 `if (this.params.is_background) { return this.executeBackground(signal, shellExecutionConfig); }`，`executeBackground()` 内不做任何计时，只拒绝 `git commit` 并剥掉单个结尾裸 `&`。前台超时优先级带源码注释逐字为 “Precedence: an explicit per-call `timeout` wins; otherwise fall back to the configured `tools.shell.defaultTimeoutMs` setting; otherwise the built-in default. A value of 0 disables the timeout, but only at the settings/default level — the per-call `timeout` param is validated to be > 0 by `validateToolParamValues`, so 0 never arrives that way.”，实现为 `this.params.timeout ?? this.config.getShellDefaultTimeoutMs() ?? DEFAULT_FOREGROUND_TIMEOUT_MS`（120000 毫秒）；schema 里 `timeout` 的取值范围是 `minimum: 1, maximum: 600000`。顶层具名 Subagent 的后台默认由 `agents.defaultBackground` 控制，默认 `true`。',
           integration:
             'Footer pill、任务对话框和 `/tasks` 展示 Shell 与 Agent；日志可继续读取。',
           artifacts:
-            '后台输出持久到项目临时任务目录，任务结束后仍可检查；工作区修改直接保留。',
+            '后台输出持久到项目临时任务目录，任务结束后仍可检查；工作区修改直接保留。已终态的后台 Shell 记录最多保留 `MAX_RETAINED_TERMINAL_SHELLS = 32` 条，超出按 `while (terminalEntries.length > MAX_RETAINED_TERMINAL_SHELLS)` 淘汰；完成通知里的输出尾巴最多 `MAX_NOTIFICATION_OUTPUT_TAIL_BYTES = 8192` 字节，送给模型的命令文本最多 `MAX_NOTIFICATION_MODEL_COMMAND_LENGTH = 500` 字符。',
           conditions:
-            '后台 Shell 禁止 `git commit`；裸 `&` 会被受管后台路径拒绝或剥离。',
-          sources: ['qwen-shell-current', 'qwen-session-commands'],
+            '后台 Shell 禁止 `git commit`，逐字拒绝文本为 “Refusing to run `git commit` in background mode: AI-attribution notes are written by the foreground completion path. Re-run the commit with is_background=false (or split it out of the compound command).”；裸 `&` 会被受管后台路径剥掉，源码注释逐字为 “The managed path is itself the backgrounding mechanism, so the trailing `&` is redundant.”，并说明只剥单个结尾裸 `&`、不动 `&&` 与转义的 `\\&`。官方设置参考把 `tools.shell.defaultTimeoutMs` 限定为 “Default timeout, in milliseconds, for foreground shell commands started by the agent.”，全页 `tools.` 前缀的 29 个键里没有任何后台 Shell 超时或后台任务时长键，`agents.` 前缀的 6 个键也只有 `agents.defaultBackground` 与前后台相关；因此后台 Shell 是否会在某个未公开的路径上被回收、以及 `MAX_RETAINED_TERMINAL_SHELLS` 淘汰的是记录还是进程，官方文档都没有说明，记为未确认。另有 `MAX_INTENTIONAL_SLEEP_SECONDS = 10 * 60` 用于识别模型显式 `sleep`，与后台超时无关。',
+          sources: [
+            'qwen-shell-current',
+            'qwen-session-commands',
+            'qwen-shell-timeout-v0284',
+            'qwen-bg-shell-registry-v0284',
+            'qwen-settings-shell-timeout-v0284',
+          ],
         },
         kimi: {
           entry:
             '`Bash.run_in_background`、`Agent.run_in_background` 或后台 AskUserQuestion；`/tasks` 打开任务浏览器。0.38.0 起新增 `WaitFor` 工具，模型可在当前回合内等待后台任务结束。条件：0.35.0 起 `/tasks` 预览窗格实时显示后台 Agent（`run_in_background` 或 `Ctrl+B` 启动）的活动，Enter/O 打开全屏活动详情，Ctrl+O 展开或收起。',
           primitives:
-            '`TaskList`、`TaskOutput`、`TaskStop`、`WaitFor`；Bash/Agent/问题任务共用任务服务。`TaskOutput` 始终非阻塞，立即返回当前快照，任务完成经自动通知送达。`WaitFor` 参数：`timeout`（必填，单位秒；已发布版本 0.38.0–2.1.1 上限 600，main 分支提交 `20a2cea72f5d`（PR #4061，尚未发布）起收紧为 `WAIT_FOR_MAX_TIMEOUT_S = 90`、schema 以 `.max(90)` 拒绝更长取值，描述文本改为 `1-90` 并要求按任务预期耗时选取而非直接填上限）与可选 `task_id`；不传 `task_id` 时调用时刻运行中的任意一个后台任务结束即返回，无运行中任务时立即返回，等待更久可再次调用（main 分支起指引不鼓励反复等待）。`WaitFor` 与 `TaskList`/`TaskOutput` 一样自动放行。条件：0.35.0 起新增按 Agent 的内存活动流（subagent activity store），子 Agent 事件分流进该存储，按引擎 `turn.step.started` 事件分段，上限 `MAX_SUBAGENT_ACTIVITY_STEPS = 20` 步、步骤文本尾段 4000 字符、单条工具输出 8000 字符、工具参数字符串 16 KiB。',
+            '`TaskList`、`TaskOutput`、`TaskStop`、`WaitFor`；Bash/Agent/问题任务共用任务服务。`TaskOutput` 始终非阻塞，立即返回当前快照，任务完成经自动通知送达。`WaitFor` 参数：`timeout`（必填，单位秒；0.38.0 至 2.1.1 上限 600，自 **2.2.0**（2026-10-14T15:31:16Z）起为 90，2.7.2 工具文档逐字写 “参数：`timeout`（必填，单位秒，上限 90）”；收紧来自提交 `20a2cea72f5d`（PR #4061），源码为 `WAIT_FOR_MAX_TIMEOUT_S = 90`、schema 以 `.max(90)` 拒绝更长取值，描述文本改为 `1-90` 并要求按任务预期耗时选取而非直接填上限）与可选 `task_id`；不传 `task_id` 时调用时刻运行中的任意一个后台任务结束即返回，无运行中任务时立即返回，等待更久可再次调用（2.2.0 起指引不鼓励反复等待）。`WaitFor` 与 `TaskList`/`TaskOutput` 一样自动放行。条件：0.35.0 起新增按 Agent 的内存活动流（subagent activity store），子 Agent 事件分流进该存储，按引擎 `turn.step.started` 事件分段，上限 `MAX_SUBAGENT_ACTIVITY_STEPS = 20` 步、步骤文本尾段 4000 字符、单条工具输出 8000 字符、工具参数字符串 16 KiB。',
           behavior:
-            '立即返回 task id，终态自动通知主 Agent；回合内等待由 `WaitFor` 承担：调用在当前回合内挂起，等待期间不发起 LLM 请求，超时不是错误、结果列出仍在运行的任务，等待结束时一并列出等待窗口内完成的其他任务，已通过 `WaitFor` 汇报结果的任务不再推送自动完成通知。Goal 模式可用 `WaitFor` 时，注入的指引文本要求模型优先在回合内调用 `WaitFor` 等待而不是结束回合。等待对被等待任务无副作用：`WaitFor` 不停止任务，用户打断等待时任务继续运行。main 分支（提交 `20a2cea72f5d`，尚未发布）起新消息会提前结束本次等待：终端等待期间按 `Enter`（`Ctrl-S` 同样有效）把消息 steer 进当前轮次，等待开始时已在队列中的消息也会被 steer 进来（队列含 shell 命令或 skill 时整个队列与新输入仍排队到轮次结束），被等待的后台任务继续运行、完成后仍自动通知，TUI 把该状态渲染为 `interrupted`（`Wait interrupted by new input`）。条件：0.35.0 起后台 Agent 事件实时写入活动流，预览窗格展示步骤级进展，不再等待任务结束；全屏详情按步骤分组渲染 Markdown 文本和各工具结果。',
+            '立即返回 task id，终态自动通知主 Agent；回合内等待由 `WaitFor` 承担：调用在当前回合内挂起，等待期间不发起 LLM 请求，超时不是错误、结果列出仍在运行的任务，等待结束时一并列出等待窗口内完成的其他任务，已通过 `WaitFor` 汇报结果的任务不再推送自动完成通知。Goal 模式可用 `WaitFor` 时，注入的指引文本要求模型优先在回合内调用 `WaitFor` 等待而不是结束回合；2.7.2 源码里给 subagent 的同一指引逐字为 “You are running as a subagent: ending your turn is your final hand-off to the parent agent, and completion notifications that arrive after it reach no one. Do not end your turn while a background task whose result you need is still running. Keep waiting for it with WaitFor, calling it again after a timeout if needed, or run the command in the foreground with a suitable timeout instead.”。等待对被等待任务无副作用：`WaitFor` 不停止任务，用户打断等待时任务继续运行。自 2.2.0 起新消息会提前结束本次等待：终端等待期间按 `Enter`（`Ctrl-S` 同样有效）把消息 steer 进当前轮次，等待开始时已在队列中的消息也会被 steer 进来（队列含 shell 命令或 skill 时整个队列与新输入仍排队到轮次结束），被等待的后台任务继续运行、完成后仍自动通知，TUI 把该状态渲染为 `interrupted`（`Wait interrupted by new input`）；2.7.2 中文工具文档已把这套行为写成正式口径，逐字为 “在终端中，Agent 等待期间按 `Enter` 会将消息注入当前轮次，等待开始时已在队列中的消息也会被自动注入。如果队列中有 Shell 命令或 Skill，则不会自动投递，队列和新输入仍排队到轮次结束。”。条件：0.35.0 起后台 Agent 事件实时写入活动流，预览窗格展示步骤级进展，不再等待任务结束；全屏详情按步骤分组渲染 Markdown 文本和各工具结果。',
           scope:
-            '任务状态与输出保存在当前会话目录；后台 Agent 有独立上下文。`WaitFor` 只能等待本 Agent 启动的后台任务，其他 Agent 的任务 ID 不可见。',
+            '任务状态与输出保存在当前会话目录；后台 Agent 有独立上下文。`WaitFor` 只能等待本 Agent 启动的后台任务，其他 Agent 的任务 ID 不可见。会话关闭时默认停止仍在运行的后台任务（`[task] keep_alive_on_exit` 默认 `false`，环境变量文档逐字写 “默认会在退出时停止后台任务”）。',
           background:
-            'Bash 默认 10 分钟、Agent 默认 2 小时；print 模式两者默认无超时，可在配置中调整。',
+            'Bash 与 Agent 两条超时链都由常量、配置节与环境变量三层决定。**Bash**（`packages/agent-core-v2/src/agent/tools/os/bash/bash.ts`，2.7.2 下 2,740 字节）逐字为 `DEFAULT_TIMEOUT_S = 60`、`MAX_TIMEOUT_S = 5 * 60`、`DEFAULT_BACKGROUND_TIMEOUT_S = 10 * 60` 与 `MAX_BACKGROUND_TIMEOUT_S = 24 * 60 * 60`，即前台默认 60 秒／上限 300 秒、后台默认 600 秒／硬上限 86400 秒（24 小时），schema 描述逐字为 “Optional timeout in seconds for the command to execute. Foreground default 60s, max 300s. Background default 600s, max 86400s. Ignored for background commands when disable_timeout=true.”，超限报错逐字为 `timeout must be ≤ <cap>s (background|foreground)`。`bashTool.ts`（25,810 字节）的后台三分支逐字为 `args.disable_timeout ? undefined : args.timeout === undefined ? this.detachTimeoutMs() : normalizeTimeoutMs(args.timeout, true)`，即 `disable_timeout=true` 完全不设超时、未传 `timeout` 走配置、显式传值按后台上限钳制；`detachTimeoutMs()` 取 `resolveAgentTaskConfig(this.config)?.bashTaskTimeoutS`，未配置时回落 `DEFAULT_BACKGROUND_TIMEOUT_S * 1000`。**配置节**自 2.6.0（2026-11-12T09:56:17Z）起改名为 `[task]`、`[background]` 降为 legacy 且两节接受相同字段，`resolveAgentTaskConfig()` 逐字为 `return { ...legacy, ...current };`，即两节都写时 `task` 覆盖 `background`；七个字段为 `keep_alive_on_exit`（默认 `false`）、`kill_grace_period_ms`（默认 `5000`，“任务被请求正常终止后，等待自行结束的宽限时间（毫秒），超时后强制停止”）、`bash_auto_background_on_timeout`（默认 `true`）、`bash_task_timeout_s`（默认 `600`，“`0` 表示无超时，任务运行到自行结束或被手动停止；显式传入的 timeout 不受影响，print 模式默认 0”）、`print_background_mode`（默认 `"steer"`）、`print_wait_ceiling_s`（默认 `2147483`）与 `print_max_turns`（默认 `100000`）。**Agent** 默认 7200000 毫秒（2 小时），源码逐字为 `DEFAULT_SUBAGENT_TIMEOUT_MS = 2 * 60 * 60 * 1000`，`[subagent] timeout_ms` 与 `[swarm] timeout_ms` 各自独立、`0` 表示无超时，超时分别以 `timed_out` 收尾与在聚合报告里标记 `Subagent timed out.`。前台命令超时默认不终止而转后台继续并按后台档重新计时，注入模型的指引逐字为 “A foreground command that hits its timeout is moved to the background instead of being killed, and you are notified when it completes.”，把 `bash_auto_background_on_timeout` 设为 `false` 则换成 “A foreground command that hits its timeout is killed.”。**print 模式**（`kimi -p`）由 `applyPrintModeConfigDefaults()` 把 `task.bashTaskTimeoutS`、`subagent.timeoutMs`、`swarm.timeoutMs` 与 `loopControl.maxStepsPerTurn` 的默认值写进 `ConfigTarget.Memory`，前三个都是 `0`（`PRINT_BASH_TASK_TIMEOUT_S_DEFAULT`／`PRINT_SUBAGENT_TIMEOUT_MS_DEFAULT`／`PRINT_SWARM_TIMEOUT_MS_DEFAULT`），即无超时；用户已显式设置或 legacy `[background]` 里已有用户值时不覆盖。任务被停止或后台超时时采用两阶段终止（SIGTERM → 5 秒宽限期 → SIGKILL）。',
           integration:
             'TUI、Web、SDK 都能显示或轮询任务状态；完整日志路径可交给 Read。实时活动视图只在 TUI 任务浏览器实现（`apps/kimi-code/src/tui/`），Web 与 SDK 未提供。',
           artifacts:
             'TaskOutput 内联最近 32 KB，完整日志落盘；任务修改留在工作目录。活动流仅存内存，会话切换时释放（`clear`），不落盘。',
           conditions:
-            '停止后台任务需要审批；Plan 模式会拦截 TaskStop。条件：`WaitFor` 仅 v2 引擎（agent-core-v2）提供，实验标志 `wait_for` 默认开启，`KIMI_CODE_EXPERIMENTAL_WAIT_FOR=false` 可关闭，随 PR #3060（提交 `8440801de47d`）合入 main 并于 0.38.0 发布；90 秒上限与"新输入结束等待"随 PR #4061（提交 `20a2cea72f5d`，2026-09-29 合入 main，changeset `.changeset/shorter-wait-for.md` 为 minor）合入，晚于最新发布 `@moonshot-ai/kimi-code@2.1.1`（2026-09-24），属于合入 main 尚未发布；实时活动随 PR #2816（提交 `ad12ad8a140d`）于 2026-08-11 合入 main 分支，随 0.35.0（2026-08-12 发布）交付；会话恢复后没有内存活动记录的任务（如 lost 任务）回退到原捕获输出视图，Agent 任务输出仍在终态时一次性捕获。',
+            '停止后台任务需要审批；Plan 模式会拦截 TaskStop。条件：`WaitFor` 仅 v2 引擎（agent-core-v2）提供，实验标志 `wait_for` 默认开启，`KIMI_CODE_EXPERIMENTAL_WAIT_FOR=false` 可关闭，随 PR #3060（提交 `8440801de47d`）合入 main 并于 0.38.0 发布；90 秒上限与“新输入结束等待”随 PR #4061（提交 `20a2cea72f5d`，2026-09-29 合入 main，changeset `.changeset/shorter-wait-for.md` 为 minor）合入，**已于 2.2.0（2026-10-14T15:31:16Z）正式发布**——2.1.1（2026-09-24T07:24:08Z，工具文档 22,020 字节）仍逐字写 “上限 600”，2.2.0（工具文档 22,038 字节）与 2.7.2 逐字写 “上限 90”，GitHub compare 从 `20a2cea72f5d` 到 2.2.0 标签为 `status: ahead`、`ahead_by: 26`、`behind_by: 0`；本仓库此前记录的“合入 main 尚未发布”已作废。实时活动随 PR #2816（提交 `ad12ad8a140d`）于 2026-08-11 合入 main 分支，随 0.35.0（2026-08-12 发布）交付；会话恢复后没有内存活动记录的任务（如 lost 任务）回退到原捕获输出视图，Agent 任务输出仍在终态时一次性捕获。后台任务并发上限键 `max_running_tasks` 与对应环境变量 `KIMI_CODE_BACKGROUND_MAX_RUNNING_TASKS` 已从官方文档消失：配置文档在 2.1.1／2.2.0（各 38,670 字节）、2.3.0（39,707 字节）、2.4.0（41,020 字节）与 2.5.0（47,824 字节）下节标题都是 `## background` 且该键有命中，到 2.6.0（提交 `740d6c0bdd777cd8ed0d91eb3d62766910401173`，48,645 字节）节标题变为 `## task` 且该键命中数为 0，2.7.2 的环境变量文档（23,923 字节）也没有该变量；agent-core-v2 的 `AgentTaskConfigSchema`（3,672 字节）只有七个字段、不含 `maxRunningTasks`，而 node-sdk 的 `BackgroundConfigSchema`（14,771 字节）仍声明 `maxRunningTasks: z.number().int().min(1).optional()` 且根键仍只有 `background`、没有 `task`。因此当前是否还存在后台任务并发上限、以及 SDK 侧写 `[background] max_running_tasks` 是否仍被任何执行路径强制，官方文档没有说明，记为未确认。环境变量与配置节的优先级官方逐字写 “优先级均高于两个配置节”，五个变量为 `KIMI_CODE_BACKGROUND_KEEP_ALIVE_ON_EXIT`、`KIMI_CODE_BACKGROUND_BASH_TASK_TIMEOUT_S`、`KIMI_CODE_BACKGROUND_PRINT_BACKGROUND_MODE`、`KIMI_CODE_BACKGROUND_PRINT_WAIT_CEILING_S` 与 `KIMI_CODE_BACKGROUND_PRINT_MAX_TURNS`，其中 `KIMI_CODE_BACKGROUND_BASH_TASK_TIMEOUT_S` 官方补了一句 “也用于前台命令转入后台后的重新计时”；解析器要求非负／正整数，非法值被忽略而不是报错。',
           sources: [
             'kimi-tools-current',
             'kimi-commands-execution-current',
@@ -642,26 +669,45 @@
             'kimi-wait-for-cap-source',
             'kimi-wait-for-cap-docs',
             'kimi-wait-for-cap-changeset',
+            'kimi-tools-211-waitfor-600s',
+            'kimi-tools-220-waitfor-90s',
+            'kimi-tools-272-background',
+            'kimi-bash-timeout-constants-272',
+            'kimi-bash-tool-timeout-resolution-272',
+            'kimi-task-config-section-doc-272',
+            'kimi-task-config-section-source-272',
+            'kimi-task-print-defaults-source-272',
+            'kimi-subagent-timeout-constant-272',
+            'kimi-env-vars-task-272',
+            'kimi-node-sdk-background-schema-272',
+            'kimi-task-section-rename-260',
           ],
         },
         qoder: {
           entry:
-            '`/tasks` 查看后台任务；模型可用 `TaskOutput` 读取结果、`TaskStop` 停止。',
+            '`/tasks` 查看后台任务；模型可用 `TaskOutput` 读取结果、`TaskStop` 停止。官方 Tools 页把后台入口写成行为口径而不是参数，逐字为 “When later work does not depend on an immediate command result, Qoder CLI can run the shell command in the background and let the main session continue with other work.” 与 “A command explicitly requested in the background becomes a background task regardless of how quickly it exits.”',
           primitives:
-            '内置工具表包含 TaskOutput、TaskStop；后台 Shell 或 Agent 的具体启动参数由当前 CLI 版本暴露。',
+            '内置工具表包含 TaskOutput、TaskStop；后台 Shell 或 Agent 的具体启动参数由当前 CLI 版本暴露。除后台命令外还有事件监视器，官方逐字为 “For continuously changing signals such as logs, deployment status, or test activity, Qoder CLI can start an event monitor. Each complete line written by the monitor command becomes an event for the main session.”',
           behavior:
-            '后台工作不阻塞主会话，可从任务界面查看状态和输出。',
+            '后台工作不阻塞主会话，可从任务界面查看状态和输出；流程图官方逐字为 “Background task starts -> Main session continues -> Completion returns -> Main session handles the result”，完成、失败或需要关注时结果自动回到所属会话，不需要反复询问或轮询。CLI 0.2.9（May 8, 2026）起前台长命令超时会自动转后台并在完成时通知，更新日志逐字为 “Long-running Bash commands now auto-background with completion notification when they exceed the timeout”。CLI 1.1.94（November 20, 2026）起后台 Bash 命令默认带 10 分钟超时，更新日志逐字为 “Background Bash commands now default to a 10-minute timeout”，所在小节标题为 “Stability Fixes and Improved Background Execution Defaults”。',
           scope:
             '任务属于当前本地会话、Worktree Job 或 Cloud session。',
           background:
-            'Shell、Subagent 与远端 Job 都能形成长任务，但三者的生命周期和存储位置不同。',
+            'Shell、Subagent 与远端 Job 都能形成长任务，但三者的生命周期和存储位置不同。后台 Bash 的默认超时自 CLI 1.1.94 起为 10 分钟；设置参考里唯一的 Shell 超时键是 `tools.shell.inactivityTimeout`（number，默认 `300`，Restart No，逐字 “Shell no-output timeout in seconds.”），管的是无输出超时而不是后台命令总时长，两者的关系官方没有说明。CLI 1.0.47（July 16, 2026）“Cleaned up unfinished background tasks when the CLI exits” 说明退出时会清理未完成任务；CLI 1.1.93（November 19, 2026）“Fixed background processes not being reclaimed when a subagent exits” 说明 Subagent 退出时其后台进程应被回收。',
           integration:
-            'TUI 任务面板、Agent SDK 工具输出与 Cloud Web console 分别提供观察入口。',
+            'TUI 任务面板、Agent SDK 工具输出与 Cloud Web console 分别提供观察入口。`/tasks` 官方逐字为 “In TUI, enter `/tasks` to view the status and output of background Shell and Subagent tasks and to stop tasks that are still running.”',
           artifacts:
-            '输出和文件保留在对应执行环境；任务记录可供会话继续读取。',
+            '输出和文件保留在对应执行环境；任务记录可供会话继续读取。后台任务的 `.output` 文件按设置参考的保留策略单独清理，逐字为 “Background task `.output` files continue to be cleaned independently after 7 days.”',
           conditions:
-            'Task 工具可被权限或 Agent 工具列表禁用；Cloud Mode 需要远端环境和账号权限。',
-          sources: ['qoder-commands', 'qoder-tools', 'qoder-using-cli'],
+            'Task 工具可被权限或 Agent 工具列表禁用；Cloud Mode 需要远端环境和账号权限。**CLI 1.1.94 的 10 分钟默认超时只有更新日志一处一手来源，官方文档三页均未同步**：Tools 页（`.md` 9,127 字节）的 “Background Commands and Event Monitoring” 一节没有任何超时数值、也没有 1.1.94 或 10 分钟的表述；设置参考（`.md` 31,752 字节）的 “## tools (Tools)” 一节六个键为 `tools.shell.pager`、`tools.shell.inactivityTimeout`、`tools.core`、`tools.exclude`、`tools.useRipgrep` 与 `tools.disableLLMCorrection`，没有任何后台 Bash 超时键，含 background 字样的只有终端主题相关的 `ui.autoThemeSwitching`、`ui.terminalBackgroundPollingInterval`（默认 60 秒）与 `.output` 文件 7 天清理一句；“Process Tasks in Parallel” 页（`.md` 3,697 字节）仍只把 Background Agents / Tasks 与 Worktree、Subagents 并列为三种隔离方式。据此以下四点记为未确认：1.1.94 之前的后台 Bash 默认超时是多少（整份更新日志只给新值）、这 10 分钟是墙钟总量还是无输出计时、它与 `tools.shell.inactivityTimeout` 的 300 秒如何叠加、以及能否通过设置键或环境变量调整；官方也没有说明该默认是否覆盖后台 Subagent 与事件监视器。同小节的另一条 “Changed the default Subagent execution strategy to run in the background” 属 `agent-background` 字段。相邻的后台稳定性修复时间线为 CLI 1.1.79（October 26, 2026）“Fixed processes hanging when the Bash tool failed to terminate properly”、CLI 1.1.63（September 24, 2026）“Fixed a leak caused by failing to stop Windows background tasks”、CLI 1.1.4（July 23, 2026）“Improved background task control with monitoring, stopping, and clearer status feedback”、CLI 1.0.25（June 22, 2026）“Improved background task notification experience”、CLI 1.0.17（June 10, 2026）“Redesigned the background task details panel with a structured layout and fixed empty output” 与 CLI 0.1.4（October 23, 2025）“Updated /bashes command to display only background tasks”。',
+          sources: [
+            'qoder-commands',
+            'qoder-tools',
+            'qoder-using-cli',
+            'qoder-v1194-bg-bash-timeout-changelog',
+            'qoder-tools-background-20261122',
+            'qoder-settings-shell-timeout-20261122',
+          ],
         },
       },
       related: ['execution-shell', 'agent-background', 'cmd-tasks'],
