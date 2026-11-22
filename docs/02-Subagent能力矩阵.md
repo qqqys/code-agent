@@ -24,7 +24,7 @@
 | 初始上下文 | 父任务传入的任务描述；可预载 Skills；Fork 继承完整对话与提示词缓存（v2.1.232 起交互会话默认开启） | 父任务与委派描述 | 命名 Agent 使用任务提示；Fork 可继承全部或最近若干轮 | 只接收任务提示；实验开关开启后 `fork` 参数可以调用方对话快照启动（v2 引擎，合入 main 尚未发布） | 任务提示，可配置 `initialPrompt` |
 | Fork 会话 | `/fork` 创建独立后台会话 | `/fork` 创建会话副本 | Fork Agent 继承父上下文 | `/fork` 创建副本；fork 后停留原会话 | 未确认 Slash Fork |
 | 结果回传 | 返回父会话 | 返回主线程汇总 | 命名 Agent 返回；Fork 不自动回传给父模型 | 返回父会话 | 返回父会话 |
-| 后台运行 | 默认后台；Fork 模式开启时 Fork 与命名 Subagent 一律后台、Claude 不能请求前台（交互会话 v2.1.232 起，`claude -p`、Agent SDK、桌面端与 VS Code v2.1.302 起） | 官方不区分前后台；并行派生后等全部结果再合并回复 | 顶层命名 Agent 默认后台、经完成通知回传 | `Agent` 的 `run_in_background` 默认 `false`；设 `true` 后立即返回任务 ID、完成时以合成 User 消息回到 main agent | `background` 决定默认后台，需先启用后台 Subagent 会话 |
+| 后台运行 | 默认后台；Fork 模式开启时 Fork 与命名 Subagent 一律后台、Claude 不能请求前台（交互会话 v2.1.232 起，`claude -p`、Agent SDK、桌面端与 VS Code v2.1.302 起） | 官方不区分前后台；并行派生后等全部结果再合并回复 | 顶层命名 Agent 默认后台、经完成通知回传 | `Agent` 的 `run_in_background` 默认 `false`；设 `true` 后立即返回任务 ID、完成时以合成 User 消息回到 main agent | `background` 决定默认后台，需先启用后台 Subagent 会话；条件：CLI 1.1.94（2026-11-20）更新日志把默认执行策略改为后台，但 Subagent 页/设置参考/Parallel Tasks 页未同步、未给启用开关与 `background` 默认值 |
 | 前台运行 | Fork 模式关闭时由 Claude 按需选择；`CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` 与 Agent Team 队友派生一律前台 | 官方不区分前后台 | `run_in_background: false` 改为 inline；外部执行器与调用方自有 `working_dir` 固定前台 | 默认即前台，父 Agent 等待 subagent 完成再继续 | 官方只记录 `background` 为 Boolean、没有给出默认值；启用后台会话的开关未确认 |
 | 恢复 Agent | 支持恢复 | `/agent` 检查和切换线程 | 任务列表与 UI 状态；Fork 独立 | Agent 实例可恢复 | 支持任务与 Agent 管理 |
 | 并行执行 | 支持；单会话默认 20 个并发上限，`CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS` 可改、ultracode 会话豁免 | `max_concurrent_threads_per_session`（官方未公布默认值） | 支持多个命名 Agent；官方文档没有并发 Subagent 上限 | 支持；`AgentSwarm` 至多 128 个 subagent 并等全部完成 | 支持；`QODER_CLI_MAX_CONCURRENT_SUBAGENTS`（CLI 1.1.31 起，未公布默认值） |
