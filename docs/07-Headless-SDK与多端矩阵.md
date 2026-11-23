@@ -2,11 +2,11 @@
 
 [返回文档目录](./README.md) · [网页矩阵](https://qqqys.github.io/code-agent/#surfaces) · [详情目录](./capabilities/surfaces/)
 
-> 核对日期：2026-11-22
+> 核对日期：2026-11-23
 
 | 能力 | Claude Code | Codex | Qwen Code | Kimi Code | Qoder CLI |
 | --- | --- | --- | --- | --- | --- |
-| [Headless 调用](./capabilities/surfaces/surface-headless.md) | `claude -p` | `codex exec` | `qwen -p` | `kimi -p` | `qodercli -p` |
+| [Headless 调用](./capabilities/surfaces/surface-headless.md) | `claude -p` | `codex exec` · 条件：`codex exec --remote <ADDR>` 把非交互回合交给既有 app server 执行、配置与凭据取自服务端（rust-v0.171.0 起，官方文档尚未同步） | `qwen -p` | `kimi -p` | `qodercli -p` |
 | [结构化输出](./capabilities/surfaces/surface-structured-output.md) | `json` · `stream-json` · JSON Schema | `--json` JSONL · `--output-schema` | `json` · `stream-json` · JSON Schema | `stream-json` JSONL | `text` · `json` · `stream-json` |
 | [Agent SDK](./capabilities/surfaces/surface-sdk.md) | Python · TypeScript | TypeScript · Python | `@qwen-code/sdk` TypeScript | 仓库内 TypeScript 包；未公开发布 | TypeScript · Python |
 | [服务端与 Daemon](./capabilities/surfaces/surface-service.md) | 后台会话 supervisor（`claude daemon status\|logs\|run\|stop --any`）· Agent SDK · Remote Control 服务 | `codex app-server` · `mcp-server` · 本地后台 daemon（`app-server daemon start\|restart\|update\|stop` · TUI `/daemon`） | `qwen serve` HTTP + SSE · `qwen daemon start\|status\|logs\|stop\|restart` | `kimi web` REST + WebSocket | `qodercli --acp` · `remote-control` Daemon |

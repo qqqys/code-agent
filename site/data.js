@@ -1,5 +1,5 @@
 window.matrixData = {
-  updatedAt: '2026-11-22',
+  updatedAt: '2026-11-23',
   products: [
     { id: 'claude', name: 'Claude Code', short: 'Claude' },
     { id: 'codex', name: 'Codex', short: 'Codex' },
@@ -795,6 +795,56 @@ window.matrixData = {
     },
     'codex-noninteractive': {
       label: 'Codex Non-interactive mode',
+      url: 'https://learn.chatgpt.com/docs/non-interactive-mode',
+    },
+    'codex-exec-remote-pr': {
+      label:
+        'Codex PR #61707（标题 “Support remote app servers in `codex exec`”，2026-11-16 合入，合并提交 `e51c551fb406486afb7ef5c3d43387f1be3c09e8`，9 个文件改动：新增 `codex-rs/exec/src/remote.rs` +148 行，`codex-rs/cli/src/main.rs` +10/−5，`codex-rs/exec/src/cli.rs` +18，`codex-rs/exec/src/lib.rs` +12，`codex-rs/cli/tests/queue.rs` +76/−2，事件处理器三个文件与帮助快照测试 +11）：PR 说明逐字为 “Allow `codex exec --remote <ADDR>` to run a noninteractive turn using an existing app server\'s configuration and credentials. Support starting a new thread or resuming one by UUID, with human-readable or JSON output and optional bearer-token authentication through `--remote-auth-token-env`.” 与 “Accept remote options before or after `exec`, and reject conflicting endpoints. Reject unsupported agent configuration overrides and active threads, and report an error if the server disconnects before the turn completes.”',
+      url: 'https://github.com/openai/codex/pull/61707',
+    },
+    'codex-exec-remote-commit': {
+      label:
+        'Codex 合并提交 `e51c551fb406486afb7ef5c3d43387f1be3c09e8`（2026-11-15T23:39:49Z 作者时间、2026-11-16T00:02:00Z 提交时间，内部 RevId `d4c3b16fb80eb6e8c523aff92110eaa878cbd3ee`，patch 18,419 字节）：`EventProcessor` trait 新增 `fn print_thread_started(&mut self, thread_id: &str);`，人类可读输出实现逐字为 `eprintln!("thread id: {thread_id}")`、JSONL 输出实现发出带 `thread_id` 的 `ThreadEvent::ThreadStarted` 事件；`exec_args_tests.rs` 的帮助文本快照逐字为 “--remote <ADDR> / Connect to an existing app server”；`cli/tests/queue.rs` 的远程测试断言人类可读输出 stderr 含以 “thread id: ” 开头的头行、JSONL 事件流含 `turn.completed`、新建线程的 `thread_id` 与被恢复线程不同、resume 后线程共有 2 个 turns，端点冲突时 stderr 含 “conflicting remote server endpoints”',
+      url: 'https://github.com/openai/codex/commit/e51c551fb406486afb7ef5c3d43387f1be3c09e8',
+    },
+    'codex-exec-remote-cli-source': {
+      label:
+        'Codex `codex-rs/exec/src/cli.rs`（固定到 rust-v0.171.0 标签提交 `ccf9be8cc458bd6b8336fe84d68d8893f2691a5e`，11,470 字节）：`--remote` 与 `--remote-auth-token-env` 直接定义在 exec 的顶层 `Cli` 结构上并且都是 `global = true`（因此可写在 `exec` 之前或之后），doc comment 逐字分别为 “Connect to an existing app server.” 与 “Environment variable containing the remote WebSocket bearer token.”，`value_name` 分别是 `ADDR` 与 `ENV_VAR`；`override_usage` 为 “codex exec [OPTIONS] [PROMPT]\\n       codex exec [OPTIONS] <COMMAND> [ARGS]”；该文件内没有这两个旗标的冲突或校验逻辑（`conflicts_with_all` 只出现在 `ReviewArgs`）',
+      url: 'https://github.com/openai/codex/blob/ccf9be8cc458bd6b8336fe84d68d8893f2691a5e/codex-rs/exec/src/cli.rs',
+    },
+    'codex-exec-remote-lib-dispatch': {
+      label:
+        'Codex `codex-rs/exec/src/lib.rs`（固定到 rust-v0.171.0 提交 `ccf9be8cc458bd6b8336fe84d68d8893f2691a5e`，97,496 字节）：`run_main` 开头逐字为 `if let Some(endpoint) = codex_app_server_client::resolve_remote_endpoint(cli.remote.clone(), cli.remote_auth_token_env.clone())? { return remote::run(cli, endpoint).await; }`，即带 `--remote` 时整个非交互运行改走远程分支；本地路径的 `Cli` 解构以 `remote: _`、`remote_auth_token_env: _` 丢弃这两个字段',
+      url: 'https://github.com/openai/codex/blob/ccf9be8cc458bd6b8336fe84d68d8893f2691a5e/codex-rs/exec/src/lib.rs',
+    },
+    'codex-exec-remote-run-source': {
+      label:
+        'Codex `codex-rs/exec/src/remote.rs`（固定到 rust-v0.171.0 提交 `ccf9be8cc458bd6b8336fe84d68d8893f2691a5e`，5,479 字节）：文件头注释逐字为 “Execute a noninteractive turn on an existing app server, using its configuration and credentials.”；入口 `anyhow::ensure!` 一次拒绝 21 项本地覆盖——`--trust`、`--ignore-user-config`、`--ignore-rules`、`strict_config`、`--ephemeral`、`--thread-source`、`--cyber-access-program`、`--output-schema`、`-c` 配置覆盖（`raw_overrides` 非空）、`--image`、`--model`、`--oss`、`--local-provider`、config profile v2、`--sandbox`、`--approve-for-me`、`--dangerously-bypass-approvals-and-sandbox`、`--dangerously-bypass-hook-trust`、`--cd`、`--worktree`、`--add-dir`——违反时报 “--remote currently supports only prompt, resume by UUID, and output options; configure the agent on the server”；不带子命令时发 `ThreadStart`（`approval_policy: Some(AskForApproval::Never)`）新建线程；`exec resume` 要求 `!args.last && !args.all && args.images.is_empty()` 且 `session_id` 能按 UUID 解析，否则报 “remote resume requires a thread UUID”，`ThreadResume` 带 `exclude_turns: true`；其他子命令报 “--remote supports exec and exec resume”；线程状态为 `ThreadStatus::Active` 时报 “remote thread already has an active turn”；随后 `processor.print_thread_started(&thread.id)` 并发 `TurnStart`（`turn_trigger: Some("exec")`、`approval_policy: Some(AskForApproval::Never)`、输入只有一条 `UserInput::Text`），回合收尾走 `finish_turn` 并携带 Ctrl+C 中断通道；连接参数为 `client_name: "codex_exec"`、`required_human_approval: false`、`experimental_api: true`；可用的输出选项是 `--json`、`--color` 与 `--output-last-message`（`BoundOutput::open`），线程的 `ephemeral` 与 `history_mode` 由服务端返回',
+      url: 'https://github.com/openai/codex/blob/ccf9be8cc458bd6b8336fe84d68d8893f2691a5e/codex-rs/exec/src/remote.rs',
+    },
+    'codex-remote-addr-source': {
+      label:
+        'Codex `codex-rs/app-server-client/src/remote_addr.rs`（固定到 rust-v0.171.0 提交 `ccf9be8cc458bd6b8336fe84d68d8893f2691a5e`，4,782 字节）：`resolve_remote_addr` 只接受四种形式——`unix://`（空路径）经 `find_codex_home()` 与 `app_server_control_socket_path()` 解析为 CODEX_HOME 下的默认控制 socket（解析失败报 “failed to resolve CODEX_HOME”）、`unix://PATH` 相对当前目录解析为绝对路径、`ws://host:port` 与 `wss://host:port` 要求有 host、显式端口（含显式默认端口 80/443）、路径恰为 `/` 且无 query 与 fragment，其余一律报 “invalid remote address `{addr}`; expected `ws://host:port`, `wss://host:port`, `unix://`, or `unix://PATH`”；`resolve_remote_endpoint` 在给了 `--remote-auth-token-env` 而没有 `--remote` 时报 “`--remote-auth-token-env` requires `--remote`.”，端点是 Unix socket 或非 `wss://`、非回环 `ws://` 的 WebSocket 时报 “`--remote-auth-token-env` requires a `wss://` or loopback `ws://` remote.”，token 按环境变量名读取并 trim，未设置报 “environment variable `{env_var_name}` is not set”、trim 后为空报 “environment variable `{env_var_name}` is empty”',
+      url: 'https://github.com/openai/codex/blob/ccf9be8cc458bd6b8336fe84d68d8893f2691a5e/codex-rs/app-server-client/src/remote_addr.rs',
+    },
+    'codex-app-server-client-remote-source': {
+      label:
+        'Codex `codex-rs/app-server-client/src/remote.rs`（固定到 rust-v0.171.0 提交 `ccf9be8cc458bd6b8336fe84d68d8893f2691a5e`，45,434 字节）：`RemoteAppServerEndpoint` 分 `WebSocket { websocket_url, auth_token }` 与 `UnixSocket { socket_path }` 两种；Bearer token 只在 `wss://` 任意主机或 `ws://` 回环主机（`localhost` 大小写不敏感、IPv4 与 IPv6 loopback）时允许，允许时握手请求加 `Authorization: Bearer <token>` 头、头值非法报 “invalid remote authorization header value: {err}”，不允许时报 “remote auth tokens require `wss://` or loopback `ws://` URLs; got `{websocket_url}`”；UDS 上的 WebSocket 握手固定用 URL “ws://localhost/rpc”；连接与 initialize 超时各 10 秒（`CONNECT_TIMEOUT`、`INITIALIZE_TIMEOUT`）、WebSocket 消息与帧上限 `128 << 20`（128 MiB）、请求总带 zstd 压缩头；断开与传输类错误逐字为 “remote app server at `{endpoint}` disconnected: {reason}”、“remote app server at `{endpoint}` transport failed: {err}”、“remote app server at `{endpoint}` closed the connection” 与 initialize 阶段的同型文案',
+      url: 'https://github.com/openai/codex/blob/ccf9be8cc458bd6b8336fe84d68d8893f2691a5e/codex-rs/app-server-client/src/remote.rs',
+    },
+    'codex-main-exec-remote-merge': {
+      label:
+        'Codex `codex-rs/cli/src/main.rs`（固定到 rust-v0.171.0 提交 `ccf9be8cc458bd6b8336fe84d68d8893f2691a5e`，181,740 字节）：`Subcommand::Exec` 分支在根级（`codex --remote … exec`）与 exec 级两处都给了端点且取值不同时逐字报 “`codex exec` received conflicting remote server endpoints”，随后 `exec_cli.remote = exec_cli.remote.or(root_remote)`、token 环境变量同理合并，并继承根级 `-c` 配置覆盖与 `strict_config` 后进入 `codex_exec::run_main`；交互侧 `InteractiveRemoteOptions` 的 `--remote` doc comment 逐字为 “Connect the TUI to a remote app server endpoint. Accepted forms: `ws://host:port`, `wss://host:port`, `unix://`, or `unix://PATH`.”，`--remote-auth-token-env` 为 “Name of the environment variable containing the bearer token to send to a remote app server websocket.”；不支持远程模式的子命令仍经 `reject_remote_mode_for_subcommand` 报 “`--remote {remote}` is only supported for interactive TUI commands, not `codex {subcommand}`” 与 “`--remote-auth-token-env` is only supported for interactive TUI commands, not `codex {subcommand}`”；`Subcommand` 枚举里 `Exec` 的描述是 “Run Codex non-interactively.”（别名 `e`），另有独立的 `ExecServer`（“[EXPERIMENTAL] Run the standalone exec-server service.”）与 `exec --remote` 无关',
+      url: 'https://github.com/openai/codex/blob/ccf9be8cc458bd6b8336fe84d68d8893f2691a5e/codex-rs/cli/src/main.rs',
+    },
+    'codex-cli-reference-remote-row': {
+      label:
+        'Codex 官方 CLI 命令参考（`https://learn.chatgpt.com/docs/cli/reference` 的 `.md` 变体，2026-11-23 核对，56,114 字节）：`globalFlagOptions` 的 `--remote` 行逐字为 “Connect to a remote app-server endpoint over WebSocket or a Unix socket. Supported for `codex`, `codex agents`, `codex queue`, `codex resume`, `codex fork`, `codex archive`, `codex delete`, and `codex unarchive`; other subcommands reject remote mode.”，`--remote-auth-token-env` 行逐字为 “Read a bearer token from this environment variable and send it when connecting with `--remote`. Requires `--remote`; tokens are only sent over `wss://` URLs or local-only `ws://` URLs.”；`codex exec` 的旗标表（`execOptions`）没有 `--remote` 也没有 `--remote-auth-token-env`，即该页尚未同步 rust-v0.171.0 起 `exec` 也支持远程模式，“other subcommands reject remote mode” 与已发布行为不一致；`### codex (interactive)` 一节另逐字为 “Use `--remote ws://host:port` or `--remote wss://host:port` to connect the TUI to an app server started with `codex app-server --listen ws://IP:PORT`. For a local Unix socket, use `--remote unix://` for the default socket or `--remote unix://PATH` for an explicit path.”，`--no-daemon` 行写 “Run the interactive CLI without the shared background server. Can\'t be combined with `--remote` or `codex agents`.”',
+      url: 'https://learn.chatgpt.com/docs/cli/reference',
+    },
+    'codex-noninteractive-remote-gap': {
+      label:
+        'Codex 官方 Non-interactive mode 页（2026-11-23 核对，HTML 464,282 字节）：全页没有 `codex exec --remote` 或 `--remote-auth-token-env` 条目，`codex exec` 的旗标清单仍为 `--ephemeral`、`--sandbox`、`--approve-for-me`、`--trust`、`--ignore-user-config`、`--ignore-rules`、`--json`、`-o/--output-last-message`、`--output-schema`、`--skip-git-repo-check`、`-`（stdin 哨兵）与 `resume` 子命令（`--last` 或 `<SESSION_ID>`）等；全页唯一涉及 remote 的句子逐字为 “You can use `CODEX_API_KEY` with `codex exec`, `codex review`, the TypeScript SDK, and `codex exec-server --remote`.”，其中 `exec-server` 是 rust-v0.171.0 `main.rs` 枚举里独立的 “[EXPERIMENTAL] Run the standalone exec-server service” 子命令、与 `codex exec --remote` 无关，即官方非交互文档尚未同步该能力',
       url: 'https://learn.chatgpt.com/docs/non-interactive-mode',
     },
     'codex-sdk': {
@@ -7059,7 +7109,7 @@ window.matrixData = {
       category: 'surfaces',
       capability: 'Headless 调用',
       description: '从脚本或 CI 中非交互运行任务。',
-      values: { claude: '`claude -p`', codex: '`codex exec`', qwen: '`qwen -p`', kimi: '`kimi -p`', qoder: '`qodercli -p`' },
+      values: { claude: '`claude -p`', codex: '`codex exec` · 条件：`codex exec --remote <ADDR>` 把非交互回合交给既有 app server 执行、配置与凭据取自服务端（rust-v0.171.0 起，官方文档尚未同步）', qwen: '`qwen -p`', kimi: '`kimi -p`', qoder: '`qodercli -p`' },
     },
     {
       id: 'surface-structured-output',
