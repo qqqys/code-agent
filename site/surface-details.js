@@ -99,6 +99,7 @@
         '五家都提供专门的非交互入口，不需要模拟 TUI 键盘输入。',
         'Claude Code、Codex、Qwen Code 和 Qoder CLI 可在非交互入口恢复已有会话；Kimi Code 可组合会话恢复参数与单次 prompt。',
         '非交互模式不能假设有人回答权限提示：各家通过只读默认、auto 模式、显式工具规则或流式双向协议处理这一边界。',
+        'Codex 自 rust-v0.171.0 起可用 `codex exec --remote <ADDR>` 把非交互回合交给既有 app server 执行，配置与凭据取自服务端；其余四家的非交互入口都在调用进程本机执行。',
       ],
       products: {
         claude: {
@@ -122,22 +123,22 @@
         },
         codex: {
           entry:
-            '`codex exec "<task>"`；stdin 可作为额外上下文，`codex exec resume` 继续既有线程。',
+            '`codex exec "<task>"`；stdin 可作为额外上下文，`codex exec resume` 继续既有线程。rust-v0.171.0（2026-11-20 发布）起另有 `codex exec --remote <ADDR>`：把非交互回合交给一个既有 app server（如 `codex app-server --listen ws://IP:PORT` 监听的端点，或 `unix://` 指向的本地后台 daemon）启动或恢复线程；`--remote` 与 `--remote-auth-token-env` 在 exec 上是 `global = true` 的旗标，可写在 `exec` 之前或之后，两处都写且端点不同时报 “`codex exec` received conflicting remote server endpoints”。',
           protocol:
-            '默认把进度写入 stderr、最终消息写入 stdout；`--json` 把 stdout 改为 JSONL 事件流。',
+            '默认把进度写入 stderr、最终消息写入 stdout；`--json` 把 stdout 改为 JSONL 事件流。远程模式先在 stderr 打印一行 `thread id: <UUID>`（JSONL 则发出带 `thread_id` 的 `ThreadStarted` 事件），`--output-last-message` 与 `--color` 在远程模式仍可用。',
           behavior:
-            '在没有 TUI 的情况下运行完整任务；`--ephemeral` 不把 rollout 会话写入磁盘。',
+            '在没有 TUI 的情况下运行完整任务；`--ephemeral` 不把 rollout 会话写入磁盘。远程模式按源码头注释 “Execute a noninteractive turn on an existing app server, using its configuration and credentials.” 执行：客户端名为 `codex_exec`，只支持 prompt、按 UUID 恢复与输出选项，携带 `--model`、`--sandbox`、`--cd`、`--worktree`、`--image`、`--output-schema`、`-c` 配置覆盖、`--ephemeral`、`--trust`、`--yolo` 等 21 项本地覆盖会被拒绝并报 “--remote currently supports only prompt, resume by UUID, and output options; configure the agent on the server”，`exec` 与 `exec resume` 之外的子命令报 “--remote supports exec and exec resume”。',
           state:
-            '默认持久化线程，可按 ID 恢复；`--ephemeral` 只保留本次进程生命周期。',
+            '默认持久化线程，可按 ID 恢复；`--ephemeral` 只保留本次进程生命周期。远程 resume 只接受线程 UUID（`--last`、`--all` 与图片被拒，报 “remote resume requires a thread UUID”），`ThreadResume` 带 `exclude_turns: true`；目标线程仍有活动回合时报 “remote thread already has an active turn” 拒绝启动；线程的 `ephemeral` 与 `history_mode` 由服务端返回。',
           tools:
-            '复用本地 Codex 工具、MCP、规则与项目配置；必需 MCP Server 初始化失败会让任务直接失败。',
+            '复用本地 Codex 工具、MCP、规则与项目配置；必需 MCP Server 初始化失败会让任务直接失败。远程模式下模型、沙箱、MCP 等 agent 配置由 app server 一侧决定（“configure the agent on the server”），发起端不加载本地覆盖。',
           auth:
-            '复用 Codex CLI 登录或 API 凭据；自动化环境应在启动前注入凭据。',
+            '复用 Codex CLI 登录或 API 凭据；自动化环境应在启动前注入凭据。远程模式使用 app server 自己的凭据；`--remote-auth-token-env <ENV_VAR>` 从指定环境变量读取 WebSocket 握手用的 Bearer token，必须搭配 `--remote`（否则报 “`--remote-auth-token-env` requires `--remote`.”），且只允许 `wss://` 或回环 `ws://` 端点（否则报 “`--remote-auth-token-env` requires a `wss://` or loopback `ws://` remote.”），变量未设置或 trim 后为空直接报错。',
           deployment:
-            '运行在本机或 CI Runner；这不是 Codex Cloud，文件与命令仍发生在调用进程的工作区。',
+            '运行在本机或 CI Runner；这不是 Codex Cloud，文件与命令仍发生在调用进程的工作区。远程模式例外：回合在 app server 所在进程与主机环境执行，文件与命令发生在服务端工作区，而不是发起 `codex exec` 的机器。',
           conditions:
-            '默认是只读沙箱；写入需显式选择 `workspace-write` 等沙箱。`danger-full-access` 只适合外部已隔离环境。',
-          sources: ['codex-noninteractive', 'codex-approvals'],
+            '默认是只读沙箱；写入需显式选择 `workspace-write` 等沙箱。`danger-full-access` 只适合外部已隔离环境。远程模式审批策略固定 `Never` 且 `required_human_approval: false`，不会停下等人批准；`ADDR` 只接受 `ws://host:port`、`wss://host:port`、`unix://`（CODEX_HOME 下默认控制 socket）与 `unix://PATH`（相对路径按当前目录解析），WebSocket URL 必须带显式端口、路径为 `/` 且无 query 与 fragment；连接与 initialize 超时各 10 秒、WebSocket 消息上限 128 MiB，Ctrl+C 经中断通道传给当前回合。官方 CLI 参考与 Non-interactive mode 页到 2026-11-23 核对时都未收录 `exec --remote`，CLI 参考的 `--remote` 行仍写 “other subcommands reject remote mode”。',
+          sources: ['codex-noninteractive', 'codex-approvals', 'codex-rc-v0171-release', 'codex-exec-remote-pr', 'codex-exec-remote-commit', 'codex-exec-remote-cli-source', 'codex-exec-remote-lib-dispatch', 'codex-exec-remote-run-source', 'codex-remote-addr-source', 'codex-app-server-client-remote-source', 'codex-main-exec-remote-merge', 'codex-cli-reference-remote-row', 'codex-noninteractive-remote-gap'],
         },
         qwen: {
           entry:
